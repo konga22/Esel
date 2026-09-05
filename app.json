@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "Esel",
+    "slug": "esel",
+    "scheme": "esel",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "icon": "./assets/esel-app-icon-bg-F9F9FB.png",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/esel-app-icon-bg-F9F9FB.png",
+        "backgroundColor": "#F9F9FB"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/esel-app-icon-bg-F9F9FB.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "오늘의 착장을 촬영하기 위해 카메라를 사용합니다.",
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "직접 고른 착장 사진을 전시하기 위해 사진을 사용합니다.",
+          "cameraPermission": "오늘의 착장을 촬영하기 위해 카메라를 사용합니다.",
+          "microphonePermission": false
+        }
+      ],
+      "expo-status-bar",
+      "expo-image",
+      "expo-font",
+      "expo-asset"
+    ]
+  }
+}

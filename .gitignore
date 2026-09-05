@@ -1,0 +1,16 @@
+node_modules/
+.expo/
+dist/
+.DS_Store
+*.log
+playwright-report/
+test-results/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Reproducible Expo exports; retain hand-authored design prototypes.
+.codex/temp/prototype/20260905-esel-gallery/src/
+.codex/temp/prototype/20260905-esel-gallery/native-bundles/
