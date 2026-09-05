@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "project": "Esel",
+  "language": "ko",
+  "designStatus": "proposal-awaiting-user-review",
+  "updatedAt": "2026-09-06",
+  "entrypoints": ["AGENTS.md", "docs/ESEL_HARNESS.md", "CLAUDE.md"],
+  "activePrototype": {
+    "root": ".codex/temp/prototype/20260906-minimal-gallery",
+    "source": ".codex/temp/prototype/20260906-minimal-gallery/src",
+    "styles": ".codex/temp/prototype/20260906-minimal-gallery/src/styles.css",
+    "review": ".codex/temp/prototype/20260906-minimal-gallery/prototype.md",
+    "url": "http://localhost:4177/",
+    "port": 4177,
+    "scenarios": ["standard", "rare", "random"],
+    "screens": ["today", "feed", "profile", "compose", "twin"],
+    "stateTests": ".codex/temp/prototype/20260906-minimal-gallery/tests/social-state.test.cjs",
+    "headerTests": ".codex/temp/prototype/20260906-minimal-gallery/tests/header-state.test.cjs"
+  },
+  "nativeApp": {"routes": "app", "source": "src", "status": "separate-expo-prototype-not-design-parity", "devPort": 8081, "previewPort": 4173},
+  "designTokens": {"paper": "#F9F9FB", "ink": "#292A27", "muted": "#71736C", "hairline": "#E0E1DC", "margin": "22px", "touch": "48px"},
+  "commands": {
+    "preview:design": "python3 -m http.server 4177 --bind 127.0.0.1 --directory .codex/temp/prototype/20260906-minimal-gallery/src",
+    "test:design": "node --test .codex/temp/prototype/20260906-minimal-gallery/tests/*.test.cjs",
+    "check:harness": "node scripts/check-harness.mjs"
+  },
+  "keyAssets": ["assets/esel-app-icon-bg-F9F9FB.png", "assets/demo-sources.md", ".codex/temp/prototype/20260906-paint-feed/assets.md"],
+  "productContracts": ["P01", "P02", "P03", "P04", "P05", "P06", "P07", "P08", "P09"],
+  "manualChecks": ["V01", "V02", "V03", "V04", "V05", "V06", "V07", "V08"],
+  "notImplemented": ["real-auth", "server-upload", "persistent-storage", "friend-sync", "daily-rollover", "dedicated-share-card", "generative-ui"],
+  "evidence": [
+    ".codex/temp/prototype/20260906-minimal-gallery/screenshots/before-today.png",
+    ".codex/temp/prototype/20260906-minimal-gallery/screenshots/today-rare.png",
+    ".codex/temp/prototype/20260906-minimal-gallery/screenshots/profile-photos.png",
+    ".codex/temp/prototype/20260906-minimal-gallery/screenshots/profile-colors.png",
+    ".codex/temp/prototype/20260906-minimal-gallery/screenshots/twin-complete.png",
+    ".codex/temp/prototype/20260906-minimal-gallery/screenshots/today-320.png",
+    ".codex/temp/prototype/20260906-minimal-gallery/screenshots/header-floating-320.png"
+  ]
+}
