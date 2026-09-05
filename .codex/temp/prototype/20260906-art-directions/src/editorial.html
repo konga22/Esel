@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#F9F9FB">
+    <title>Esel — 독립 패션지</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="editorial.css">
+    <script src="app.js" defer></script>
+  </head>
+  <body data-variant="editorial" data-color="sage">
+    <div class="app">
+      <header class="editorial-header">
+        <span class="header-date">색의 장면</span>
+        <button class="esel-wordmark" data-view="today" aria-label="Esel 홈">Esel</button>
+        <span class="header-note">색을 입는 일</span>
+      </header>
+
+      <main class="editorial-main">
+        <section class="editorial-screen" data-screen="today" aria-label="오늘의 색">
+          <div class="spread-meta">
+            <h1>오늘의 색</h1>
+            <span>나의 한 장</span>
+          </div>
+
+          <div class="fashion-spread">
+            <div class="spread-color" aria-hidden="true"></div>
+            <figure class="fashion-photo">
+              <img data-color-photo src="assets/green-skirt.jpg" alt="녹색 패턴 블라우스와 흰 치마를 입은 거리의 착장">
+            </figure>
+            <h2 class="spread-title" data-color-english>Sage</h2>
+            <span class="spread-index" data-color-index aria-hidden="true">01</span>
+            <p class="vertical-note">색은 하나, 장면은 저마다.</p>
+            <p class="spread-caption"><span data-color-name>세이지</span><span class="caption-line" aria-hidden="true"></span>오늘을 위한 색</p>
+            <span class="photo-credit">착장 샘플</span>
+          </div>
+
+          <div class="color-contents" role="radiogroup" aria-label="오늘 입고 싶은 색">
+            <button class="color-choice" data-color="sage" role="radio" aria-checked="true" aria-label="세이지 선택">
+              <span class="choice-mark sage-mark" aria-hidden="true"></span><span>세이지</span><span class="choice-index" aria-hidden="true">01</span>
+            </button>
+            <button class="color-choice" data-color="butter" role="radio" aria-checked="false" aria-label="버터 선택">
+              <span class="choice-mark butter-mark" aria-hidden="true"></span><span>버터</span><span class="choice-index" aria-hidden="true">02</span>
+            </button>
+            <button class="color-choice" data-color="powder-blue" role="radio" aria-checked="false" aria-label="파우더 블루 선택">
+              <span class="choice-mark blue-mark" aria-hidden="true"></span><span>파우더 블루</span><span class="choice-index" aria-hidden="true">03</span>
+            </button>
+          </div>
+
+          <div class="record-row">
+            <p>오늘의 색을,<br>나만의 장면으로.</p>
+            <button class="record-link" data-action="record">이 색으로 기록 <span aria-hidden="true">↗</span></button>
+          </div>
+        </section>
+
+        <section class="editorial-screen exhibition-screen" data-screen="exhibition" aria-label="전시" hidden>
+          <div class="spread-meta"><h1>우리의 전시</h1><span data-record-status>샘플 전시</span></div>
+          <div class="exhibition-heading"><h2>색에서 시작된<br>각자의 장면.</h2><span class="exhibition-number">01</span></div>
+          <figure class="exhibition-figure">
+            <div class="exhibition-color" aria-hidden="true"></div>
+            <img data-color-photo src="assets/green-skirt.jpg" alt="녹색 패턴 블라우스와 흰 치마를 입은 거리의 착장">
+            <figcaption><span data-record-caption>오늘의 색으로 만든 한 장면.</span><span>01</span></figcaption>
+          </figure>
+          <p class="exhibition-note">같은 색이 만나, 다른 이야기가 되는 곳.</p>
+        </section>
+      </main>
+
+      <nav class="editorial-footer" aria-label="주요 화면">
+        <button data-view="today" aria-current="page">오늘의 색</button>
+        <span class="footer-issue" aria-hidden="true">E.</span>
+        <button data-view="exhibition">전시 보기 <span aria-hidden="true">↗</span></button>
+      </nav>
+    </div>
+  </body>
+</html>

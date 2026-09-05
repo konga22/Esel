@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Esel — 두 가지 전시 방식</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body data-compare>
+  <main class="review-layout">
+    <section class="review-copy">
+      <p class="review-kicker">Esel / 시각 실험</p>
+      <h1>앱보다,<br>한 장의 전시물.</h1>
+      <p class="review-lead">여백의 양이 아니라<br>색·사진·글자를 놓는 방식을 바꿉니다.</p>
+      <div class="direction-picker" role="tablist" aria-label="디자인 시안">
+        <button role="tab" aria-selected="true" data-direction="specimen" aria-controls="design-preview"><span>01</span>색의 표본실</button>
+        <button role="tab" aria-selected="false" data-direction="editorial" aria-controls="design-preview"><span>02</span>독립 패션지</button>
+      </div>
+      <p id="direction-note" class="direction-note">색 하나를 표본처럼. 큰 색면과 어긋난 주석, 여백을 가로지르는 색 이름.</p>
+      <p class="review-small">색 선택 → 샘플 코디 기록 → 전시를 눌러볼 수 있어요.<br>사진과 기록은 데모이며 외부로 전송하지 않습니다.</p>
+      <a class="original-link" href="http://localhost:4173/" target="_blank" rel="noopener">기존 앱 보기 ↗</a>
+    </section>
+    <section class="review-stage" aria-label="휴대전화 크기 미리보기">
+      <div class="device-frame"><iframe id="design-preview" title="색의 표본실 미리보기" src="specimen.html?device=mock"></iframe></div>
+      <p class="device-caption">노치·상태바는 배치 확인용 모의 표시입니다.</p>
+    </section>
+  </main>
+</body>
+</html>
