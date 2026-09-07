@@ -7,6 +7,9 @@
   <title>Esel — 사진과 색</title>
   <link rel="stylesheet" href="styles.css">
   <script src="social-state.js" defer></script>
+  <script src="feed-order.js" defer></script>
+  <script src="twin-sharing.js" defer></script>
+  <script src="face-paint.js" defer></script>
   <script src="app.js" defer></script>
   <script src="header-state.js" defer></script>
   <script src="scroll-ui.js" defer></script>
@@ -25,11 +28,11 @@
     </main>
     <main class="screen feed" data-screen="feed" aria-label="착장 피드" hidden>
       <div class="feed-filters" role="group" aria-label="피드 범위">
-        <button data-filter="other" aria-pressed="true">다른 색</button>
+        <button data-filter="all" aria-pressed="true">전체</button>
         <button data-filter="same" aria-pressed="false">같은 색</button>
-        <button data-filter="past" aria-pressed="false">지난 전시</button>
       </div>
       <div id="post-list"></div>
+      <button id="feed-more" class="quiet-action" data-action="more-posts">더 보기</button>
     </main>
     <main class="screen profile" data-screen="profile" aria-label="내 전시" hidden><div id="profile-content"></div></main>
     <main class="screen secondary" data-screen="compose" aria-label="착장 남기기" hidden>
@@ -49,6 +52,8 @@
     <div class="home-space" aria-hidden="true"><span></span></div>
   </div>
 
+  <dialog id="publication-dialog" aria-labelledby="publication-title"><button class="dialog-close" data-close aria-label="공개 설정 닫기">×</button><h2 id="publication-title">피드에 공개</h2><div id="publication-content"></div></dialog>
+  <dialog id="member-dialog" aria-labelledby="member-title"><button class="dialog-close" data-close aria-label="프로필 닫기">×</button><h2 id="member-title"></h2><div id="member-content"></div></dialog>
   <dialog id="color-dialog" aria-labelledby="color-title"><button class="dialog-close" data-close aria-label="색 정보 닫기">×</button><h2 id="color-title"></h2><div id="color-preview"></div></dialog>
   <dialog id="share-dialog" aria-labelledby="share-title"><button class="dialog-close" data-close aria-label="공유 닫기">×</button><h2 id="share-title">공유</h2><label class="fine-print" for="share-link">이 컴퓨터에서만 열리는 데모 링크</label><input id="share-link" readonly><button class="text-action" data-action="copy-share">링크 복사 <span>↗</span></button></dialog>
   <dialog id="restore-dialog" aria-labelledby="restore-title"><button class="dialog-close" data-close aria-label="기록 관리 닫기">×</button><h2 id="restore-title">기록 관리</h2><div id="restore-content"></div></dialog>
