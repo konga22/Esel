@@ -45,18 +45,18 @@
         { date: '2026-09-05', paletteId: 'sage', kind: 'posted' },
       ],
       restoreCredits: 2,
-      twin: { status: 'none', friendPosted: false, friendPhoto: null, paletteId: null },
+      twin: { status: 'none', proposalId: null, paletteId: null, ownPost: null, friendPost: null },
     };
   }
 
   function canChoose(state) {
-    return !state.confirmed && !state.post && state.twin.status !== 'paired';
+    return !state.confirmed && !state.post;
   }
 
   function choose(state, paletteId) {
     assertPalette(state, paletteId);
     if (!canChoose(state)) {
-      throw new Error('팔레트를 확정하거나 게시하거나 트윈으로 연결한 뒤에는 오늘의 팔레트를 바꿀 수 없어요.');
+      throw new Error('팔레트를 확정하거나 게시한 뒤에는 오늘의 팔레트를 바꿀 수 없어요.');
     }
     return { ...state, selected: paletteId };
   }
@@ -69,9 +69,6 @@
   function publish(state, photo) {
     if (state.post) throw new Error('오늘의 사진을 이미 게시했어요.');
     assertPalette(state, state.selected);
-    if (state.twin.status === 'paired' && state.selected !== state.twin.paletteId) {
-      throw new Error('트윈과 같은 팔레트로 게시해 주세요.');
-    }
     const post = { date: TODAY, paletteId: state.selected, photo: copyPhoto(photo) };
     const history = [
       ...state.history.filter((entry) => entry.date !== TODAY),
@@ -107,45 +104,62 @@
 
   function invite(state) {
     if (state.twin.status !== 'none') throw new Error('이미 진행 중인 트윈 초대가 있어요.');
-    assertPalette(state, state.selected);
     return {
       ...state,
-      twin: { ...state.twin, status: 'invited', paletteId: state.selected },
+      twin: { ...state.twin, status: 'invited' },
     };
   }
 
-  function acceptTwin(state) {
+  function acceptTwin(state, random = Math.random) {
     if (state.twin.status !== 'invited') throw new Error('먼저 친구에게 트윈 초대를 보내 주세요.');
-    if (state.confirmed && state.selected !== state.twin.paletteId) {
-      throw new Error('오늘 확정한 팔레트와 초대한 팔레트가 달라 연결할 수 없어요.');
-    }
-    if (state.post && state.post.paletteId !== state.twin.paletteId) {
-      throw new Error('오늘 게시한 팔레트와 초대한 팔레트가 달라 연결할 수 없어요.');
-    }
-    assertPalette(state, state.twin.paletteId);
+    const pool=['sage','butter','blue','coral','violet'];
+    for(let i=pool.length-1;i>0;i--){const value=random();if(!Number.isFinite(value)||value<0||value>=1)throw new Error('올바른 추첨값이 필요해요.');const j=Math.floor(value*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+    const recommendations={own:[pool[0],pool[1],pool[2]],friend:[pool[0],pool[3],pool[4]]};
     return {
       ...state,
-      selected: state.twin.paletteId,
-      confirmed: true,
-      twin: { ...state.twin, status: 'paired' },
+      twin: { ...state.twin, status: 'paired', sharedId:pool[0], recommendations },
     };
+  }
+
+  function proposeTwinColor(state, paletteId) {
+    if (!['paired', 'proposed'].includes(state.twin.status)) throw new Error('친구 참여 후, 색 확정 전에 제안할 수 있어요.');
+    if (!state.twin.recommendations.own.includes(paletteId)) throw new Error('나에게 추천된 색 하나를 골라 주세요.');
+    return { ...state, twin: { ...state.twin, status: 'proposed', proposalId: paletteId } };
+  }
+
+  function approveTwinColor(state, friendColor = state.twin.sharedId) {
+    if (state.twin.status !== 'proposed') throw new Error('먼저 내 색을 선택해 주세요.');
+    if (!state.twin.recommendations.friend.includes(friendColor)) throw new Error('친구에게 추천된 색을 골라 주세요.');
+    return { ...state, twin: { ...state.twin, status: 'ready', paletteId: state.twin.proposalId, friendPaletteId:friendColor, proposalId: null } };
+  }
+
+  function declineTwinColor(state) {
+    if (state.twin.status !== 'proposed') throw new Error('검토할 공통색 제안이 없어요.');
+    return { ...state, twin: { ...state.twin, status: 'paired', proposalId: null } };
+  }
+
+  function publishTwin(state, photo) {
+    if (state.twin.status !== 'ready') throw new Error('공통색을 함께 확정한 뒤 게시해 주세요.');
+    if (state.twin.ownPost) throw new Error('트윈 사진을 이미 게시했어요.');
+    return { ...state, twin: { ...state.twin, ownPost: { date: TODAY, paletteId: state.twin.paletteId, photo: copyPhoto(photo) } } };
   }
 
   function simulateFriendPost(state, photo) {
-    if (state.twin.status !== 'paired') throw new Error('트윈 연결을 먼저 완료해 주세요.');
+    if (state.twin.status !== 'ready') throw new Error('공통색을 함께 확정한 뒤 게시해 주세요.');
+    if (state.twin.friendPost) throw new Error('친구가 트윈 사진을 이미 게시했어요.');
     return {
       ...state,
-      twin: { ...state.twin, friendPosted: true, friendPhoto: copyPhoto(photo) },
+      twin: { ...state.twin, friendPost: { date: TODAY, paletteId: state.twin.friendPaletteId, photo: copyPhoto(photo) } },
     };
   }
 
   function twinVisible(state) {
     return Boolean(
-      state.twin.status === 'paired' &&
-      state.twin.friendPosted &&
-      state.post &&
-      state.post.date === TODAY &&
-      state.post.paletteId === state.twin.paletteId
+      state.twin.status === 'ready' &&
+      ['own','friend'].every(actor => state.twin.recommendations?.[actor]?.includes(actor==='own'?state.twin.paletteId:state.twin.friendPaletteId)) &&
+      [state.twin.ownPost, state.twin.friendPost].every((post,index) =>
+        post && post.photo && typeof post.photo.src === 'string' && post.photo.src.trim() &&
+        post.date === TODAY && post.paletteId === (index===0?state.twin.paletteId:state.twin.friendPaletteId))
     );
   }
 
@@ -157,5 +171,5 @@
     return randomValue < 0.032;
   }
 
-  return { TODAY, MONTH, create, choose, confirm, publish, canView, restore, invite, acceptTwin, simulateFriendPost, twinVisible, canChoose, isRareDraw };
+  return { TODAY, MONTH, create, choose, confirm, publish, canView, restore, invite, acceptTwin, proposeTwinColor, approveTwinColor, declineTwinColor, publishTwin, simulateFriendPost, twinVisible, canChoose, isRareDraw };
 });

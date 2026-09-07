@@ -31,7 +31,7 @@ test('new state has the fixed mock date, four persistent records, and two restor
     ['2026-09-04', 'blue', 'posted'],
     ['2026-09-05', 'sage', 'posted'],
   ]);
-  assert.deepEqual(initial.twin, { status: 'none', friendPosted: false, friendPhoto: null, paletteId: null });
+  assert.deepEqual(initial.twin, { status: 'none', proposalId: null, paletteId: null, ownPost: null, friendPost: null });
 });
 
 test('each new state owns independent seed history and twin objects', () => {
@@ -213,105 +213,130 @@ test('restore validates palette availability and keeps an existing own post unch
   assert.equal(state.canView(restored, { date: state.TODAY, paletteId: 'sage' }), true);
 });
 
-test('invite remembers its palette and acceptance selects and freezes that same palette', () => {
-  const initial = state.create();
-  const invited = state.invite(initial);
-  assert.equal(invited.twin.status, 'invited');
-  assert.equal(invited.twin.paletteId, 'sage');
-  assert.equal(state.canChoose(invited), true);
-  const paired = state.acceptTwin(state.choose(invited, 'blue'));
+const readyTwin = (initial = state.create(), color = 'butter') => state.approveTwinColor(state.proposeTwinColor(state.acceptTwin(state.invite(initial),()=>.999), color));
+
+test('invite and acceptance carry no color and do not lock personal choice', () => {
+  const invited = state.invite(state.create());
+  assert.equal(invited.twin.paletteId, null);
+  assert.equal(invited.twin.proposalId, null);
+  const paired = state.acceptTwin(invited,()=>.999);
   assert.equal(paired.twin.status, 'paired');
-  assert.equal(paired.confirmed, true);
-  assert.equal(paired.selected, 'sage');
-  assert.equal(state.canChoose(paired), false);
-  assert.throws(() => state.choose(paired, 'blue'), /바꿀 수 없어요/);
-  const published = state.publish(paired, photo);
-  assert.equal(published.post.paletteId, published.twin.paletteId);
+  assert.equal(paired.confirmed, false);
+  assert.equal(state.canChoose(paired), true);
+  assert.equal(state.choose(paired, 'blue').selected, 'blue');
 });
 
-test('a posted palette cannot be overwritten by accepting an older different-palette invitation', () => {
-  const invited = state.invite(state.create());
-  const published = state.publish(state.choose(invited, 'blue'), photo);
-  assert.throws(() => state.acceptTwin(published), /팔레트가 달라/);
-  assert.equal(published.selected, 'blue');
-  assert.equal(published.post.paletteId, 'blue');
-});
-
-test('a confirmed palette cannot be overwritten by accepting an older different-palette invitation', () => {
-  const invited = state.invite(state.create());
-  const confirmed = deepFreeze(state.confirm(state.choose(invited, 'blue')));
-  assert.throws(() => state.acceptTwin(confirmed), /확정한 팔레트/);
-  assert.equal(confirmed.selected, 'blue');
-  assert.equal(confirmed.twin.status, 'invited');
-  const matching = state.confirm(state.invite(state.create()));
-  assert.equal(state.acceptTwin(matching).selected, 'sage');
-});
-
-test('pair photos become visible when own photo is first and friend photo arrives second', () => {
-  const paired = state.acceptTwin(state.invite(state.create()));
-  assert.equal(state.twinVisible(paired), false);
-  const ownFirst = state.publish(paired, photo);
-  assert.equal(state.twinVisible(ownFirst), false);
-  const both = state.simulateFriendPost(ownFirst, friendPhoto);
-  assert.equal(state.twinVisible(both), true);
-  assert.deepEqual(both.twin.friendPhoto, friendPhoto);
-  assert.notEqual(both.twin.friendPhoto, friendPhoto);
-  assert.equal(ownFirst.twin.friendPosted, false);
-});
-
-test('pair photos become visible when friend photo is first and own photo arrives second', () => {
-  const paired = state.acceptTwin(state.invite(state.create()));
-  const friendFirst = state.simulateFriendPost(paired, friendPhoto);
-  assert.equal(state.twinVisible(friendFirst), false);
-  assert.equal(state.canView(friendFirst, { date: state.TODAY, paletteId: 'sage' }), false);
-  assert.equal(state.twinVisible(state.publish(friendFirst, photo)), true);
-});
-
-test('restoring after friend posted does not reveal pair photos', () => {
-  const paired = state.acceptTwin(state.invite(state.create()));
-  const friendFirst = state.simulateFriendPost(paired, friendPhoto);
-  const restored = state.restore(friendFirst, '2026-09-03', 'sage');
-  assert.equal(state.twinVisible(restored), false);
-  assert.equal(restored.post, null);
-});
-
-test('pair visibility requires the current day and the paired palette', () => {
-  const paired = state.simulateFriendPost(state.acceptTwin(state.invite(state.create())), friendPhoto);
-  for (const post of [
-    { date: '2026-09-05', paletteId: 'sage', photo },
-    { date: state.TODAY, paletteId: 'blue', photo },
-  ]) {
-    assert.equal(state.twinVisible({ ...paired, post }), false);
+test('proposal requires acceptance and approval requires a proposal', () => {
+  for (const initial of [state.create(), state.invite(state.create())]) {
+    assert.throws(()=>state.proposeTwinColor(initial, 'sage'), /친구 참여/);
+    assert.throws(()=>state.approveTwinColor(initial), /선택|제안/);
+    assert.throws(()=>state.publishTwin(initial, photo), /확정/);
   }
-  assert.equal(state.twinVisible({ ...state.publish(paired, photo), twin: { ...paired.twin, status: 'invited' } }), false);
+  const paired=state.acceptTwin(state.invite(state.create()),()=>.999);
+  assert.throws(()=>state.approveTwinColor(paired), /선택|제안/);
+  for(const color of ['rare','unknown',null]) assert.throws(()=>state.proposeTwinColor(paired,color), /하나/);
+  const proposed=state.proposeTwinColor(paired,'blue');
+  assert.equal(proposed.twin.paletteId,null);
+  assert.throws(()=>state.publishTwin(proposed,photo), /확정/);
+  assert.throws(()=>state.simulateFriendPost(proposed,friendPhoto), /확정/);
+  const ready=state.approveTwinColor(proposed);
+  assert.equal(ready.twin.paletteId,'blue');
+  assert.equal(ready.twin.proposalId,null);
+  assert.throws(()=>state.proposeTwinColor(ready,'sage'), /확정 전에/);
 });
 
-test('invalid twin transitions and empty friend photos are rejected', () => {
-  const initial = state.create();
-  assert.throws(() => state.acceptTwin(initial), /초대/);
-  assert.throws(() => state.simulateFriendPost(initial, friendPhoto), /연결/);
-  const invited = state.invite(initial);
-  assert.throws(() => state.invite(invited), /진행 중/);
-  assert.throws(() => state.simulateFriendPost(invited, friendPhoto), /연결/);
-  const paired = state.acceptTwin(invited);
-  assert.throws(() => state.acceptTwin(paired), /초대/);
-  assert.throws(() => state.invite(paired), /진행 중/);
-  assert.throws(() => state.simulateFriendPost(paired, { src: ' ' }), /사진/);
+test('friend can request another color before agreement', () => {
+  const proposed=state.proposeTwinColor(state.acceptTwin(state.invite(state.create()),()=>.999),'sage');
+  const declined=state.declineTwinColor(proposed);
+  assert.equal(declined.twin.status,'paired');
+  assert.equal(declined.twin.proposalId,null);
+  assert.equal(state.approveTwinColor(state.proposeTwinColor(declined,'blue')).twin.paletteId,'blue');
+  assert.throws(()=>state.declineTwinColor(declined),/선택|제안/);
+});
+
+test('personal confirmed color and existing post survive the full twin flow', () => {
+  for(const initial of [state.confirm(state.choose(state.create(),'blue')),state.publish(state.choose(state.create(),'blue'),photo)]) {
+    const ready=readyTwin(initial,'butter');
+    const both=state.simulateFriendPost(state.publishTwin(ready,photo),friendPhoto);
+    assert.equal(both.selected,'blue');
+    assert.equal(both.confirmed,initial.confirmed);
+    assert.equal(both.post,initial.post);
+    assert.equal(both.history,initial.history);
+    assert.equal(both.restoreCredits,initial.restoreCredits);
+    assert.equal(both.rareEligible,initial.rareEligible);
+    assert.equal(state.twinVisible(both),true);
+  }
+});
+
+test('personal publication cannot count as a twin publication', () => {
+  const ready=readyTwin(state.create(),'sage');
+  const personal=state.publish(ready,photo);
+  const friend=state.simulateFriendPost(personal,friendPhoto);
+  assert.equal(friend.twin.ownPost,null);
+  assert.equal(state.twinVisible(friend),false);
+  assert.equal(state.twinVisible(state.publishTwin(friend,photo)),true);
+});
+
+test('own then friend reveals only twin photos and never personal same-color feed', () => {
+  const ready=readyTwin(state.create(),'sage');
+  const own=state.publishTwin(ready,photo);
+  assert.equal(state.twinVisible(own),false);
+  const both=state.simulateFriendPost(own,friendPhoto);
+  assert.equal(state.twinVisible(both),true);
+  assert.equal(both.post,null);
+  assert.equal(both.history.length,4);
+  assert.equal(state.canView(both,{date:state.TODAY,paletteId:'sage'}),false);
+  assert.equal(state.canChoose(both),true);
+  assert.notEqual(both.twin.ownPost.photo,photo);
+  assert.notEqual(both.twin.friendPost.photo,friendPhoto);
+});
+
+test('friend then own uses the same reveal rule and restore is not a twin post', () => {
+  const friend=state.simulateFriendPost(readyTwin(),friendPhoto);
+  const restored=state.restore(friend,'2026-09-03','blue');
+  assert.equal(state.twinVisible(restored),false);
+  assert.equal(state.twinVisible(state.publishTwin(restored,photo)),true);
+});
+
+test('both twin posts must have their selected color, current date, and photo', () => {
+  const both=state.simulateFriendPost(state.publishTwin(readyTwin(),photo),friendPhoto);
+  for(const field of ['ownPost','friendPost']) {
+    for(const bad of [{...both.twin[field],date:'2026-09-05'}, {...both.twin[field],paletteId:'blue'}, {...both.twin[field],photo:null}]) {
+      assert.equal(state.twinVisible({...both,twin:{...both.twin,[field]:bad}}),false);
+    }
+  }
+  assert.equal(state.twinVisible({...both,twin:{...both.twin,status:'proposed'}}),false);
+});
+
+test('invalid transitions, empty photos and duplicate twin posts are rejected', () => {
+  assert.throws(()=>state.acceptTwin(state.create()),/초대/);
+  const invited=state.invite(state.create());
+  assert.throws(()=>state.invite(invited),/진행 중/);
+  const ready=readyTwin();
+  assert.throws(()=>state.acceptTwin(ready),/초대/);
+  for(const invalid of [null,undefined,{}, {src:' '}, {src:3}]) {
+    assert.throws(()=>state.publishTwin(ready,invalid),/사진/);
+    assert.throws(()=>state.simulateFriendPost(ready,invalid),/사진/);
+  }
+  assert.throws(()=>state.publishTwin(state.publishTwin(ready,photo),photo),/이미 게시/);
+  assert.throws(()=>state.simulateFriendPost(state.simulateFriendPost(ready,friendPhoto),friendPhoto),/이미 게시/);
 });
 
 test('all state actions accept frozen inputs without mutation', () => {
-  const initial = deepFreeze(state.create());
-  const selected = deepFreeze(state.choose(initial, 'butter'));
-  const restored = deepFreeze(state.restore(selected, '2026-09-03', 'blue'));
-  const invited = deepFreeze(state.invite(restored));
-  const paired = deepFreeze(state.acceptTwin(invited));
-  const withFriend = deepFreeze(state.simulateFriendPost(paired, deepFreeze({ ...friendPhoto })));
-  const published = state.publish(withFriend, deepFreeze({ ...photo }));
-  assert.equal(state.twinVisible(published), true);
-  assert.equal(initial.post, null);
-  assert.equal(initial.restoreCredits, 2);
-  assert.equal(initial.twin.status, 'none');
-  assert.equal(initial.selected, 'sage');
+  const initial=deepFreeze(state.create());
+  const restored=deepFreeze(state.restore(deepFreeze(state.choose(initial,'blue')),'2026-09-03','sage'));
+  const invited=deepFreeze(state.invite(restored));
+  const paired=deepFreeze(state.acceptTwin(invited,()=>.999));
+  const proposed=deepFreeze(state.proposeTwinColor(paired,'butter'));
+  const declined=deepFreeze(state.declineTwinColor(proposed));
+  const ready=deepFreeze(state.approveTwinColor(deepFreeze(state.proposeTwinColor(declined,'sage'))));
+  const friend=deepFreeze(state.simulateFriendPost(ready,deepFreeze({...friendPhoto})));
+  const both=deepFreeze(state.publishTwin(friend,deepFreeze({...photo})));
+  const personal=state.publish(both,photo);
+  assert.equal(state.twinVisible(personal),true);
+  assert.equal(initial.post,null);
+  assert.equal(initial.restoreCredits,2);
+  assert.equal(initial.twin.status,'none');
 });
 
 test('browser script exports the same API as a global without CommonJS', () => {
