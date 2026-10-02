@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>창간 7 창간호</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&amp;family=DM+Mono:wght@400;500&amp;family=Instrument+Sans:wght@400;500;600&amp;family=Nanum+Myeongjo:wght@400;700&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:inherit}
+input{font:inherit;color:inherit}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+button,a{transition:transform 160ms cubic-bezier(0.23,1,0.32,1)}
+button:active,a:active{transform:scale(0.97)}
+.esel-scroll::-webkit-scrollbar{display:none}
+@font-face{font-family:'Esel Dot';src:local('AppleSDGothicNeo-Regular'),local('Apple SD Gothic Neo'),local('Pretendard-Regular'),local('Pretendard Regular'),local('NotoSansKR-Regular'),local('Noto Sans KR'),local('Malgun Gothic');unicode-range:U+00B7}
+.esel-glass{background:rgba(249,249,251,0.58);-webkit-backdrop-filter:blur(22px) saturate(1.6);backdrop-filter:blur(22px) saturate(1.6);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.6),0 10px 28px rgba(0,0,0,0.14)}
+@media (prefers-reduced-transparency: reduce){.esel-glass{background:#F9F9FB;-webkit-backdrop-filter:none;backdrop-filter:none}}
+@media (prefers-contrast: more){.esel-glass{background:#F9F9FB;box-shadow:inset 0 0 0 1.5px #292A27}}
+@media (prefers-reduced-motion: reduce){button,a{transition:none !important}}
+
+</style>
+</helmet>
+<div style="width: 393px; height: 852px; box-sizing: border-box; position: relative; overflow: hidden; font-family: 'Esel Dot', 'Instrument Sans', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; background: #D9D2C6; color: #292A27">
+<span style="position: absolute; left: 0; top: 0; width: 393px; height: 852px"><img src="/_blob/0d2c5aca03c0e210cd888e2094c78869" alt="카멜 코트와 페도라 착장" style="display: block; width: 393px; height: 852px; object-fit: cover; object-position: 50% 50%"><img src="/_blob/b6075b3235f77454183c94c49f6da37a" alt="" style="position: absolute; left: 115px; top: 299px; width: 194px; height: 97px; max-width: none; transform: rotate(-10deg); pointer-events: none"></span>
+<div aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 0; height: 340px; background: linear-gradient(rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0))"></div>
+<div aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: 0; height: 420px; background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.7))"></div>
+<div style="position: absolute; left: 20px; right: 20px; top: 58px; display: flex; justify-content: space-between; font-family: 'DM Mono', ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 0.06em; color: #FFFFFF"><span>ESEL</span><span>Nº 001 · 창간호 · 2026. 9. 6.</span></div>
+<div aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 84px; text-align: center; font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-size: 150px; line-height: 0.9; letter-spacing: -0.05em; padding-right: 8px; color: #FFFFFF; white-space: nowrap">selin</div>
+<div style="position: absolute; left: 20px; right: 20px; bottom: 46px; color: #FFFFFF">
+<p style="margin: 0; font-family: 'DM Mono', ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 0.06em">창간을 축하해요</p>
+<p style="margin: 8px 0 0; font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-size: 30px; line-height: 1.25">selin의 첫 호가<br>오늘 가판대에 올라갔어요.</p>
+<div style="display: flex; align-items: center; gap: 8px; margin: 12px 0 18px; font-size: 14px; font-weight: 600"><img src="/_blob/b6075b3235f77454183c94c49f6da37a" alt="" style="width: 56px; height: 28px; flex-shrink: 0; object-fit: contain"><span>카멜 · 같은 색 64명과 함께</span></div>
+<a href="CoverScroll.dc.html" style="height: 54px; border-radius: 27px; display: flex; align-items: center; justify-content: center; gap: 8px; background: #292A27; color: #F9F9FB; font-size: 16px; font-weight: 600; background: #F9F9FB; color: #292A27">오늘의 표지 보러 가기</a>
+<a href="CoverShelf.dc.html" style="height: 48px; margin-top: 6px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600">내 잡지 보기</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":393,"height":852}}'>
+class Component extends DCLogic {
+renderVals() {
+const liked = !!(this.state && this.state.liked);
+const vals = {
+heartFill: liked ? 'currentColor' : 'none',
+likePressed: liked ? 'true' : 'false',
+toggleLike: () => this.setState({ liked: !liked })
+};
+
+return vals;
+}
+
+}
+</script>
+</body>
+</html>

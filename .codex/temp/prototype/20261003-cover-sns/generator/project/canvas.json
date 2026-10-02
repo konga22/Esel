@@ -1,0 +1,735 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "AtelierDetail.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "atelier",
+      "radius": 28,
+      "title": "A4 작품 상세",
+      "w": 393,
+      "x": 1419,
+      "y": 0
+    },
+    "AtelierFeed.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "atelier",
+      "radius": 28,
+      "title": "A3 전시장",
+      "w": 393,
+      "x": 946,
+      "y": 0
+    },
+    "AtelierHang.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "atelier",
+      "radius": 28,
+      "title": "A2 착장 걸기",
+      "w": 393,
+      "x": 473,
+      "y": 0
+    },
+    "AtelierLocked.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "atelier",
+      "radius": 28,
+      "title": "A5 같은 색의 방 · 잠금",
+      "w": 393,
+      "x": 1892,
+      "y": 0
+    },
+    "AtelierProfile.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "atelier",
+      "radius": 28,
+      "title": "A6 개인전",
+      "w": 393,
+      "x": 0,
+      "y": 1240
+    },
+    "AtelierRecord.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "atelier",
+      "radius": 28,
+      "title": "A7 색 기록",
+      "w": 393,
+      "x": 473,
+      "y": 1240
+    },
+    "AtelierToday.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "atelier",
+      "radius": 28,
+      "title": "A1 오늘의 색",
+      "w": 393,
+      "x": 0,
+      "y": 0
+    },
+    "AtelierTwin.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "atelier",
+      "radius": 28,
+      "title": "A8 트윈 · 이면화",
+      "w": 393,
+      "x": 946,
+      "y": 1240
+    },
+    "Compose.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "02 착장 남기기",
+      "w": 393,
+      "x": 473,
+      "y": 0,
+      "page": "minimal"
+    },
+    "CoverFeed.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "cover",
+      "radius": 28,
+      "title": "C1 표지 피드",
+      "w": 393,
+      "x": 0,
+      "y": 0
+    },
+    "CoverMake.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "cover",
+      "radius": 28,
+      "title": "C6 표지 만들기",
+      "w": 393,
+      "x": 2365,
+      "y": 0
+    },
+    "CoverNext.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "cover",
+      "radius": 28,
+      "title": "C2 다음 표지 · 어두운 사진",
+      "w": 393,
+      "x": 473,
+      "y": 0
+    },
+    "CoverScroll.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "cover",
+      "radius": 28,
+      "title": "C7 스크롤 시안 · 첫 장만 표지",
+      "w": 393,
+      "x": 0,
+      "y": 1240
+    },
+    "CoverShelf.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "cover",
+      "radius": 28,
+      "title": "C5 서가",
+      "w": 393,
+      "x": 1892,
+      "y": 0
+    },
+    "CoverSpread.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "cover",
+      "radius": 28,
+      "title": "C3 펼침면",
+      "w": 393,
+      "x": 946,
+      "y": 0
+    },
+    "CoverStand.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "cover",
+      "radius": 28,
+      "title": "C4 가판대",
+      "w": 393,
+      "x": 1419,
+      "y": 0
+    },
+    "Feed.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "03 둘러보기 · 전체",
+      "w": 393,
+      "x": 946,
+      "y": 0,
+      "page": "minimal"
+    },
+    "FeedAmbient.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "feeds",
+      "radius": 28,
+      "title": "F19 앰비언트",
+      "w": 393,
+      "x": 1419,
+      "y": 3492
+    },
+    "FeedArch.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "feeds",
+      "radius": 28,
+      "title": "F13 아치",
+      "w": 393,
+      "x": 946,
+      "y": 2480
+    },
+    "FeedChip.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "feeds",
+      "radius": 28,
+      "title": "F15 견본 카드",
+      "w": 393,
+      "x": 1892,
+      "y": 2480
+    },
+    "FeedContact.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "feeds",
+      "radius": 28,
+      "title": "F10 밀착 인화",
+      "w": 393,
+      "x": 1892,
+      "y": 1240
+    },
+    "FeedCover.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "feeds",
+      "radius": 28,
+      "title": "F11 표지",
+      "w": 393,
+      "x": 0,
+      "y": 2480
+    },
+    "FeedDay.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "feeds",
+      "radius": 28,
+      "title": "F20 하루",
+      "w": 393,
+      "x": 1892,
+      "y": 3492
+    },
+    "FeedDeck.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "feeds",
+      "radius": 28,
+      "title": "F4 덱",
+      "w": 393,
+      "x": 1419,
+      "y": 0
+    },
+    "FeedDial.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "feeds",
+      "radius": 28,
+      "title": "F9 다이얼",
+      "w": 393,
+      "x": 1419,
+      "y": 1240
+    },
+    "FeedFields.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "feeds",
+      "radius": 28,
+      "title": "F8 색면",
+      "w": 393,
+      "x": 946,
+      "y": 1240
+    },
+    "FeedImmersive.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "feeds",
+      "radius": 28,
+      "title": "F1 몰입",
+      "w": 393,
+      "x": 0,
+      "y": 0
+    },
+    "FeedLocked.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "04 둘러보기 · 같은 색 잠금",
+      "w": 393,
+      "x": 1419,
+      "y": 0,
+      "page": "minimal"
+    },
+    "FeedLoupe.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "feeds",
+      "radius": 28,
+      "title": "F17 돋보기",
+      "w": 393,
+      "x": 473,
+      "y": 3492
+    },
+    "FeedPinboard.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "feeds",
+      "radius": 28,
+      "title": "F3 핀보드",
+      "w": 393,
+      "x": 946,
+      "y": 0
+    },
+    "FeedPostcard.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "feeds",
+      "radius": 28,
+      "title": "F18 엽서",
+      "w": 393,
+      "x": 946,
+      "y": 3492
+    },
+    "FeedRack.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "feeds",
+      "radius": 28,
+      "title": "F6 행거",
+      "w": 393,
+      "x": 0,
+      "y": 1240
+    },
+    "FeedRunway.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "feeds",
+      "radius": 28,
+      "title": "F14 런웨이",
+      "w": 393,
+      "x": 1419,
+      "y": 2480
+    },
+    "FeedStories.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "feeds",
+      "radius": 28,
+      "title": "F2 스토리 + 카드",
+      "w": 393,
+      "x": 473,
+      "y": 0
+    },
+    "FeedStroke.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "feeds",
+      "radius": 28,
+      "title": "F7 한 붓",
+      "w": 393,
+      "x": 473,
+      "y": 1240
+    },
+    "FeedTabs.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "feeds",
+      "radius": 28,
+      "title": "F12 색인 탭",
+      "w": 393,
+      "x": 473,
+      "y": 2480
+    },
+    "FeedTag.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "feeds",
+      "radius": 28,
+      "title": "F16 옷 태그",
+      "w": 393,
+      "x": 0,
+      "y": 3492
+    },
+    "FeedTimeline.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "feeds",
+      "radius": 28,
+      "title": "F5 타임라인",
+      "w": 393,
+      "x": 1892,
+      "y": 0
+    },
+    "Main.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "01 오늘의 색",
+      "w": 393,
+      "x": 0,
+      "y": 0,
+      "page": "minimal"
+    },
+    "PaintOptions.dc.html": {
+      "h": 620,
+      "title": "물감 비교 · 기존 / 적용 / D",
+      "w": 1080,
+      "x": 1419,
+      "y": 1240,
+      "page": "minimal"
+    },
+    "Profile.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "05 내 전시 · 착장",
+      "w": 393,
+      "x": 0,
+      "y": 1240,
+      "page": "minimal"
+    },
+    "Record.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "06 내 전시 · 색 기록",
+      "w": 393,
+      "x": 473,
+      "y": 1240,
+      "page": "minimal"
+    },
+    "Twin.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "07 트윈",
+      "w": 393,
+      "x": 946,
+      "y": 1240,
+      "page": "minimal"
+    },
+    "JoinScroll.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 393,
+      "h": 852,
+      "page": "join",
+      "title": "J1 비로그인 표지 · 스크롤하면 로그인",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "JoinLogin.dc.html": {
+      "x": 473,
+      "y": 0,
+      "w": 393,
+      "h": 852,
+      "page": "join",
+      "title": "J2 로그인",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "JoinColor.dc.html": {
+      "x": 946,
+      "y": 0,
+      "w": 393,
+      "h": 852,
+      "page": "join",
+      "title": "J3 창간호의 색",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "JoinShoot.dc.html": {
+      "x": 1419,
+      "y": 0,
+      "w": 393,
+      "h": 852,
+      "page": "join",
+      "title": "J4 촬영",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "JoinName.dc.html": {
+      "x": 0,
+      "y": 1240,
+      "w": 393,
+      "h": 852,
+      "page": "join",
+      "title": "J5 제호 정하기",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "JoinFace.dc.html": {
+      "x": 473,
+      "y": 1240,
+      "w": 393,
+      "h": 852,
+      "page": "join",
+      "title": "J6 얼굴 연출",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "JoinDone.dc.html": {
+      "x": 946,
+      "y": 1240,
+      "w": 393,
+      "h": 852,
+      "page": "join",
+      "title": "J7 창간호",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "BoardMood.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1180,
+      "page": "mood",
+      "title": "00 무드보드",
+      "radius": 0
+    },
+    "BoardTokens.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1910,
+      "page": "tokens",
+      "title": "01 디자인 토큰",
+      "radius": 0
+    },
+    "BoardComponents.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1770,
+      "page": "components",
+      "title": "02 컴포넌트",
+      "radius": 0
+    },
+    "BoardMotion.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1640,
+      "page": "motion",
+      "title": "04 모션",
+      "radius": 0
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-02T03:50:26Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas",
+    "page": "mood"
+  },
+  "notes": {
+    "atelier-collection": {
+      "kind": "title1",
+      "maxW": 1339,
+      "page": "atelier",
+      "text": "개인전 · 색 기록 · 이면화",
+      "w": 240,
+      "x": 0,
+      "y": 980
+    },
+    "atelier-flow": {
+      "kind": "title1",
+      "maxW": 2285,
+      "page": "atelier",
+      "text": "아틀리에 — 고르고, 걸고, 감상하다",
+      "w": 240,
+      "x": 0,
+      "y": -260
+    },
+    "cover-scroll": {
+      "kind": "title1",
+      "maxW": 1812,
+      "page": "cover",
+      "text": "스크롤 시안 — Play로 열어 아래로 내리고 다시 올려 보기",
+      "w": 240,
+      "x": 0,
+      "y": 980
+    },
+    "cover-title": {
+      "kind": "title1",
+      "maxW": 2758,
+      "page": "cover",
+      "text": "표지를 SNS로 — 넘기기 · 펼치기 · 가판대 · 서가 · 만들기",
+      "w": 240,
+      "x": 0,
+      "y": -260
+    },
+    "feeds-large": {
+      "kind": "title1",
+      "maxW": 2285,
+      "page": "feeds",
+      "text": "사진을 크게 쓰는 피드 10 — 표지 · 색인 탭 · 아치 · 런웨이 · 견본 카드 · 옷 태그 · 돋보기 · 엽서 · 앰비언트 · 하루",
+      "w": 240,
+      "x": 0,
+      "y": 2220
+    },
+    "feeds-title": {
+      "kind": "title1",
+      "maxW": 2285,
+      "page": "feeds",
+      "text": "피드 시안 5 — 몰입 · 스토리 · 핀보드 · 덱 · 타임라인",
+      "w": 240,
+      "x": 0,
+      "y": -260
+    },
+    "feeds-uncommon": {
+      "kind": "title1",
+      "maxW": 2285,
+      "page": "feeds",
+      "text": "흔하지 않은 피드 5 — 행거 · 한 붓 · 색면 · 다이얼 · 밀착 인화",
+      "w": 240,
+      "x": 0,
+      "y": 980
+    },
+    "row-collection": {
+      "kind": "title1",
+      "maxW": 1339,
+      "text": "내 전시 · 트윈",
+      "w": 240,
+      "x": 0,
+      "y": 980,
+      "page": "minimal"
+    },
+    "row-flow": {
+      "kind": "title1",
+      "maxW": 1812,
+      "text": "오늘의 색 → 게시 → 감상",
+      "w": 240,
+      "x": 0,
+      "y": -260,
+      "page": "minimal"
+    },
+    "join-title": {
+      "x": 0,
+      "y": -260,
+      "text": "로그인 · 창간 — 표지를 읽다가, 내 잡지를 만든다",
+      "kind": "title1",
+      "maxW": 1812,
+      "page": "join"
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Compose.dc.html",
+    "Feed.dc.html",
+    "FeedLocked.dc.html",
+    "Profile.dc.html",
+    "Record.dc.html",
+    "Twin.dc.html",
+    "PaintOptions.dc.html",
+    "AtelierToday.dc.html",
+    "AtelierHang.dc.html",
+    "AtelierFeed.dc.html",
+    "AtelierDetail.dc.html",
+    "AtelierLocked.dc.html",
+    "AtelierProfile.dc.html",
+    "AtelierRecord.dc.html",
+    "AtelierTwin.dc.html",
+    "FeedImmersive.dc.html",
+    "FeedStories.dc.html",
+    "FeedPinboard.dc.html",
+    "FeedDeck.dc.html",
+    "FeedTimeline.dc.html",
+    "FeedRack.dc.html",
+    "FeedStroke.dc.html",
+    "FeedFields.dc.html",
+    "FeedDial.dc.html",
+    "FeedContact.dc.html",
+    "FeedCover.dc.html",
+    "FeedTabs.dc.html",
+    "FeedArch.dc.html",
+    "FeedRunway.dc.html",
+    "FeedChip.dc.html",
+    "FeedTag.dc.html",
+    "FeedLoupe.dc.html",
+    "FeedPostcard.dc.html",
+    "FeedAmbient.dc.html",
+    "FeedDay.dc.html",
+    "CoverFeed.dc.html",
+    "CoverNext.dc.html",
+    "CoverSpread.dc.html",
+    "CoverStand.dc.html",
+    "CoverShelf.dc.html",
+    "CoverMake.dc.html",
+    "CoverScroll.dc.html",
+    "JoinScroll.dc.html",
+    "JoinLogin.dc.html",
+    "JoinColor.dc.html",
+    "JoinShoot.dc.html",
+    "JoinName.dc.html",
+    "JoinFace.dc.html",
+    "JoinDone.dc.html",
+    "BoardMood.dc.html",
+    "BoardTokens.dc.html",
+    "BoardComponents.dc.html",
+    "BoardMotion.dc.html"
+  ],
+  "pages": [
+    {
+      "id": "mood",
+      "name": "00 무드보드"
+    },
+    {
+      "id": "tokens",
+      "name": "01 디자인 토큰"
+    },
+    {
+      "id": "components",
+      "name": "02 컴포넌트"
+    },
+    {
+      "id": "cover",
+      "name": "03 화면 · 표지 SNS"
+    },
+    {
+      "id": "join",
+      "name": "03 화면 · 로그인 · 창간"
+    },
+    {
+      "id": "motion",
+      "name": "04 모션"
+    },
+    {
+      "id": "feeds",
+      "name": "보관 · 피드 시안"
+    },
+    {
+      "id": "atelier",
+      "name": "보관 · 아틀리에"
+    },
+    {
+      "id": "minimal",
+      "name": "보관 · 미니멀"
+    }
+  ],
+  "title": "Esel 화면 디자인 시안"
+}

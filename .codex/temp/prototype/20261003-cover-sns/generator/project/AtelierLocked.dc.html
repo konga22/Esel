@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>아틀리에 같은 색의 방 잠금</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&amp;family=Nanum+Myeongjo:wght@400;700&amp;family=Noto+Sans+KR:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:inherit}
+a{color:#F9F9FB;text-decoration:none}a:hover{color:#F9F9FB}
+</style>
+</helmet>
+<div style="width: 393px; height: 852px; box-sizing: border-box; position: relative; overflow: hidden; padding: 54px 0 34px; display: flex; flex-direction: column; background: #1B1C1A; color: #F9F9FB; font-family: Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif">
+<header style="flex-shrink: 0; height: 64px; margin: 0 22px; display: flex; align-items: center">
+<span style="flex: 1 1 0; font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-style: italic; font-size: 15px">Nº 249</span>
+<span style="font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-size: 44px; line-height: 52px; letter-spacing: -2px">Esel<span style="color: #AE8775">.</span></span>
+<span style="flex: 1 1 0; text-align: right; font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-style: italic; font-size: 15px">9. 6.</span>
+</header>
+<div style="flex-shrink: 0; height: 50px; box-sizing: border-box; margin: 0 22px; display: flex; align-items: center; gap: 24px; border-top: 1px solid #F9F9FB; border-bottom: 1px solid #F9F9FB">
+<a href="AtelierFeed.dc.html" style="min-width: 48px; height: 48px; display: flex; align-items: center; gap: 8px; font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-size: 15px; color: #A9ABA3">
+<span style="width: 7px; height: 7px; box-sizing: border-box; border-radius: 50%; border: 1px solid #A9ABA3"></span>
+<span>전체</span>
+</a>
+<a href="AtelierLocked.dc.html" aria-current="true" style="min-width: 48px; height: 48px; display: flex; align-items: center; gap: 8px; font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-size: 15px; color: #F9F9FB">
+<span style="width: 7px; height: 7px; border-radius: 50%; background: #F9F9FB"></span>
+<span>같은 색</span>
+</a>
+</div>
+<main style="flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; padding: 0 22px">
+<div style="position: relative; overflow: hidden; flex-shrink: 0; height: 318px; margin-top: 16px; background: #A8B5A0; color: #292A27">
+<img src="/_blob/01c7aef9caeab80dd2ca2949e8ba18c0" alt="" style="position: absolute; left: -150px; top: 24px; width: 620px; height: 310px; max-width: none; transform: rotate(-14deg); mix-blend-mode: multiply; pointer-events: none">
+<span style="position: absolute; left: 18px; top: 16px; display: flex; align-items: baseline; gap: 8px">
+<span style="font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-size: 17px">세이지</span>
+<span style="font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-style: italic; font-size: 15px">Sage</span>
+</span>
+<span style="position: absolute; right: 16px; top: 18px; writing-mode: vertical-rl; font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-size: 14px; letter-spacing: 0.4em">같은 색의 방</span>
+<span style="position: absolute; left: 8px; bottom: 46px; font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-style: italic; font-weight: 300; font-size: 150px; line-height: 0.8; letter-spacing: -0.04em">428</span>
+<span style="position: absolute; left: 18px; bottom: 16px; font-size: 12px">오늘 같은 색을 입은 사람들 · 예시</span>
+</div>
+<h1 style="flex-shrink: 0; margin: 22px 0 0; font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-size: 24px; font-weight: 400; line-height: 1.45">착장을 걸면,<br>이 방의 불이 켜집니다.</h1>
+<a href="AtelierHang.dc.html" style="margin-top: auto; flex-shrink: 0; height: 56px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; background: #F9F9FB; color: #292A27">
+<span style="font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-size: 18px">착장 걸기</span>
+<svg width="56" height="12" viewBox="0 0 56 12" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 6h53"></path><path d="M49 1l5 5-5 5"></path></svg>
+</a>
+<p style="flex-shrink: 0; margin: 12px 0 18px; font-size: 12px; line-height: 1.6; color: #A9ABA3">색을 고르는 것만으로는 열리지 않아요.</p>
+</main>
+<nav aria-label="주요 화면" style="flex-shrink: 0; height: 54px; box-sizing: border-box; margin: 0 22px; display: flex; border-top: 1px solid #F9F9FB">
+<a href="AtelierToday.dc.html" style="flex: 1 1 0; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: #A9ABA3">
+<span style="font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-style: italic; font-size: 15px">i.</span>
+<span style="padding-bottom: 3px; border-bottom: 1px solid transparent">오늘의 색</span>
+</a>
+<a href="AtelierFeed.dc.html" aria-current="page" style="flex: 1 1 0; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: #F9F9FB">
+<span style="font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-style: italic; font-size: 15px">ii.</span>
+<span style="padding-bottom: 3px; border-bottom: 1px solid #F9F9FB">둘러보기</span>
+</a>
+<a href="AtelierProfile.dc.html" style="flex: 1 1 0; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: #A9ABA3">
+<span style="font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-style: italic; font-size: 15px">iii.</span>
+<span style="padding-bottom: 3px; border-bottom: 1px solid transparent">내 전시</span>
+</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":393,"height":852}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>
