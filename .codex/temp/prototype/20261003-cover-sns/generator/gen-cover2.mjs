@@ -15,7 +15,8 @@ const topBar = (fg, { issue = 249, withTabs = true } = {}) => `<div style="posit
 ${withTabs ? tabs(fg) : '<span style="padding-left: 6px">오늘의 표지</span>'}
 <span style="font-size: 12px">Nº ${issue} · 2026. 9. 6.</span>
 </div>`;
-const coverText = (key, { same, likes, comments, bottom = 100 }) => {
+// Popularity counts (likes, readers' lines, subscribers) are shown only to the publisher, never on others' covers.
+const coverText = (key, { same, bottom = 100 }) => {
   const p = PEOPLE[key];
   return `<div style="position: absolute; left: 20px; right: 8px; bottom: ${bottom}px; color: #FFFFFF">
 <div style="display: flex; align-items: flex-end; gap: 12px">
@@ -25,8 +26,8 @@ const coverText = (key, { same, likes, comments, bottom = 100 }) => {
 <a href="CoverStand.dc.html" style="height: 44px; margin-top: 4px; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600">${paint(p.color, 60)}<span>${PAINT[p.color].name} · 같은 색 ${same}명</span>${icon('arrow', 18, 1.8)}</a>
 <p style="margin: 0; font-size: 15px; line-height: 1.45">${p.cap}</p>
 <div style="display: flex; align-items: center; margin: 2px 0 0 -12px">
-${stat('heart', '좋아요', likes, LIKE_ATTRS)}
-${stat('comment', '독자 한 줄', comments)}
+${stat('heart', '좋아요', '', LIKE_ATTRS)}
+${stat('comment', '독자 한 줄', '')}
 ${stat('bookmark', '스크랩', '')}
 <a href="CoverSpread.dc.html" style="margin-left: auto; height: 48px; padding: 0 12px; display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600"><span>펼쳐 보기</span>${icon('up', 20, 1.8)}</a>
 </div>
@@ -41,7 +42,7 @@ ${cover('dana', 393, 852, 0.58, 0.5, '; position: absolute; left: 0; top: 0')}
 ${shade()}
 ${topBar(INK)}
 ${masthead('Esel', INK)}
-${coverText('dana', { same: 187, likes: '128', comments: '12' })}
+${coverText('dana', { same: 187 })}
 ${capsule({ color: PEOPLE[ME].color })}
 </div>`);
 
@@ -52,7 +53,7 @@ ${topShade}
 ${shade()}
 ${topBar('#FFFFFF')}
 ${masthead('Esel', '#FFFFFF')}
-${coverText('theo', { same: 96, likes: '211', comments: '18' })}
+${coverText('theo', { same: 96 })}
 ${capsule({ color: PEOPLE[ME].color })}
 </div>`);
 
@@ -79,10 +80,10 @@ ${cover('dana', 210, 280, 0.58, 0.45, '; flex-shrink: 0; border-radius: 4px')}
 ${crop('dana', 210, 280, 2.6, 0.55, 0.8, 105, 140, { extra: '; flex-shrink: 0; border-radius: 4px', alt: '셔츠 끈 매듭과 데님 허리 부분' })}
 </div>
 <div style="display: flex; align-items: center; margin-left: -12px">
-${stat('heart', '좋아요', '128', LIKE_ATTRS)}
-${stat('bookmark', '스크랩', '34')}
+${stat('heart', '좋아요', '', LIKE_ATTRS)}
+${stat('bookmark', '스크랩', '')}
 </div>
-<h2 style="margin: 4px 0 2px; display: flex; align-items: baseline; gap: 8px; font-family: ${SERIF}; font-size: 21px; font-weight: 400">독자 한 줄<span style="font-family: ${SANS}; font-size: 13px; color: ${MUTED}">12</span></h2>
+<h2 style="margin: 4px 0 2px; font-family: ${SERIF}; font-size: 21px; font-weight: 400">독자 한 줄</h2>
 ${reader('zuri', '셔츠 끈 매듭이 다 했네요.')}
 ${reader('kofi', '하늘이랑 셔츠 색이 똑같아요.')}
 ${reader('riva', '파란 계열끼리 반가워요.')}
@@ -153,7 +154,7 @@ files.CoverShelf = page('표지 SNS 5 서가', `<div style="${ROOT(`padding-top:
 <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 14px">
 <div style="display: flex; flex-direction: column; gap: 2px">
 <div style="display: flex; align-items: center; gap: 6px; font-size: 14px">${paint('powder', 52, '', '')}<span>오늘은 파우더 블루</span></div>
-<span style="font-size: 14px; color: ${MUTED}">${ISSUES}호 · 구독자 214</span>
+<span style="font-size: 14px; color: ${MUTED}">${ISSUES}호 발행</span>
 </div>
 <button type="button" style="height: 44px; padding: 0 24px; border-radius: 22px; background: ${INK}; color: ${PAPER}; font-size: 15px; font-weight: 600">구독</button>
 </div>
@@ -253,7 +254,7 @@ segVals('White', white, () => this.setState({ white: true }));
 vals.mastColor = white ? '#FFFFFF' : '${INK}';` });
 
 // C7 스크롤 시안 · 첫 장만 표지
-const inner = ({ key, no, style = 'plain', px = 0.5, py = 0.3, likes }) => {
+const inner = ({ key, no, style = 'plain', px = 0.5, py = 0.3 }) => {
   const p = PEOPLE[key];
   let img;
   if (style === 'neck') img = neckDown(key, 393, 500);
@@ -265,25 +266,25 @@ ${img}
 <span style="font-size: 18px; font-weight: 600">${key}</span>
 ${paint(p.color, 54, '', '')}
 <span style="font-size: 13px; color: ${MUTED}">${PAINT[p.color].name}</span>
-<span style="margin-left: auto; display: flex">${stat('heartPlain', '좋아요', likes)}${stat('bookmark', '스크랩', '')}</span>
+<span style="margin-left: auto; display: flex">${stat('heartPlain', '좋아요', '')}${stat('bookmark', '스크랩', '')}</span>
 </div>
 <p style="margin: 0; padding: 0 18px; font-size: 15px; line-height: 1.45">${p.cap}</p>
 </article>`;
 };
 const innerPages = [
-  inner({ key: 'ama', no: '02', py: 0.3, likes: '96' }),
-  inner({ key: 'lise', no: '03', style: 'paint', py: 0.25, likes: '88' }),
-  inner({ key: 'kofi', no: '04', px: 0.65, py: 0.15, likes: '74' }),
-  inner({ key: 'rio', no: '05', py: 0.4, likes: '61' }),
-  inner({ key: 'omar', no: '06', style: 'neck', likes: '58' }),
-  inner({ key: 'riva', no: '07', py: 0.25, likes: '52' }),
+  inner({ key: 'ama', no: '02', py: 0.3 }),
+  inner({ key: 'lise', no: '03', style: 'paint', py: 0.25 }),
+  inner({ key: 'kofi', no: '04', px: 0.65, py: 0.15 }),
+  inner({ key: 'rio', no: '05', py: 0.4 }),
+  inner({ key: 'omar', no: '06', style: 'neck' }),
+  inner({ key: 'riva', no: '07', py: 0.25 }),
 ].join('\n');
 const scrollCover = ({ withTabs = true } = {}) => `<section aria-label="오늘의 표지" style="position: relative; height: 800px; overflow: hidden; background: #C9D3DC">
 ${cover('dana', 393, 800, 0.58, 0.5, '; position: absolute; left: 0; top: 0')}
 ${shade(460)}
 ${topBar(INK, { withTabs })}
 <h1 style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); margin: 0">Esel 오늘의 표지</h1>
-${coverText('dana', { same: 187, likes: '128', comments: '12', bottom: 52 })}
+${coverText('dana', { same: 187, bottom: 52 })}
 </section>`;
 const sc = scrollLogic();
 files.CoverScroll = page('표지 SNS 7 스크롤 시안', `<div style="${ROOT(`background: ${PAPER}; color: ${INK}`)}">

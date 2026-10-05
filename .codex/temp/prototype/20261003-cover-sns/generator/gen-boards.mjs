@@ -66,6 +66,7 @@ ${principle('2', '제호는 이름이 된다', '내 잡지의 제호는 영문 �
 ${principle('3', '얼굴은 선택', '그대로 · 물감 한 획 · 제호 뒤로 · 목 아래. 호마다 바꾼다.')}
 ${principle('4', '글라스는 사진 위에서만', '메뉴 캡슐과 로그인 바. 흰 화면과 투명도 줄이기에서는 단색.')}
 ${principle('5', '색 이름은 물감 옆에', '시각은 쪽 번호 맞은편, 색 이름은 물감 바로 옆.')}
+${principle('6', '숫자는 본인에게만', '좋아요·구독자·독자 한 줄·스크랩 수는 발행한 사람만 본다. 같은 색 인원과 호수는 모두에게.')}
 </section>
 </div>`);
 
@@ -146,7 +147,8 @@ const btn = (t, kind, state = 'default', w = 200) => {
 const segSpec = (labels, on) => `<div style="display: flex; gap: 6px; width: 340px">${labels.map((l, i) => `<span style="flex: 1 1 0; height: 36px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; box-shadow: inset 0 0 0 1.5px ${INK}; ${i === on ? `background: ${INK}; color: ${PAPER}` : ''}">${l}</span>`).join('')}</div>`;
 const chipSpec = (label, c, on) => `<span style="height: 38px; padding: 0 ${c ? '14px 0 8px' : '16px'}; border-radius: 19px; display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 500; ${on ? `background: ${INK}; color: ${PAPER}` : 'background: #FFFFFF; box-shadow: inset 0 0 0 1px #E0E1DC'}">${c ? paint(c, 40, '', '') : ''}${label}</span>`;
 const heartSvg = (fill) => `<svg width="23" height="23" viewBox="0 0 24 24" fill="${fill}" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.3l-1.2-1.1C6.2 15 3.5 12.5 3.5 9.4 3.5 7 5.4 5 7.8 5c1.6 0 3.2.9 4.2 2.2C13 5.9 14.6 5 16.2 5c2.4 0 4.3 2 4.3 4.4 0 3.1-2.7 5.6-7.3 9.8L12 20.3z"></path></svg>`;
-const statsSpec = (liked, fg = INK) => `<span style="display: flex; align-items: center; gap: 18px; color: ${fg}; font-size: 13px; font-weight: 600"><span style="display: flex; align-items: center; gap: 6px">${heartSvg(liked ? 'currentColor' : 'none')}${liked ? '129' : '128'}</span><span style="display: flex; align-items: center; gap: 6px">${icon('comment', 23)}12</span>${icon('bookmark', 23)}</span>`;
+// Reactions carry no numbers on other people's covers; the publisher alone sees counts on their own issue.
+const statsSpec = (liked, own = false) => `<span style="display: flex; align-items: center; gap: 18px; color: ${INK}; font-size: 13px; font-weight: 600"><span style="display: flex; align-items: center; gap: 6px">${heartSvg(liked ? 'currentColor' : 'none')}${own ? '128' : ''}</span><span style="display: flex; align-items: center; gap: 6px">${icon('comment', 23)}${own ? '12' : ''}</span><span style="display: flex; align-items: center; gap: 6px">${icon('bookmark', 23)}${own ? '9' : ''}</span></span>`;
 const inputSpec = (label, value, state) => `<div style="display: flex; flex-direction: column; width: 300px"><span style="font-size: 12px; color: ${state === 'error' ? '#B3261E' : MUTED}">${label}</span><span style="height: 44px; display: flex; align-items: center; border-bottom: ${state === 'focus' ? 2 : 1.5}px solid ${state === 'error' ? '#B3261E' : INK}; font-family: ${SERIF}; font-size: 24px; color: ${value ? INK : '#9A9C94'}">${value || 'selin'}</span>${state === 'error' ? '<span style="margin-top: 6px; font-size: 12px; color: #B3261E">이미 있는 이름이에요.</span>' : ''}</div>`;
 board('BoardComponents', '컴포넌트', '02 · COMPONENTS', 1770, `<section style="display: flex; flex-direction: column; gap: 18px">
 ${h2('메뉴 캡슐 · 로그인 바 · 작은 로고')}
@@ -177,7 +179,8 @@ ${h2('선택')}
 ${spec('같은 색 칩 · 기본 / 선택', `<span style="display: flex; gap: 8px">${chipSpec('전체', null, true)}${chipSpec('카멜', 'camel', false)}${chipSpec('코발트', 'cobalt', false)}</span>`)}
 ${spec('세그먼트 · 얼굴', segSpec(['그대로', '물감', '제호 뒤', '목 아래'], 1))}
 ${spec('색 고르기 · 선택', `<span style="width: 340px; height: 92px; display: flex; align-items: center; gap: 16px; padding: 0 18px; box-sizing: border-box; border-radius: 22px; background: #FFFFFF; box-shadow: inset 0 0 0 1.5px ${INK}, 0 6px 18px rgba(41, 42, 39, 0.08)">${paint('camel', 110, '', '')}<span style="display: flex; flex-direction: column"><span style="font-size: 18px; font-weight: 600">카멜</span><span style="font-family: ${SERIF}; font-style: italic; font-size: 16px; color: ${MUTED}">Camel</span></span><span style="margin-left: auto; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: ${INK}; color: ${PAPER}">${icon('check', 16, 2.2)}</span></span>`)}
-${spec('반응 · 기본 / 좋아요', `<span style="display: flex; gap: 28px">${statsSpec(false)}${statsSpec(true)}</span>`)}
+${spec('반응 · 남의 표지 · 숫자 없음 / 좋아요', `<span style="display: flex; gap: 28px">${statsSpec(false)}${statsSpec(true)}</span>`)}
+${spec('반응 · 내 표지 · 나만 보는 숫자', `<span style="display: flex; flex-direction: column; gap: 6px">${statsSpec(false, true)}<span style="font-size: 13px; color: ${MUTED}">오늘 12명이 읽었어요 · 나에게만 보여요</span></span>`)}
 ${spec('입력 · 기본 / 입력 중 / 오류', `<span style="display: flex; gap: 28px">${inputSpec('영문 닉네임', '', 'default')}${inputSpec('영문 닉네임', 'selin', 'focus')}${inputSpec('영문 닉네임', 'dana', 'error')}</span>`)}
 </div>
 </section>
@@ -192,7 +195,7 @@ ${spec('제호 · 글자 수에 맞춰 줄임', `<span style="display: flex; fle
 </div>
 <div style="display: flex; gap: 28px; align-items: center">
 ${spec('안쪽 지면 머리 · 쪽 번호 / 시각', `<span style="width: 393px; display: flex; justify-content: space-between; padding: 0 18px; box-sizing: border-box; font-family: ${SERIF}; font-style: italic; font-size: 16px; border-top: 1px solid ${HAIR}; border-bottom: 1px solid ${HAIR}; height: 40px; align-items: center"><span>02</span><span>오전 8:40</span></span>`)}
-${spec('이름 줄 · 이름 · 물감 · 색 이름 · 반응', `<span style="width: 393px; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 18px; box-sizing: border-box; height: 52px"><span style="font-size: 18px; font-weight: 600">ama</span>${paint('butter', 54, '', '')}<span style="font-size: 13px; color: ${MUTED}">버터</span><span style="margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600">${heartSvg('none')}96 &nbsp; ${icon('bookmark', 23)}</span></span>`)}
+${spec('이름 줄 · 이름 · 물감 · 색 이름 · 반응', `<span style="width: 393px; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 18px; box-sizing: border-box; height: 52px"><span style="font-size: 18px; font-weight: 600">ama</span>${paint('butter', 54, '', '')}<span style="font-size: 13px; color: ${MUTED}">버터</span><span style="margin-left: auto; display: flex; align-items: center; gap: 22px">${heartSvg('none')}${icon('bookmark', 23)}</span></span>`)}
 </div>
 </section>`);
 
