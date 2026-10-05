@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#F9F9FB" />
+    <title>Esel — 색의 표본실</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="specimen.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body data-variant="specimen">
+    <div class="app specimen-app">
+      <header class="specimen-header">
+        <span class="header-edition">색을 입는 일</span>
+        <button class="specimen-wordmark" data-view="today" aria-label="Esel 첫 화면">Esel</button>
+        <span class="header-number">색의 표본실</span>
+      </header>
+
+      <main class="specimen-screen" data-screen="today">
+        <div class="specimen-intro">
+          <h1>오늘의 색</h1>
+        </div>
+
+        <section class="color-study" aria-label="선택한 오늘의 색">
+          <span class="study-cross" aria-hidden="true">+</span>
+          <div class="study-field" aria-hidden="true">
+            <span class="field-note">오늘의 빛을<br />한 겹 입어 보기.</span>
+            <span class="field-edition"><span data-color-index>01</span> / 03</span>
+          </div>
+          <span class="study-side-note">옷으로 남기는, 작은 전시.</span>
+          <div class="study-title"><span data-color-english>Sage</span><sup data-color-index>01</sup></div>
+          <div class="study-caption">
+            <span class="caption-rule" aria-hidden="true"></span>
+            <span data-color-name>세이지</span>
+            <p>당신의 옷장에서<br />발견한 오늘의 색.</p>
+          </div>
+          <span class="study-bottom-mark" aria-hidden="true">ES — <span data-color-index>01</span></span>
+        </section>
+
+        <div class="specimen-controls">
+          <div class="color-index" role="radiogroup" aria-label="오늘의 색 선택">
+            <button class="index-color" type="button" role="radio" data-color="sage" aria-label="세이지 선택" aria-checked="true">
+              <span class="color-dot dot-sage"></span><span>세이지</span><span class="choice-number">01</span>
+            </button>
+            <button class="index-color" type="button" role="radio" data-color="butter" aria-label="버터 선택" aria-checked="false">
+              <span class="color-dot dot-butter"></span><span>버터</span><span class="choice-number">02</span>
+            </button>
+            <button class="index-color" type="button" role="radio" data-color="powder-blue" aria-label="파우더 블루 선택" aria-checked="false">
+              <span class="color-dot dot-blue"></span><span>파우더 블루</span><span class="choice-number">03</span>
+            </button>
+          </div>
+          <div class="record-line">
+            <span class="record-note">색 하나로 시작하는<br />나의 작은 전시.</span>
+            <button type="button" class="record-link" data-action="record">코디 기록 <span aria-hidden="true">↗</span></button>
+          </div>
+        </div>
+      </main>
+
+      <main class="specimen-screen exhibition-screen" data-screen="exhibition" hidden>
+        <div class="specimen-intro"><h1>전시</h1><span>샘플 전시 · 01 점</span></div>
+        <section class="exhibit-study" aria-label="샘플 착장 전시">
+          <div class="exhibit-tone" aria-hidden="true"></div>
+          <span class="exhibit-side">하루의 색이 옷이 되었을 때.</span>
+          <img class="exhibit-photo" src="assets/green-blouse.jpg" data-color-photo alt="오늘의 색과 어울리는 샘플 착장" />
+          <h2 class="exhibit-title"><span data-color-english>Sage</span><span class="exhibit-title-dot">.</span></h2>
+          <span class="exhibit-index">작품 <span data-color-index>01</span></span>
+        </section>
+        <div class="exhibit-caption">
+          <span class="exhibit-caption-label">오늘의 한 벌</span>
+          <p data-record-caption>흰 셔츠 사이에서 발견한, 조용한 초록.</p>
+          <span class="exhibit-sample-note">시각적 방향을 위한 샘플 착장입니다.</span>
+        </div>
+        <button class="exhibit-record" type="button" data-action="record">나의 코디도 기록 <span aria-hidden="true">↗</span></button>
+      </main>
+
+      <nav class="specimen-nav" aria-label="주요 화면">
+        <button type="button" data-view="today" aria-current="page"><span class="nav-dot" aria-hidden="true"></span>오늘의 색</button>
+        <span class="nav-separator" aria-hidden="true">/</span>
+        <button type="button" data-view="exhibition"><span class="nav-dot" aria-hidden="true"></span>전시</button>
+        <span class="nav-signature" aria-hidden="true">매일, 한 가지 색.</span>
+      </nav>
+    </div>
+  </body>
+</html>

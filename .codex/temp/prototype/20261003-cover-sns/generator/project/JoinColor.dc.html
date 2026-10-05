@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>창간 3 창간호의 색</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&amp;family=DM+Mono:wght@400;500&amp;family=Instrument+Sans:wght@400;500;600&amp;family=Nanum+Myeongjo:wght@400;700&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:inherit}
+input{font:inherit;color:inherit}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+button,a{transition:transform 160ms cubic-bezier(0.23,1,0.32,1)}
+button:active,a:active{transform:scale(0.97)}
+.esel-scroll::-webkit-scrollbar{display:none}
+@font-face{font-family:'Esel Dot';src:local('AppleSDGothicNeo-Regular'),local('Apple SD Gothic Neo'),local('Pretendard-Regular'),local('Pretendard Regular'),local('NotoSansKR-Regular'),local('Noto Sans KR'),local('Malgun Gothic');unicode-range:U+00B7}
+.esel-glass{background:rgba(249,249,251,0.58);-webkit-backdrop-filter:blur(22px) saturate(1.6);backdrop-filter:blur(22px) saturate(1.6);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.6),0 10px 28px rgba(0,0,0,0.14)}
+@media (prefers-reduced-transparency: reduce){.esel-glass{background:#F9F9FB;-webkit-backdrop-filter:none;backdrop-filter:none}}
+@media (prefers-contrast: more){.esel-glass{background:#F9F9FB;box-shadow:inset 0 0 0 1.5px #292A27}}
+@media (prefers-reduced-motion: reduce){button,a{transition:none !important}}
+
+</style>
+</helmet>
+<div style="width: 393px; height: 852px; box-sizing: border-box; position: relative; overflow: hidden; font-family: 'Esel Dot', 'Instrument Sans', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; padding-top: 54px; background: #F9F9FB; color: #292A27">
+<header style="position: relative; height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 18px 0 6px">
+<a href="JoinLogin.dc.html" aria-label="이전" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 6l-6 6 6 6"></path></svg></a>
+<span style="font-family: 'DM Mono', ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 0.06em">창간 1 / 4</span>
+</header>
+<div aria-hidden="true" style="display: flex; gap: 4px; padding: 0 20px"><span style="flex: 1 1 0; height: 2px; border-radius: 1px; background: #292A27"></span><span style="flex: 1 1 0; height: 2px; border-radius: 1px; background: #D8D9D3"></span><span style="flex: 1 1 0; height: 2px; border-radius: 1px; background: #D8D9D3"></span><span style="flex: 1 1 0; height: 2px; border-radius: 1px; background: #D8D9D3"></span></div>
+<div style="padding: 26px 20px 0">
+<p style="margin: 0; font-family: 'DM Mono', ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 0.06em; color: #71736C">2026. 9. 6. 오늘의 색</p>
+<h1 style="margin: 8px 0 0; font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-size: 36px; font-weight: 400; line-height: 1.2">창간호는<br>어떤 색으로 할까요?</h1>
+<p style="margin: 12px 0 0; font-size: 15px; line-height: 1.55; color: #55574F">고른 색의 옷·양말·가방 무엇이든 좋아요. 그 색으로 첫 표지를 찍어요.</p>
+</div>
+<div role="group" aria-label="오늘의 색" style="display: flex; flex-direction: column; gap: 10px; padding: 26px 20px 0">
+<button type="button" aria-pressed="{{camelPressed}}" onClick="{{pick_camel}}" style="height: 92px; display: flex; align-items: center; gap: 16px; padding: 0 18px; border-radius: 22px; background: {{camelBg}}; box-shadow: {{camelRing}}">
+<img src="/_blob/b6075b3235f77454183c94c49f6da37a" alt="" style="width: 120px; height: 60px; flex-shrink: 0; object-fit: contain">
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 18px; font-weight: 600">카멜</span><span style="font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-style: italic; font-size: 16px; color: #71736C">Camel</span></span>
+<span style="margin-left: auto; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: {{camelDot}}; color: #F9F9FB"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+</button>
+<button type="button" aria-pressed="{{lilacPressed}}" onClick="{{pick_lilac}}" style="height: 92px; display: flex; align-items: center; gap: 16px; padding: 0 18px; border-radius: 22px; background: {{lilacBg}}; box-shadow: {{lilacRing}}">
+<img src="/_blob/d032f1756dd4b6c552a391d30c48d7d6" alt="" style="width: 120px; height: 60px; flex-shrink: 0; object-fit: contain">
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 18px; font-weight: 600">라일락</span><span style="font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-style: italic; font-size: 16px; color: #71736C">Lilac</span></span>
+<span style="margin-left: auto; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: {{lilacDot}}; color: #F9F9FB"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+</button>
+<button type="button" aria-pressed="{{olivePressed}}" onClick="{{pick_olive}}" style="height: 92px; display: flex; align-items: center; gap: 16px; padding: 0 18px; border-radius: 22px; background: {{oliveBg}}; box-shadow: {{oliveRing}}">
+<img src="/_blob/8cb906caa448cfa1a9e4217aa611ab08" alt="" style="width: 120px; height: 60px; flex-shrink: 0; object-fit: contain">
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 18px; font-weight: 600">올리브</span><span style="font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-style: italic; font-size: 16px; color: #71736C">Olive</span></span>
+<span style="margin-left: auto; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: {{oliveDot}}; color: #F9F9FB"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+</button>
+</div>
+<div style="position: absolute; left: 20px; right: 20px; bottom: 46px"><a href="JoinShoot.dc.html" style="height: 54px; border-radius: 27px; display: flex; align-items: center; justify-content: center; gap: 8px; background: #292A27; color: #F9F9FB; font-size: 16px; font-weight: 600">{{pickedLabel}} 찍기</a></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":393,"height":852}}'>
+class Component extends DCLogic {
+renderVals() {
+const liked = !!(this.state && this.state.liked);
+const vals = {
+heartFill: liked ? 'currentColor' : 'none',
+likePressed: liked ? 'true' : 'false',
+toggleLike: () => this.setState({ liked: !liked })
+};
+const picked = (this.state && this.state.picked) || 'camel';
+const names = {"camel":"카멜","lilac":"라일락","olive":"올리브"};
+for (const c of ["camel","lilac","olive"]) {
+const on = picked === c;
+vals[c + 'Pressed'] = on ? 'true' : 'false';
+vals[c + 'Bg'] = on ? '#FFFFFF' : 'transparent';
+vals[c + 'Ring'] = on ? 'inset 0 0 0 1.5px #292A27, 0 6px 18px rgba(41, 42, 39, 0.08)' : 'inset 0 0 0 1px #E0E1DC';
+vals[c + 'Dot'] = on ? '#292A27' : 'transparent';
+vals['pick_' + c] = () => this.setState({ picked: c });
+}
+const nm = names[picked];
+const jong = (nm.charCodeAt(nm.length - 1) - 0xac00) % 28;
+vals.pickedLabel = nm + (jong === 0 || jong === 8 ? '로' : '으로');
+return vals;
+}
+
+}
+</script>
+</body>
+</html>

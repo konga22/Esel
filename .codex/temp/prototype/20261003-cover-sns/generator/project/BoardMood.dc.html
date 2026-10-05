@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>무드보드</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&amp;family=DM+Mono:wght@400;500&amp;family=Instrument+Sans:wght@400;500;600&amp;family=Nanum+Myeongjo:wght@400;700&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:inherit}
+input{font:inherit;color:inherit}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+button,a{transition:transform 160ms cubic-bezier(0.23,1,0.32,1)}
+button:active,a:active{transform:scale(0.97)}
+.esel-scroll::-webkit-scrollbar{display:none}
+@font-face{font-family:'Esel Dot';src:local('AppleSDGothicNeo-Regular'),local('Apple SD Gothic Neo'),local('Pretendard-Regular'),local('Pretendard Regular'),local('NotoSansKR-Regular'),local('Noto Sans KR'),local('Malgun Gothic');unicode-range:U+00B7}
+.esel-glass{background:rgba(249,249,251,0.58);-webkit-backdrop-filter:blur(22px) saturate(1.6);backdrop-filter:blur(22px) saturate(1.6);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.6),0 10px 28px rgba(0,0,0,0.14)}
+@media (prefers-reduced-transparency: reduce){.esel-glass{background:#F9F9FB;-webkit-backdrop-filter:none;backdrop-filter:none}}
+@media (prefers-contrast: more){.esel-glass{background:#F9F9FB;box-shadow:inset 0 0 0 1.5px #292A27}}
+@media (prefers-reduced-motion: reduce){button,a{transition:none !important}}
+
+</style>
+</helmet>
+<div style="width: 1440px; height: 1260px; box-sizing: border-box; padding: 56px 64px; background: #F9F9FB; color: #292A27; font-family: 'Esel Dot', 'Instrument Sans', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; display: flex; flex-direction: column; gap: 36px">
+<header style="display: flex; align-items: flex-end; justify-content: space-between; padding-bottom: 20px; border-bottom: 2px solid #292A27">
+<div style="display: flex; align-items: baseline; gap: 24px"><span style="font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-size: 64px; line-height: 0.9; letter-spacing: -0.05em">Esel</span><span style="font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-size: 30px">무드보드</span></div>
+<span style="font-family: 'DM Mono', ui-monospace, Menlo, monospace; font-size: 13px; letter-spacing: 0.08em">00 · MOOD BOARD · 2026. 10.</span>
+</header>
+<div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 40px">
+<div><p style="margin: 0; font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-style: italic; font-size: 44px; line-height: 1.1">Your everyday, published.</p>
+<p style="margin: 10px 0 0; font-size: 17px; line-height: 1.6; color: #44463E">평범한 하루의 착장이 한 권의 잡지가 되는 곳. 사진은 크게, 색은 물감으로, 조작은 조용하게.</p></div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; flex: 1 1 0; min-height: 0">
+<section style="background: #FFFFFF; border-radius: 20px; box-shadow: inset 0 0 0 1px #ECECE8; padding: 28px; display: flex; flex-direction: column; gap: 4px">
+<p style="margin: 0; font-family: 'DM Mono', ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 0.08em; color: #71736C">01 / 키워드와 말투</p>
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 16px 0; border-bottom: 1px solid #E0E1DC"><div style="display: flex; align-items: baseline; gap: 10px"><span style="font-size: 20px; font-weight: 600">잡지처럼</span><span style="font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-style: italic; font-size: 20px; color: #71736C">Editorial</span></div><p style="margin: 0; font-size: 14px; line-height: 1.6; color: #55574F">표지·호수·펼침면·구독. 앱의 말을 잡지의 말로 바꾼다.</p></div>
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 16px 0; border-bottom: 1px solid #E0E1DC"><div style="display: flex; align-items: baseline; gap: 10px"><span style="font-size: 20px; font-weight: 600">색으로</span><span style="font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-style: italic; font-size: 20px; color: #71736C">Chromatic</span></div><p style="margin: 0; font-size: 14px; line-height: 1.6; color: #55574F">오늘의 색 하나가 하루의 주제. 색은 아크릴 물감으로 말한다.</p></div>
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 16px 0; border-bottom: 1px solid #E0E1DC"><div style="display: flex; align-items: baseline; gap: 10px"><span style="font-size: 20px; font-weight: 600">가볍게</span><span style="font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-style: italic; font-size: 20px; color: #71736C">Effortless</span></div><p style="margin: 0; font-size: 14px; line-height: 1.6; color: #55574F">사진 한 장과 한 줄이면 한 호가 된다. 잡지를 만드는 일이 숙제가 되지 않게.</p></div>
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 16px 0; border-bottom: 1px solid #E0E1DC"><div style="display: flex; align-items: baseline; gap: 10px"><span style="font-size: 20px; font-weight: 600">누구나 표지</span><span style="font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-style: italic; font-size: 20px; color: #71736C">Inclusive</span></div><p style="margin: 0; font-size: 14px; line-height: 1.6; color: #55574F">얼굴은 선택. 물감이나 제호로 가린 표지도 똑같이 멋지다.</p></div>
+<div style="margin-top: 14px; display: flex; flex-direction: column; gap: 8px">
+<p style="margin: 0; font-family: 'DM Mono', ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 0.08em; color: #71736C">VOICE</p>
+<p style="margin: 0; font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-size: 21px; line-height: 1.5">“오늘 호는 아직 열두 쪽이 더 남았어요.”<br>“창간을 축하해요.”<br>“카멜이 보이게 찍어요.”</p>
+<p style="margin: 0; font-size: 14px; line-height: 1.6; color: #55574F">하지 않는 말: 점수·순위·평가, 과한 감탄사, 제호 밖의 영어.</p>
+</div>
+</section>
+<section style="background: #FFFFFF; border-radius: 20px; box-shadow: inset 0 0 0 1px #ECECE8; padding: 28px; display: flex; flex-direction: column; gap: 18px">
+<p style="margin: 0; font-family: 'DM Mono', ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 0.08em; color: #71736C">02 / 색 — 열두 가지 오늘의 색</p>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+<img src="/_blob/a3b1f50ec885b82797b4dad1d6fb32f8" alt="노란 셋업과 은색 가방 착장" style="display: block; width: 88px; height: 132px; object-fit: cover; object-position: 50% 25%; width: 100%; border-radius: 10px">
+<img src="/_blob/a766ad9f12dec92cfa9b3cdca4c63768" alt="창가에 선 버건디 랩 코트 착장" style="display: block; width: 88px; height: 132px; object-fit: cover; object-position: 50% 25%; width: 100%; border-radius: 10px">
+<img src="/_blob/c2d2447b3fb019a0647547b338dc9615" alt="올리브 더블 수트와 빨간 타이 착장" style="display: block; width: 88px; height: 132px; object-fit: cover; object-position: 50% 25%; width: 100%; border-radius: 10px">
+<img src="/_blob/7bee9f1a7214e73bb5aa29dfce802597" alt="바닷가 바위 위 코발트 셔츠 원피스 착장" style="display: block; width: 88px; height: 132px; object-fit: cover; object-position: 50% 25%; width: 100%; border-radius: 10px">
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 8px">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><img src="/_blob/01c7aef9caeab80dd2ca2949e8ba18c0" alt="" style="width: 96px; height: 48px; flex-shrink: 0; object-fit: contain"><span style="font-size: 13px; font-weight: 600">세이지</span><span style="font-family: 'DM Mono', ui-monospace, Menlo, monospace; font-size: 11px; color: #71736C">#A8B5A0</span></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><img src="/_blob/76c81659c2b051a973c2071f8c1dd366" alt="" style="width: 96px; height: 48px; flex-shrink: 0; object-fit: contain"><span style="font-size: 13px; font-weight: 600">버터</span><span style="font-family: 'DM Mono', ui-monospace, Menlo, monospace; font-size: 11px; color: #71736C">#E3C878</span></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><img src="/_blob/2741e570bc827c25a1b735a55cfb4f8e" alt="" style="width: 96px; height: 48px; flex-shrink: 0; object-fit: contain"><span style="font-size: 13px; font-weight: 600">파우더 블루</span><span style="font-family: 'DM Mono', ui-monospace, Menlo, monospace; font-size: 11px; color: #71736C">#A9BDDC</span></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><img src="/_blob/45fd789cdc8232887f512c159b3ba1e3" alt="" style="width: 96px; height: 48px; flex-shrink: 0; object-fit: contain"><span style="font-size: 13px; font-weight: 600">코랄</span><span style="font-family: 'DM Mono', ui-monospace, Menlo, monospace; font-size: 11px; color: #71736C">#EE8C76</span></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><img src="/_blob/d032f1756dd4b6c552a391d30c48d7d6" alt="" style="width: 96px; height: 48px; flex-shrink: 0; object-fit: contain"><span style="font-size: 13px; font-weight: 600">라일락</span><span style="font-family: 'DM Mono', ui-monospace, Menlo, monospace; font-size: 11px; color: #71736C">#BBA6D6</span></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><img src="/_blob/dc9bda2f1944a8796d1a3d118d7d5935" alt="" style="width: 96px; height: 48px; flex-shrink: 0; object-fit: contain"><span style="font-size: 13px; font-weight: 600">테라코타</span><span style="font-family: 'DM Mono', ui-monospace, Menlo, monospace; font-size: 11px; color: #71736C">#C2643F</span></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><img src="/_blob/8c34cccf0aa6b2cd1c68178dbff4a444" alt="" style="width: 96px; height: 48px; flex-shrink: 0; object-fit: contain"><span style="font-size: 13px; font-weight: 600">버건디</span><span style="font-family: 'DM Mono', ui-monospace, Menlo, monospace; font-size: 11px; color: #71736C">#7A2735</span></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><img src="/_blob/8cb906caa448cfa1a9e4217aa611ab08" alt="" style="width: 96px; height: 48px; flex-shrink: 0; object-fit: contain"><span style="font-size: 13px; font-weight: 600">올리브</span><span style="font-family: 'DM Mono', ui-monospace, Menlo, monospace; font-size: 11px; color: #71736C">#6F7445</span></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><img src="/_blob/3530d97ccf523268678b64e43a7a9448" alt="" style="width: 96px; height: 48px; flex-shrink: 0; object-fit: contain"><span style="font-size: 13px; font-weight: 600">크림</span><span style="font-family: 'DM Mono', ui-monospace, Menlo, monospace; font-size: 11px; color: #71736C">#E9DEC6</span></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><img src="/_blob/f0a5d7b805f4ea330ca85e418c63f59e" alt="" style="width: 96px; height: 48px; flex-shrink: 0; object-fit: contain"><span style="font-size: 13px; font-weight: 600">차콜</span><span style="font-family: 'DM Mono', ui-monospace, Menlo, monospace; font-size: 11px; color: #71736C">#3F4043</span></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><img src="/_blob/b6075b3235f77454183c94c49f6da37a" alt="" style="width: 96px; height: 48px; flex-shrink: 0; object-fit: contain"><span style="font-size: 13px; font-weight: 600">카멜</span><span style="font-family: 'DM Mono', ui-monospace, Menlo, monospace; font-size: 11px; color: #71736C">#C1945F</span></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><img src="/_blob/df0bc44e7f972fd97b0d90234a638a31" alt="" style="width: 96px; height: 48px; flex-shrink: 0; object-fit: contain"><span style="font-size: 13px; font-weight: 600">코발트</span><span style="font-family: 'DM Mono', ui-monospace, Menlo, monospace; font-size: 11px; color: #71736C">#2648B0</span></div>
+</div>
+<p style="margin: 0; font-size: 14px; line-height: 1.6; color: #55574F">하루에 세 가지가 후보로 온다. 값은 방향이며 사진을 정밀 측정한 수치가 아니다.</p>
+</section>
+<section style="background: #FFFFFF; border-radius: 20px; box-shadow: inset 0 0 0 1px #ECECE8; padding: 28px; display: flex; flex-direction: column; gap: 4px">
+<p style="margin: 0; font-family: 'DM Mono', ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 0.08em; color: #71736C">03 / Esel 문법</p>
+<div style="display: flex; gap: 16px; margin: 10px 0 6px">
+<a href="CoverFeed.dc.html" aria-label="dana의 표지 보기" style="position: relative; display: block; width: 150px; height: 220px; flex-shrink: 0; overflow: hidden; background: #EDEEEA; color: #292A27; box-shadow: 0 4px 12px rgba(41, 42, 39, 0.16)">
+<span style="position: relative; display: block; width: 150px; height: 220px; overflow: hidden"><img src="/_blob/ccccff032247b980b249542cac99de46" alt="파우더 블루 셔츠와 데님 착장" style="display: block; width: 150px; height: 220px; object-fit: cover; object-position: 58% 50%"></span>
+<span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 7px; text-align: center; font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-size: 66px; line-height: 0.9; letter-spacing: -0.05em; padding-right: 3px">Esel</span>
+<span aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: 0; height: 40%; background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.55))"></span>
+<span style="position: absolute; left: 9px; bottom: 8px; color: #FFFFFF; font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-style: italic; font-size: 22px; line-height: 1">dana</span>
+</a>
+<a href="JoinDone.dc.html" aria-label="내 잡지 표지 보기" style="position: relative; display: block; width: 150px; height: 220px; flex-shrink: 0; overflow: hidden; background: #EDEEEA; color: #FFFFFF; box-shadow: 0 4px 12px rgba(41, 42, 39, 0.16)">
+<span style="position: relative; display: block; width: 150px; height: 220px; overflow: hidden"><img src="/_blob/0d2c5aca03c0e210cd888e2094c78869" alt="카멜 코트와 페도라 착장" style="display: block; width: 150px; height: 220px; object-fit: cover; object-position: 50% 50%"><img src="/_blob/b6075b3235f77454183c94c49f6da37a" alt="" style="position: absolute; left: 54px; top: 77px; width: 51px; height: 26px; max-width: none; transform: rotate(-10deg); pointer-events: none"></span>
+<span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 7px; text-align: center; font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-size: 57px; line-height: 0.9; letter-spacing: -0.05em; padding-right: 3px">selin</span>
+<span aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: 0; height: 40%; background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.55))"></span>
+<span style="position: absolute; left: 9px; bottom: 8px; color: #FFFFFF; font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-style: italic; font-size: 19px; line-height: 1">selin</span>
+</a>
+</div>
+<div style="display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid #E0E1DC"><span style="font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-style: italic; font-size: 22px; line-height: 1.1; width: 24px">1</span><div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 16px; font-weight: 600">표지는 첫 장만</span><p style="margin: 0; font-size: 14px; line-height: 1.6; color: #55574F">내리면 제호가 작은 로고가 되고, 올라오면 다시 제호로 녹아든다.</p></div></div>
+<div style="display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid #E0E1DC"><span style="font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-style: italic; font-size: 22px; line-height: 1.1; width: 24px">2</span><div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 16px; font-weight: 600">제호는 이름이 된다</span><p style="margin: 0; font-size: 14px; line-height: 1.6; color: #55574F">내 잡지의 제호는 영문 닉네임. 앱의 첫 표지만 Esel.</p></div></div>
+<div style="display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid #E0E1DC"><span style="font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-style: italic; font-size: 22px; line-height: 1.1; width: 24px">3</span><div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 16px; font-weight: 600">얼굴은 선택</span><p style="margin: 0; font-size: 14px; line-height: 1.6; color: #55574F">그대로 · 물감 한 획 · 제호 뒤로 · 목 아래. 호마다 바꾼다.</p></div></div>
+<div style="display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid #E0E1DC"><span style="font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-style: italic; font-size: 22px; line-height: 1.1; width: 24px">4</span><div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 16px; font-weight: 600">글라스는 사진 위에서만</span><p style="margin: 0; font-size: 14px; line-height: 1.6; color: #55574F">메뉴 캡슐과 로그인 바. 흰 화면과 투명도 줄이기에서는 단색.</p></div></div>
+<div style="display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid #E0E1DC"><span style="font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-style: italic; font-size: 22px; line-height: 1.1; width: 24px">5</span><div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 16px; font-weight: 600">색 이름은 물감 옆에</span><p style="margin: 0; font-size: 14px; line-height: 1.6; color: #55574F">시각은 쪽 번호 맞은편, 색 이름은 물감 바로 옆.</p></div></div>
+<div style="display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid #E0E1DC"><span style="font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-style: italic; font-size: 22px; line-height: 1.1; width: 24px">6</span><div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 16px; font-weight: 600">숫자는 본인에게만</span><p style="margin: 0; font-size: 14px; line-height: 1.6; color: #55574F">좋아요·구독자·독자 한 줄·스크랩 수는 발행한 사람만 본다. 같은 색 인원과 호수는 모두에게.</p></div></div>
+<div style="display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid #E0E1DC"><span style="font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-style: italic; font-size: 22px; line-height: 1.1; width: 24px">7</span><div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 16px; font-weight: 600">같은 색은 발행하면 펼쳐진다</span><p style="margin: 0; font-size: 14px; line-height: 1.6; color: #55574F">발행 전에는 같은 색 표지 세 장만. 자정이 지나면 모두 열린다.</p></div></div>
+</section>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1260}}'>
+class Component extends DCLogic {
+renderVals() {
+const liked = !!(this.state && this.state.liked);
+const vals = {
+heartFill: liked ? 'currentColor' : 'none',
+likePressed: liked ? 'true' : 'false',
+toggleLike: () => this.setState({ liked: !liked })
+};
+
+return vals;
+}
+
+}
+</script>
+</body>
+</html>

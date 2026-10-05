@@ -1,0 +1,25 @@
+const {chromium}=require('playwright');const assert=require('node:assert/strict');const path=require('node:path');
+(async()=>{const browser=await chromium.launch({channel:'chrome',headless:true});try{for(const width of [393,320]){
+ const page=await browser.newPage({viewport:{width,height:width===393?852:740}});await page.addInitScript(()=>{Math.random=()=>.999;});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ const click=a=>page.locator(`[data-action="${a}"]`).click();const friend=()=>page.locator('#twin-content [data-action="demo-settings"]').click();const shot=async name=>{await page.locator('#notice').waitFor({state:'hidden'});await page.screenshot({path:path.join(__dirname,`../screenshots/editor-${name}-${width}.png`)});};
+ await page.goto('http://localhost:4177/?scenario=standard');assert.equal(await page.locator('.wordmark').isVisible(),false);
+ await click('compose');await click('use-sample');await page.waitForFunction(()=>!document.querySelector('[data-action="publish"]').disabled);
+ await page.locator('.face-tools summary').click();await page.locator('[data-mask="horizontal"]').click();await click('publish');assert.ok((await page.locator('#notice').textContent()).includes('얼굴 위치'));
+ await page.locator('.face-canvas').click({position:{x:(width-44)*.42,y:(width-44)*.56}});await page.locator('[data-mask="diagonal"]').click();await page.locator('.face-tools input').fill('35');await page.locator('[data-screen="compose"]').evaluate(el=>{el.scrollTop=0;});await shot('mask');
+ await click('publish');await page.waitForFunction(()=>document.querySelector('#post-my-daily-2026-09-06 img.post-photo')?.src.startsWith('data:image/png'));
+ assert.equal(await page.locator('.wordmark').isVisible(),true);
+ await page.locator('.app-nav [data-nav="profile"]').click();assert.equal(await page.locator('.wordmark').isVisible(),false);await click('open-twin');await click('invite');await friend();await click('accept-twin');
+ assert.deepEqual(await page.locator('[data-twin-color]').evaluateAll(xs=>xs.map(x=>x.dataset.twinColor)),['sage','butter','blue']);await shot('recommend');await page.locator('[data-twin-color="blue"]').click();await click('propose-twin');await friend();assert.deepEqual(await page.locator('[data-friend-color]').evaluateAll(xs=>xs.map(x=>x.dataset.friendColor)),['sage','coral','violet']);await page.locator('[data-friend-color="violet"]').click();
+ await click('twin-compose');await click('use-sample');await page.waitForFunction(()=>!document.querySelector('[data-action="publish"]').disabled);await click('publish');await friend();await click('friend-post');
+ await click('publication');await page.locator('[data-public="solo"]').click();await page.locator('#publication-dialog [data-close]').click();await page.locator('.app-nav [data-nav="feed"]').click();assert.equal(await page.locator('.twin-public').count(),0);
+ await page.locator('.app-nav [data-nav="profile"]').click();await click('open-twin');await click('publication');await page.locator('[data-public="joint"]').click();await shot('upload');await click('publication-upload');
+ assert.equal(await page.locator('.twin-publication-status p').textContent(),'친구의 공개 동의를 기다리고 있어요.');
+ await friend();await page.locator('[data-friend-public="joint"]').click();assert.ok((await page.locator('#notice').textContent()).includes('민서님이 동의했어요'));
+ assert.equal(await page.locator('.twin-publication-status p').textContent(),'함께 업로드 완료');await shot('consent');
+ await page.locator('.app-nav [data-nav="profile"]').click();await click('open-twin');assert.equal(await page.locator('.twin-publication-status p').textContent(),'함께 업로드 완료');await click('view-twin-feed');
+ assert.equal(await page.locator('.twin-public').count(),1);assert.equal(await page.locator('.twin-public [data-member]').count(),2);assert.equal(await page.locator('.twin-public .username').textContent(),'유나와 민서의 트윈');
+ assert.deepEqual(await page.locator('.twin-public-piece').evaluateAll(xs=>xs.map(x=>x.querySelector('.partner-tag button')?.dataset.member)),['friend','own']);
+ await page.locator('.twin-public').scrollIntoViewIfNeeded();await shot('feed');await page.locator('.twin-public [data-member="friend"]').click();assert.equal(await page.locator('#member-dialog img').count(),1);
+ await page.locator('#member-dialog [data-close]').click();await page.locator('.app-nav [data-nav="profile"]').click();await click('open-twin');await friend();await page.locator('[data-friend-public="private"]').click();assert.equal(await page.locator('.twin-publication-status p').textContent(),'친구의 공개 동의를 기다리고 있어요.');assert.equal(await page.locator('[data-action="view-twin-feed"]').count(),0);
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth===innerWidth));assert.deepEqual(errors,[]);console.log(`${width}px: raster mask upload, feed-only logo, independent colors, explicit commit, dual tags and title passed`);await page.close();
+}}finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

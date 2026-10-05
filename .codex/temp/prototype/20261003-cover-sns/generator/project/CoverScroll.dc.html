@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>표지 SNS 7 스크롤 시안</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&amp;family=DM+Mono:wght@400;500&amp;family=Instrument+Sans:wght@400;500;600&amp;family=Nanum+Myeongjo:wght@400;700&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:inherit}
+input{font:inherit;color:inherit}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+button,a{transition:transform 160ms cubic-bezier(0.23,1,0.32,1)}
+button:active,a:active{transform:scale(0.97)}
+.esel-scroll::-webkit-scrollbar{display:none}
+@font-face{font-family:'Esel Dot';src:local('AppleSDGothicNeo-Regular'),local('Apple SD Gothic Neo'),local('Pretendard-Regular'),local('Pretendard Regular'),local('NotoSansKR-Regular'),local('Noto Sans KR'),local('Malgun Gothic');unicode-range:U+00B7}
+.esel-glass{background:rgba(249,249,251,0.58);-webkit-backdrop-filter:blur(22px) saturate(1.6);backdrop-filter:blur(22px) saturate(1.6);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.6),0 10px 28px rgba(0,0,0,0.14)}
+@media (prefers-reduced-transparency: reduce){.esel-glass{background:#F9F9FB;-webkit-backdrop-filter:none;backdrop-filter:none}}
+@media (prefers-contrast: more){.esel-glass{background:#F9F9FB;box-shadow:inset 0 0 0 1.5px #292A27}}
+@media (prefers-reduced-motion: reduce){button,a{transition:none !important}}
+
+</style>
+</helmet>
+<div style="width: 393px; height: 852px; box-sizing: border-box; position: relative; overflow: hidden; font-family: 'Esel Dot', 'Instrument Sans', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; background: #F9F9FB; color: #292A27">
+<div class="esel-scroll" ref="{{setScroller}}" onScroll="{{onScroll}}" style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none">
+<section aria-label="오늘의 표지" style="position: relative; height: 800px; overflow: hidden; background: #C9D3DC">
+<img src="/_blob/ccccff032247b980b249542cac99de46" alt="파우더 블루 셔츠와 데님 착장" style="display: block; width: 393px; height: 800px; object-fit: cover; object-position: 58% 50%; position: absolute; left: 0; top: 0">
+<div aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: 0; height: 460px; background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.72))"></div>
+<div style="position: absolute; left: 14px; right: 20px; top: 48px; height: 44px; display: flex; align-items: center; justify-content: space-between; color: #292A27; font-size: 13px; font-weight: 600; letter-spacing: 0.04em">
+<div style="display: flex">
+<button type="button" aria-pressed="true" style="height: 44px; padding: 0 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px"><span>전체</span><span style="width: 100%; height: 1.5px; background: #292A27"></span></button>
+<button type="button" aria-pressed="false" style="height: 44px; padding: 0 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; opacity: 0.78"><span>구독</span><span style="width: 100%; height: 1.5px"></span></button>
+</div>
+<span style="font-size: 12px">Nº 249 · 2026. 9. 6.</span>
+</div>
+<h1 style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); margin: 0">Esel 오늘의 표지</h1>
+<div style="position: absolute; left: 20px; right: 8px; bottom: 52px; color: #FFFFFF">
+<div style="display: flex; align-items: flex-end; gap: 12px">
+<a href="CoverShelf.dc.html" style="font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-style: italic; font-size: 76px; line-height: 0.9; letter-spacing: -0.03em">dana</a>
+<button type="button" style="height: 44px; display: flex; align-items: center"><span style="height: 32px; padding: 0 14px; border-radius: 16px; display: flex; align-items: center; box-shadow: inset 0 0 0 1.5px #FFFFFF; font-size: 13px; font-weight: 600">구독</span></button>
+</div>
+<a href="CoverStand.dc.html" style="height: 44px; margin-top: 4px; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600"><img src="/_blob/2741e570bc827c25a1b735a55cfb4f8e" alt="파우더 블루" style="width: 60px; height: 30px; flex-shrink: 0; object-fit: contain"><span>파우더 블루 · 같은 색 187명</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15"></path><path d="M14 7l5 5-5 5"></path></svg></a>
+<p style="margin: 0; font-size: 15px; line-height: 1.45">난간에 기대서, 셔츠 하나로.</p>
+<div style="display: flex; align-items: center; margin: 2px 0 0 -12px">
+<button type="button" aria-label="좋아요" aria-pressed="{{likePressed}}" onClick="{{toggleLike}}" style="height: 48px; min-width: 48px; padding: 0 12px; display: flex; align-items: center; gap: 6px"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.3l-1.2-1.1C6.2 15 3.5 12.5 3.5 9.4 3.5 7 5.4 5 7.8 5c1.6 0 3.2.9 4.2 2.2C13 5.9 14.6 5 16.2 5c2.4 0 4.3 2 4.3 4.4 0 3.1-2.7 5.6-7.3 9.8L12 20.3z" fill="{{heartFill}}"></path></svg></button>
+<button type="button" aria-label="독자 한 줄" style="height: 48px; min-width: 48px; padding: 0 12px; display: flex; align-items: center; gap: 6px"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 0 1-11.8 7L4 20l1.1-4A8 8 0 1 1 20 12z"></path></svg></button>
+<button type="button" aria-label="스크랩" style="height: 48px; min-width: 48px; padding: 0 12px; display: flex; align-items: center; gap: 6px"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4h11v16l-5.5-4.2L6.5 20z"></path></svg></button>
+<a href="CoverSpread.dc.html" style="margin-left: auto; height: 48px; padding: 0 12px; display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600"><span>펼쳐 보기</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 14l6-6 6 6"></path></svg></a>
+</div>
+</div>
+</section>
+<article style="padding-bottom: 22px">
+<div style="display: flex; align-items: baseline; justify-content: space-between; padding: 16px 18px 8px; font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-style: italic; font-size: 16px"><span>02</span><span>오전 8:40</span></div>
+<span style="position: relative; display: block; width: 393px; height: 500px; overflow: hidden; background: #EDEEEA"><img src="/_blob/a3b1f50ec885b82797b4dad1d6fb32f8" alt="노란 셋업과 은색 가방 착장" style="display: block; width: 393px; height: 500px; object-fit: cover; object-position: 50% 30%"></span>
+<div style="display: flex; align-items: center; gap: 8px; padding: 4px 6px 0 18px">
+<span style="font-size: 18px; font-weight: 600">ama</span>
+<img src="/_blob/76c81659c2b051a973c2071f8c1dd366" alt="" style="width: 54px; height: 27px; flex-shrink: 0; object-fit: contain">
+<span style="font-size: 13px; color: #71736C">버터</span>
+<span style="margin-left: auto; display: flex"><button type="button" aria-label="좋아요" style="height: 48px; min-width: 48px; padding: 0 12px; display: flex; align-items: center; gap: 6px"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.3l-1.2-1.1C6.2 15 3.5 12.5 3.5 9.4 3.5 7 5.4 5 7.8 5c1.6 0 3.2.9 4.2 2.2C13 5.9 14.6 5 16.2 5c2.4 0 4.3 2 4.3 4.4 0 3.1-2.7 5.6-7.3 9.8L12 20.3z"></path></svg></button><button type="button" aria-label="스크랩" style="height: 48px; min-width: 48px; padding: 0 12px; display: flex; align-items: center; gap: 6px"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4h11v16l-5.5-4.2L6.5 20z"></path></svg></button></span>
+</div>
+<p style="margin: 0; padding: 0 18px; font-size: 15px; line-height: 1.45">노란 셋업에 은색 가방 하나.</p>
+</article>
+<article style="padding-bottom: 22px">
+<div style="display: flex; align-items: baseline; justify-content: space-between; padding: 16px 18px 8px; font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-style: italic; font-size: 16px"><span>03</span><span>오전 8:05</span></div>
+<span style="position: relative; display: block; width: 393px; height: 500px; overflow: hidden; background: #EDEEEA"><img src="/_blob/a766ad9f12dec92cfa9b3cdca4c63768" alt="창가에 선 버건디 랩 코트 착장" style="display: block; width: 393px; height: 500px; object-fit: cover; object-position: 50% 25%"><img src="/_blob/8c34cccf0aa6b2cd1c68178dbff4a444" alt="" style="position: absolute; left: 82px; top: 120px; width: 207px; height: 104px; max-width: none; transform: rotate(-10deg); pointer-events: none"></span>
+<div style="display: flex; align-items: center; gap: 8px; padding: 4px 6px 0 18px">
+<span style="font-size: 18px; font-weight: 600">lise</span>
+<img src="/_blob/8c34cccf0aa6b2cd1c68178dbff4a444" alt="" style="width: 54px; height: 27px; flex-shrink: 0; object-fit: contain">
+<span style="font-size: 13px; color: #71736C">버건디</span>
+<span style="margin-left: auto; display: flex"><button type="button" aria-label="좋아요" style="height: 48px; min-width: 48px; padding: 0 12px; display: flex; align-items: center; gap: 6px"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.3l-1.2-1.1C6.2 15 3.5 12.5 3.5 9.4 3.5 7 5.4 5 7.8 5c1.6 0 3.2.9 4.2 2.2C13 5.9 14.6 5 16.2 5c2.4 0 4.3 2 4.3 4.4 0 3.1-2.7 5.6-7.3 9.8L12 20.3z"></path></svg></button><button type="button" aria-label="스크랩" style="height: 48px; min-width: 48px; padding: 0 12px; display: flex; align-items: center; gap: 6px"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4h11v16l-5.5-4.2L6.5 20z"></path></svg></button></span>
+</div>
+<p style="margin: 0; padding: 0 18px; font-size: 15px; line-height: 1.45">창가의 버건디 코트.</p>
+</article>
+<article style="padding-bottom: 22px">
+<div style="display: flex; align-items: baseline; justify-content: space-between; padding: 16px 18px 8px; font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-style: italic; font-size: 16px"><span>04</span><span>오전 9:30</span></div>
+<span style="position: relative; display: block; width: 393px; height: 500px; overflow: hidden; background: #EDEEEA"><img src="/_blob/c2d2447b3fb019a0647547b338dc9615" alt="올리브 더블 수트와 빨간 타이 착장" style="display: block; width: 393px; height: 500px; object-fit: cover; object-position: 65% 15%"></span>
+<div style="display: flex; align-items: center; gap: 8px; padding: 4px 6px 0 18px">
+<span style="font-size: 18px; font-weight: 600">kofi</span>
+<img src="/_blob/8cb906caa448cfa1a9e4217aa611ab08" alt="" style="width: 54px; height: 27px; flex-shrink: 0; object-fit: contain">
+<span style="font-size: 13px; color: #71736C">올리브</span>
+<span style="margin-left: auto; display: flex"><button type="button" aria-label="좋아요" style="height: 48px; min-width: 48px; padding: 0 12px; display: flex; align-items: center; gap: 6px"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.3l-1.2-1.1C6.2 15 3.5 12.5 3.5 9.4 3.5 7 5.4 5 7.8 5c1.6 0 3.2.9 4.2 2.2C13 5.9 14.6 5 16.2 5c2.4 0 4.3 2 4.3 4.4 0 3.1-2.7 5.6-7.3 9.8L12 20.3z"></path></svg></button><button type="button" aria-label="스크랩" style="height: 48px; min-width: 48px; padding: 0 12px; display: flex; align-items: center; gap: 6px"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4h11v16l-5.5-4.2L6.5 20z"></path></svg></button></span>
+</div>
+<p style="margin: 0; padding: 0 18px; font-size: 15px; line-height: 1.45">올리브 수트에 빨간 타이.</p>
+</article>
+<article style="padding-bottom: 22px">
+<div style="display: flex; align-items: baseline; justify-content: space-between; padding: 16px 18px 8px; font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-style: italic; font-size: 16px"><span>05</span><span>오후 6:45</span></div>
+<span style="position: relative; display: block; width: 393px; height: 500px; overflow: hidden; background: #EDEEEA"><img src="/_blob/b5ff21cbb74e080d3cd23771fe4a7d6a" alt="분홍 벽 앞 코랄 슬립 원피스 착장" style="display: block; width: 393px; height: 500px; object-fit: cover; object-position: 50% 40%"></span>
+<div style="display: flex; align-items: center; gap: 8px; padding: 4px 6px 0 18px">
+<span style="font-size: 18px; font-weight: 600">rio</span>
+<img src="/_blob/45fd789cdc8232887f512c159b3ba1e3" alt="" style="width: 54px; height: 27px; flex-shrink: 0; object-fit: contain">
+<span style="font-size: 13px; color: #71736C">코랄</span>
+<span style="margin-left: auto; display: flex"><button type="button" aria-label="좋아요" style="height: 48px; min-width: 48px; padding: 0 12px; display: flex; align-items: center; gap: 6px"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.3l-1.2-1.1C6.2 15 3.5 12.5 3.5 9.4 3.5 7 5.4 5 7.8 5c1.6 0 3.2.9 4.2 2.2C13 5.9 14.6 5 16.2 5c2.4 0 4.3 2 4.3 4.4 0 3.1-2.7 5.6-7.3 9.8L12 20.3z"></path></svg></button><button type="button" aria-label="스크랩" style="height: 48px; min-width: 48px; padding: 0 12px; display: flex; align-items: center; gap: 6px"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4h11v16l-5.5-4.2L6.5 20z"></path></svg></button></span>
+</div>
+<p style="margin: 0; padding: 0 18px; font-size: 15px; line-height: 1.45">분홍 벽엔 코랄 슬립.</p>
+</article>
+<article style="padding-bottom: 22px">
+<div style="display: flex; align-items: baseline; justify-content: space-between; padding: 16px 18px 8px; font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-style: italic; font-size: 16px"><span>06</span><span>오후 5:25</span></div>
+<span style="position: relative; display: block; width: 393px; height: 500px; overflow: hidden; background: #EDEEEA"><img src="/_blob/b793cac0ae70e33fd05e2a45f17a2500" alt="숲속의 검정 수트 착장, 얼굴 아래로 자른 구도" style="position: absolute; left: 0px; top: -234px; width: 491px; height: 737px; max-width: none"></span>
+<div style="display: flex; align-items: center; gap: 8px; padding: 4px 6px 0 18px">
+<span style="font-size: 18px; font-weight: 600">omar</span>
+<img src="/_blob/f0a5d7b805f4ea330ca85e418c63f59e" alt="" style="width: 54px; height: 27px; flex-shrink: 0; object-fit: contain">
+<span style="font-size: 13px; color: #71736C">차콜</span>
+<span style="margin-left: auto; display: flex"><button type="button" aria-label="좋아요" style="height: 48px; min-width: 48px; padding: 0 12px; display: flex; align-items: center; gap: 6px"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.3l-1.2-1.1C6.2 15 3.5 12.5 3.5 9.4 3.5 7 5.4 5 7.8 5c1.6 0 3.2.9 4.2 2.2C13 5.9 14.6 5 16.2 5c2.4 0 4.3 2 4.3 4.4 0 3.1-2.7 5.6-7.3 9.8L12 20.3z"></path></svg></button><button type="button" aria-label="스크랩" style="height: 48px; min-width: 48px; padding: 0 12px; display: flex; align-items: center; gap: 6px"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4h11v16l-5.5-4.2L6.5 20z"></path></svg></button></span>
+</div>
+<p style="margin: 0; padding: 0 18px; font-size: 15px; line-height: 1.45">숲에서 입은 검정 수트.</p>
+</article>
+<article style="padding-bottom: 22px">
+<div style="display: flex; align-items: baseline; justify-content: space-between; padding: 16px 18px 8px; font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-style: italic; font-size: 16px"><span>07</span><span>오전 7:30</span></div>
+<span style="position: relative; display: block; width: 393px; height: 500px; overflow: hidden; background: #EDEEEA"><img src="/_blob/7bee9f1a7214e73bb5aa29dfce802597" alt="바닷가 바위 위 코발트 셔츠 원피스 착장" style="display: block; width: 393px; height: 500px; object-fit: cover; object-position: 50% 25%"></span>
+<div style="display: flex; align-items: center; gap: 8px; padding: 4px 6px 0 18px">
+<span style="font-size: 18px; font-weight: 600">riva</span>
+<img src="/_blob/df0bc44e7f972fd97b0d90234a638a31" alt="" style="width: 54px; height: 27px; flex-shrink: 0; object-fit: contain">
+<span style="font-size: 13px; color: #71736C">코발트</span>
+<span style="margin-left: auto; display: flex"><button type="button" aria-label="좋아요" style="height: 48px; min-width: 48px; padding: 0 12px; display: flex; align-items: center; gap: 6px"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.3l-1.2-1.1C6.2 15 3.5 12.5 3.5 9.4 3.5 7 5.4 5 7.8 5c1.6 0 3.2.9 4.2 2.2C13 5.9 14.6 5 16.2 5c2.4 0 4.3 2 4.3 4.4 0 3.1-2.7 5.6-7.3 9.8L12 20.3z"></path></svg></button><button type="button" aria-label="스크랩" style="height: 48px; min-width: 48px; padding: 0 12px; display: flex; align-items: center; gap: 6px"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4h11v16l-5.5-4.2L6.5 20z"></path></svg></button></span>
+</div>
+<p style="margin: 0; padding: 0 18px; font-size: 15px; line-height: 1.45">바닷가엔 코발트.</p>
+</article>
+<div aria-hidden="true" style="height: 110px"></div>
+</div>
+<button type="button" aria-label="맨 위 표지로 돌아가기" ref="{{setPill}}" onClick="{{toTop}}" style="position: absolute; left: 50%; top: 50px; width: 108px; height: 46px; margin-left: -54px; border-radius: 23px; background: rgba(249, 249, 251, 0.86); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7), 0 4px 16px rgba(41, 42, 39, 0.1); opacity: 0; pointer-events: none"></button>
+<div aria-hidden="true" ref="{{setMast}}" style="position: absolute; left: 0; top: 80px; width: 393px; height: 180px; box-sizing: border-box; padding-right: 10px; text-align: center; font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-size: 200px; line-height: 0.9; letter-spacing: -10px; color: #292A27; pointer-events: none; transform-origin: 50% 50%; will-change: transform, opacity"><span style="position: relative; display: inline-block">Esel<span ref="{{setDot}}" style="position: absolute; left: 100%; top: 0; color: #AE8775; opacity: 0">.</span></span></div>
+<nav aria-label="주요 화면" class="esel-glass" style="position: absolute; left: 50%; bottom: 34px; width: 196px; height: 60px; margin-left: -98px; box-sizing: border-box; padding: 0 6px; border-radius: 30px; display: flex; align-items: center; justify-content: space-between; color: #292A27">
+<a href="CoverStand.dc.html" aria-label="오늘의 색 가판대" style="width: 60px; height: 48px; display: flex; align-items: center; justify-content: center"><img src="/_blob/b6075b3235f77454183c94c49f6da37a" alt="" style="width: 52px; height: 26px; flex-shrink: 0; object-fit: contain"></a>
+<a href="CoverMake.dc.html" aria-label="표지 만들기" style="width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #292A27; color: #F9F9FB"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></a>
+<a href="CoverShelf.dc.html" aria-label="내 잡지" style="width: 60px; height: 48px; display: flex; align-items: center; justify-content: center"><span style="display: block; width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: #E9E9E6"><img src="/_blob/0d2c5aca03c0e210cd888e2094c78869" alt="" style="display: block; width: 128px; height: 192px; max-width: none; margin: -64px 0 0 -50px"></span></a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":393,"height":852}}'>
+class Component extends DCLogic {
+renderVals() {
+const liked = !!(this.state && this.state.liked);
+const vals = {
+heartFill: liked ? 'currentColor' : 'none',
+likePressed: liked ? 'true' : 'false',
+toggleLike: () => this.setState({ liked: !liked })
+};
+if (!this._esel) {
+const refs = {};
+const keep = (k) => (el) => { if (el) { refs[k] = el; if (k === 'pill') el.tabIndex = -1; } };
+this._esel = { refs: refs, mode: 'cover', y: 0, dir: 0, acc: 0, animUntil: 0, login: false, set: { scroller: keep('scroller'), mast: keep('mast'), pill: keep('pill'), dot: keep('dot'), login: keep('login') } };
+}
+const es = this._esel;
+vals.setScroller = es.set.scroller;
+vals.setMast = es.set.mast;
+vals.setPill = es.set.pill;
+vals.setDot = es.set.dot;
+vals.setLogin = es.set.login;
+vals.toTop = () => {
+if (!es.refs.scroller) return;
+es.refs.scroller.scrollTo({ top: 0, behavior: this.eselCalm() ? 'auto' : 'smooth' });
+};
+vals.onScroll = (e) => this.eselScroll(e.currentTarget.scrollTop);
+return vals;
+}
+eselCalm() {
+return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+}
+eselScroll(raw) {
+const es = this._esel;
+const MELT = 360;
+const y = Math.max(0, raw);
+const d = y - es.y;
+es.y = y;
+if (d !== 0) {
+const dir = d > 0 ? 1 : -1;
+if (dir !== es.dir) { es.dir = dir; es.acc = 0; }
+es.acc += Math.abs(d);
+}
+let mode = es.mode;
+if (y <= 1) mode = 'cover';
+else if (mode === 'cover' && y >= MELT && es.dir < 0 && es.acc >= 48) mode = 'float';
+else if (mode === 'float' && y >= MELT && es.dir > 0 && es.acc >= 18) mode = 'cover';
+if (mode !== es.mode) {
+es.mode = mode;
+if (y > 1) {
+if (mode === 'float') {
+es.animUntil = 0;
+this.eselWrite(-109, 0.14, 0, 1, 0, -12);
+if (es.refs.mast) void es.refs.mast.offsetWidth;
+}
+es.animUntil = Date.now() + 220;
+}
+}
+this.eselPaint(y);
+
+}
+eselPaint(y) {
+const es = this._esel;
+const MELT = 360;
+const S0 = 0.14;
+const PILL = -97;
+if (es.mode === 'cover') {
+if (y < 300) this.eselWrite(-y, 1, 1, 0, 0, 0);
+else this.eselWrite(PILL - 12, S0, 0, 0, 0, -12);
+return;
+}
+if (this.eselCalm() || y >= MELT) {
+this.eselWrite(PILL, S0, 1, 1, 1, 0);
+return;
+}
+const clamp = (v) => Math.max(0, Math.min(1, v));
+const p = 1 - y / MELT;
+const e = p * p * (3 - 2 * p);
+this.eselWrite(Math.max(PILL, -y), S0 + (1 - S0) * e, 1, 1 - clamp(p / 0.25), 1 - clamp(p / 0.18), 0);
+}
+eselWrite(ty, scale, opacity, dot, pill, pillShift) {
+const r = this._esel.refs;
+if (!r.mast) return;
+const moving = Date.now() < this._esel.animUntil;
+const t = moving ? 'transform 200ms cubic-bezier(0.23, 1, 0.32, 1), opacity 200ms ease-out' : 'none';
+r.mast.style.transition = t;
+r.mast.style.transform = 'translateY(' + ty + 'px) scale(' + scale + ')';
+r.mast.style.opacity = opacity;
+if (r.dot) {
+r.dot.style.transition = moving ? 'opacity 200ms ease-out' : 'none';
+r.dot.style.opacity = dot;
+}
+if (r.pill) {
+r.pill.style.transition = t;
+r.pill.style.transform = 'translateY(' + pillShift + 'px)';
+r.pill.style.opacity = pill;
+const on = pill > 0.5;
+r.pill.style.pointerEvents = on ? 'auto' : 'none';
+r.pill.tabIndex = on ? 0 : -1;
+}
+}
+}
+</script>
+</body>
+</html>

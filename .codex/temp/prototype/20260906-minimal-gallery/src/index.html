@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#F9F9FB">
+  <title>Esel — 사진과 색</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="social-state.js" defer></script>
+  <script src="feed-order.js" defer></script>
+  <script src="twin-sharing.js" defer></script>
+  <script src="face-paint.js" defer></script>
+  <script src="app.js" defer></script>
+  <script src="header-state.js" defer></script>
+  <script src="scroll-ui.js" defer></script>
+</head>
+<body>
+  <p class="preview-note">로컬 데모 · 사진·기록·친구는 예시입니다</p>
+  <div class="phone">
+    <div class="system-bar" aria-hidden="true"><span>9:41</span><span class="island"></span><span class="system-icons">▮▮▮<svg viewBox="0 0 24 18"><path d="M3 7q9-8 18 0M6 10q6-5 12 0m-8 3q2-2 4 0"/></svg><svg viewBox="0 0 24 18"><rect x="1" y="4" width="19" height="10" rx="2"/><path d="M23 7v4M4 7h13v4H4z"/></svg></span></div>
+    <header class="app-header">
+      <button class="wordmark" data-nav="feed" aria-label="Esel 피드로">Esel<span aria-hidden="true">.</span></button>
+      <button class="demo-access" data-action="demo-settings" aria-label="로컬 데모 안내 및 시연 설정">데모</button>
+    </header>
+
+    <main class="screen today" data-screen="today" aria-label="오늘의 색">
+      <div id="today-content"></div>
+    </main>
+    <main class="screen feed" data-screen="feed" aria-label="착장 피드" hidden>
+      <div class="feed-filters" role="group" aria-label="피드 범위">
+        <button data-filter="all" aria-pressed="true">전체</button>
+        <button data-filter="same" aria-pressed="false">같은 색</button>
+      </div>
+      <div id="post-list"></div>
+      <button id="feed-more" class="quiet-action" data-action="more-posts">더 보기</button>
+    </main>
+    <main class="screen profile" data-screen="profile" aria-label="내 전시" hidden><div id="profile-content"></div></main>
+    <main class="screen secondary" data-screen="compose" aria-label="착장 남기기" hidden>
+      <div class="page-heading"><button data-action="cancel-compose" aria-label="사진 선택 취소">←</button><h1>착장 남기기</h1></div>
+      <div id="compose-content"></div>
+      <input id="photo-input" type="file" accept="image/*" aria-label="착장 사진 파일 선택" hidden>
+    </main>
+    <main class="screen secondary twin" data-screen="twin" aria-label="팔레트 트윈" hidden>
+      <div class="page-heading"><button data-nav="profile" aria-label="내 전시로 돌아가기">←</button><h1>팔레트 트윈</h1></div>
+      <div id="twin-content"></div>
+    </main>
+    <nav class="app-nav" aria-label="주요 화면">
+      <button data-nav="today" aria-current="page">오늘의 색</button>
+      <button data-nav="feed">둘러보기</button>
+      <button data-nav="profile">내 전시</button>
+    </nav>
+    <div class="home-space" aria-hidden="true"><span></span></div>
+  </div>
+
+  <dialog id="publication-dialog" aria-labelledby="publication-title"><button class="dialog-close" data-close aria-label="공개 설정 닫기">×</button><h2 id="publication-title">피드에 공개</h2><div id="publication-content"></div></dialog>
+  <dialog id="member-dialog" aria-labelledby="member-title"><button class="dialog-close" data-close aria-label="프로필 닫기">×</button><h2 id="member-title"></h2><div id="member-content"></div></dialog>
+  <dialog id="color-dialog" aria-labelledby="color-title"><button class="dialog-close" data-close aria-label="색 정보 닫기">×</button><h2 id="color-title"></h2><div id="color-preview"></div></dialog>
+  <dialog id="share-dialog" aria-labelledby="share-title"><button class="dialog-close" data-close aria-label="공유 닫기">×</button><h2 id="share-title">공유</h2><label class="fine-print" for="share-link">이 컴퓨터에서만 열리는 데모 링크</label><input id="share-link" readonly><button class="text-action" data-action="copy-share">링크 복사 <span>↗</span></button></dialog>
+  <dialog id="restore-dialog" aria-labelledby="restore-title"><button class="dialog-close" data-close aria-label="기록 관리 닫기">×</button><h2 id="restore-title">기록 관리</h2><div id="restore-content"></div></dialog>
+  <dialog id="demo-dialog" aria-labelledby="demo-title">
+    <button class="dialog-close" data-close aria-label="시연 설정 닫기">×</button><h2 id="demo-title">로컬 데모</h2>
+    <p class="fine-print">사진·인원·기록은 예시입니다. 사진은 전송하지 않으며 친구 연결은 시연입니다. 새로고침하면 기록이 초기화됩니다.</p>
+    <div class="demo-scenarios">
+      <a class="menu-link" href="?scenario=standard">일반 팔레트로 다시 시작 <span>↗</span></a>
+      <a class="menu-link" href="?scenario=rare">특별 팔레트로 다시 시작 <span>↗</span></a>
+      <a class="menu-link" href="?scenario=random">무작위 배정 시연 <span>↗</span></a>
+    </div>
+    <p class="fine-print">시나리오 변경 시 지금의 데모 기록도 초기화됩니다. 특별 배정 확률 3.2%는 예시이며, 결제·가입 기간과 무관합니다.</p>
+    <div id="demo-twin-tools"></div>
+  </dialog>
+  <p id="notice" role="status" aria-live="polite" hidden></p>
+  <noscript>이 데모는 JavaScript가 필요합니다.</noscript>
+</body>
+</html>

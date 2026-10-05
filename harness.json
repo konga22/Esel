@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 2,
+  "project": "Esel",
+  "language": "ko",
+  "concept": "cover-sns-personal-magazine",
+  "designStatus": "cover-sns-direction-in-review",
+  "updatedAt": "2026-10-05",
+  "entrypoints": ["AGENTS.md", "docs/ESEL_HARNESS.md", "CLAUDE.md"],
+  "activeDesign": {
+    "kind": "claude-design-canvas",
+    "canvas": "https://claude.ai/artifact/9cURnECVLB1x3d1c5geS1R",
+    "canvasVisibility": "private",
+    "root": ".codex/temp/prototype/20261003-cover-sns",
+    "readme": ".codex/temp/prototype/20261003-cover-sns/README.md",
+    "generator": ".codex/temp/prototype/20261003-cover-sns/generator",
+    "library": ".codex/temp/prototype/20261003-cover-sns/generator/lib.mjs",
+    "output": ".codex/temp/prototype/20261003-cover-sns/generator/project",
+    "paint": ".codex/temp/prototype/20261003-cover-sns/paint",
+    "pages": [
+      {"id": "mood", "name": "00 무드보드", "files": ["BoardMood.dc.html"]},
+      {"id": "tokens", "name": "01 디자인 토큰", "files": ["BoardTokens.dc.html"]},
+      {"id": "components", "name": "02 컴포넌트", "files": ["BoardComponents.dc.html"]},
+      {"id": "cover", "name": "03 화면 · 표지 SNS", "files": ["CoverFeed.dc.html", "CoverNext.dc.html", "CoverSpread.dc.html", "CoverStand.dc.html", "CoverShelf.dc.html", "CoverStandLocked.dc.html", "CoverMake.dc.html", "CoverScroll.dc.html"]},
+      {"id": "join", "name": "03 화면 · 로그인 · 창간", "files": ["JoinScroll.dc.html", "JoinLogin.dc.html", "JoinColor.dc.html", "JoinShoot.dc.html", "JoinName.dc.html", "JoinFace.dc.html", "JoinDone.dc.html"]},
+      {"id": "motion", "name": "04 모션", "files": ["BoardMotion.dc.html"]}
+    ],
+    "archivePages": ["보관 · 피드 시안", "보관 · 아틀리에", "보관 · 미니멀"],
+    "viewport": {"width": 393, "height": 852}
+  },
+  "ruleReference": {
+    "note": "2026-09-06 HTML 프로토타입. 시각 기준이 아니라 같은 색 공개·트윈·복구 같은 기능 규칙과 그 테스트의 기준이다.",
+    "root": ".codex/temp/prototype/20260906-minimal-gallery",
+    "source": ".codex/temp/prototype/20260906-minimal-gallery/src",
+    "stateTests": ".codex/temp/prototype/20260906-minimal-gallery/tests/social-state.test.cjs",
+    "headerTests": ".codex/temp/prototype/20260906-minimal-gallery/tests/header-state.test.cjs",
+    "url": "http://localhost:4177/",
+    "port": 4177
+  },
+  "nativeApp": {"routes": "app", "source": "src", "status": "separate-expo-prototype-not-design-parity", "devPort": 8081, "previewPort": 4173},
+  "designTokens": {"paper": "#F9F9FB", "ink": "#292A27", "muted": "#71736C", "hairline": "#E0E1DC", "gutter": "20px", "touch": "48px"},
+  "glass": {"background": "rgba(249,249,251,0.58)", "blur": "22px", "saturate": 1.6, "fallback": "#F9F9FB", "use": ["capsule-menu", "login-bar", "login-sheet", "small-logo"]},
+  "typography": {
+    "masthead": {"family": "Cormorant Garamond", "size": 200, "lineHeight": 0.9, "tracking": "-0.05em", "fit": "min(200, 0.9 * width / (0.47 * letters))"},
+    "name": {"family": "Cormorant Garamond Italic", "size": 76},
+    "heading": {"family": "Cormorant Garamond + Nanum Myeongjo", "size": "30-36"},
+    "body": {"family": "Instrument Sans + Pretendard", "size": 15, "lineHeight": 1.45},
+    "meta": {"family": "DM Mono", "size": "11-13", "tracking": "0.06em"},
+    "middleDot": "Esel Dot: U+00B7 only, local Korean system font"
+  },
+  "colors": {
+    "sage": "#A8B5A0", "butter": "#E3C878", "powder": "#A9BDDC", "coral": "#EE8C76", "lilac": "#BBA6D6", "terracotta": "#C2643F",
+    "burgundy": "#7A2735", "olive": "#6F7445", "cream": "#E9DEC6", "charcoal": "#3F4043", "camel": "#C1945F", "cobalt": "#2648B0"
+  },
+  "dailyCandidates": 3,
+  "demoPeople": {
+    "dana": "assets/demo/blue-city.jpg",
+    "elin": "assets/models/sage-01.jpg", "mira": "assets/models/sage-02.jpg",
+    "ama": "assets/models/butter-01.jpg", "hana": "assets/models/butter-02.jpg",
+    "sol": "assets/models/powder-01.jpg", "ines": "assets/models/powder-02.jpg",
+    "zuri": "assets/models/coral-01.jpg", "rio": "assets/models/coral-02.jpg",
+    "lua": "assets/models/lilac-01.jpg", "theo": "assets/models/lilac-02.jpg",
+    "nia": "assets/models/terracotta-01.jpg", "vera": "assets/models/terracotta-02.jpg",
+    "cleo": "assets/models/burgundy-01.jpg", "lise": "assets/models/burgundy-02.jpg",
+    "kofi": "assets/models/olive-01.jpg", "imani": "assets/models/olive-02.jpg",
+    "freya": "assets/models/cream-01.jpg", "maya": "assets/models/cream-02.jpg",
+    "omar": "assets/models/charcoal-01.jpg", "june": "assets/models/charcoal-02.jpg",
+    "selin": "assets/models/camel-01.jpg", "leo": "assets/models/camel-02.jpg", "noor": "assets/demo/beige-blazer.jpg", "mara": "assets/models/camel-03.jpg",
+    "ayo": "assets/models/cobalt-01.jpg", "riva": "assets/models/cobalt-02.jpg"
+  },
+  "signedInDemoUser": "selin",
+  "feedPolicy": {
+    "firstItem": "today-cover-with-esel-masthead",
+    "rest": "inner-pages-without-masthead",
+    "order": "newest-then-occasional-popular",
+    "popularAfterActiveMs": 30000, "popularEvery": 4, "appendOnly": true,
+    "mastheadScroll": {"followsCoverDown": true, "smallLogoShowUpPx": 48, "smallLogoHideDownPx": 18, "meltZonePx": 360, "smallScale": 0.14},
+    "status": "mock-thresholds-not-final"
+  },
+  "sameColorLock": {"purpose": "publish-to-unlock-chain-activation", "beforePublishVisible": 3, "restShownAs": "blurred-spines", "unlocksOn": ["own-publish", "midnight"], "copy": "발행하면 함께 펼쳐집니다", "bannedCopy": ["놓치면 끝", "countdown"], "minors": "no-lock", "previewPick": "undecided-demo-newest", "decidedAt": "2026-10-05"},
+  "publicCounts": {"ownerOnly": ["likes", "subscribers", "reader-line-count", "scrap-count"], "public": ["same-color-count", "issue-number", "reader-line-text"], "rankByIssueOrCounts": false, "popularMix": "internal-signal-only", "decidedAt": "2026-10-05"},
+  "authPolicy": {"loggedOutFirstScreen": "today-cover", "previewInnerPages": 2, "loginBarAtPx": 640, "loginBarReplaces": "capsule-menu", "actionsNeedLogin": ["like", "subscribe", "one-line", "scrap", "make"], "realAuth": false},
+  "foundingFlow": {"steps": ["color", "shoot", "masthead", "face", "first-issue"], "mastheadPattern": "^[a-z]{2,10}$", "firstIssue": 1, "uniquenessCheck": false},
+  "facePresentation": {"modes": ["plain", "paint", "behind-masthead", "neck-down"], "perIssue": true, "demoFaceBoxes": "macOS Vision, generator/faces.swift", "automaticDetectionInApp": "undecided", "anonymityGuaranteed": false},
+  "twinPolicy": {"independentOfPersonal": true, "recommendationsPerPerson": 3, "sharedRecommendations": 1, "independentChoice": true, "realFriendSync": false, "coverSnsDesign": "not-drawn"},
+  "twinPublication": {"default": "private", "modes": ["private", "solo", "joint"], "explicitUploadButton": true, "jointRequiresBothConsent": true, "coverSnsDesign": "not-drawn"},
+  "motion": {
+    "easing": {"out": "cubic-bezier(0.23, 1, 0.32, 1)", "drawer": "cubic-bezier(0.32, 0.72, 0, 1)", "inOut": "cubic-bezier(0.77, 0, 0.175, 1)"},
+    "applied": ["masthead-melt", "small-logo-show-hide", "press-0.97", "login-bar-rise"],
+    "proposed": ["cover-to-spread", "daily-paint-squeeze", "publish-stamp", "stand-zoom", "same-color-unlock", "pull-next-issue", "heart-fill"],
+    "never": ["capsule-navigation", "screen-transition", "scroll-reveal", "ken-burns", "parallax", "tab-underline-slide"]
+  },
+  "commands": {
+    "preview:design": "python3 -m http.server 4177 --bind 127.0.0.1 --directory .codex/temp/prototype/20260906-minimal-gallery/src",
+    "test:design": "node --test .codex/temp/prototype/20260906-minimal-gallery/tests/*.test.cjs",
+    "design:build": "node .codex/temp/prototype/20261003-cover-sns/generator/gen-join.mjs && node .codex/temp/prototype/20261003-cover-sns/generator/gen-boards.mjs",
+    "check:harness": "node scripts/check-harness.mjs"
+  },
+  "keyAssets": [
+    "assets/esel-app-icon-bg-F9F9FB.png",
+    "assets/models-sources.md",
+    "assets/demo-sources.md",
+    ".codex/temp/prototype/20261003-cover-sns/README.md"
+  ],
+  "productContracts": ["P01", "P02", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P13", "P14", "P15", "P16", "P17", "P18"],
+  "manualChecks": ["V01", "V02", "V03", "V04", "V05", "V06", "V07", "V08", "V09", "V10", "V11", "V12"],
+  "notDrawnInCoverSns": ["same-color-unlock-motion", "owner-count-screen", "twin", "monthly-record-restore", "settings", "notifications", "dark-mode"],
+  "notImplemented": ["real-auth", "social-login", "server-upload", "persistent-storage", "friend-sync", "daily-rollover", "nickname-uniqueness", "on-device-face-detection", "dedicated-share-card"],
+  "evidence": [
+    ".codex/temp/prototype/20261003-cover-sns/screenshots/board-00-mood.png",
+    ".codex/temp/prototype/20261003-cover-sns/screenshots/board-01-tokens.png",
+    ".codex/temp/prototype/20261003-cover-sns/screenshots/board-02-components.png",
+    ".codex/temp/prototype/20261003-cover-sns/screenshots/board-04-motion.png",
+    ".codex/temp/prototype/20261003-cover-sns/screenshots/cover-c1-c5.png",
+    ".codex/temp/prototype/20261003-cover-sns/screenshots/cover-c6-c7.png",
+    ".codex/temp/prototype/20261003-cover-sns/screenshots/cover-c5-c8-lock.png",
+    ".codex/temp/prototype/20261003-cover-sns/screenshots/join-j1-j4.png",
+    ".codex/temp/prototype/20261003-cover-sns/screenshots/join-j5-j7.png"
+  ]
+}

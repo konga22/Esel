@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>피드 시안 9 다이얼</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,300;1,400&amp;family=DM+Mono:wght@400;500&amp;family=Instrument+Sans:wght@400;500;600&amp;family=Nanum+Myeongjo:wght@400;700&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:inherit}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+button,a{transition:transform 160ms cubic-bezier(0.23,1,0.32,1)}
+button:active,a:active{transform:scale(0.97)}
+@media (prefers-reduced-motion: reduce){button,a,img{transition:none !important}}
+</style>
+</helmet>
+<div style="width: 393px; height: 852px; box-sizing: border-box; position: relative; overflow: hidden; font-family: 'Instrument Sans', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; padding-top: 54px; background: #F9F9FB; color: #292A27">
+<header style="height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 18px">
+<span style="font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-size: 30px; line-height: 1; letter-spacing: -1px">Esel<span style="color: #AE8775">.</span></span>
+<div style="display: flex; align-items: center">
+<button type="button" aria-label="착장 걸기" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center"><span style="width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #292A27; color: #F9F9FB"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></span></button>
+<button type="button" aria-label="내 전시" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center"><span style="display: block; width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: #E9E9E6"><img src="/_blob/00e40fb5b21f897da768d0dde6b4eade" alt="" style="display: block; width: 93px; height: 140px; max-width: none; margin: -10px 0 0 -24px"></span></button>
+</div>
+</header>
+<img src="/_blob/b0b83907b33ad1d7b5590f3cb8da6f4f" alt="노란 손뜨개 니트와 꽃무늬 스커트 착장" style="position: absolute; left: 46px; top: 114px; width: 300px; height: 396px; object-fit: cover; object-position: 50% 42%; border-radius: 26px; background: #EDEEEA">
+<div style="position: absolute; left: 46px; right: 34px; top: 518px; display: flex; align-items: flex-start; justify-content: space-between">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="display: flex; align-items: center; gap: 8px"><span style="font-size: 20px; font-weight: 600">sora</span><img src="/_blob/76c81659c2b051a973c2071f8c1dd366" alt="버터" style="width: 56px; height: 28px; flex-shrink: 0; object-fit: contain"></div>
+<p style="margin: 0; font-size: 15px; line-height: 1.45">오늘 버터는 니트로 풀었다.</p>
+</div>
+<button type="button" aria-label="좋아요" aria-pressed="{{likePressed}}" onClick="{{toggleLike}}" style="width: 48px; height: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.3l-1.2-1.1C6.2 15 3.5 12.5 3.5 9.4 3.5 7 5.4 5 7.8 5c1.6 0 3.2.9 4.2 2.2C13 5.9 14.6 5 16.2 5c2.4 0 4.3 2 4.3 4.4 0 3.1-2.7 5.6-7.3 9.8L12 20.3z" fill="{{heartFill}}"></path></svg></button>
+</div>
+<div aria-hidden="true" style="position: absolute; left: -104px; top: 606px; width: 600px; height: 600px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 -8px 36px rgba(41, 42, 39, 0.1)"></div>
+<div aria-hidden="true" style="position: absolute; left: -84px; top: 626px; width: 560px; height: 560px; box-sizing: border-box; border-radius: 50%; border: 2px dashed #C9CAC4"></div>
+<button type="button" aria-label="dana의 착장으로 돌리기" style="position: absolute; left: -5px; top: 722px; width: 52px; height: 52px"><span style="display: block; width: 52px; height: 52px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: #E9E9E6"><img src="/_blob/ccccff032247b980b249542cac99de46" alt="" style="display: block; width: 164px; height: 246px; max-width: none; margin: -77px 0 0 -64px"></span></button>
+<button type="button" aria-label="haru의 착장으로 돌리기" style="position: absolute; left: 74px; top: 664px; width: 52px; height: 52px"><span style="display: block; width: 52px; height: 52px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: #E9E9E6"><img src="/_blob/684b3d077a69075ce8f0babeecfb376a" alt="" style="display: block; width: 260px; height: 409px; max-width: none; margin: -94px 0 0 -101px"></span></button>
+<span style="position: absolute; left: 159px; top: 633px"><span style="display: block; flex-shrink: 0; padding: 2px; border-radius: 50%; border: 3px solid #E3C878"><span style="display: block; width: 64px; height: 64px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: #E9E9E6"><img src="/_blob/b0b83907b33ad1d7b5590f3cb8da6f4f" alt="" style="display: block; width: 192px; height: 288px; max-width: none; margin: -80px 0 0 -64px"></span></span></span>
+<button type="button" aria-label="jun의 착장으로 돌리기" style="position: absolute; left: 266px; top: 664px; width: 52px; height: 52px"><span style="display: block; width: 52px; height: 52px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: #E9E9E6"><img src="/_blob/fe2e336989c452dde3e1e604d39e3760" alt="" style="display: block; width: 260px; height: 390px; max-width: none; margin: -62px 0 0 -101px"></span></button>
+<button type="button" aria-label="lena의 착장으로 돌리기" style="position: absolute; left: 345px; top: 722px; width: 52px; height: 52px"><span style="display: block; width: 52px; height: 52px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: #E9E9E6"><img src="/_blob/7dd5f469ffd025e91a5b52ef7c3faf38" alt="" style="display: block; width: 208px; height: 277px; max-width: none; margin: -22px 0 0 -79px"></span></button>
+<div style="position: absolute; left: 91px; top: 738px; display: flex; gap: 4px">
+<button type="button" aria-label="세이지만 보기" style="width: 68px; height: 48px; display: flex; align-items: center; justify-content: center"><img src="/_blob/01c7aef9caeab80dd2ca2949e8ba18c0" alt="" style="width: 62px; height: 31px; flex-shrink: 0; object-fit: contain"></button>
+<button type="button" aria-label="버터만 보기" style="width: 68px; height: 48px; display: flex; align-items: center; justify-content: center"><img src="/_blob/76c81659c2b051a973c2071f8c1dd366" alt="" style="width: 62px; height: 31px; flex-shrink: 0; object-fit: contain"></button>
+<button type="button" aria-label="파우더 블루만 보기" style="width: 68px; height: 48px; display: flex; align-items: center; justify-content: center"><img src="/_blob/2741e570bc827c25a1b735a55cfb4f8e" alt="" style="width: 62px; height: 31px; flex-shrink: 0; object-fit: contain"></button>
+</div>
+<p style="position: absolute; left: 0; right: 0; top: 792px; margin: 0; text-align: center; font-size: 12px; color: #71736C">돌리거나 얼굴을 눌러 넘기기</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":393,"height":852}}'>
+class Component extends DCLogic {
+renderVals() {
+const liked = !!(this.state && this.state.liked);
+return {
+heartFill: liked ? 'currentColor' : 'none',
+likePressed: liked ? 'true' : 'false',
+toggleLike: () => this.setState({ liked: !liked })
+};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>아틀리에 오늘의 색</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&amp;family=Nanum+Myeongjo:wght@400;700&amp;family=Noto+Sans+KR:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:inherit}
+a{color:#292A27;text-decoration:none}a:hover{color:#292A27}
+</style>
+</helmet>
+<div style="width: 393px; height: 852px; box-sizing: border-box; position: relative; overflow: hidden; padding: 54px 0 34px; display: flex; flex-direction: column; background: #F9F9FB; color: #292A27; font-family: Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif">
+<header style="flex-shrink: 0; height: 48px; box-sizing: border-box; margin: 0 22px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #292A27">
+<span style="font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-size: 28px; line-height: 1; letter-spacing: -1px">Esel<span style="color: #AE8775">.</span></span>
+<span style="font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-style: italic; font-size: 15px">Nº 249 — 2026. 9. 6.</span>
+</header>
+<main style="flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; padding: 0 22px">
+<div style="position: relative; height: 292px; flex-shrink: 0">
+<img src="/_blob/01c7aef9caeab80dd2ca2949e8ba18c0" alt="" style="position: absolute; left: -84px; top: 30px; width: 560px; height: 280px; max-width: none; transform: rotate(-9deg); mix-blend-mode: multiply; pointer-events: none; opacity: {{sageOn}}">
+<img src="/_blob/76c81659c2b051a973c2071f8c1dd366" alt="" style="position: absolute; left: -84px; top: 30px; width: 560px; height: 280px; max-width: none; transform: rotate(-9deg); mix-blend-mode: multiply; pointer-events: none; opacity: {{butterOn}}">
+<img src="/_blob/2741e570bc827c25a1b735a55cfb4f8e" alt="" style="position: absolute; left: -84px; top: 30px; width: 560px; height: 280px; max-width: none; transform: rotate(-9deg); mix-blend-mode: multiply; pointer-events: none; opacity: {{blueOn}}">
+<span style="position: absolute; left: 0; top: 16px; font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-style: italic; font-size: 16px">{{heroIndex}}</span>
+<span style="position: absolute; right: 0; top: 16px; writing-mode: vertical-rl; font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-size: 14px; letter-spacing: 0.4em">오늘의 색</span>
+<h1 style="position: absolute; left: -6px; bottom: 56px; margin: 0; font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-style: italic; font-weight: 300; font-size: {{heroSize}}; line-height: 0.8; letter-spacing: -0.04em; white-space: nowrap">{{heroWord}}</h1>
+<p style="position: absolute; left: 0; bottom: 0; margin: 0; font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-size: 14px; line-height: 1.4">{{heroNote}}</p>
+</div>
+<div style="flex-shrink: 0; margin-top: 14px; border-top: 1px solid #292A27; border-bottom: 1px solid #292A27">
+<button type="button" aria-pressed="{{sagePressed}}" onClick="{{pickSage}}" style="width: 100%; height: 58px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #E0E1DC">
+<span style="width: 24px; font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-style: italic; font-size: 16px">01</span>
+<img src="/_blob/01c7aef9caeab80dd2ca2949e8ba18c0" alt="" style="width: 64px; height: 32px; object-fit: contain; mix-blend-mode: multiply">
+<span style="font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-size: 17px">세이지</span>
+<span style="font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-style: italic; font-size: 15px; color: #71736C">Sage</span>
+<span style="margin-left: auto; width: 9px; height: 9px; box-sizing: border-box; border-radius: 50%; border: 1px solid #292A27; background: {{sageMark}}"></span>
+</button>
+<button type="button" aria-pressed="{{butterPressed}}" onClick="{{pickButter}}" style="width: 100%; height: 58px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #E0E1DC">
+<span style="width: 24px; font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-style: italic; font-size: 16px">02</span>
+<img src="/_blob/76c81659c2b051a973c2071f8c1dd366" alt="" style="width: 64px; height: 32px; object-fit: contain; mix-blend-mode: multiply">
+<span style="font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-size: 17px">버터</span>
+<span style="font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-style: italic; font-size: 15px; color: #71736C">Butter</span>
+<span style="margin-left: auto; width: 9px; height: 9px; box-sizing: border-box; border-radius: 50%; border: 1px solid #292A27; background: {{butterMark}}"></span>
+</button>
+<button type="button" aria-pressed="{{bluePressed}}" onClick="{{pickBlue}}" style="width: 100%; height: 58px; display: flex; align-items: center; gap: 12px">
+<span style="width: 24px; font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-style: italic; font-size: 16px">03</span>
+<img src="/_blob/2741e570bc827c25a1b735a55cfb4f8e" alt="" style="width: 64px; height: 32px; object-fit: contain; mix-blend-mode: multiply">
+<span style="font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-size: 17px">파우더 블루</span>
+<span style="font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-style: italic; font-size: 15px; color: #71736C">Powder blue</span>
+<span style="margin-left: auto; width: 9px; height: 9px; box-sizing: border-box; border-radius: 50%; border: 1px solid #292A27; background: {{blueMark}}"></span>
+</button>
+</div>
+<a href="AtelierHang.dc.html" style="margin-top: auto; flex-shrink: 0; height: 56px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; background: #292A27; color: #F9F9FB">
+<span style="font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-size: 18px">착장 걸기</span>
+<svg width="56" height="12" viewBox="0 0 56 12" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 6h53"></path><path d="M49 1l5 5-5 5"></path></svg>
+</a>
+<p style="flex-shrink: 0; margin: 12px 0 18px; font-size: 12px; line-height: 1.6; color: #71736C">둘러보기를 시작하면 오늘의 색이 정해져요.</p>
+</main>
+<nav aria-label="주요 화면" style="flex-shrink: 0; height: 54px; box-sizing: border-box; margin: 0 22px; display: flex; border-top: 1px solid #292A27">
+<a href="AtelierToday.dc.html" aria-current="page" style="flex: 1 1 0; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: #292A27">
+<span style="font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-style: italic; font-size: 15px">i.</span>
+<span style="padding-bottom: 3px; border-bottom: 1px solid #292A27">오늘의 색</span>
+</a>
+<a href="AtelierFeed.dc.html" style="flex: 1 1 0; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: #71736C">
+<span style="font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-style: italic; font-size: 15px">ii.</span>
+<span style="padding-bottom: 3px; border-bottom: 1px solid transparent">둘러보기</span>
+</a>
+<a href="AtelierProfile.dc.html" style="flex: 1 1 0; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: #71736C">
+<span style="font-family: 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, serif; font-style: italic; font-size: 15px">iii.</span>
+<span style="padding-bottom: 3px; border-bottom: 1px solid transparent">내 전시</span>
+</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":393,"height":852}}'>
+class Component extends DCLogic {
+renderVals() {
+const picked = (this.state && this.state.picked) || 'sage';
+const hero = {
+sage: { word: 'Sage', size: '190px', index: '01 / 03', note: '세이지 — 마른 허브, 비 갠 뒤의 벽.' },
+butter: { word: 'Butter', size: '150px', index: '02 / 03', note: '버터 — 늦은 아침, 식탁 위의 볕.' },
+blue: { word: 'Blue', size: '190px', index: '03 / 03', note: '파우더 블루 — 빨아 넌 셔츠, 오후 네 시의 하늘.' }
+}[picked];
+const on = (id) => (picked === id ? 1 : 0);
+const mark = (id) => (picked === id ? '#292A27' : 'transparent');
+const pressed = (id) => (picked === id ? 'true' : 'false');
+const pick = (id) => () => this.setState({ picked: id });
+return {
+heroWord: hero.word, heroSize: hero.size, heroIndex: hero.index, heroNote: hero.note,
+sageOn: on('sage'), butterOn: on('butter'), blueOn: on('blue'),
+sageMark: mark('sage'), butterMark: mark('butter'), blueMark: mark('blue'),
+sagePressed: pressed('sage'), butterPressed: pressed('butter'), bluePressed: pressed('blue'),
+pickSage: pick('sage'), pickButter: pick('butter'), pickBlue: pick('blue')
+};
+}
+}
+</script>
+</body>
+</html>

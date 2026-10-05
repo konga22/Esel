@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>피드 시안 2 스토리와 카드</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&amp;family=Instrument+Sans:wght@400;500;600&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:inherit}
+input{font:inherit;color:inherit}
+a{color:inherit;text-decoration:none}a:hover{color:inherit}
+button,a{transition:transform 160ms cubic-bezier(0.23,1,0.32,1)}
+button:active,a:active{transform:scale(0.97)}
+</style>
+</helmet>
+<div style="width: 393px; height: 852px; box-sizing: border-box; position: relative; overflow: hidden; font-family: 'Instrument Sans', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; padding: 54px 0 88px; display: flex; flex-direction: column; background: #F9F9FB; color: #292A27">
+<header style="flex-shrink: 0; height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 0 6px 0 18px">
+<span style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 34px; line-height: 1; letter-spacing: -1.5px">Esel<span style="color: #AE8775">.</span></span>
+<div style="display: flex"><button type="button" aria-label="알림" style="width: 48px; height: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.3l-1.2-1.1C6.2 15 3.5 12.5 3.5 9.4 3.5 7 5.4 5 7.8 5c1.6 0 3.2.9 4.2 2.2C13 5.9 14.6 5 16.2 5c2.4 0 4.3 2 4.3 4.4 0 3.1-2.7 5.6-7.3 9.8L12 20.3z"></path></svg></button><button type="button" aria-label="메시지" style="width: 48px; height: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 3L10 14"></path><path d="M21 3l-7 18-4-7-7-4 18-7z"></path></svg></button></div>
+</header>
+<div style="flex-shrink: 0; display: flex; gap: 12px; padding: 6px 16px 12px; overflow: hidden">
+<button type="button" aria-label="내 색 걸기" style="width: 68px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 6px">
+<span style="position: relative; display: block">
+<span style="display: block; padding: 4px"><span style="display: block; width: 60px; height: 60px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: #E9E9E6"><img src="/_blob/00e40fb5b21f897da768d0dde6b4eade" alt="" style="display: block; width: 164px; height: 246px; max-width: none; margin: -18px 0 0 -42px"></span></span>
+<span style="position: absolute; right: 0; bottom: 0; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #292A27; color: #F9F9FB; box-shadow: 0 0 0 2px #F9F9FB"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></span>
+</span>
+<span style="font-size: 12px; line-height: 16px; color: #71736C">내 색 걸기</span>
+</button>
+<button type="button" aria-label="sora의 오늘 착장" style="width: 68px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 6px">
+<span style="position: relative; display: block">
+<span style="display: block; flex-shrink: 0; padding: 2px; border-radius: 50%; border: 2px solid #E3C878"><span style="display: block; width: 60px; height: 60px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: #E9E9E6"><img src="/_blob/b0b83907b33ad1d7b5590f3cb8da6f4f" alt="" style="display: block; width: 180px; height: 270px; max-width: none; margin: -75px 0 0 -60px"></span></span>
+
+</span>
+<span style="font-size: 12px; line-height: 16px; color: #292A27">sora</span>
+</button>
+<button type="button" aria-label="haru의 오늘 착장" style="width: 68px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 6px">
+<span style="position: relative; display: block">
+<span style="display: block; flex-shrink: 0; padding: 2px; border-radius: 50%; border: 2px solid #A8B5A0"><span style="display: block; width: 60px; height: 60px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: #E9E9E6"><img src="/_blob/684b3d077a69075ce8f0babeecfb376a" alt="" style="display: block; width: 300px; height: 471px; max-width: none; margin: -108px 0 0 -117px"></span></span>
+
+</span>
+<span style="font-size: 12px; line-height: 16px; color: #292A27">haru</span>
+</button>
+<button type="button" aria-label="jun의 오늘 착장" style="width: 68px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 6px">
+<span style="position: relative; display: block">
+<span style="display: block; flex-shrink: 0; padding: 2px; border-radius: 50%; border: 2px solid #A9BDDC"><span style="display: block; width: 60px; height: 60px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: #E9E9E6"><img src="/_blob/fe2e336989c452dde3e1e604d39e3760" alt="" style="display: block; width: 300px; height: 450px; max-width: none; margin: -71px 0 0 -117px"></span></span>
+
+</span>
+<span style="font-size: 12px; line-height: 16px; color: #292A27">jun</span>
+</button>
+<button type="button" aria-label="lena의 오늘 착장" style="width: 68px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 6px">
+<span style="position: relative; display: block">
+<span style="display: block; flex-shrink: 0; padding: 2px; border-radius: 50%; border: 2px solid #E3C878"><span style="display: block; width: 60px; height: 60px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: #E9E9E6"><img src="/_blob/7dd5f469ffd025e91a5b52ef7c3faf38" alt="" style="display: block; width: 240px; height: 320px; max-width: none; margin: -25px 0 0 -91px"></span></span>
+
+</span>
+<span style="font-size: 12px; line-height: 16px; color: #292A27">lena</span>
+</button>
+</div>
+<main style="flex: 1 1 0; min-height: 0; overflow: hidden; border-top: 1px solid #E0E1DC">
+<article>
+<div style="height: 56px; display: flex; align-items: center; gap: 10px; padding: 0 4px 0 14px">
+<span style="display: block; flex-shrink: 0; padding: 2px; border-radius: 50%; border: 2px solid #E3C878"><span style="display: block; width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: #E9E9E6"><img src="/_blob/b0b83907b33ad1d7b5590f3cb8da6f4f" alt="" style="display: block; width: 102px; height: 153px; max-width: none; margin: -43px 0 0 -34px"></span></span>
+<span style="font-size: 14px; font-weight: 600">sora</span>
+<img src="/_blob/76c81659c2b051a973c2071f8c1dd366" alt="버터" style="width: 48px; height: 24px; flex-shrink: 0; object-fit: contain">
+<span style="font-size: 12px; color: #71736C">2시간 전</span>
+<span style="margin-left: auto; display: flex"><button type="button" aria-label="더 보기" style="width: 48px; height: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5.5" cy="12" r="1.2" fill="currentColor"></circle><circle cx="12" cy="12" r="1.2" fill="currentColor"></circle><circle cx="18.5" cy="12" r="1.2" fill="currentColor"></circle></svg></button></span>
+</div>
+<div style="position: relative">
+<img src="/_blob/b0b83907b33ad1d7b5590f3cb8da6f4f" alt="노란 손뜨개 니트와 꽃무늬 스커트 착장" style="display: block; width: 100%; height: 384px; object-fit: cover; object-position: 50% 42%">
+<span style="position: absolute; right: 12px; top: 12px; height: 26px; padding: 0 10px; border-radius: 13px; display: flex; align-items: center; background: rgba(0, 0, 0, 0.55); color: #FFFFFF; font-size: 12px; font-weight: 500">1 / 3</span>
+</div>
+<div style="position: relative; height: 50px; display: flex; align-items: center; padding: 0 4px">
+<button type="button" aria-label="좋아요" aria-pressed="{{likePressed}}" onClick="{{toggleLike}}" style="width: 48px; height: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.3l-1.2-1.1C6.2 15 3.5 12.5 3.5 9.4 3.5 7 5.4 5 7.8 5c1.6 0 3.2.9 4.2 2.2C13 5.9 14.6 5 16.2 5c2.4 0 4.3 2 4.3 4.4 0 3.1-2.7 5.6-7.3 9.8L12 20.3z" fill="{{heartFill}}"></path></svg></button>
+<button type="button" aria-label="댓글" style="width: 48px; height: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 0 1-11.8 7L4 20l1.1-4A8 8 0 1 1 20 12z"></path></svg></button>
+<button type="button" aria-label="공유" style="width: 48px; height: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 3L10 14"></path><path d="M21 3l-7 18-4-7-7-4 18-7z"></path></svg></button>
+<span aria-hidden="true" style="position: absolute; left: 50%; top: 22px; margin-left: -16px; display: flex; gap: 6px">
+<span style="width: 6px; height: 6px; border-radius: 50%; background: #292A27"></span>
+<span style="width: 6px; height: 6px; border-radius: 50%; background: #C9CAC4"></span>
+<span style="width: 6px; height: 6px; border-radius: 50%; background: #C9CAC4"></span>
+</span>
+<span style="margin-left: auto; display: flex"><button type="button" aria-label="저장" style="width: 48px; height: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4h11v16l-5.5-4.2L6.5 20z"></path></svg></button></span>
+</div>
+<div style="padding: 0 18px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 14px; font-weight: 600">좋아요 128개</span>
+<p style="margin: 0; font-size: 14px; line-height: 1.45"><span style="font-weight: 600">sora</span> 오늘 버터는 니트로. 스커트 패턴이 다 했다.</p>
+<span style="font-size: 13px; color: #71736C">댓글 12개 모두 보기</span>
+</div>
+</article>
+</main>
+<nav aria-label="주요 화면" style="position: absolute; left: 0; right: 0; bottom: 0; height: 88px; box-sizing: border-box; padding: 0 10px 34px; display: flex; align-items: center; background: #F9F9FB; border-top: 1px solid #E0E1DC">
+<button type="button" aria-label="피드" aria-current="page" style="flex: 1 1 0; height: 54px; display: flex; align-items: center; justify-content: center; color: #292A27"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5L12 4l8 6.5V20h-5.5v-5.5h-5V20H4z"></path></svg></button>
+<button type="button" aria-label="탐색" style="flex: 1 1 0; height: 54px; display: flex; align-items: center; justify-content: center; color: #71736C"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4.5 4.5"></path></svg></button>
+<button type="button" aria-label="착장 올리기" style="flex: 1 1 0; height: 54px; display: flex; align-items: center; justify-content: center"><span style="width: 52px; height: 36px; border-radius: 13px; display: flex; align-items: center; justify-content: center; background: #292A27; color: #F9F9FB"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></span></button>
+<button type="button" aria-label="알림" style="flex: 1 1 0; height: 54px; display: flex; align-items: center; justify-content: center; color: #71736C"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z"></path><path d="M10 20.5a2 2 0 0 0 4 0"></path></svg></button>
+<button type="button" aria-label="내 전시" style="flex: 1 1 0; height: 54px; display: flex; align-items: center; justify-content: center; color: #71736C"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"></circle><path d="M5 20c.6-3.6 3.4-5.5 7-5.5s6.4 1.9 7 5.5"></path></svg></button>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":393,"height":852}}'>
+class Component extends DCLogic {
+renderVals() {
+const liked = !!(this.state && this.state.liked);
+return {
+heartFill: liked ? 'currentColor' : 'none',
+likePressed: liked ? 'true' : 'false',
+toggleLike: () => this.setState({ liked: !liked })
+};
+}
+}
+</script>
+</body>
+</html>

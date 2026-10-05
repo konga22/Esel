@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#F9F9FB">
+  <title>Esel — 물감 피드 시안</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="scroll-ui.css">
+  <script src="app.js" defer></script>
+  <script src="header-state.js" defer></script>
+  <script src="scroll-ui.js" defer></script>
+</head>
+<body>
+  <p class="preview-note">피드 디자인 시안 · 사진·닉네임은 샘플 · 기기 표시는 모의 화면</p>
+  <div class="phone">
+    <div class="system-bar" aria-hidden="true"><span>9:41</span><span class="island"></span><span class="signals"><svg viewBox="0 0 18 14" fill="currentColor"><path d="M1 9h3v4H1zm4-3h3v7H5zm4-3h3v10H9zm4-3h3v13h-3z"/></svg><svg viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M1 4q8-6 16 0M4 7q5-4 10 0M7 10q2-2 4 0"/><circle cx="9" cy="12" r=".8" fill="currentColor"/></svg><svg viewBox="0 0 24 14" fill="none" stroke="currentColor"><rect x="1" y="2" width="19" height="10" rx="2"/><rect x="3" y="4" width="15" height="6" rx=".5" fill="currentColor"/><path d="M22 5v4" stroke-width="2"/></svg></span></div>
+    <header class="app-header"><button class="wordmark" data-nav="feed" aria-label="Esel 피드로">Esel<span aria-hidden="true">.</span></button></header>
+    <main class="screen feed" data-screen="feed" aria-label="샘플 착장 피드"><div id="post-list"></div><p class="feed-end">샘플 전시</p></main>
+    <main class="screen today" data-screen="today" aria-label="오늘의 색" hidden>
+      <h1>오늘의 색</h1>
+      <div class="color-options" role="radiogroup" aria-label="오늘 입고 싶은 색">
+        <button class="color-option" role="radio" aria-checked="true" data-select-color="sage" aria-label="세이지 선택"><img src="assets/paint-sage.png" alt=""><span>세이지</span></button>
+        <button class="color-option" role="radio" aria-checked="false" data-select-color="butter" aria-label="버터 선택"><img src="assets/paint-butter.png" alt=""><span>버터</span></button>
+        <button class="color-option" role="radio" aria-checked="false" data-select-color="powder-blue" aria-label="파우더 블루 선택"><img src="assets/paint-powder-blue.png" alt=""><span>파우더 블루</span></button>
+      </div>
+      <button class="text-action" data-nav="feed">둘러보기 <span aria-hidden="true">↗</span></button>
+    </main>
+    <main class="screen profile" data-screen="profile" aria-label="내 전시" hidden>
+      <h1>내 전시</h1><div id="own-post"><div class="empty"><p>아직 남긴 사진이 없어요.</p><button class="text-action" id="sample-record">샘플로 남기기 <span aria-hidden="true">↗</span></button></div></div>
+    </main>
+    <nav class="app-nav" role="tablist" aria-label="주요 화면"><button role="tab" data-nav="today" aria-selected="false">오늘의 색</button><button role="tab" data-nav="feed" aria-selected="true">둘러보기</button><button role="tab" data-nav="profile" aria-selected="false">내 전시</button></nav>
+    <div class="home-space" aria-hidden="true"><span></span></div>
+  </div>
+  <dialog id="color-dialog" aria-labelledby="color-title"><button class="dialog-close" data-close aria-label="색 정보 닫기">×</button><img class="large-paint" alt=""><h2 id="color-title"></h2><span class="reference-swatch" aria-hidden="true"></span></dialog>
+  <dialog id="share-dialog" aria-labelledby="share-title"><button class="dialog-close" data-close aria-label="공유 닫기">×</button><h2 id="share-title">공유</h2><label class="sr-only" for="share-link">시안 링크</label><input id="share-link" readonly><button class="text-action" id="copy-link">링크 복사 <span aria-hidden="true">↗</span></button><p class="share-note">이 기기에서만 열리는 시안 링크예요.</p></dialog>
+  <p id="notice" role="status" aria-live="polite" hidden></p>
+  <noscript>이 시안은 JavaScript가 필요합니다.</noscript>
+</body>
+</html>
