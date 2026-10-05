@@ -67,13 +67,13 @@ ${avatar(key, 30)}
 files.CoverSpread = page('표지 SNS 3 펼침면', `<div style="${ROOT(`padding-top: 54px; display: flex; flex-direction: column; background: ${PAPER}; color: ${INK}`)}">
 <header style="flex-shrink: 0; height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px 0 6px">
 <a href="CoverFeed.dc.html" aria-label="표지로 돌아가기" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center">${icon('down', 24)}</a>
-<span style="font-family: ${SERIF}; font-style: italic; font-size: 18px">Nº 249</span>
+<span style="font-family: ${SERIF}; font-style: italic; font-size: 18px">dana · Nº 038</span>
 <button type="button" style="height: 44px; display: flex; align-items: center">${pill('구독', INK)}</button>
 </header>
 <main style="flex: 1 1 0; min-height: 0; overflow: hidden; padding: 0 20px">
 <div style="display: flex; align-items: baseline; justify-content: space-between; height: 30px; font-family: ${SERIF}; font-style: italic; font-size: 16px"><span>01</span><span>${PEOPLE.dana.time}</span></div>
 <h1 style="margin: 6px 0 0; font-family: ${SERIF}; font-size: 34px; font-weight: 400; line-height: 1.22; letter-spacing: -0.01em">난간에 기대서,<br>셔츠 하나로.</h1>
-<a href="CoverShelf.dc.html" style="height: 48px; display: flex; align-items: center; gap: 8px">${avatar('dana', 32)}<span style="margin-left: 2px; font-size: 15px; font-weight: 600">dana</span>${paint('powder', 48, '', '')}<span style="font-size: 13px; color: ${MUTED}">파우더 블루</span><span style="margin-left: auto; font-size: 13px; color: ${MUTED}">38번째 호</span></a>
+<a href="CoverShelf.dc.html" style="height: 48px; display: flex; align-items: center; gap: 8px">${avatar('dana', 32)}<span style="margin-left: 2px; font-size: 15px; font-weight: 600">dana</span>${paint('powder', 48, '', '')}<span style="font-size: 13px; color: ${MUTED}">파우더 블루</span></a>
 <div style="display: flex; gap: 8px; margin: 6px -20px 0 0; overflow: hidden">
 ${cover('dana', 210, 280, 0.58, 0.45, '; flex-shrink: 0; border-radius: 4px')}
 ${crop('dana', 210, 280, 2.6, 0.55, 0.8, 105, 140, { extra: '; flex-shrink: 0; border-radius: 4px', alt: '셔츠 끈 매듭과 데님 허리 부분' })}
@@ -129,11 +129,20 @@ ${shelfRow({ key: 'maya', style: 'neck', mastColor: INK }, { key: 'selin', mastC
 ${capsule({ color: PEOPLE[ME].color })}
 </div>`);
 
-// C5 서가 · dana의 잡지
-const issue = (style, no, opts = {}) => `<div style="width: 113px">
-${miniCover({ key: 'dana', w: 113, h: 166, mast: 'dana', mastColor: INK, name: '', style, px: 0.58, py: 0.5, fs: 46, label: `Nº ${no} 표지 보기`, ...opts })}
-<div style="height: 26px; display: flex; align-items: center; justify-content: space-between; font-family: ${MONO}; font-size: 11px"><span>Nº ${no}</span><span style="width: 22px; height: 4px; border-radius: 2px; background: ${PAINT.powder.hex}"></span></div>
-</div>`;
+// C5 서가 · dana의 잡지. 호수는 발행할 때만 1씩 오르므로 결호 없이 이어진다.
+const ISSUES = 38;
+const DARK_SPINE = new Set(['burgundy', 'olive', 'charcoal', 'cobalt', 'terracotta']);
+const OLDER_COLORS = ['coral', 'sage', 'butter', 'cobalt', 'cream', 'powder', 'lilac', 'camel', 'olive', 'powder', 'terracotta', 'charcoal', 'sage', 'powder', 'burgundy', 'butter', 'powder', 'coral', 'cream', 'powder'];
+const issueDate = (i) => { const d = new Date(Date.UTC(2026, 8, 6 - Math.floor(i * 1.6))); return `${d.getUTCMonth() + 1}. ${d.getUTCDate()}.`; };
+const shelfIssues = Array.from({ length: 26 }, (_, i) => ({ no: String(ISSUES - i).padStart(3, '0'), color: i < 6 ? 'powder' : OLDER_COLORS[(i - 6) % OLDER_COLORS.length], date: issueDate(i) }));
+const issue = (style, i) => { const it = shelfIssues[i]; return `<div style="width: 113px">
+${miniCover({ key: 'dana', w: 113, h: 166, mast: 'dana', mastColor: INK, name: '', style, px: 0.58, py: 0.5, fs: 46, label: `Nº ${it.no} 표지 보기` })}
+<div style="height: 26px; display: flex; align-items: center; justify-content: space-between; font-family: ${MONO}; font-size: 11px"><span>Nº ${it.no}</span><span style="width: 22px; height: 4px; border-radius: 2px; background: ${PAINT[it.color].hex}"></span></div>
+</div>`; };
+const spine = (it) => `<a href="CoverShelf.dc.html" aria-label="Nº ${it.no} · ${PAINT[it.color].name} · ${it.date}" style="width: 22px; height: 196px; flex-shrink: 0; box-sizing: border-box; padding: 8px 0; display: flex; flex-direction: column; align-items: center; justify-content: space-between; background: ${PAINT[it.color].hex}; color: ${DARK_SPINE.has(it.color) ? '#FFFFFF' : INK}; box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.12), inset 1px 0 0 rgba(255, 255, 255, 0.35)"><span style="writing-mode: vertical-rl; font-family: ${SERIF}; font-style: italic; font-size: 13px; line-height: 1">dana</span><span style="writing-mode: vertical-rl; font-family: ${MONO}; font-size: 10px; letter-spacing: 0.04em">Nº ${it.no}</span></a>`;
+const spineRow = (items) => `<div style="display: flex; gap: 5px; align-items: flex-end">${items.map(spine).join('')}</div>
+<span aria-hidden="true" style="display: block; height: 2px; margin: 0 0 18px; background: ${INK}"></span>`;
+const viewBtn = (label, key) => `<button type="button" aria-pressed="{{${key}Pressed}}" onClick="{{show_${key}}}" style="height: 44px; padding: 0 8px; font-size: 14px; font-weight: {{${key}Weight}}; color: {{${key}Color}}">${label}</button>`;
 files.CoverShelf = page('표지 SNS 5 서가', `<div style="${ROOT(`padding-top: 54px; display: flex; flex-direction: column; background: ${PAPER}; color: ${INK}`)}">
 <header style="flex-shrink: 0; height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 18px 0 6px">
 <a href="CoverFeed.dc.html" aria-label="표지로 돌아가기" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center">${icon('left', 24)}</a>
@@ -144,22 +153,40 @@ files.CoverShelf = page('표지 SNS 5 서가', `<div style="${ROOT(`padding-top:
 <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 14px">
 <div style="display: flex; flex-direction: column; gap: 2px">
 <div style="display: flex; align-items: center; gap: 6px; font-size: 14px">${paint('powder', 52, '', '')}<span>오늘은 파우더 블루</span></div>
-<span style="font-size: 14px; color: ${MUTED}">38호 · 구독자 214</span>
+<span style="font-size: 14px; color: ${MUTED}">${ISSUES}호 · 구독자 214</span>
 </div>
 <button type="button" style="height: 44px; padding: 0 24px; border-radius: 22px; background: ${INK}; color: ${PAPER}; font-size: 15px; font-weight: 600">구독</button>
 </div>
 </div>
-<h2 style="flex-shrink: 0; margin: 22px 20px 10px; padding-bottom: 8px; border-bottom: 2px solid ${INK}; font-family: ${SERIF}; font-size: 21px; font-weight: 400">지난 호</h2>
-<main style="flex: 1 1 0; min-height: 0; overflow: hidden; display: flex; flex-wrap: wrap; align-content: flex-start; justify-content: space-between; row-gap: 8px; padding: 0 20px">
-${issue('plain', 249)}
-${issue('paint', 247)}
-${issue('zoom', 245)}
-${issue('neck', 243)}
-${issue('detail', 241)}
-${issue('mono', 238)}
+<div style="flex-shrink: 0; margin: 14px 20px 10px; border-bottom: 2px solid ${INK}; display: flex; align-items: center; justify-content: space-between">
+<h2 style="margin: 0; font-family: ${SERIF}; font-size: 21px; font-weight: 400">지난 호</h2>
+<div role="group" aria-label="지난 호 보기" style="display: flex; margin-right: -8px">${viewBtn('표지', 'covers')}${viewBtn('책등', 'spines')}</div>
+</div>
+<main style="flex: 1 1 0; min-height: 0; overflow: hidden; padding: 0 20px">
+<div style="display: {{vCovers}}; flex-wrap: wrap; justify-content: space-between; row-gap: 8px">
+${issue('plain', 0)}
+${issue('paint', 1)}
+${issue('zoom', 2)}
+${issue('neck', 3)}
+${issue('detail', 4)}
+${issue('mono', 5)}
+</div>
+<div style="display: {{vSpines}}; flex-direction: column; padding-top: 6px">
+${spineRow(shelfIssues.slice(0, 13))}
+${spineRow(shelfIssues.slice(13, 26))}
+</div>
 </main>
 ${capsule({ color: PEOPLE[ME].color })}
-</div>`);
+</div>`, { logic: `const view = (this.state && this.state.view) || 'covers';
+for (const k of ['covers', 'spines']) {
+const on = view === k;
+vals[k + 'Pressed'] = on ? 'true' : 'false';
+vals[k + 'Weight'] = on ? '600' : '400';
+vals[k + 'Color'] = on ? '${INK}' : '${MUTED}';
+vals['show_' + k] = () => this.setState({ view: k });
+}
+vals.vCovers = view === 'covers' ? 'flex' : 'none';
+vals.vSpines = view === 'spines' ? 'flex' : 'none';` });
 
 // C6 표지 만들기 · 얼굴 연출과 제호 색
 const MK = { W: 236, H: 350 };
