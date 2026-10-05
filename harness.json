@@ -4,7 +4,7 @@
   "language": "ko",
   "concept": "cover-sns-personal-magazine",
   "designStatus": "cover-sns-direction-in-review",
-  "updatedAt": "2026-10-03",
+  "updatedAt": "2026-10-05",
   "entrypoints": ["AGENTS.md", "docs/ESEL_HARNESS.md", "CLAUDE.md"],
   "activeDesign": {
     "kind": "claude-design-canvas",
@@ -20,7 +20,7 @@
       {"id": "mood", "name": "00 무드보드", "files": ["BoardMood.dc.html"]},
       {"id": "tokens", "name": "01 디자인 토큰", "files": ["BoardTokens.dc.html"]},
       {"id": "components", "name": "02 컴포넌트", "files": ["BoardComponents.dc.html"]},
-      {"id": "cover", "name": "03 화면 · 표지 SNS", "files": ["CoverFeed.dc.html", "CoverNext.dc.html", "CoverSpread.dc.html", "CoverStand.dc.html", "CoverShelf.dc.html", "CoverMake.dc.html", "CoverScroll.dc.html"]},
+      {"id": "cover", "name": "03 화면 · 표지 SNS", "files": ["CoverFeed.dc.html", "CoverNext.dc.html", "CoverSpread.dc.html", "CoverStand.dc.html", "CoverShelf.dc.html", "CoverStandLocked.dc.html", "CoverMake.dc.html", "CoverScroll.dc.html"]},
       {"id": "join", "name": "03 화면 · 로그인 · 창간", "files": ["JoinScroll.dc.html", "JoinLogin.dc.html", "JoinColor.dc.html", "JoinShoot.dc.html", "JoinName.dc.html", "JoinFace.dc.html", "JoinDone.dc.html"]},
       {"id": "motion", "name": "04 모션", "files": ["BoardMotion.dc.html"]}
     ],
@@ -64,7 +64,7 @@
     "kofi": "assets/models/olive-01.jpg", "imani": "assets/models/olive-02.jpg",
     "freya": "assets/models/cream-01.jpg", "maya": "assets/models/cream-02.jpg",
     "omar": "assets/models/charcoal-01.jpg", "june": "assets/models/charcoal-02.jpg",
-    "selin": "assets/models/camel-01.jpg", "leo": "assets/models/camel-02.jpg",
+    "selin": "assets/models/camel-01.jpg", "leo": "assets/models/camel-02.jpg", "noor": "assets/demo/beige-blazer.jpg", "mara": "assets/models/camel-03.jpg",
     "ayo": "assets/models/cobalt-01.jpg", "riva": "assets/models/cobalt-02.jpg"
   },
   "signedInDemoUser": "selin",
@@ -76,6 +76,8 @@
     "mastheadScroll": {"followsCoverDown": true, "smallLogoShowUpPx": 48, "smallLogoHideDownPx": 18, "meltZonePx": 360, "smallScale": 0.14},
     "status": "mock-thresholds-not-final"
   },
+  "sameColorLock": {"purpose": "publish-to-unlock-chain-activation", "beforePublishVisible": 3, "restShownAs": "blurred-spines", "unlocksOn": ["own-publish", "midnight"], "copy": "발행하면 함께 펼쳐집니다", "bannedCopy": ["놓치면 끝", "countdown"], "minors": "no-lock", "previewPick": "undecided-demo-newest", "decidedAt": "2026-10-05"},
+  "publicCounts": {"ownerOnly": ["likes", "subscribers", "reader-line-count", "scrap-count"], "public": ["same-color-count", "issue-number", "reader-line-text"], "rankByIssueOrCounts": false, "popularMix": "internal-signal-only", "decidedAt": "2026-10-05"},
   "authPolicy": {"loggedOutFirstScreen": "today-cover", "previewInnerPages": 2, "loginBarAtPx": 640, "loginBarReplaces": "capsule-menu", "actionsNeedLogin": ["like", "subscribe", "one-line", "scrap", "make"], "realAuth": false},
   "foundingFlow": {"steps": ["color", "shoot", "masthead", "face", "first-issue"], "mastheadPattern": "^[a-z]{2,10}$", "firstIssue": 1, "uniquenessCheck": false},
   "facePresentation": {"modes": ["plain", "paint", "behind-masthead", "neck-down"], "perIssue": true, "demoFaceBoxes": "macOS Vision, generator/faces.swift", "automaticDetectionInApp": "undecided", "anonymityGuaranteed": false},
@@ -99,9 +101,9 @@
     "assets/demo-sources.md",
     ".codex/temp/prototype/20261003-cover-sns/README.md"
   ],
-  "productContracts": ["P01", "P02", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P13", "P14", "P15", "P16", "P17"],
-  "manualChecks": ["V01", "V02", "V03", "V04", "V05", "V06", "V07", "V08", "V09", "V10"],
-  "notDrawnInCoverSns": ["same-color-lock", "twin", "monthly-record-restore", "settings", "notifications", "dark-mode"],
+  "productContracts": ["P01", "P02", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P13", "P14", "P15", "P16", "P17", "P18"],
+  "manualChecks": ["V01", "V02", "V03", "V04", "V05", "V06", "V07", "V08", "V09", "V10", "V11", "V12"],
+  "notDrawnInCoverSns": ["same-color-unlock-motion", "owner-count-screen", "twin", "monthly-record-restore", "settings", "notifications", "dark-mode"],
   "notImplemented": ["real-auth", "social-login", "server-upload", "persistent-storage", "friend-sync", "daily-rollover", "nickname-uniqueness", "on-device-face-detection", "dedicated-share-card"],
   "evidence": [
     ".codex/temp/prototype/20261003-cover-sns/screenshots/board-00-mood.png",
@@ -110,6 +112,7 @@
     ".codex/temp/prototype/20261003-cover-sns/screenshots/board-04-motion.png",
     ".codex/temp/prototype/20261003-cover-sns/screenshots/cover-c1-c5.png",
     ".codex/temp/prototype/20261003-cover-sns/screenshots/cover-c6-c7.png",
+    ".codex/temp/prototype/20261003-cover-sns/screenshots/cover-c5-c8-lock.png",
     ".codex/temp/prototype/20261003-cover-sns/screenshots/join-j1-j4.png",
     ".codex/temp/prototype/20261003-cover-sns/screenshots/join-j5-j7.png"
   ]
