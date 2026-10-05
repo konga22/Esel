@@ -1,8 +1,8 @@
 # Esel 모델 예시 사진 출처
 
-표지 SNS 시안의 예시 사진 24장이다. 오늘의 색 12가지마다 그 색 옷을 입은 사진 2장씩이며, 실제 사용자 업로드나 고객 기록이 아니다. 시안에 붙은 닉네임·캡션·날짜·숫자는 지어낸 예시이고, 사진 속 인물이 Esel을 추천한다는 뜻이 없다.
+표지 SNS 시안의 예시 사진 25장이다. 오늘의 색 12가지마다 그 색 옷을 입은 사진 2장씩이고, 같은 색 잠금 시안(C8)을 위해 카멜을 1장 더 받았다. 모두 실제 사용자 업로드나 고객 기록이 아니다. 시안에 붙은 닉네임·캡션·날짜·숫자는 지어낸 예시이고, 사진 속 인물이 Esel을 추천한다는 뜻이 없다.
 
-2026-10-03에 Pexels 공식 이미지 CDN에서 내려받았다. 모두 너비 800px JPEG이며 CDN 압축(`auto=compress&cs=tinysrgb&w=800&q=82`)만 거쳤고 생성형 편집은 하지 않았다. 표지 시안에서 얼굴 위에 물감을 얹는 것은 화면 위 겹침이며 파일 자체는 바꾸지 않았다.
+2026-10-03에(camel-03은 2026-10-05에) Pexels 공식 이미지 CDN에서 내려받았다. 모두 너비 800px JPEG이며 CDN 압축(`auto=compress&cs=tinysrgb&w=800&q=82`)만 거쳤고 생성형 편집은 하지 않았다. 표지 시안에서 얼굴 위에 물감을 얹는 것은 화면 위 겹침이며 파일 자체는 바꾸지 않았다.
 
 Pexels 사진은 웹사이트와 앱에서 무료로 쓸 수 있고 출처 표시는 권장 사항이다. 사진 속 인물의 추천을 암시하거나 원본을 그대로 재판매하는 것 등은 [Pexels 이용 허가](https://www.pexels.com/license/)에서 금지한다. Pexels는 모델 초상권 동의를 보장하지 않으므로, 공개 배포 전에 다시 확인한다.
 
@@ -30,5 +30,6 @@ Pexels 사진은 웹사이트와 앱에서 무료로 쓸 수 있고 출처 표�
 | `models/charcoal-02.jpg` | 차콜 | 검정 수트와 흰 셔츠, 회색 스튜디오 | RedWolf | [12234779](https://www.pexels.com/photo/woman-in-black-blazer-posing-12234779/) |
 | `models/camel-01.jpg` | 카멜 | 카멜 코트와 페도라, 거리 | Lokman Sevim | [16144965](https://www.pexels.com/photo/woman-in-camel-coat-and-fedora-hat-16144965/) |
 | `models/camel-02.jpg` | 카멜 | 카멜 코트와 선글라스, 거리 | Ali mnttzri | [7904119](https://www.pexels.com/photo/photo-of-a-man-in-a-brown-coat-walking-7904119/) |
+| `models/camel-03.jpg` | 카멜 | 카멜 더블 코트와 검은 챙모자, 니하이 부츠, 벽돌 건물 앞 길 | Vika Glitter | [31976250](https://www.pexels.com/photo/stylish-woman-in-camel-coat-and-black-hat-outdoors-31976250/) |
 | `models/cobalt-01.jpg` | 코발트 | 코발트 원피스, 아치 건물 앞 | Wayne Fotografias | [13979919](https://www.pexels.com/photo/elegant-woman-in-blue-dress-13979919/) |
 | `models/cobalt-02.jpg` | 코발트 | 코발트 셔츠 원피스, 바닷가 바위 | Laura Chouette | [38654894](https://www.pexels.com/photo/chic-woman-in-blue-dress-by-french-riviera-38654894/) |

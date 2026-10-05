@@ -113,6 +113,9 @@ ${name ? `<span style="position: absolute; left: ${Math.round(w * 0.06)}px; bott
 
 // C4 가판대
 const chip = (label, color, active = false) => `<button type="button" aria-pressed="${active}" style="height: 44px; flex-shrink: 0; display: flex; align-items: center"><span style="height: 38px; padding: 0 ${color ? '14px 0 8px' : '16px'}; border-radius: 19px; display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 500; white-space: nowrap; ${active ? `background: ${INK}; color: ${PAPER}` : 'background: #FFFFFF; box-shadow: inset 0 0 0 1px #E0E1DC'}">${color ? paint(color, 40, '', '') : ''}<span>${label}</span></span></button>`;
+// My own color before I publish today: the chip opens the half-open same-color room (C8).
+const lockedChip = (c, active = false) => `<a href="CoverStandLocked.dc.html" aria-label="${PAINT[c].name} · 오늘 발행 전이라 세 장만 먼저 보여요"${active ? ' aria-current="true"' : ''} style="height: 44px; flex-shrink: 0; display: flex; align-items: center"><span style="height: 38px; padding: 0 12px 0 8px; border-radius: 19px; display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 500; white-space: nowrap; ${active ? `background: ${INK}; color: ${PAPER}` : 'background: #FFFFFF; box-shadow: inset 0 0 0 1.5px #292A27'}">${paint(c, 40, '', '')}<span>${PAINT[c].name}</span>${icon('lock', 15, 1.8)}</span></a>`;
+const colorChips = (activeLocked = false) => [lockedChip(PEOPLE[ME].color, activeLocked), ...COLOR_ORDER.filter((c) => c !== PEOPLE[ME].color).map((c) => chip(PAINT[c].name, c))].join('\n');
 const shelfRow = (a, b) => `<div style="flex-shrink: 0; display: flex; justify-content: space-between; padding: 0 16px">${miniCover({ ...a, w: 174, h: 250 })}${miniCover({ ...b, w: 174, h: 250 })}</div>
 <span aria-hidden="true" style="flex-shrink: 0; height: 2px; margin-bottom: 16px; background: ${INK}"></span>`;
 files.CoverStand = page('표지 SNS 4 가판대', `<div style="${ROOT(`padding-top: 54px; display: flex; flex-direction: column; background: ${PAPER}; color: ${INK}`)}">
@@ -122,11 +125,11 @@ files.CoverStand = page('표지 SNS 4 가판대', `<div style="${ROOT(`padding-t
 </header>
 <div style="flex-shrink: 0; display: flex; gap: 8px; padding: 4px 16px 10px; overflow: hidden">
 ${chip('전체', null, true)}
-${COLOR_ORDER.map((c) => chip(PAINT[c].name, c)).join('\n')}
+${colorChips()}
 </div>
 ${shelfRow({ key: 'ama', py: 0.3 }, { key: 'lise', style: 'paint', py: 0.3 })}
 ${shelfRow({ key: 'kofi', mastColor: INK, px: 0.7, py: 0.2 }, { key: 'riva', py: 0.3 })}
-${shelfRow({ key: 'maya', style: 'neck', mastColor: INK }, { key: 'selin', mastColor: INK, py: 0.5 })}
+${shelfRow({ key: 'maya', style: 'neck', mastColor: INK }, { key: 'imani', py: 0.3 })}
 ${capsule({ color: PEOPLE[ME].color })}
 </div>`);
 
@@ -188,6 +191,41 @@ vals['show_' + k] = () => this.setState({ view: k });
 }
 vals.vCovers = view === 'covers' ? 'flex' : 'none';
 vals.vSpines = view === 'spines' ? 'flex' : 'none';` });
+
+// C8 가판대 · 같은 색, 오늘 발행 전. 세 장만 먼저 보이고 나머지는 흐린 책등. 발행하거나 자정이 지나면 모두 펼쳐진다.
+const LOCK = { color: PEOPLE[ME].color, total: 64, open: Object.keys(PEOPLE).filter((k) => k !== ME && PEOPLE[k].color === PEOPLE[ME].color).slice(0, 3) };
+// Each person picked their own face presentation; "plain" keeps a smaller masthead so it never sits on the face.
+const LOCK_FACE = { leo: { style: 'neck', mastColor: INK }, noor: { style: 'zoom' }, mara: { fs: 38 } };
+const LOCK_NAMES = ['yuna', 'marco', 'ella', 'kai', 'sora', 'remi', 'zoe', 'taro', 'lena', 'oli', 'mina', 'jun', 'ava', 'noa'];
+const lockSpines = LOCK_NAMES.map((n, i) => `<span style="width: 22px; height: ${196 + ((i * 37) % 5) * 6}px; flex-shrink: 0; display: flex; justify-content: center; padding-top: 8px; box-sizing: border-box; background: ${PAINT[LOCK.color].hex}; opacity: ${0.55 + ((i * 3) % 4) * 0.1}; font-family: ${SERIF}; font-style: italic; font-size: 13px; writing-mode: vertical-rl">${n}</span>`).join('');
+const openW = LOCK.open.length >= 3 ? 113 : 174;
+files.CoverStandLocked = page('표지 SNS 8 같은 색 · 발행 전', `<div style="${ROOT(`padding-top: 54px; display: flex; flex-direction: column; background: ${PAPER}; color: ${INK}`)}">
+<header style="flex-shrink: 0; height: 48px; display: flex; align-items: baseline; justify-content: space-between; padding: 8px 18px 0; box-sizing: border-box">
+<h1 style="margin: 0; font-family: ${SERIF}; font-size: 32px; font-weight: 400; line-height: 1">가판대</h1>
+<span style="font-family: ${SERIF}; font-style: italic; font-size: 17px">9. 6. 일요일</span>
+</header>
+<div style="flex-shrink: 0; display: flex; gap: 8px; padding: 4px 16px 6px; overflow: hidden">
+<a href="CoverStand.dc.html" style="height: 44px; flex-shrink: 0; display: flex; align-items: center"><span style="height: 38px; padding: 0 16px; border-radius: 19px; display: flex; align-items: center; font-size: 14px; font-weight: 500; background: #FFFFFF; box-shadow: inset 0 0 0 1px #E0E1DC">전체</span></a>
+${colorChips(true)}
+</div>
+<div style="flex-shrink: 0; height: 48px; display: flex; align-items: center; gap: 6px; padding: 0 20px">${paint(LOCK.color, 56, '', '')}<span style="font-size: 15px; font-weight: 600">오늘의 ${PAINT[LOCK.color].name} · ${LOCK.total}명</span><span style="margin-left: auto; font-size: 13px; color: ${MUTED}">먼저 ${LOCK.open.length}장</span></div>
+<div style="flex-shrink: 0; display: flex; justify-content: space-between; padding: 0 16px">
+${LOCK.open.map((k) => miniCover({ key: k, w: openW, h: Math.round(openW * 1.437), py: 0.3, ...LOCK_FACE[k] })).join('\n')}
+</div>
+<span aria-hidden="true" style="flex-shrink: 0; height: 2px; margin-bottom: 14px; background: ${INK}"></span>
+<section aria-label="${PAINT[LOCK.color].name} 표지 ${LOCK.total - LOCK.open.length}장 · 오늘 호를 발행하면 펼쳐져요" style="flex-shrink: 0; position: relative; padding: 0 16px">
+<div aria-hidden="true" style="display: flex; gap: 4px; align-items: flex-end; filter: blur(2.5px); color: ${INK}">${lockSpines}</div>
+<span aria-hidden="true" style="display: block; height: 2px; background: ${INK}"></span>
+<div style="position: absolute; left: 50%; top: 60px; transform: translateX(-50%); width: 280px; padding: 16px 18px 12px; box-sizing: border-box; border-radius: 22px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; background: rgba(249, 249, 251, 0.94); box-shadow: inset 0 0 0 1px #E0E1DC, 0 10px 28px rgba(0, 0, 0, 0.1)">
+${icon('lock', 20, 1.8)}
+<p style="margin: 2px 0 0; font-family: ${SERIF}; font-size: 22px; line-height: 1.2">발행하면 함께 펼쳐집니다</p>
+<p style="margin: 0; font-size: 13px; line-height: 1.45; color: ${MUTED}">${PAINT[LOCK.color].name} 표지 ${LOCK.total - LOCK.open.length}장이 더 있어요.<br>자정이 지나면 모두 펼쳐져요.</p>
+</div>
+</section>
+<a href="CoverMake.dc.html" style="flex-shrink: 0; align-self: center; margin-top: 18px; height: 48px; padding: 0 26px; border-radius: 24px; display: flex; align-items: center; gap: 6px; background: ${INK}; color: ${PAPER}; font-size: 15px; font-weight: 600">${icon('plus', 18, 2)}<span>오늘 호 만들기</span></a>
+${capsule({ color: PEOPLE[ME].color })}
+</div>`);
+
 
 // C6 표지 만들기 · 얼굴 연출과 제호 색
 const MK = { W: 236, H: 350 };

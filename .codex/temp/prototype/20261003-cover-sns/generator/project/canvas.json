@@ -504,7 +504,7 @@
       "x": 0,
       "y": 0,
       "w": 1440,
-      "h": 1180,
+      "h": 1260,
       "page": "mood",
       "title": "00 무드보드",
       "radius": 0
@@ -535,6 +535,16 @@
       "page": "motion",
       "title": "04 모션",
       "radius": 0
+    },
+    "CoverStandLocked.dc.html": {
+      "h": 852,
+      "is_interactive": true,
+      "page": "cover",
+      "radius": 28,
+      "title": "C8 같은 색 · 발행 전",
+      "w": 393,
+      "x": 473,
+      "y": 1240
     }
   },
   "createdOnFiles": {
@@ -569,7 +579,7 @@
       "kind": "title1",
       "maxW": 1812,
       "page": "cover",
-      "text": "스크롤 시안 — Play로 열어 아래로 내리고 다시 올려 보기",
+      "text": "스크롤 시안 · 같은 색 발행 전 — C7은 Play로 열어 아래로 내리고 다시 올려 보기",
       "w": 240,
       "x": 0,
       "y": 980
@@ -679,6 +689,7 @@
     "CoverSpread.dc.html",
     "CoverStand.dc.html",
     "CoverShelf.dc.html",
+    "CoverStandLocked.dc.html",
     "CoverMake.dc.html",
     "CoverScroll.dc.html",
     "JoinScroll.dc.html",

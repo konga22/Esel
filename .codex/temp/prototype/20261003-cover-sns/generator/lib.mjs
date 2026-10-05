@@ -52,6 +52,8 @@ export const PEOPLE = {
   june: { id: 'a083104662de6b00bdffc25d95935c8f', r: 1.25, fx: 0.308, fy: 0.167, fw: 0.122, color: 'charcoal', time: '오전 10:00', cap: '차콜 수트, 한쪽 다리는 자유롭게.', alt: '검정 수트와 흰 셔츠 착장' },
   selin: { id: '0d2c5aca03c0e210cd888e2094c78869', r: 1.5, fx: 0.527, fy: 0.421, fw: 0.159, color: 'camel', time: '오후 3:00', cap: '카멜 코트와 페도라.', alt: '카멜 코트와 페도라 착장' },
   leo: { id: '138c37eab57fb9690da67376fe9028ea', r: 1.25, fx: 0.488, fy: 0.12, fw: 0.092, color: 'camel', time: '오전 8:50', cap: '카멜 코트, 검정으로 받치기.', alt: '카멜 코트와 검정 니트 착장' },
+  noor: { id: '00e40fb5b21f897da768d0dde6b4eade', r: 1.5025, fx: 0.448, fy: 0.18, fw: 0.244, color: 'camel', time: '오전 11:10', cap: '크림 재킷에 카멜 히잡.', alt: '크림 트위드 재킷과 카멜색 히잡 착장' },
+  mara: { id: 'a47d28a12b07c350f690ae5c5f0ed153', r: 1.5, fx: 0.551, fy: 0.279, fw: 0.103, color: 'camel', time: '오후 4:20', cap: '카멜 코트, 검은 모자와 부츠.', alt: '카멜 더블 코트와 검은 챙모자, 니하이 부츠 착장' },
   ayo: { id: 'f58f119167a567a8a92482ac18be333a', r: 1.5, fx: 0.369, fy: 0.26, fw: 0.16, color: 'cobalt', time: '오후 1:40', cap: '코발트 원피스, 금단추.', alt: '금단추 코발트 원피스 착장' },
   riva: { id: '7bee9f1a7214e73bb5aa29dfce802597', r: 1.5, fx: 0.507, fy: 0.151, fw: 0.083, color: 'cobalt', time: '오전 7:30', cap: '바닷가엔 코발트.', alt: '바닷가 바위 위 코발트 셔츠 원피스 착장' },
 };
