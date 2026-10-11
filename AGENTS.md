@@ -6,7 +6,8 @@ Read this file first, then `docs/ESEL_HARNESS.md` and `harness.json`. They are r
 
 1. [앱 하네스](docs/ESEL_HARNESS.md)를 읽는다. 컨셉, 사용자 결정(날짜별), 시안 가정, 기능 계약, 실패 징후를 구분한다.
 2. [실행 명세](harness.json)의 `activeDesign`을 확인한다. **최신 디자인은 Claude Design 캔버스와 그 생성기**(`.codex/temp/prototype/20261003-cover-sns/`)다. `ruleReference`(2026-09-06 HTML 프로토타입)는 기능 규칙과 테스트의 기준일 뿐 시각 기준이 아니다. `app/`·`src/`는 별도의 Expo 앱이다. 셋을 혼동하지 않는다. 캔버스는 비공개라 레포에서는 [디자인 보드 사본](docs/design/README.md)(보드·화면 캡처와 값 표)으로 본다. 모든 화면을 이어 눌러 보는 [앱 목업](.codex/temp/prototype/20261011-app-mockup/README.md)은 캔버스와 같은 데이터를 쓰는 별도 웹 목업이다.
-3. 현재 요청이 디자인 탐색인지, 캔버스 화면 수정인지, Expo 이식인지 확인한다. 디자인 수정만 요청받았다면 Expo 앱·인증·서버·외부 서비스까지 확장하지 않는다.
+3. 현재 요청이 디자인 탐색인지, 캔버스 화면 수정인지, 기능 개발(Expo 앱·서버)인지 확인한다. 디자인 수정만 요청받았다면 Expo 앱·인증·서버·외부 서비스까지 확장하지 않는다.
+4. 기능 개발이면 [개발 가이드](docs/dev/README.md)와 [기능 목록](docs/dev/FEATURES.md)을 따른다. 기능 하나씩, 선행 기능이 끝난 것부터, 합격 기준을 테스트로 증명한다.
 
 ## 잊지 않을 기준
 
@@ -31,6 +32,7 @@ npm run test:rules
 npm run design:build
 npm run design:capture
 npm run mockup:build
+npm run dev:docs
 ```
 
 캔버스 화면을 바꿨다면 생성기로 다시 만들고, 캔버스에 올린 뒤 Play에서 바뀐 화면과 상태를 눌러 본다(스크롤 녹아들기, 로그인 바, 얼굴 연출, 제호 입력). 자동 검사 통과는 미적 품질이나 실기기 검증을 대신하지 않는다. 하네스·`docs/design` 캡처와 값 표·현재 상태를 함께 갱신한다. 커밋·배포·외부 메시지·실제 초대·캔버스 공유는 별도 요청 없이 하지 않는다.

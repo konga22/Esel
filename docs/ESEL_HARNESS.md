@@ -65,6 +65,7 @@ Esel은 오늘의 색으로 옷을 입고, 그 착장을 한 권의 잡지 표�
 | 10-05 | 사용자 선택 | 공개 범위(B): 좋아요·구독자·독자 한 줄 수·스크랩 수는 본인만. 같은 색 인원·호수·독자 한 줄 글은 공개 | P18. 호수로 정렬·순위 금지. 인기 혼합(09-06)은 내부 신호로만 |
 | 10-05 | 오류 수정 | 서가 호수가 249·247…로 건너뛰던 것을 결호 없는 개인 호수(Nº 038, 037…)로 고치고 지난 호를 표지/책등으로 보게 함 | C5, P04 |
 | 10-11 | 사용자 선택 | 앱 목업은 휴대폰에서 눌러 보는 앱으로. 팀원이 피그마에 정리한 추가 기능(내 잡지·월간 색 기록·트윈·친구·설정·공유)은 흐름과 문구를 따르되 디자인 보드 문법으로 다시 그림. 범위는 전부 | [앱 목업](../.codex/temp/prototype/20261011-app-mockup/README.md). 피그마 원본은 수정하지 않음 |
+| 10-11 | 사용자 요청 | 목업을 기준으로 다른 AI가 기능 개발까지 제대로 하도록 가이드와 하네스를 갖춤 | [개발 가이드](dev/README.md), [기능 목록](dev/FEATURES.md) DEV-01~20. 서버는 팀원 PR konga22/Esel#4(NestJS·Prisma) 구조를 따름 |
 | — | 보류 | 해석 반응, 컬러 정체성 분석, 전용 외부 SNS 공유 카드, Generative UI | 별도 승인 없이 구현하지 않음 |
 | — | 미확정 | 색 공급처, 실제 확률·일일 배정·시차, 닉네임 중복·금칙어, 실제 얼굴 감지, 삭제·차단 정책, 같은 색 미리보기 3장을 고르는 기준, 미성년자 판별 방법 | 데모 값과 실서비스 결정을 구분 |
 
@@ -262,6 +263,7 @@ flowchart LR
 | 영역 | 경로 | 상태와 주의 |
 |---|---|---|
 | 최신 디자인 | Claude Design 캔버스 (`harness.json.activeDesign.canvas`, 비공개) | 00~04 보드와 03 화면 2개 페이지. 공유 전에는 소유자만 열 수 있음 |
+| 기능 개발 | [docs/dev](dev/README.md), `harness.json.development` | 개발 가이드, 기능 목록(features.json → FEATURES.md), 목업 화면 그림 54장, 생성 토큰 `src/design/tokens.ts`. 서버는 PR konga22/Esel#4 병합 후 `server/` |
 | 앱 목업 | [20261011-app-mockup](../.codex/temp/prototype/20261011-app-mockup/README.md) (`harness.json.appMockup`) | 모든 화면을 한 앱으로 이어 눌러 보는 비공개 웹 목업. 인물·12색은 생성기 `lib.mjs`에서 빌드 때 주입. 실제 저장·로그인 없음 |
 | 디자인 보드 사본 | [docs/design](design/README.md) | 캔버스의 보드·화면 캡처와 값 표. 레포에서 사람과 다른 AI가 읽는 곳. `npm run design:capture`로 다시 찍음 |
 | 생성기 | [20261003-cover-sns/README](../.codex/temp/prototype/20261003-cover-sns/README.md), `generator/` | `lib.mjs`(색·인물·얼굴 값·조각), `scroll.mjs`(제호 녹아들기), `gen-cover2/join/boards.mjs`. 출력 사본은 `generator/project/` |
@@ -290,11 +292,13 @@ npm run test:rules
 npm run design:build
 npm run design:capture
 npm run mockup:build
+npm run dev:docs
 ```
 
 - `check:harness`: 문서 진입점·경로·자산, 생성기 `lib.mjs`와 `harness.json`의 색·인물·토큰 일치, 제호 규칙, 계약 ID, 보관 자료 표시(README 목록·맨 위 표시·등록 안 된 시안 폴더)를 확인한다. 미적 판정이나 보안 감사가 아니다.
 - `test:rules`: 이전 HTML 프로토타입의 순수 기능 규칙 테스트(같은 색 공개와 발행 전 3장 미리보기, 트윈, 복구, 헤더 상태).
 - `design:build`: 생성기로 캔버스 화면 파일을 `generator/project/`에 다시 쓴다. 캔버스에는 이 파일을 올려야 반영된다.
+- `dev:docs`: [기능 목록](dev/features.json)에서 `FEATURES.md`를, `harness.json`의 토큰에서 `src/design/tokens.ts`를 만든다. `check:harness`가 두 파일이 최신인지, 기능이 실제 목업 화면·계약에 연결됐는지, 완료 기능의 테스트 파일이 있는지 확인한다. `mockup:capture`는 목업을 상태별로 찍어 `docs/dev/screens/`를 다시 쓴다.
 - `mockup:build`: 앱 목업 원본(`src/shell.html`, `src/app.js`)과 생성기 데이터로 `dist/`를 만든다. `dist/`는 git에 올리지 않고, 게시본은 같은 아티팩트 주소에 다시 올린다.
 - `design:capture`: 그 파일을 로컬 사진·물감으로 바꿔 Google Chrome으로 찍고 [docs/design](design/README.md)의 보드(PNG)와 화면(JPEG)을 다시 쓴다. Chrome 경로는 `CHROME` 환경 변수로 바꿀 수 있다.
 - 이전 HTML 시안 미리보기(보관된 화면, 규칙 확인용): `npm run preview:rules` → `http://localhost:4177/`. 다른 작업 서버를 임의로 끄지 않는다.

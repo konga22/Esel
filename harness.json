@@ -40,6 +40,16 @@
     "covers": ["J1-J7", "C1-C8", "M1", "R1-R5", "F1-F3", "T1-T10", "S1-S6", "A1-A8"],
     "realBackend": false
   },
+  "development": {
+    "guide": "docs/dev/README.md",
+    "features": "docs/dev/features.json",
+    "featuresDoc": "docs/dev/FEATURES.md (생성 파일)",
+    "screens": "docs/dev/screens (생성 파일)",
+    "tokens": "src/design/tokens.ts (생성 파일)",
+    "client": "Expo app/, src/",
+    "server": {"status": "PR konga22/Esel#4 열림·미병합", "stack": "NestJS, Prisma, PostgreSQL, Docker Compose", "guideAfterMerge": "server/ARCHITECTURE.md"},
+    "noBaaS": true
+  },
   "ruleReference": {
     "note": "2026-09-06 HTML 프로토타입. 시각 기준이 아니라 같은 색 공개·트윈·복구 같은 기능 규칙과 그 테스트의 기준이다.",
     "root": ".codex/temp/prototype/20260906-minimal-gallery",
@@ -52,6 +62,13 @@
   "nativeApp": {"routes": "app", "source": "src", "status": "separate-expo-prototype-not-design-parity", "devPort": 8081, "previewPort": 4173},
   "designTokens": {"paper": "#F9F9FB", "ink": "#292A27", "muted": "#71736C", "hairline": "#E0E1DC", "gutter": "20px", "touch": "48px"},
   "glass": {"background": "rgba(249,249,251,0.58)", "blur": "22px", "saturate": 1.6, "fallback": "#F9F9FB", "use": ["capsule-menu", "login-bar", "login-sheet", "small-logo"]},
+  "tokenScale": {
+    "colors": {"sub": "#55574F", "line": "#D8D9D3", "photo": "#EDEEEA", "error": "#B3261E", "dot": "#AE8775"},
+    "spacing": [4, 8, 12, 16, 20, 24, 32],
+    "radius": {"photo": 0, "spreadPhoto": 4, "card": 16, "colorPick": 22, "sheet": 28, "pill": 999},
+    "shadow": {"float": "0 10px 28px rgba(0,0,0,0.14)", "miniCover": "0 4px 12px rgba(41,42,39,0.16)", "coverPreview": "0 14px 36px rgba(41,42,39,0.2)"},
+    "size": {"screenWidth": 393, "screenHeight": 852, "touch": 48, "button": 54, "chip": 38, "segment": 36, "capsuleWidth": 196, "capsuleHeight": 60, "loginBar": 66, "gutter": 20, "innerPageText": 18}
+  },
   "typography": {
     "masthead": {"family": "Cormorant Garamond", "size": 200, "lineHeight": 0.9, "tracking": "-0.05em", "fit": "min(200, 0.9 * width / (0.47 * letters))"},
     "name": {"family": "Cormorant Garamond Italic", "size": 76},
@@ -98,6 +115,7 @@
   "twinPublication": {"default": "private", "modes": ["private", "solo", "joint"], "explicitUploadButton": true, "jointRequiresBothConsent": true, "coverSnsDesign": "not-drawn"},
   "motion": {
     "easing": {"out": "cubic-bezier(0.23, 1, 0.32, 1)", "drawer": "cubic-bezier(0.32, 0.72, 0, 1)", "inOut": "cubic-bezier(0.77, 0, 0.175, 1)"},
+    "durations": {"press": 160, "smallLogo": 200, "heart": 200, "issueRoll": 240, "sameColorTile": 300, "loginBar": 360, "sheet": 360, "sameColorChip": 400, "dailySqueeze": 520, "publishTotalMax": 600},
     "applied": ["masthead-melt", "small-logo-show-hide", "press-0.97", "login-bar-rise"],
     "proposed": ["cover-to-spread", "daily-paint-squeeze", "publish-stamp", "stand-zoom", "same-color-unlock", "pull-next-issue", "heart-fill"],
     "never": ["capsule-navigation", "screen-transition", "scroll-reveal", "ken-burns", "parallax", "tab-underline-slide"]
@@ -108,6 +126,8 @@
     "design:build": "node .codex/temp/prototype/20261003-cover-sns/generator/gen-join.mjs && node .codex/temp/prototype/20261003-cover-sns/generator/gen-boards.mjs",
     "design:capture": "node scripts/capture-design.mjs",
     "mockup:build": "node .codex/temp/prototype/20261011-app-mockup/build.mjs",
+    "mockup:capture": "node scripts/capture-mockup.mjs",
+    "dev:docs": "node scripts/dev-harness.mjs",
     "check:harness": "node scripts/check-harness.mjs"
   },
   "keyAssets": [
@@ -117,7 +137,11 @@
     ".codex/temp/prototype/20261003-cover-sns/README.md",
     "docs/design/README.md",
     "scripts/capture-design.mjs",
-    ".codex/temp/prototype/20261011-app-mockup/README.md"
+    ".codex/temp/prototype/20261011-app-mockup/README.md",
+    "docs/dev/README.md",
+    "docs/dev/features.json",
+    "scripts/dev-harness.mjs",
+    "scripts/capture-mockup.mjs"
   ],
   "productContracts": ["P01", "P02", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P13", "P14", "P15", "P16", "P17", "P18"],
   "manualChecks": ["V01", "V02", "V03", "V04", "V05", "V06", "V07", "V08", "V09", "V10", "V11", "V12"],
