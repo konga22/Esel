@@ -5,7 +5,7 @@ Read this file first, then `docs/ESEL_HARNESS.md` and `harness.json`. They are r
 ## 작업 전에
 
 1. [앱 하네스](docs/ESEL_HARNESS.md)를 읽는다. 컨셉, 사용자 결정(날짜별), 시안 가정, 기능 계약, 실패 징후를 구분한다.
-2. [실행 명세](harness.json)의 `activeDesign`을 확인한다. **최신 디자인은 Claude Design 캔버스와 그 생성기**(`.codex/temp/prototype/20261003-cover-sns/`)다. `ruleReference`(2026-09-06 HTML 프로토타입)는 기능 규칙과 테스트의 기준일 뿐 시각 기준이 아니다. `app/`·`src/`는 별도의 Expo 앱이다. 셋을 혼동하지 않는다. 캔버스는 비공개라 레포에서는 [디자인 보드 사본](docs/design/README.md)(보드·화면 캡처와 값 표)으로 본다.
+2. [실행 명세](harness.json)의 `activeDesign`을 확인한다. **최신 디자인은 Claude Design 캔버스와 그 생성기**(`.codex/temp/prototype/20261003-cover-sns/`)다. `ruleReference`(2026-09-06 HTML 프로토타입)는 기능 규칙과 테스트의 기준일 뿐 시각 기준이 아니다. `app/`·`src/`는 별도의 Expo 앱이다. 셋을 혼동하지 않는다. 캔버스는 비공개라 레포에서는 [디자인 보드 사본](docs/design/README.md)(보드·화면 캡처와 값 표)으로 본다. 모든 화면을 이어 눌러 보는 [앱 목업](.codex/temp/prototype/20261011-app-mockup/README.md)은 캔버스와 같은 데이터를 쓰는 별도 웹 목업이다.
 3. 현재 요청이 디자인 탐색인지, 캔버스 화면 수정인지, Expo 이식인지 확인한다. 디자인 수정만 요청받았다면 Expo 앱·인증·서버·외부 서비스까지 확장하지 않는다.
 
 ## 잊지 않을 기준
@@ -20,15 +20,17 @@ Read this file first, then `docs/ESEL_HARNESS.md` and `harness.json`. They are r
 - 같은 색 공개·트윈·복구 규칙(P01~P11)을 디자인 때문에 약화하지 않는다. P01은 2026-10-05 사용자 결정으로 부분 완화됐다(발행 전 같은 색 3장). 클라이언트 데모 잠금은 서버 보안이 아니다.
 - 좋아요·구독자·독자 한 줄 수·스크랩 수는 발행한 본인에게만 보인다(P18). 남의 표지·서가에 반응 숫자를 그리거나 호수로 줄 세우지 않는다.
 - 예시 인물·숫자·날짜는 예시다. 실제 사람 수, 실제 인증·업로드·동기화가 있다고 설명하지 않는다.
+- [README](README.md)의 "보관된 자료"와 `harness.json.archive`에 있는 것, 맨 위에 보관 표시가 달린 문서는 이전 자료다. 비교용으로만 읽고 결정 근거나 작업 지시로 쓰지 않는다. 새 시안 폴더를 만들거나 이전 것을 대체하면 README·`archive`·보관 표시를 함께 고친다(`check:harness`가 확인).
 - 현재 시안은 사용자 검토 중이다. 문서가 있다는 이유로 모든 수치·정책을 사용자가 승인했다고 간주하지 않는다.
 
 ## 완료 전에
 
 ```bash
 npm run check:harness
-npm run test:design
+npm run test:rules
 npm run design:build
 npm run design:capture
+npm run mockup:build
 ```
 
 캔버스 화면을 바꿨다면 생성기로 다시 만들고, 캔버스에 올린 뒤 Play에서 바뀐 화면과 상태를 눌러 본다(스크롤 녹아들기, 로그인 바, 얼굴 연출, 제호 입력). 자동 검사 통과는 미적 품질이나 실기기 검증을 대신하지 않는다. 하네스·`docs/design` 캡처와 값 표·현재 상태를 함께 갱신한다. 커밋·배포·외부 메시지·실제 초대·캔버스 공유는 별도 요청 없이 하지 않는다.

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile, access } from 'node:fs/promises';
+import { readFile, access, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -22,7 +22,8 @@ const screenFiles = design.pages.flatMap(page => page.files.map(file => `${desig
 const paintFiles = Object.keys(manifest.colors).map(color => `${design.paint}/esel-paint-${color}.png`);
 const files = [...manifest.entrypoints, ...manifest.keyAssets, design.readme, design.library, ...screenFiles, ...paintFiles,
   ...Object.values(manifest.demoPeople), rules.source, rules.stateTests, rules.headerTests,
-  manifest.nativeApp.routes, manifest.nativeApp.source, ...manifest.evidence];
+  manifest.nativeApp.routes, manifest.nativeApp.source, ...manifest.evidence,
+  ...(manifest.appMockup ? [manifest.appMockup.readme, manifest.appMockup.build, ...manifest.appMockup.source] : [])];
 for (const file of files) await access(resolveLocal(file));
 
 const doc = await readFile(resolveLocal('docs/ESEL_HARNESS.md'), 'utf8');
@@ -52,7 +53,7 @@ assert.equal(new URL(design.canvas).hostname, 'claude.ai');
 
 const agents = await readFile(resolveLocal('AGENTS.md'), 'utf8');
 assert(agents.includes('docs/ESEL_HARNESS.md') && agents.includes('harness.json'), 'AI 진입점 연결 누락');
-for (const file of [design.readme, 'docs/ESEL_HARNESS.md', 'AGENTS.md', 'assets/models-sources.md', 'docs/design/README.md']) {
+for (const file of ['README.md', design.readme, 'docs/ESEL_HARNESS.md', 'AGENTS.md', 'assets/models-sources.md', 'docs/design/README.md', manifest.appMockup?.readme, ...manifest.archive.map((a) => a.banner)].filter(Boolean)) {
   const fullPath = resolveLocal(file);
   const markdown = await readFile(fullPath, 'utf8');
   for (const match of markdown.matchAll(/\]\(([^)]+)\)|<img src="([^"]+)"/g)) {
@@ -61,4 +62,23 @@ for (const file of [design.readme, 'docs/ESEL_HARNESS.md', 'AGENTS.md', 'assets/
     await access(path.resolve(path.dirname(fullPath), link));
   }
 }
-console.log(`하네스 정합성 통과: 경로 ${files.length}개, 색 ${Object.keys(manifest.colors).length}개, 예시 인물 ${Object.keys(manifest.demoPeople).length}명, 제품 계약 ${manifest.productContracts.length}개, 수동 검증 ${manifest.manualChecks.length}개. 시각·실기기 검증은 별도입니다.`);
+// Old material stays in place but must be marked: registered in harness.json.archive, bannered at the top, and listed in README.
+const readme = await readFile(resolveLocal('README.md'), 'utf8');
+for (const item of manifest.archive) {
+  if (item.banner) {
+    const head = (await readFile(resolveLocal(item.banner), 'utf8')).split('\n')[0];
+    assert(head.startsWith('> **') && head.includes('보관'), `보관 표시 누락: ${item.banner}`);
+  }
+  if (!/[*,:]/.test(item.path)) await access(resolveLocal(item.path));
+  const folder = item.path.includes('.md') ? item.path.slice(0, item.path.lastIndexOf('/')) : item.path;
+  assert(readme.includes(item.path) || readme.includes(folder) || /[,:]/.test(item.path), `README 보관 목록에 없음: ${item.path}`);
+}
+// Every prototype folder and loose work note must be either current or registered as archived.
+const known = new Set([design.root, manifest.appMockup?.root, rules.root, ...manifest.archive.map((a) => a.path)]);
+for (const entry of await readdir(resolveLocal('.codex/temp/prototype'), { withFileTypes: true })) {
+  if (entry.isDirectory()) assert(known.has(`.codex/temp/prototype/${entry.name}`), `상태가 등록되지 않은 시안 폴더: ${entry.name} (harness.json.archive 또는 현재 경로에 추가)`);
+}
+for (const entry of await readdir(resolveLocal('.codex/temp'), { withFileTypes: true })) {
+  if (entry.isFile() && entry.name.endsWith('.md')) assert(known.has(`.codex/temp/${entry.name}`), `상태가 등록되지 않은 작업 기록: ${entry.name}`);
+}
+console.log(`하네스 정합성 통과: 경로 ${files.length}개, 색 ${Object.keys(manifest.colors).length}개, 예시 인물 ${Object.keys(manifest.demoPeople).length}명, 제품 계약 ${manifest.productContracts.length}개, 수동 검증 ${manifest.manualChecks.length}개, 보관 자료 ${manifest.archive.length}건. 시각·실기기 검증은 별도입니다.`);

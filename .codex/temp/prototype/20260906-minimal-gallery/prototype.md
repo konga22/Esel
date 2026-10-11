@@ -1,3 +1,5 @@
+> **화면은 보관됨 · 규칙만 기준** — 이 미니멀 갤러리 화면은 2026-09-06 시안이라 최신 디자인이 아니다. 같은 색 공개·트윈·복구 규칙(`src/social-state.js`, `src/twin-sharing.js`, `src/feed-order.js`, `src/header-state.js`)과 테스트(`tests/*.test.cjs`, `npm run test:rules`)만 지금도 기준이다. 디자인은 [디자인 보드](../../../../docs/design/README.md)와 [앱 목업](../20261011-app-mockup/README.md)을 보고, 무엇이 최신인지는 [저장소 안내](../../../../README.md#보관된-자료)에 있다. 아래 본문의 명령 이름(`test:design`, `preview:design`)은 지금 `test:rules`, `preview:rules`다.
+
 # Esel — 사진과 색으로 돌아가는 미니멀 수정안
 
 ## 한눈에 보기
