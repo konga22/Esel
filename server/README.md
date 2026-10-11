@@ -2,6 +2,8 @@
 
 Esel의 직접 구축 REST API입니다. NestJS, PostgreSQL, Prisma로 구성합니다.
 
+구현 구조와 설계 결정은 [ARCHITECTURE.md](ARCHITECTURE.md)를 참고하세요.
+
 ## 로컬 실행
 
 저장소 루트에서 PostgreSQL을 시작합니다.
