@@ -103,8 +103,8 @@
     "never": ["capsule-navigation", "screen-transition", "scroll-reveal", "ken-burns", "parallax", "tab-underline-slide"]
   },
   "commands": {
-    "preview:design": "python3 -m http.server 4177 --bind 127.0.0.1 --directory .codex/temp/prototype/20260906-minimal-gallery/src",
-    "test:design": "node --test .codex/temp/prototype/20260906-minimal-gallery/tests/*.test.cjs",
+    "preview:rules": "python3 -m http.server 4177 --bind 127.0.0.1 --directory .codex/temp/prototype/20260906-minimal-gallery/src",
+    "test:rules": "node --test .codex/temp/prototype/20260906-minimal-gallery/tests/*.test.cjs",
     "design:build": "node .codex/temp/prototype/20261003-cover-sns/generator/gen-join.mjs && node .codex/temp/prototype/20261003-cover-sns/generator/gen-boards.mjs",
     "design:capture": "node scripts/capture-design.mjs",
     "mockup:build": "node .codex/temp/prototype/20261011-app-mockup/build.mjs",
@@ -123,6 +123,20 @@
   "manualChecks": ["V01", "V02", "V03", "V04", "V05", "V06", "V07", "V08", "V09", "V10", "V11", "V12"],
   "notDrawnInCoverSns": ["same-color-unlock-motion", "owner-count-screen", "twin", "monthly-record-restore", "settings", "notifications", "dark-mode"],
   "notImplemented": ["real-auth", "social-login", "server-upload", "persistent-storage", "friend-sync", "daily-rollover", "nickname-uniqueness", "on-device-face-detection", "dedicated-share-card"],
+  "archive": [
+    {"path": ".codex/temp/prototype/20260905-esel-gallery", "status": "archived", "was": "2026-09-05 갤러리형 Expo 앱 설계 기록과 웹 빌드", "banner": ".codex/temp/prototype/20260905-esel-gallery/prototype.md"},
+    {"path": ".codex/temp/prototype/20260906-art-directions", "status": "archived", "was": "2026-09-06 미술관·아틀리에 방향 탐색", "banner": ".codex/temp/prototype/20260906-art-directions/prototype.md"},
+    {"path": ".codex/temp/prototype/20260906-minimal-gallery", "status": "rules-only", "was": "2026-09-06 미니멀 갤러리 화면. 규칙(src/*.js)과 테스트만 기준", "banner": ".codex/temp/prototype/20260906-minimal-gallery/prototype.md"},
+    {"path": ".codex/temp/prototype/20260906-social-loop", "status": "archived", "was": "2026-09-06 참여·색 기록 데모", "banner": ".codex/temp/prototype/20260906-social-loop/prototype.md"},
+    {"path": ".codex/temp/prototype/20260906-social-loop/remaining-ideas.md", "status": "archived", "was": "2026-09-06 남겨 둔 아이디어", "banner": ".codex/temp/prototype/20260906-social-loop/remaining-ideas.md"},
+    {"path": ".codex/temp/prototype/20260906-paint-feed", "status": "archived", "was": "2026-09-06 닉네임 옆 물감 표식 실험", "banner": ".codex/temp/prototype/20260906-paint-feed/prototype.md"},
+    {"path": ".codex/temp/prototype/20260906-paint-feed/assets.md", "status": "archived", "was": "2026-09-06 물감 에셋 제작 기록", "banner": ".codex/temp/prototype/20260906-paint-feed/assets.md"},
+    {"path": ".codex/temp/20260905-1803-feat-core-ux-workflow.md", "status": "archived", "was": "2026-09-05 작업 기록", "banner": ".codex/temp/20260905-1803-feat-core-ux-workflow.md"},
+    {"path": ".codex/temp/20260906-0210-feat-feed-chrome-ui-workflow.md", "status": "archived", "was": "2026-09-06 작업 기록", "banner": ".codex/temp/20260906-0210-feat-feed-chrome-ui-workflow.md"},
+    {"path": "assets/esel-app-icon-*.png", "status": "archived", "was": "이전 아이콘 시안. 사용자 선택본 assets/esel-app-icon-bg-F9F9FB.png만 사용", "keep": "assets/esel-app-icon-bg-F9F9FB.png"},
+    {"path": "app/, src/, tests/", "status": "not-updated", "was": "2026-09 갤러리 디자인 기준 Expo 앱. 표지 SNS 디자인 미반영"},
+    {"path": "figma:kNBbhEWIhDASkrYlgegU5b", "status": "not-updated", "was": "팀원 정리 피그마(2026-10-11, 60화면). 이 저장소에서 고치지 않는 참고 자료. 앱 목업에 반영"}
+  ],
   "evidence": [
     "docs/design/boards/00-mood.png",
     "docs/design/boards/01-tokens.png",

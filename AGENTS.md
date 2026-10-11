@@ -20,13 +20,14 @@ Read this file first, then `docs/ESEL_HARNESS.md` and `harness.json`. They are r
 - 같은 색 공개·트윈·복구 규칙(P01~P11)을 디자인 때문에 약화하지 않는다. P01은 2026-10-05 사용자 결정으로 부분 완화됐다(발행 전 같은 색 3장). 클라이언트 데모 잠금은 서버 보안이 아니다.
 - 좋아요·구독자·독자 한 줄 수·스크랩 수는 발행한 본인에게만 보인다(P18). 남의 표지·서가에 반응 숫자를 그리거나 호수로 줄 세우지 않는다.
 - 예시 인물·숫자·날짜는 예시다. 실제 사람 수, 실제 인증·업로드·동기화가 있다고 설명하지 않는다.
+- [README](README.md)의 "보관된 자료"와 `harness.json.archive`에 있는 것, 맨 위에 보관 표시가 달린 문서는 이전 자료다. 비교용으로만 읽고 결정 근거나 작업 지시로 쓰지 않는다. 새 시안 폴더를 만들거나 이전 것을 대체하면 README·`archive`·보관 표시를 함께 고친다(`check:harness`가 확인).
 - 현재 시안은 사용자 검토 중이다. 문서가 있다는 이유로 모든 수치·정책을 사용자가 승인했다고 간주하지 않는다.
 
 ## 완료 전에
 
 ```bash
 npm run check:harness
-npm run test:design
+npm run test:rules
 npm run design:build
 npm run design:capture
 npm run mockup:build
