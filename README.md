@@ -9,6 +9,7 @@
 | 보고 싶은 것 | 위치 |
 |---|---|
 | 디자인 보드 00~04와 화면 | [docs/design](docs/design/README.md): 캔버스 캡처와 값 표 |
+| 기능 개발 가이드 | [docs/dev](docs/dev/README.md): 목업 → 앱·서버 개발 순서, [기능 목록](docs/dev/FEATURES.md), 목업 화면 그림 |
 | 눌러 보는 앱 목업 | [20261011-app-mockup](.codex/temp/prototype/20261011-app-mockup/README.md): 휴대폰에서 여는 비공개 링크 |
 | 디자인 원본 | [20261003-cover-sns](.codex/temp/prototype/20261003-cover-sns/README.md): 비공개 Claude Design 캔버스와 그 생성기 |
 | 제품 결정·계약·검증 | [앱 하네스](docs/ESEL_HARNESS.md), [harness.json](harness.json) |
@@ -21,6 +22,7 @@ npm run test:rules      # 같은 색 공개·트윈·복구 규칙 테스트
 npm run design:build    # 캔버스 화면 파일 다시 만들기
 npm run design:capture  # docs/design 그림 다시 찍기
 npm run mockup:build    # 앱 목업 다시 만들기
+npm run dev:docs        # 기능 목록 표와 앱 디자인 토큰 다시 만들기
 ```
 
 ## 보관된 자료

@@ -17,6 +17,8 @@
     "design:build": "node .codex/temp/prototype/20261003-cover-sns/generator/gen-join.mjs && node .codex/temp/prototype/20261003-cover-sns/generator/gen-boards.mjs",
     "design:capture": "node scripts/capture-design.mjs",
     "mockup:build": "node .codex/temp/prototype/20261011-app-mockup/build.mjs",
+    "mockup:capture": "node scripts/capture-mockup.mjs",
+    "dev:docs": "node scripts/dev-harness.mjs",
     "check:harness": "node scripts/check-harness.mjs"
   },
   "dependencies": {

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile, access, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { checkDev } from './dev-harness.mjs';
 
 // A portable consistency check, not an aesthetic score or a browser test.
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -53,7 +54,7 @@ assert.equal(new URL(design.canvas).hostname, 'claude.ai');
 
 const agents = await readFile(resolveLocal('AGENTS.md'), 'utf8');
 assert(agents.includes('docs/ESEL_HARNESS.md') && agents.includes('harness.json'), 'AI 진입점 연결 누락');
-for (const file of ['README.md', design.readme, 'docs/ESEL_HARNESS.md', 'AGENTS.md', 'assets/models-sources.md', 'docs/design/README.md', manifest.appMockup?.readme, ...manifest.archive.map((a) => a.banner)].filter(Boolean)) {
+for (const file of ['README.md', design.readme, 'docs/ESEL_HARNESS.md', 'AGENTS.md', 'assets/models-sources.md', 'docs/design/README.md', manifest.appMockup?.readme, manifest.development?.guide, 'docs/dev/FEATURES.md', ...manifest.archive.map((a) => a.banner)].filter(Boolean)) {
   const fullPath = resolveLocal(file);
   const markdown = await readFile(fullPath, 'utf8');
   for (const match of markdown.matchAll(/\]\(([^)]+)\)|<img src="([^"]+)"/g)) {
@@ -81,4 +82,5 @@ for (const entry of await readdir(resolveLocal('.codex/temp/prototype'), { withF
 for (const entry of await readdir(resolveLocal('.codex/temp'), { withFileTypes: true })) {
   if (entry.isFile() && entry.name.endsWith('.md')) assert(known.has(`.codex/temp/${entry.name}`), `상태가 등록되지 않은 작업 기록: ${entry.name}`);
 }
-console.log(`하네스 정합성 통과: 경로 ${files.length}개, 색 ${Object.keys(manifest.colors).length}개, 예시 인물 ${Object.keys(manifest.demoPeople).length}명, 제품 계약 ${manifest.productContracts.length}개, 수동 검증 ${manifest.manualChecks.length}개, 보관 자료 ${manifest.archive.length}건. 시각·실기기 검증은 별도입니다.`);
+const dev = await checkDev();
+console.log(`하네스 정합성 통과: 경로 ${files.length}개, 색 ${Object.keys(manifest.colors).length}개, 예시 인물 ${Object.keys(manifest.demoPeople).length}명, 제품 계약 ${manifest.productContracts.length}개, 수동 검증 ${manifest.manualChecks.length}개, 보관 자료 ${manifest.archive.length}건, 개발 기능 ${dev.features}개(완료 ${dev.done})·목업 화면 ${dev.screens}장. 시각·실기기 검증은 별도입니다.`);
