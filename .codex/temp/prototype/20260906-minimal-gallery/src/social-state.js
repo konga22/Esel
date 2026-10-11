@@ -8,6 +8,8 @@
   const TODAY = '2026-09-06';
   const MONTH = '2026-09';
   const PALETTE_IDS = ['sage', 'butter', 'blue', 'rare'];
+  // Before today's own publication the same-palette room opens only this many newest covers (2026-10-05 decision).
+  const PREVIEW_COUNT = 3;
 
   function assertPalette(state, paletteId, requireEligibility = true) {
     if (!PALETTE_IDS.includes(paletteId)) {
@@ -31,12 +33,13 @@
     return { ...photo };
   }
 
-  function create({ rare = false } = {}) {
+  function create({ rare = false, minor = false } = {}) {
     return {
       date: TODAY,
       selected: rare ? 'rare' : 'sage',
       confirmed: false,
       rareEligible: Boolean(rare),
+      minor: Boolean(minor),
       post: null,
       history: [
         { date: '2026-09-01', paletteId: 'sage', kind: 'posted' },
@@ -83,7 +86,22 @@
     if (date < TODAY) return true;
     if (date > TODAY) return false;
     if (paletteId !== state.selected) return true;
+    if (state.minor) return true;
     return Boolean(state.post && state.post.date === TODAY && state.post.paletteId === paletteId);
+  }
+
+  const newestFirst = (a, b) => (b.minute || 0) - (a.minute || 0) || String(a.id).localeCompare(String(b.id));
+
+  // canView answers "is the whole room open"; this also gives the partial room before publishing.
+  // Hidden covers are returned only as a count so their names and photos never reach the screen.
+  function sameColorRoom(state, posts, { date, paletteId }) {
+    assertPalette(state, paletteId, false);
+    const access = !isCalendarDate(date) || date > TODAY ? 'closed' : canView(state, { date, paletteId }) ? 'open' : 'preview';
+    const room = (Array.isArray(posts) ? posts : [])
+      .filter((post) => post && post.date === date && post.paletteId === paletteId)
+      .sort(newestFirst);
+    const shown = access === 'open' ? room : access === 'preview' ? room.slice(0, PREVIEW_COUNT) : [];
+    return { access, open: shown, hiddenCount: room.length - shown.length };
   }
 
   function restore(state, date, paletteId) {
@@ -171,5 +189,5 @@
     return randomValue < 0.032;
   }
 
-  return { TODAY, MONTH, create, choose, confirm, publish, canView, restore, invite, acceptTwin, proposeTwinColor, approveTwinColor, declineTwinColor, publishTwin, simulateFriendPost, twinVisible, canChoose, isRareDraw };
+  return { TODAY, MONTH, PREVIEW_COUNT, create, choose, confirm, publish, canView, sameColorRoom, restore, invite, acceptTwin, proposeTwinColor, approveTwinColor, declineTwinColor, publishTwin, simulateFriendPost, twinVisible, canChoose, isRareDraw };
 });

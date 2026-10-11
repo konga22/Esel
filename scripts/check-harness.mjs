@@ -52,11 +52,11 @@ assert.equal(new URL(design.canvas).hostname, 'claude.ai');
 
 const agents = await readFile(resolveLocal('AGENTS.md'), 'utf8');
 assert(agents.includes('docs/ESEL_HARNESS.md') && agents.includes('harness.json'), 'AI 진입점 연결 누락');
-for (const file of [design.readme, 'docs/ESEL_HARNESS.md', 'AGENTS.md', 'assets/models-sources.md']) {
+for (const file of [design.readme, 'docs/ESEL_HARNESS.md', 'AGENTS.md', 'assets/models-sources.md', 'docs/design/README.md']) {
   const fullPath = resolveLocal(file);
   const markdown = await readFile(fullPath, 'utf8');
-  for (const match of markdown.matchAll(/\]\(([^)]+)\)/g)) {
-    const link = match[1].split('#')[0];
+  for (const match of markdown.matchAll(/\]\(([^)]+)\)|<img src="([^"]+)"/g)) {
+    const link = (match[1] ?? match[2]).split('#')[0];
     if (!link || /^[a-z]+:/i.test(link)) continue;
     await access(path.resolve(path.dirname(fullPath), link));
   }

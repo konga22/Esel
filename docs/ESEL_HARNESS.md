@@ -229,7 +229,7 @@ flowchart LR
 
 | ID | 변하지 않아야 할 조건 | 검증 |
 |---|---|---|
-| P01 | 오늘 같은 색은 나의 오늘 발행이 있어야 모두 공개. 발행 전에는 3장만 보이고 나머지는 흐린 책등(이름·얼굴 안 보임). 자정이 지나면 지난 날짜가 되어 모두 공개. 안내는 "발행하면 함께 펼쳐집니다", 손실 문구·카운트다운 금지. 미성년자는 잠금 없음 | C8 확인. 규칙 테스트는 아직 전면 잠금 기준(3장 미리보기 미반영) |
+| P01 | 오늘 같은 색은 나의 오늘 발행이 있어야 모두 공개. 발행 전에는 3장만 보이고 나머지는 흐린 책등(이름·얼굴 안 보임). 자정이 지나면 지난 날짜가 되어 모두 공개. 안내는 "발행하면 함께 펼쳐집니다", 손실 문구·카운트다운 금지. 미성년자는 잠금 없음 | 규칙 테스트(`sameColorRoom`: 최신 3장, 나머지는 개수만, 발행·자정·미성년자에 전체 공개, 확정·복구·트윈 발행으로는 안 열림) + C8 확인 |
 | P02 | 다른 색과 지난 날짜는 게시 전에도 공개. 미래·잘못된 날짜는 비공개. 인기 혼합도 공개 권한 필터 뒤에 적용 | 규칙 테스트 |
 | P03 | 색 고르기, 사진 고르기, 복구, 친구만 게시한 상태는 나의 게시가 아님 | 규칙 테스트 |
 | P04 | 발행하면 오늘 호 하나가 서가에 추가되고 호수가 1 오른다. 호수는 발행으로만 올라 결호가 없다. 하루 중복 발행은 거절 | 규칙 테스트 + C5 확인 |
@@ -261,9 +261,10 @@ flowchart LR
 | 영역 | 경로 | 상태와 주의 |
 |---|---|---|
 | 최신 디자인 | Claude Design 캔버스 (`harness.json.activeDesign.canvas`, 비공개) | 00~04 보드와 03 화면 2개 페이지. 공유 전에는 소유자만 열 수 있음 |
+| 디자인 보드 사본 | [docs/design](design/README.md) | 캔버스의 보드·화면 캡처와 값 표. 레포에서 사람과 다른 AI가 읽는 곳. `npm run design:capture`로 다시 찍음 |
 | 생성기 | [20261003-cover-sns/README](../.codex/temp/prototype/20261003-cover-sns/README.md), `generator/` | `lib.mjs`(색·인물·얼굴 값·조각), `scroll.mjs`(제호 녹아들기), `gen-cover2/join/boards.mjs`. 출력 사본은 `generator/project/` |
 | 물감 | `20261003-cover-sns/paint/` | 12색, 투명 배경 1200×600. `stretch.cjs`·`recolor.cjs`로 다시 만듦 |
-| 기능 규칙 기준 | `.codex/temp/prototype/20260906-minimal-gallery/` | 같은 색 공개·트윈·복구 규칙과 테스트. 시각 기준으로 쓰지 않음 |
+| 기능 규칙 기준 | `.codex/temp/prototype/20260906-minimal-gallery/` | 같은 색 공개·트윈·복구 규칙과 테스트. 시각 기준으로 쓰지 않음. 이전 HTML 화면은 아직 발행 전 같은 색을 통째로 막아 보여 주며, 3장 미리보기는 규칙 함수와 C8에만 있음 |
 | 이전 시안 | `20260906-social-loop`, `20260906-paint-feed`, 캔버스 보관 페이지 | 비교용 |
 | Expo 앱 | `app/`, `src/` | 새 디자인이 자동 반영되지 않음 |
 
@@ -284,11 +285,13 @@ Expo 앱에는 닉네임 입장, 카메라·앨범, 회전·자르기, 짧은 �
 npm run check:harness
 npm run test:design
 npm run design:build
+npm run design:capture
 ```
 
 - `check:harness`: 문서 진입점·경로·자산, 생성기 `lib.mjs`와 `harness.json`의 색·인물·토큰 일치, 제호 규칙, 계약 ID를 확인한다. 미적 판정이나 보안 감사가 아니다.
-- `test:design`: 이전 HTML 프로토타입의 순수 기능 규칙 테스트(같은 색 공개, 트윈, 복구, 헤더 상태).
+- `test:design`: 이전 HTML 프로토타입의 순수 기능 규칙 테스트(같은 색 공개와 발행 전 3장 미리보기, 트윈, 복구, 헤더 상태).
 - `design:build`: 생성기로 캔버스 화면 파일을 `generator/project/`에 다시 쓴다. 캔버스에는 이 파일을 올려야 반영된다.
+- `design:capture`: 그 파일을 로컬 사진·물감으로 바꿔 Google Chrome으로 찍고 [docs/design](design/README.md)의 보드(PNG)와 화면(JPEG)을 다시 쓴다. Chrome 경로는 `CHROME` 환경 변수로 바꿀 수 있다.
 - 이전 HTML 시안 미리보기: `npm run preview:design` → `http://localhost:4177/`. 다른 작업 서버를 임의로 끄지 않는다.
 
 Expo 작업이 명시된 경우에만 `npm run typecheck`, `npm test`, `npm run web`을 쓴다.
@@ -310,7 +313,7 @@ Expo 작업이 명시된 경우에만 `npm run typecheck`, `npm test`, `npm run 
 | V11 | C4 자물쇠 칩 → C8 → 오늘 호 만들기, C8 전체 칩 → C4 | 먼저 보이는 표지만 선명하고 책등은 흐려 이름을 읽을 수 없음. 손실 문구·카운트다운 없음 |
 | V12 | C5에서 표지 ↔ 책등 전환, C1·C3·C7 반응 줄 | 지난 호가 Nº 038부터 결호 없이 내려감. 남의 표지·서가에 반응 숫자와 구독자 수가 없음 |
 
-로컬 렌더 확인(headless Chrome)은 캔버스와 같은 파일과 같은 스크롤 코드로 할 수 있지만, 캔버스의 Play 확인과 실기기 확인을 대신하지 않는다. 의미 있는 수정 뒤에는 `20261003-cover-sns/screenshots/`의 캡처를 갱신한다.
+로컬 렌더 확인(headless Chrome)은 캔버스와 같은 파일과 같은 스크롤 코드로 할 수 있지만, 캔버스의 Play 확인과 실기기 확인을 대신하지 않는다. 의미 있는 수정 뒤에는 `npm run design:capture`로 [docs/design](design/README.md)의 캡처를 갱신하고, 값이 바뀌었으면 그 문서의 표도 고친다.
 
 ## 8. 출시 전 위험과 아직 결정하지 않은 것
 
@@ -327,7 +330,7 @@ Expo 작업이 명시된 경우에만 `npm run typecheck`, `npm test`, `npm run 
 ## 9. 다른 AI가 작업하는 순서
 
 1. `AGENTS.md` → 이 문서 → `harness.json` → 생성기 README를 읽는다. 사용자 결정(§2)과 시안 가정을 구분한다.
-2. 캔버스의 00~02 보드와 해당 화면을 먼저 본다. 새 요소는 02 컴포넌트에 있는 것부터 쓴다.
+2. 캔버스나 [docs/design](design/README.md)의 00~02 보드와 해당 화면을 먼저 본다. 새 요소는 02 컴포넌트에 있는 것부터 쓴다.
 3. 화면은 생성기(`lib.mjs` + `gen-*.mjs`)로 고치고 `npm run design:build`로 다시 만든다. 손으로 고친 캔버스 파일이 있으면 먼저 캔버스에서 읽어 와 합친다.
 4. 기능 규칙(P01~P11, P18)은 사용자 결정 없이 바꾸지 않는다(P01은 10-05 사용자 결정으로 부분 완화). 표지 SNS에 아직 없는 기능을 그릴 때도 같은 규칙을 지킨다.
 5. `check:harness`, `test:design`, 로컬 렌더, 캔버스 Play를 구분해서 기록한다. 확인하지 않은 효과나 플랫폼 지원을 완료했다고 말하지 않는다.
