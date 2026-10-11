@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "updatedAt": "2026-10-11",
+  "note": "Esel 서버 API 약속 목록. 여기 없는 API는 만들지 않는다. 바꾸거나 더하려면 이 파일을 먼저 고치고 리뷰를 받는다. 규칙은 docs/API_RULES.md, 기능과 합격 기준은 저장소 루트의 docs/dev/FEATURES.md에 있다. status는 todo·doing·done 중 하나이고, done이면 test 파일에 실제 테스트가 있어야 한다.",
+  "base": "/api",
+  "statuses": ["todo", "doing", "done"],
+  "access": {
+    "public": "로그인 없이 부를 수 있다. 컨트롤러에 @Public()을 단다",
+    "user": "로그인한 사람만. 기본값",
+    "owner": "로그인했고 그 자원의 주인이어야 한다(내 호, 내 미디어)",
+    "member": "로그인했고 그 트윈의 두 사람 중 하나여야 한다"
+  },
+  "publicForbiddenFields": ["likeCount", "lineCount", "scrapCount", "subscriberCount", "readerCount", "viewCount", "rank", "score", "popularity"],
+  "errors": {
+    "VALIDATION": { "status": 400, "message": "보낸 값의 형식이 맞지 않아요.", "hint": "details에 적힌 항목을 고쳐 다시 보내 주세요." },
+    "AUTH_REQUIRED": { "status": 401, "message": "로그인이 필요해요.", "hint": "로그인한 뒤 다시 시도해 주세요." },
+    "TOKEN_EXPIRED": { "status": 401, "message": "로그인이 만료됐어요.", "hint": "refresh token으로 새 토큰을 받아 주세요." },
+    "WRONG_CREDENTIALS": { "status": 401, "message": "이메일 또는 비밀번호가 맞지 않아요.", "hint": "입력한 내용을 확인해 주세요." },
+    "FORBIDDEN": { "status": 403, "message": "이 작업을 할 권한이 없어요.", "hint": "내 것만 바꿀 수 있어요." },
+    "NOT_FOUND": { "status": 404, "message": "찾을 수 없어요.", "hint": "없거나 아직 볼 수 없는 내용이에요." },
+    "EMAIL_TAKEN": { "status": 409, "message": "이미 가입한 이메일이에요.", "hint": "로그인해 주세요." },
+    "MASTHEAD_TAKEN": { "status": 409, "message": "이미 있는 이름이에요.", "hint": "다른 영문 이름을 골라 주세요." },
+    "PROFILE_EXISTS": { "status": 409, "message": "이미 잡지를 만들었어요.", "hint": "내 잡지에서 이어 주세요." },
+    "CHOICE_LOCKED": { "status": 409, "message": "오늘 호를 발행해서 색을 바꿀 수 없어요.", "hint": "내일 새 색을 골라 주세요." },
+    "ISSUE_ALREADY_PUBLISHED": { "status": 409, "message": "오늘 호는 이미 발행했어요.", "hint": "하루에 한 호만 발행할 수 있어요." },
+    "MEDIA_NOT_READY": { "status": 409, "message": "사진 올리기가 아직 끝나지 않았어요.", "hint": "업로드를 마친 뒤 다시 시도해 주세요." },
+    "ALREADY_FRIENDS": { "status": 409, "message": "이미 친구예요.", "hint": "친구 목록에서 확인해 주세요." },
+    "REQUEST_EXISTS": { "status": 409, "message": "이미 보낸 요청이 있어요.", "hint": "상대가 답할 때까지 기다려 주세요." },
+    "TWIN_STATE": { "status": 409, "message": "지금 단계에서는 할 수 없는 작업이에요.", "hint": "트윈의 현재 단계를 확인해 주세요." },
+    "TWIN_CONSENT_REQUIRED": { "status": 409, "message": "두 사람 모두 동의해야 공개할 수 있어요.", "hint": "상대의 동의를 기다려 주세요." },
+    "RESTORE_LIMIT": { "status": 409, "message": "이번 달 복원 기회를 모두 썼어요.", "hint": "다음 달에 다시 복원할 수 있어요." },
+    "MEDIA_TOO_LARGE": { "status": 413, "message": "사진이 너무 커요.", "hint": "15MB 이하로 올려 주세요." },
+    "MEDIA_TYPE": { "status": 415, "message": "사진 파일만 올릴 수 있어요.", "hint": "JPEG·PNG·HEIC를 골라 주세요." },
+    "MASTHEAD_INVALID": { "status": 422, "message": "이름은 영문 소문자 2~10자예요.", "hint": "a부터 z까지만 써 주세요." },
+    "COLOR_NOT_CANDIDATE": { "status": 422, "message": "오늘 후보에 없는 색이에요.", "hint": "오늘의 세 가지 색 중에서 골라 주세요." },
+    "RESTORE_NOT_ALLOWED": { "status": 422, "message": "이 날짜는 복원할 수 없어요.", "hint": "이번 달 지난 빈 날짜만 복원할 수 있어요." },
+    "SHARE_NOT_PUBLIC": { "status": 422, "message": "공개된 표지만 공유할 수 있어요.", "hint": "발행하거나 공동 공개에 동의한 뒤 공유해 주세요." },
+    "RATE_LIMITED": { "status": 429, "message": "요청이 너무 많아요.", "hint": "잠시 뒤 다시 시도해 주세요." }
+  },
+  "endpoints": [
+    { "id": "health.check", "method": "GET", "path": "/health", "access": "public", "feature": "base", "module": "health", "summary": "API와 데이터베이스 상태 확인", "response": "HealthDto", "errors": [], "contracts": [], "test": "test/health.e2e-spec.ts", "status": "done" },
+
+    { "id": "today.cover", "method": "GET", "path": "/today/cover", "access": "public", "feature": "DEV-04", "module": "today", "summary": "비로그인용 오늘의 표지와 안쪽 2쪽", "response": "TodayCoverPublicDto", "errors": [], "contracts": ["P12", "P18"], "test": "test/contracts/today.e2e-spec.ts", "status": "todo" },
+
+    { "id": "auth.signup", "method": "POST", "path": "/auth/email/signup", "access": "public", "feature": "DEV-05", "module": "auth", "summary": "이메일로 가입", "request": "EmailSignupDto", "response": "SessionDto", "errors": ["VALIDATION", "EMAIL_TAKEN", "RATE_LIMITED"], "contracts": ["P12"], "test": "test/contracts/auth.e2e-spec.ts", "status": "todo" },
+    { "id": "auth.login", "method": "POST", "path": "/auth/email/login", "access": "public", "feature": "DEV-05", "module": "auth", "summary": "이메일로 로그인", "request": "EmailLoginDto", "response": "SessionDto", "errors": ["VALIDATION", "WRONG_CREDENTIALS", "RATE_LIMITED"], "contracts": ["P12"], "test": "test/contracts/auth.e2e-spec.ts", "status": "todo" },
+    { "id": "auth.refresh", "method": "POST", "path": "/auth/refresh", "access": "public", "feature": "DEV-05", "module": "auth", "summary": "refresh token을 회전해 새 토큰 받기", "request": "RefreshDto", "response": "SessionDto", "errors": ["TOKEN_EXPIRED", "AUTH_REQUIRED"], "contracts": ["P12"], "test": "test/contracts/auth.e2e-spec.ts", "status": "todo" },
+    { "id": "auth.logout", "method": "POST", "path": "/auth/logout", "access": "user", "feature": "DEV-05", "module": "auth", "summary": "이 기기의 로그인 끝내기", "response": "void", "errors": ["AUTH_REQUIRED"], "contracts": ["P12"], "test": "test/contracts/auth.e2e-spec.ts", "status": "todo" },
+
+    { "id": "mastheads.availability", "method": "GET", "path": "/mastheads/:name/availability", "access": "user", "feature": "DEV-06", "module": "profile", "summary": "제호(영문 닉네임)를 쓸 수 있는지 확인", "response": "MastheadAvailabilityDto", "errors": ["MASTHEAD_INVALID"], "contracts": ["P14"], "test": "test/contracts/profile.e2e-spec.ts", "status": "todo" },
+    { "id": "profile.create", "method": "POST", "path": "/profile", "access": "user", "feature": "DEV-06", "module": "profile", "summary": "제호를 정해 내 잡지 만들기(창간)", "request": "CreateProfileDto", "response": "ProfileOwnerDto", "errors": ["VALIDATION", "MASTHEAD_INVALID", "MASTHEAD_TAKEN", "PROFILE_EXISTS"], "contracts": ["P13", "P14"], "test": "test/contracts/profile.e2e-spec.ts", "status": "todo" },
+
+    { "id": "today.get", "method": "GET", "path": "/today", "access": "user", "feature": "DEV-07", "module": "today", "summary": "오늘의 날짜, 후보 3색, 내 선택, 발행 여부", "response": "TodayDto", "errors": ["AUTH_REQUIRED"], "contracts": ["P05", "P17"], "test": "test/contracts/today.e2e-spec.ts", "status": "todo" },
+    { "id": "today.choose", "method": "PUT", "path": "/today/choice", "access": "user", "feature": "DEV-07", "module": "today", "summary": "오늘의 색 고르기(발행 전까지 바꿀 수 있음)", "request": "ChooseColorDto", "response": "TodayDto", "errors": ["VALIDATION", "COLOR_NOT_CANDIDATE", "CHOICE_LOCKED"], "contracts": ["P03", "P05"], "test": "test/contracts/today.e2e-spec.ts", "status": "todo" },
+
+    { "id": "media.prepare", "method": "POST", "path": "/media", "access": "user", "feature": "DEV-08", "module": "media", "summary": "사진 올리기 준비(저장 위치 받기)", "request": "PrepareMediaDto", "response": "MediaUploadDto", "errors": ["VALIDATION", "MEDIA_TOO_LARGE", "MEDIA_TYPE"], "contracts": ["P11"], "test": "test/contracts/media.e2e-spec.ts", "status": "todo" },
+    { "id": "media.complete", "method": "POST", "path": "/media/:id/complete", "access": "owner", "feature": "DEV-08", "module": "media", "summary": "사진 올리기 완료 확인과 검증", "response": "MediaOwnerDto", "errors": ["NOT_FOUND", "FORBIDDEN", "MEDIA_TOO_LARGE", "MEDIA_TYPE"], "contracts": ["P11"], "test": "test/contracts/media.e2e-spec.ts", "status": "todo" },
+
+    { "id": "issues.publish", "method": "POST", "path": "/issues", "access": "user", "feature": "DEV-09", "module": "issues", "summary": "오늘 호 발행(하루 한 번, 호수 +1)", "request": "PublishIssueDto", "response": "IssueOwnerDto", "errors": ["VALIDATION", "MEDIA_NOT_READY", "ISSUE_ALREADY_PUBLISHED"], "contracts": ["P04", "P01"], "test": "test/contracts/issues.e2e-spec.ts", "status": "todo" },
+    { "id": "issues.get", "method": "GET", "path": "/issues/:id", "access": "user", "feature": "DEV-11", "module": "issues", "summary": "표지 펼쳐 보기(주인이면 숫자 포함)", "response": "IssuePublicDto | IssueOwnerDto", "errors": ["NOT_FOUND"], "contracts": ["P01", "P02", "P18"], "test": "test/contracts/issues.e2e-spec.ts", "status": "todo" },
+    { "id": "issues.like", "method": "POST", "path": "/issues/:id/like", "access": "user", "feature": "DEV-11", "module": "issues", "summary": "좋아요(두 번 보내도 한 번)", "response": "ReactionStateDto", "errors": ["NOT_FOUND"], "contracts": ["P12", "P18"], "test": "test/contracts/issues.e2e-spec.ts", "status": "todo" },
+    { "id": "issues.unlike", "method": "DELETE", "path": "/issues/:id/like", "access": "user", "feature": "DEV-11", "module": "issues", "summary": "좋아요 취소", "response": "ReactionStateDto", "errors": ["NOT_FOUND"], "contracts": ["P12"], "test": "test/contracts/issues.e2e-spec.ts", "status": "todo" },
+    { "id": "issues.scrap", "method": "POST", "path": "/issues/:id/scrap", "access": "user", "feature": "DEV-11", "module": "issues", "summary": "스크랩", "response": "ReactionStateDto", "errors": ["NOT_FOUND"], "contracts": ["P12", "P18"], "test": "test/contracts/issues.e2e-spec.ts", "status": "todo" },
+    { "id": "issues.unscrap", "method": "DELETE", "path": "/issues/:id/scrap", "access": "user", "feature": "DEV-11", "module": "issues", "summary": "스크랩 취소", "response": "ReactionStateDto", "errors": ["NOT_FOUND"], "contracts": ["P12"], "test": "test/contracts/issues.e2e-spec.ts", "status": "todo" },
+    { "id": "issues.lines", "method": "GET", "path": "/issues/:id/lines", "access": "user", "feature": "DEV-11", "module": "issues", "summary": "독자 한 줄 목록(개수 없이 cursor로)", "response": "Page<ReaderLinePublicDto>", "errors": ["NOT_FOUND"], "contracts": ["P18"], "test": "test/contracts/issues.e2e-spec.ts", "status": "todo" },
+    { "id": "issues.addLine", "method": "POST", "path": "/issues/:id/lines", "access": "user", "feature": "DEV-11", "module": "issues", "summary": "독자 한 줄 남기기(60자 이내)", "request": "AddLineDto", "response": "ReaderLinePublicDto", "errors": ["VALIDATION", "NOT_FOUND", "RATE_LIMITED"], "contracts": ["P12"], "test": "test/contracts/issues.e2e-spec.ts", "status": "todo" },
+
+    { "id": "feed.list", "method": "GET", "path": "/feed", "access": "user", "feature": "DEV-10", "module": "feed", "summary": "표지 피드(첫 장 표지 + 안쪽 지면, 공개 권한 먼저 거름)", "response": "FeedPageDto", "errors": ["VALIDATION"], "contracts": ["P01", "P02", "P16", "P18"], "test": "test/contracts/feed.e2e-spec.ts", "status": "todo" },
+    { "id": "stand.get", "method": "GET", "path": "/stand", "access": "user", "feature": "DEV-12", "module": "stand", "summary": "가판대·같은 색 방(발행 전 내 색은 3장 + 숨긴 개수)", "response": "StandDto", "errors": ["VALIDATION"], "contracts": ["P01", "P02", "P18"], "test": "test/contracts/stand.e2e-spec.ts", "status": "todo" },
+
+    { "id": "magazines.get", "method": "GET", "path": "/magazines/:masthead", "access": "user", "feature": "DEV-13", "module": "magazines", "summary": "남의 잡지(서가)와 지난 호", "response": "MagazinePublicDto", "errors": ["NOT_FOUND"], "contracts": ["P04", "P18"], "test": "test/contracts/magazines.e2e-spec.ts", "status": "todo" },
+    { "id": "magazines.subscribe", "method": "POST", "path": "/magazines/:masthead/subscription", "access": "user", "feature": "DEV-13", "module": "magazines", "summary": "구독", "response": "SubscriptionStateDto", "errors": ["NOT_FOUND"], "contracts": ["P12", "P18"], "test": "test/contracts/magazines.e2e-spec.ts", "status": "todo" },
+    { "id": "magazines.unsubscribe", "method": "DELETE", "path": "/magazines/:masthead/subscription", "access": "user", "feature": "DEV-13", "module": "magazines", "summary": "구독 취소", "response": "SubscriptionStateDto", "errors": ["NOT_FOUND"], "contracts": ["P12"], "test": "test/contracts/magazines.e2e-spec.ts", "status": "todo" },
+
+    { "id": "me.magazine", "method": "GET", "path": "/me/magazine", "access": "user", "feature": "DEV-14", "module": "me", "summary": "내 잡지(오늘 호, 지난 호, 나만 보는 숫자)", "response": "MagazineOwnerDto", "errors": ["AUTH_REQUIRED"], "contracts": ["P18"], "test": "test/contracts/me.e2e-spec.ts", "status": "todo" },
+    { "id": "me.reactions", "method": "GET", "path": "/me/issues/:id/reactions", "access": "owner", "feature": "DEV-14", "module": "me", "summary": "내 표지의 반응 수와 목록", "response": "IssueReactionsOwnerDto", "errors": ["NOT_FOUND", "FORBIDDEN"], "contracts": ["P18"], "test": "test/contracts/me.e2e-spec.ts", "status": "todo" },
+
+    { "id": "records.month", "method": "GET", "path": "/me/records", "access": "user", "feature": "DEV-15", "module": "records", "summary": "한 달 색 기록(사진 기록과 색 복원 구분)", "response": "MonthRecordDto", "errors": ["VALIDATION"], "contracts": ["P06", "P07"], "test": "test/contracts/records.e2e-spec.ts", "status": "todo" },
+    { "id": "records.restore", "method": "POST", "path": "/me/records/:date/restore", "access": "user", "feature": "DEV-15", "module": "records", "summary": "지난 빈 날의 색 복원(월 2회)", "request": "RestoreColorDto", "response": "DayRecordDto", "errors": ["VALIDATION", "RESTORE_NOT_ALLOWED", "RESTORE_LIMIT", "COLOR_NOT_CANDIDATE"], "contracts": ["P03", "P06", "P07"], "test": "test/contracts/records.e2e-spec.ts", "status": "todo" },
+
+    { "id": "users.lookup", "method": "GET", "path": "/users/:masthead", "access": "user", "feature": "DEV-16", "module": "friends", "summary": "제호로 사람 찾기(친구 요청 전 확인)", "response": "UserPublicDto", "errors": ["NOT_FOUND"], "contracts": ["P18"], "test": "test/contracts/friends.e2e-spec.ts", "status": "todo" },
+    { "id": "friends.list", "method": "GET", "path": "/friends", "access": "user", "feature": "DEV-16", "module": "friends", "summary": "내 친구 목록", "response": "Page<FriendDto>", "errors": [], "contracts": [], "test": "test/contracts/friends.e2e-spec.ts", "status": "todo" },
+    { "id": "friends.requests", "method": "GET", "path": "/friends/requests", "access": "user", "feature": "DEV-16", "module": "friends", "summary": "받은 친구 요청", "response": "Page<FriendRequestDto>", "errors": [], "contracts": [], "test": "test/contracts/friends.e2e-spec.ts", "status": "todo" },
+    { "id": "friends.request", "method": "POST", "path": "/friends/requests", "access": "user", "feature": "DEV-16", "module": "friends", "summary": "친구 요청 보내기", "request": "FriendRequestCreateDto", "response": "FriendRequestDto", "errors": ["NOT_FOUND", "ALREADY_FRIENDS", "REQUEST_EXISTS"], "contracts": ["P12"], "test": "test/contracts/friends.e2e-spec.ts", "status": "todo" },
+    { "id": "friends.accept", "method": "POST", "path": "/friends/requests/:id/accept", "access": "user", "feature": "DEV-16", "module": "friends", "summary": "받은 요청 수락", "response": "FriendDto", "errors": ["NOT_FOUND", "FORBIDDEN"], "contracts": [], "test": "test/contracts/friends.e2e-spec.ts", "status": "todo" },
+    { "id": "friends.decline", "method": "POST", "path": "/friends/requests/:id/decline", "access": "user", "feature": "DEV-16", "module": "friends", "summary": "받은 요청 나중에(거절)", "response": "void", "errors": ["NOT_FOUND", "FORBIDDEN"], "contracts": [], "test": "test/contracts/friends.e2e-spec.ts", "status": "todo" },
+
+    { "id": "twins.invite", "method": "POST", "path": "/twins", "access": "user", "feature": "DEV-17", "module": "twins", "summary": "친구를 오늘 트윈에 초대", "request": "TwinInviteDto", "response": "TwinDto", "errors": ["NOT_FOUND", "TWIN_STATE"], "contracts": ["P08"], "test": "test/contracts/twins.e2e-spec.ts", "status": "todo" },
+    { "id": "twins.get", "method": "GET", "path": "/twins/:id", "access": "member", "feature": "DEV-17", "module": "twins", "summary": "트윈 현재 단계(상대 사진은 둘 다 게시 후에만)", "response": "TwinDto", "errors": ["NOT_FOUND"], "contracts": ["P08", "P10"], "test": "test/contracts/twins.e2e-spec.ts", "status": "todo" },
+    { "id": "twins.accept", "method": "POST", "path": "/twins/:id/accept", "access": "member", "feature": "DEV-17", "module": "twins", "summary": "초대 수락", "response": "TwinDto", "errors": ["NOT_FOUND", "TWIN_STATE"], "contracts": ["P08"], "test": "test/contracts/twins.e2e-spec.ts", "status": "todo" },
+    { "id": "twins.choose", "method": "PUT", "path": "/twins/:id/choice", "access": "member", "feature": "DEV-17", "module": "twins", "summary": "내 트윈 색 고르기(내 후보 3개 중)", "request": "ChooseColorDto", "response": "TwinDto", "errors": ["COLOR_NOT_CANDIDATE", "TWIN_STATE"], "contracts": ["P08", "P09"], "test": "test/contracts/twins.e2e-spec.ts", "status": "todo" },
+    { "id": "twins.post", "method": "POST", "path": "/twins/:id/posts", "access": "member", "feature": "DEV-17", "module": "twins", "summary": "내 트윈 표지 올리기(명시적 업로드)", "request": "TwinPostDto", "response": "TwinDto", "errors": ["MEDIA_NOT_READY", "TWIN_STATE"], "contracts": ["P09", "P10"], "test": "test/contracts/twins.e2e-spec.ts", "status": "todo" },
+    { "id": "twins.visibility", "method": "PUT", "path": "/twins/:id/visibility", "access": "member", "feature": "DEV-17", "module": "twins", "summary": "공개 범위 정하기(private·solo·joint)", "request": "TwinVisibilityDto", "response": "TwinDto", "errors": ["VALIDATION", "TWIN_STATE"], "contracts": ["P10"], "test": "test/contracts/twins.e2e-spec.ts", "status": "todo" },
+    { "id": "twins.consent", "method": "POST", "path": "/twins/:id/consent", "access": "member", "feature": "DEV-17", "module": "twins", "summary": "공동 공개에 동의", "response": "TwinDto", "errors": ["TWIN_STATE"], "contracts": ["P10"], "test": "test/contracts/twins.e2e-spec.ts", "status": "todo" },
+    { "id": "twins.publish", "method": "POST", "path": "/twins/:id/publish", "access": "member", "feature": "DEV-17", "module": "twins", "summary": "공동 표지 발행(두 사람 동의 후)", "response": "TwinDto", "errors": ["TWIN_CONSENT_REQUIRED", "TWIN_STATE"], "contracts": ["P10"], "test": "test/contracts/twins.e2e-spec.ts", "status": "todo" },
+
+    { "id": "share.create", "method": "POST", "path": "/share-links", "access": "user", "feature": "DEV-18", "module": "share", "summary": "공개된 표지·공동 트윈의 공유 링크 만들기", "request": "CreateShareLinkDto", "response": "ShareLinkDto", "errors": ["NOT_FOUND", "SHARE_NOT_PUBLIC"], "contracts": ["P01", "P18"], "test": "test/contracts/share.e2e-spec.ts", "status": "todo" },
+    { "id": "share.open", "method": "GET", "path": "/share-links/:token", "access": "public", "feature": "DEV-18", "module": "share", "summary": "공유 링크 열기(열 때도 공개 권한 다시 검사)", "response": "SharedIssuePublicDto", "errors": ["NOT_FOUND"], "contracts": ["P01", "P18"], "test": "test/contracts/share.e2e-spec.ts", "status": "todo" },
+
+    { "id": "account.updateProfile", "method": "PATCH", "path": "/me/profile", "access": "user", "feature": "DEV-19", "module": "account", "summary": "제호·소개 바꾸기", "request": "UpdateProfileDto", "response": "ProfileOwnerDto", "errors": ["VALIDATION", "MASTHEAD_INVALID", "MASTHEAD_TAKEN"], "contracts": ["P14"], "test": "test/contracts/account.e2e-spec.ts", "status": "todo" },
+    { "id": "account.notifications", "method": "GET", "path": "/me/notifications", "access": "user", "feature": "DEV-19", "module": "account", "summary": "알림 설정 보기", "response": "NotificationSettingsDto", "errors": [], "contracts": [], "test": "test/contracts/account.e2e-spec.ts", "status": "todo" },
+    { "id": "account.setNotifications", "method": "PUT", "path": "/me/notifications", "access": "user", "feature": "DEV-19", "module": "account", "summary": "알림 설정 바꾸기", "request": "NotificationSettingsDto", "response": "NotificationSettingsDto", "errors": ["VALIDATION"], "contracts": [], "test": "test/contracts/account.e2e-spec.ts", "status": "todo" },
+    { "id": "account.delete", "method": "DELETE", "path": "/me", "access": "user", "feature": "DEV-19", "module": "account", "summary": "탈퇴(삭제 내용 확인 후)", "request": "DeleteAccountDto", "response": "void", "errors": ["VALIDATION"], "contracts": [], "test": "test/contracts/account.e2e-spec.ts", "status": "todo" }
+  ]
+}
