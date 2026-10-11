@@ -16,6 +16,7 @@
     "test:design": "node --test .codex/temp/prototype/20260906-minimal-gallery/tests/*.test.cjs",
     "design:build": "node .codex/temp/prototype/20261003-cover-sns/generator/gen-join.mjs && node .codex/temp/prototype/20261003-cover-sns/generator/gen-boards.mjs",
     "design:capture": "node scripts/capture-design.mjs",
+    "mockup:build": "node .codex/temp/prototype/20261011-app-mockup/build.mjs",
     "check:harness": "node scripts/check-harness.mjs"
   },
   "dependencies": {

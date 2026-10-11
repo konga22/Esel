@@ -22,7 +22,8 @@ const screenFiles = design.pages.flatMap(page => page.files.map(file => `${desig
 const paintFiles = Object.keys(manifest.colors).map(color => `${design.paint}/esel-paint-${color}.png`);
 const files = [...manifest.entrypoints, ...manifest.keyAssets, design.readme, design.library, ...screenFiles, ...paintFiles,
   ...Object.values(manifest.demoPeople), rules.source, rules.stateTests, rules.headerTests,
-  manifest.nativeApp.routes, manifest.nativeApp.source, ...manifest.evidence];
+  manifest.nativeApp.routes, manifest.nativeApp.source, ...manifest.evidence,
+  ...(manifest.appMockup ? [manifest.appMockup.readme, manifest.appMockup.build, ...manifest.appMockup.source] : [])];
 for (const file of files) await access(resolveLocal(file));
 
 const doc = await readFile(resolveLocal('docs/ESEL_HARNESS.md'), 'utf8');
@@ -52,7 +53,7 @@ assert.equal(new URL(design.canvas).hostname, 'claude.ai');
 
 const agents = await readFile(resolveLocal('AGENTS.md'), 'utf8');
 assert(agents.includes('docs/ESEL_HARNESS.md') && agents.includes('harness.json'), 'AI 진입점 연결 누락');
-for (const file of [design.readme, 'docs/ESEL_HARNESS.md', 'AGENTS.md', 'assets/models-sources.md', 'docs/design/README.md']) {
+for (const file of [design.readme, 'docs/ESEL_HARNESS.md', 'AGENTS.md', 'assets/models-sources.md', 'docs/design/README.md', manifest.appMockup?.readme].filter(Boolean)) {
   const fullPath = resolveLocal(file);
   const markdown = await readFile(fullPath, 'utf8');
   for (const match of markdown.matchAll(/\]\(([^)]+)\)|<img src="([^"]+)"/g)) {
