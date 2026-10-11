@@ -4,8 +4,10 @@ Read this file first, then `docs/ESEL_HARNESS.md` and `harness.json`. They are r
 
 ## 작업 전에
 
+최신 화면 확인 자료(2026-10-11)는 [Figma 개발 안내](docs/design/2026-10-11/README.md)와 [전체 화면 목록](docs/design/2026-10-11/screens.md)이다. 아래 Claude Design 생성기는 기존 시안의 코드 기준이다. Figma에 추가된 친구·트윈·월간 색 기록·설정·공유 화면까지 생성기에 반영되었다고 가정하지 않는다. `harness.json.latestFigmaReview`를 함께 읽고, 목업과 실제 앱·서버 구현을 구분한다.
+
 1. [앱 하네스](docs/ESEL_HARNESS.md)를 읽는다. 컨셉, 사용자 결정(날짜별), 시안 가정, 기능 계약, 실패 징후를 구분한다.
-2. [실행 명세](harness.json)의 `activeDesign`을 확인한다. **최신 디자인은 Claude Design 캔버스와 그 생성기**(`.codex/temp/prototype/20261003-cover-sns/`)다. `ruleReference`(2026-09-06 HTML 프로토타입)는 기능 규칙과 테스트의 기준일 뿐 시각 기준이 아니다. `app/`·`src/`는 별도의 Expo 앱이다. 셋을 혼동하지 않는다.
+2. [실행 명세](harness.json)의 `latestFigmaReview`에서 최신 화면을 확인하고, `activeDesign`에서 기존 Claude Design 캔버스와 생성기(`.codex/temp/prototype/20261003-cover-sns/`) 정보를 확인한다. `ruleReference`(2026-09-06 HTML 프로토타입)는 기능 규칙과 테스트의 기준일 뿐 시각 기준이 아니다. `app/`·`src/`는 별도의 Expo 앱이다. 디자인·생성기·앱 구현을 혼동하지 않는다.
 3. 현재 요청이 디자인 탐색인지, 캔버스 화면 수정인지, Expo 이식인지 확인한다. 디자인 수정만 요청받았다면 Expo 앱·인증·서버·외부 서비스까지 확장하지 않는다.
 
 ## 잊지 않을 기준

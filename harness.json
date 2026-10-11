@@ -5,6 +5,16 @@
   "concept": "cover-sns-personal-magazine",
   "designStatus": "cover-sns-direction-in-review",
   "updatedAt": "2026-10-05",
+  "latestFigmaReview": {
+    "checkedAt": "2026-10-11",
+    "fileKey": "kNBbhEWIhDASkrYlgegU5b",
+    "pageIds": ["121:28", "121:29"],
+    "mobileFrameCount": 60,
+    "guide": "docs/design/2026-10-11/README.md",
+    "inventory": "docs/design/2026-10-11/figma-screen-inventory.json",
+    "status": "design-reviewed-not-app-or-server-implemented",
+    "note": "Figma에는 친구·트윈·월간 색 기록·설정·알림·본인 반응·공유 확장 화면이 있다. activeDesign은 기존 Claude/HTML 생성기 정보이며 notDrawnInCoverSns와 coverSnsDesign은 그 생성기 기준이다. 이번 안내의 화면 통합은 개발 제안이다."
+  },
   "entrypoints": ["AGENTS.md", "docs/ESEL_HARNESS.md", "CLAUDE.md"],
   "activeDesign": {
     "kind": "claude-design-canvas",
