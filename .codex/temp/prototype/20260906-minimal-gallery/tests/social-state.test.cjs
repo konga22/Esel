@@ -160,6 +160,94 @@ test('publishing permanently freezes today palette selection', () => {
   assert.throws(() => state.choose(published, 'blue'), /바꿀 수 없어요/);
 });
 
+// Five sage covers today (minute = time of day, larger is newer) plus noise from other palettes and days.
+const room = [
+  { id: 'ana', date: state.TODAY, paletteId: 'sage', minute: 540 },
+  { id: 'bo', date: state.TODAY, paletteId: 'sage', minute: 610 },
+  { id: 'cy', date: state.TODAY, paletteId: 'sage', minute: 480 },
+  { id: 'di', date: state.TODAY, paletteId: 'sage', minute: 700 },
+  { id: 'ed', date: state.TODAY, paletteId: 'sage', minute: 655 },
+  { id: 'fo', date: state.TODAY, paletteId: 'butter', minute: 720 },
+  { id: 'gu', date: '2026-09-05', paletteId: 'sage', minute: 900 },
+];
+const ids = (result) => result.open.map((post) => post.id);
+const today = (paletteId = 'sage') => ({ date: state.TODAY, paletteId });
+
+test('before publishing, today same-palette room shows only the three newest covers', () => {
+  const initial = state.create();
+  const result = state.sameColorRoom(initial, room, today());
+  assert.equal(state.PREVIEW_COUNT, 3);
+  assert.equal(result.access, 'preview');
+  assert.deepEqual(ids(result), ['di', 'ed', 'bo']);
+  assert.equal(result.hiddenCount, 2);
+  assert.equal(state.canView(initial, today()), false);
+});
+
+test('hidden covers are a count only, never names or photos', () => {
+  const result = state.sameColorRoom(state.create(), room, today());
+  assert.deepEqual(Object.keys(result).sort(), ['access', 'hiddenCount', 'open']);
+  for (const hidden of ['ana', 'cy']) assert.equal(JSON.stringify(result).includes(hidden), false);
+});
+
+test('publishing opens the whole same-palette room, newest first', () => {
+  const result = state.sameColorRoom(state.publish(state.create(), photo), room, today());
+  assert.equal(result.access, 'open');
+  assert.deepEqual(ids(result), ['di', 'ed', 'bo', 'ana', 'cy']);
+  assert.equal(result.hiddenCount, 0);
+});
+
+test('confirmation, restore and twin publication keep the room at the preview', () => {
+  const confirmed = state.confirm(state.create());
+  const restored = state.restore(confirmed, '2026-09-03', 'sage');
+  const twinBoth = state.simulateFriendPost(state.publishTwin(readyTwin(state.create(), 'sage'), photo), friendPhoto);
+  for (const viewer of [confirmed, restored, twinBoth]) {
+    const result = state.sameColorRoom(viewer, room, today());
+    assert.equal(result.access, 'preview');
+    assert.equal(result.open.length, 3);
+    assert.equal(result.hiddenCount, 2);
+  }
+});
+
+test('after midnight the room is fully open, future rooms and bad dates stay closed', () => {
+  const initial = state.create();
+  const yesterday = state.sameColorRoom(initial, room, { date: '2026-09-05', paletteId: 'sage' });
+  assert.equal(yesterday.access, 'open');
+  assert.deepEqual(ids(yesterday), ['gu']);
+  for (const date of ['2026-09-07', '2026-02-30', 'invalid']) {
+    const closed = state.sameColorRoom(initial, [...room, { id: 'zz', date, paletteId: 'sage', minute: 1 }], { date, paletteId: 'sage' });
+    assert.equal(closed.access, 'closed');
+    assert.deepEqual(closed.open, []);
+  }
+});
+
+test('other palettes today are fully open before publishing', () => {
+  const result = state.sameColorRoom(state.create(), room, today('butter'));
+  assert.equal(result.access, 'open');
+  assert.deepEqual(ids(result), ['fo']);
+});
+
+test('minors see the whole room without the publishing lock', () => {
+  const minor = state.create({ minor: true });
+  assert.equal(minor.minor, true);
+  assert.equal(state.create().minor, false);
+  assert.equal(state.canView(minor, today()), true);
+  const result = state.sameColorRoom(minor, room, today());
+  assert.equal(result.access, 'open');
+  assert.equal(result.open.length, 5);
+  assert.equal(result.hiddenCount, 0);
+});
+
+test('a small room shows every cover, ties stay stable, and inputs are not mutated', () => {
+  const small = deepFreeze(room.slice(0, 2).map((post) => ({ ...post })));
+  const result = state.sameColorRoom(deepFreeze(state.create()), small, today());
+  assert.deepEqual(ids(result), ['bo', 'ana']);
+  assert.equal(result.hiddenCount, 0);
+  const tied = [{ id: 'b', date: state.TODAY, paletteId: 'sage', minute: 600 }, { id: 'a', date: state.TODAY, paletteId: 'sage', minute: 600 }];
+  assert.deepEqual(ids(state.sameColorRoom(state.create(), tied, today())), ['a', 'b']);
+  assert.deepEqual(state.sameColorRoom(state.create(), null, today()), { access: 'preview', open: [], hiddenCount: 0 });
+  assert.throws(() => state.sameColorRoom(state.create(), room, { date: state.TODAY, paletteId: 'unknown' }), /팔레트/);
+});
+
 test('restore keeps the month history intact and costs one credit', () => {
   const initial = state.create();
   const restored = state.restore(initial, '2026-09-03', 'blue');
