@@ -112,7 +112,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **서버 (초안)**
 
-- 서버 PR konga22/Esel#4 병합 후 Swagger(/api/docs)를 계약의 정본으로 삼는다
+- 정본 관계: 경로·권한·오류 코드는 server/api-contract.json, 요청·응답 데이터 모양은 Swagger(/api/docs, 코드의 DTO)
 
 **합격 기준**
 
@@ -413,7 +413,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 **합격 기준**
 
 - 남의 표지 응답에 숫자 필드가 없음
-- 잠긴 표지(P01)의 id로 직접 요청하면 403/404
+- 잠긴 표지(P01)의 id로 직접 요청하면 404(존재 여부를 알리지 않음)
 - 한 줄은 60자 이내, 빈 줄 거절
 
 **추가할 테스트**
@@ -516,7 +516,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **합격 기준**
 
-- 남의 issue id로 reactions를 부르면 403
+- 볼 수 있는 남의 issue id로 reactions를 부르면 403, 볼 수 없는(잠긴·삭제된) 호면 404
 - 소유자 응답에만 숫자가 있음
 
 **추가할 테스트**
@@ -727,6 +727,9 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **서버 (초안)**
 
+- POST /api/issues/:id/reports, POST /api/issues/:id/lines/:lineId/reports: 표지·독자 한 줄 신고
+- POST·DELETE /api/users/:masthead/block, GET /api/me/blocks: 차단과 차단 목록(개수 없이 cursor)
+- DELETE /api/issues/:id(owner): 내 호 삭제
 - 삭제한 호는 공개 응답·공유 링크·이미지 URL에서 모두 사라짐
 - 삭제 후 같은 색 방의 잠금 상태 재계산
 
