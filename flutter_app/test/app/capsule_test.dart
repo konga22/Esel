@@ -72,4 +72,32 @@ void main() {
     expect(backdropIn(capsule), findsNothing);
     semantics.dispose();
   });
+
+  testWidgets('지금 보는 쪽(가판대·내 잡지) 아래에 점, 세 항목 모두 48 이상', (tester) async {
+    usePhone(tester);
+    final semantics = tester.ensureSemantics();
+    await tester.pumpWidget(const EselApp());
+    await tester.pumpAndSettle();
+    Finder dot(String tab) => find.byKey(ValueKey('capsule-dot-$tab'));
+
+    // 피드에서는 점이 없다.
+    expect(dot('stand'), findsNothing);
+    expect(dot('me'), findsNothing);
+    for (final label in ['오늘의 색 가판대', '표지 만들기', '내 잡지']) {
+      final size = tester.getSize(find.bySemanticsLabel(label));
+      expect(size.width, greaterThanOrEqualTo(48));
+      expect(size.height, greaterThanOrEqualTo(48));
+    }
+
+    await tester.tap(find.bySemanticsLabel('오늘의 색 가판대'));
+    await tester.pumpAndSettle();
+    expect(dot('stand'), findsOneWidget);
+    expect(dot('me'), findsNothing);
+
+    await tester.tap(find.bySemanticsLabel('내 잡지'));
+    await tester.pumpAndSettle();
+    expect(dot('me'), findsOneWidget);
+    expect(dot('stand'), findsNothing);
+    semantics.dispose();
+  });
 }

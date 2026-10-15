@@ -7,7 +7,6 @@ import '../core/ui/esel_paint_asset.dart';
 import '../core/ui/esel_phone_frame.dart';
 import '../core/ui/esel_pressable.dart';
 import '../features/drafts/data/local_library.dart';
-import '../features/drafts/domain/cover_draft.dart';
 import '../features/issue/domain/models/public_issue.dart';
 import '../features/auth/presentation/screens/login_sheet.dart';
 import '../features/drafts/presentation/device_home_screen.dart';
@@ -28,7 +27,9 @@ import '../features/twin/presentation/screens/twin_screen.dart';
 import '../features/settings/presentation/screens/settings_screen.dart';
 import 'dependencies/service_locator.dart';
 import 'routing/app_routes.dart';
+import '../features/media/domain/models/face_box.dart';
 import '../features/media/presentation/cover_preview.dart';
+import '../features/media/presentation/face_avatar.dart';
 import '../core/design/typography.dart';
 
 class EselApp extends StatefulWidget {
@@ -541,32 +542,31 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
     );
   }
 
+  /// 내 아바타: 최근 호 사진에서 얼굴이 원을 채우게. 호가 없으면 제호 첫 글자.
   Widget _buildMyAvatar() {
     final session = _sl.authController.currentSession;
-    final issues = session == null
-        ? const <CoverDraft>[]
-        : _sl.localLibrary?.issuesFor(session.userId) ?? const <CoverDraft>[];
+    final latest = _sl.todayController.issues.firstOrNull;
     final masthead = session?.masthead ?? '';
-    final initial = Center(
-      child: Text(
-        masthead.isEmpty ? 'E' : masthead[0].toUpperCase(),
-        style: EselTypography.name(fontSize: 20),
-      ),
-    );
+    if (latest != null) {
+      return FaceAvatar(
+        image: localPhotoProvider(latest.photoPath),
+        face: FaceBox(latest.faceX, latest.faceY, latest.faceWidth),
+        size: 34,
+      );
+    }
     // 아바타는 장식이다. 이름은 버튼 라벨("내 잡지")로 읽힌다.
     return ExcludeSemantics(
-      child: ClipOval(
-        child: Container(
-          width: 34,
-          height: 34,
-          color: const Color(0xFFE9E9E6),
-          child: issues.isEmpty
-              ? initial
-              : Image(
-                  image: localPhotoProvider(issues.first.photoPath),
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => initial,
-                ),
+      child: Container(
+        width: 34,
+        height: 34,
+        alignment: Alignment.center,
+        decoration: const BoxDecoration(
+          color: Color(0xFFE9E9E6),
+          shape: BoxShape.circle,
+        ),
+        child: Text(
+          masthead.isEmpty ? 'E' : masthead[0].toUpperCase(),
+          style: EselTypography.name(fontSize: 20),
         ),
       ),
     );
@@ -579,24 +579,49 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
     required Widget child,
     double width = 60,
   }) {
-    return EselPressable(
-      semanticsLabel: label,
-      onTap: () {
-        if (tab == AppTab.publish || tab == AppTab.me) {
-          if (!_sl.authController.isAuthenticated) {
-            _openLoginSheet(
-              ctx: context,
-              destination: tab == AppTab.publish ? 'publish' : 'me',
-            );
-            return;
+    // 앱 목업: 지금 보고 있는 쪽(가판대, 내 잡지·서가) 아래에 4px 먹 점.
+    final current =
+        _currentTab == tab || (tab == AppTab.me && _currentTab == AppTab.shelf);
+    final marked = current && tab != AppTab.publish;
+    return Semantics(
+      selected: marked,
+      child: EselPressable(
+        semanticsLabel: label,
+        onTap: () {
+          if (tab == AppTab.publish || tab == AppTab.me) {
+            if (!_sl.authController.isAuthenticated) {
+              _openLoginSheet(
+                ctx: context,
+                destination: tab == AppTab.publish ? 'publish' : 'me',
+              );
+              return;
+            }
           }
-        }
-        setState(() => _currentTab = tab);
-      },
-      child: SizedBox(
-        width: width,
-        height: 48,
-        child: Center(child: child),
+          setState(() => _currentTab = tab);
+        },
+        child: SizedBox(
+          width: width,
+          height: 48,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              child,
+              if (marked)
+                Positioned(
+                  bottom: 1,
+                  child: Container(
+                    key: ValueKey('capsule-dot-${tab.name}'),
+                    width: 4,
+                    height: 4,
+                    decoration: const BoxDecoration(
+                      color: EselColors.ink,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
