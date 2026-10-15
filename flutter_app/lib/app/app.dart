@@ -4,6 +4,7 @@ import '../core/design/theme.dart';
 import '../core/design/tokens.g.dart';
 import '../core/ui/esel_glass.dart';
 import '../core/ui/esel_paint_asset.dart';
+import '../core/ui/esel_phone_frame.dart';
 import '../core/ui/esel_pressable.dart';
 import '../features/drafts/data/local_library.dart';
 import '../features/drafts/domain/cover_draft.dart';
@@ -103,6 +104,7 @@ class _EselAppState extends State<EselApp> {
       title: 'Esel',
       debugShowCheckedModeBanner: false,
       theme: EselTheme.lightTheme,
+      builder: (context, child) => EselPhoneFrame(child: child!),
       home: PopScope(
         canPop:
             (_activeScreen == ActiveScreen.main &&
