@@ -9,11 +9,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const config = app.get(ConfigService);
   const port = config.getOrThrow<number>('PORT');
-  const origins = config
-    .getOrThrow<string>('CORS_ORIGINS')
-    .split(',')
-    .map((origin) => origin.trim())
-    .filter(Boolean);
+  const origins = config.getOrThrow<string[]>('CORS_ORIGINS');
 
   app.use(helmet());
   app.enableCors({ origin: origins, credentials: true });
