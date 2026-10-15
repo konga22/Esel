@@ -1,6 +1,8 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../../core/design/tokens.g.dart';
 import '../../../../core/design/typography.dart';
+import '../../../../core/ui/esel_glass.dart';
 import '../../../../core/ui/esel_paint_asset.dart';
 import '../../../../core/ui/esel_pressable.dart';
 import '../../../../core/ui/esel_image.dart';
@@ -70,13 +72,12 @@ class _IntroScreenState extends State<IntroScreen> {
               const SizedBox(height: 120),
             ],
           ),
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 240),
-            curve: Curves.easeOutCubic,
-            left: 20,
-            right: 20,
-            bottom: _showLoginBar ? 28 : -80,
-            child: _buildFloatingLoginBar(),
+          // 로그인 후 캡슐이 있는 자리(아래 34, 홈 인디케이터가 더 높으면 그 위).
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: math.max(34.0, MediaQuery.paddingOf(context).bottom),
+            child: _buildLoginBar(context),
           ),
         ],
       ),
@@ -344,34 +345,79 @@ class _IntroScreenState extends State<IntroScreen> {
     );
   }
 
-  Widget _buildFloatingLoginBar() {
-    return EselPressable(
-      onTap: widget.onOpenLogin,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        decoration: BoxDecoration(
-          color: EselTokens.ink,
-          borderRadius: BorderRadius.circular(EselTokens.radiusPill),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              '로그인하고 계속 읽기',
-              style: EselTypography.labelLarge.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
+  /// 디자인 "로그인 바": 좌우 16, 높이 66, 모서리 33, 안쪽 8, Glass.
+  /// 로그인(Ink 1.5px 테두리) : 내 잡지 만들기(Ink 채움) = 1 : 1.35, 버튼 높이 50.
+  /// 640px 지나면 translateY(140%) → 0(360ms drawer)으로 올라오고 200ms에 나타난다.
+  /// 동작 줄이기에서는 제자리에서 나타나기만 한다.
+  Widget _buildLoginBar(BuildContext context) {
+    final calm = MediaQuery.disableAnimationsOf(context);
+    return IgnorePointer(
+      ignoring: !_showLoginBar,
+      child: ExcludeSemantics(
+        excluding: !_showLoginBar,
+        child: AnimatedSlide(
+          offset: _showLoginBar || calm ? Offset.zero : const Offset(0, 1.4),
+          duration: EselMotion.loginBar,
+          curve: EselMotion.drawer,
+          child: AnimatedOpacity(
+            opacity: _showLoginBar ? 1 : 0,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+            child: EselGlass(
+              height: EselSizes.loginBar,
+              borderRadius: EselSizes.loginBar / 2,
+              padding: const EdgeInsets.all(8),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 100,
+                    child: _buildLoginBarButton(
+                      '로그인',
+                      filled: false,
+                      onTap: widget.onOpenLogin,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 135,
+                    child: _buildLoginBarButton(
+                      '내 잡지 만들기',
+                      filled: true,
+                      onTap: widget.onStartJoin,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white),
-          ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoginBarButton(
+    String label, {
+    required bool filled,
+    required VoidCallback onTap,
+  }) {
+    return EselPressable(
+      semanticsLabel: label,
+      onTap: onTap,
+      child: Container(
+        height: 50,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: filled ? EselColors.ink : null,
+          borderRadius: BorderRadius.circular(25),
+          border: filled ? null : Border.all(color: EselColors.ink, width: 1.5),
+        ),
+        child: Text(
+          label,
+          maxLines: 1,
+          style: EselTypography.label(
+            fontSize: 15,
+            color: filled ? EselColors.paper : EselColors.ink,
+          ),
         ),
       ),
     );

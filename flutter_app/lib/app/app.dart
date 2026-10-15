@@ -84,6 +84,10 @@ class _EselAppState extends State<EselApp> {
     LoginSheet.show(
       targetContext,
       authController: _sl.authController,
+      onStartJoin: () {
+        _sl.authController.setPendingDestination(null);
+        setState(() => _activeScreen = ActiveScreen.onboarding);
+      },
       onLoginSuccess: () {
         final pending = _sl.authController.pendingDestination;
         if (pending == 'publish') {
