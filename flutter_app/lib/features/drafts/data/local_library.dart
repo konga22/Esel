@@ -28,12 +28,62 @@ class LocalLibrary extends ChangeNotifier {
 
   bool get persistent => directory != null;
 
-  static Future<LocalLibrary> open() async {
+  /// 서버 모드(기기 보관함 화면)의 저장 폴더. 이전부터 쓰던 이름이다.
+  static const String serverFolder = 'esel-local';
+
+  /// 시연(mock) 모드의 저장 폴더. 서버 모드와 같은 library.json을 쓰지 않는다.
+  static const String mockFolder = 'esel-mock';
+
+  /// [mock]이면 시연 모드 보관함을 연다. 웹은 늘 메모리.
+  static Future<LocalLibrary> open({bool mock = false, Directory? root}) async {
     if (kIsWeb) return LocalLibrary.inMemory();
-    final root = await getApplicationDocumentsDirectory();
-    final library = LocalLibrary(Directory('${root.path}/esel-local'));
+    final base = root ?? await getApplicationDocumentsDirectory();
+    final directory = Directory(
+      '${base.path}/${mock ? mockFolder : serverFolder}',
+    );
+    if (mock && !await directory.exists()) {
+      await _moveMockRecords(
+        from: Directory('${base.path}/$serverFolder'),
+        to: directory,
+      );
+    }
+    final library = LocalLibrary(directory);
     await library.load();
     return library;
+  }
+
+  /// 예전에는 두 모드가 esel-local 하나를 같이 썼다. 시연 폴더를 처음 만들 때, 시연
+  /// 계정(mock_…)의 초안·호와 그 사진만 복사해 온다. 원래 폴더는 건드리지 않는다.
+  static Future<void> _moveMockRecords({
+    required Directory from,
+    required Directory to,
+  }) async {
+    final index = File('${from.path}/library.json');
+    if (!await index.exists()) return;
+    Map<String, dynamic> data;
+    try {
+      data = jsonDecode(await index.readAsString()) as Map<String, dynamic>;
+    } catch (_) {
+      return;
+    }
+    if (data['version'] != 1) return;
+    await to.create(recursive: true);
+    final moved = <Map<String, dynamic>>[];
+    for (final item in (data['drafts'] as List? ?? const [])) {
+      final draft = Map<String, dynamic>.from(item as Map);
+      if (!(draft['ownerId'] as String? ?? '').startsWith('mock_')) continue;
+      final photo = File(draft['photoPath'] as String? ?? '');
+      if (await photo.exists() &&
+          photo.absolute.path.startsWith(from.absolute.path)) {
+        final copy = File('${to.path}/${photo.uri.pathSegments.last}');
+        await photo.copy(copy.path);
+        draft['photoPath'] = copy.path;
+      }
+      moved.add(draft);
+    }
+    await File(
+      '${to.path}/library.json',
+    ).writeAsString(jsonEncode({...data, 'drafts': moved}), flush: true);
   }
 
   final List<CoverDraft> _drafts = [];

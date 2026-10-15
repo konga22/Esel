@@ -261,4 +261,44 @@ void main() {
     expect(file.existsSync(), isFalse);
     expect(shared.existsSync(), isTrue, reason: 'z가 아직 쓴다');
   });
+
+  test('서버 모드와 시연 모드는 다른 보관함을 쓰고, 예전 시연 기록은 한 번만 옮겨 온다', () async {
+    final root = await Directory.systemTemp.createTemp('esel-root-');
+    addTearDown(() => root.delete(recursive: true));
+    // 예전: 두 모드가 esel-local 하나를 같이 썼다.
+    final legacy = LocalLibrary(Directory('${root.path}/esel-local'));
+    await legacy.load();
+    final mine = File('${legacy.directory!.path}/mine.png')
+      ..writeAsBytesSync([1, 2]);
+    await legacy.publish(
+      draft('m').copyWith(photoPath: mine.path),
+      'mock_me@esel.local',
+      on: const ServiceDate(2026, 10, 14),
+    );
+    await legacy.save(draft('s').copyWith(ownerId: ''));
+    legacy.dispose();
+
+    final mock = await LocalLibrary.open(mock: true, root: root);
+    expect(mock.directory!.path, endsWith('esel-mock'));
+    expect(mock.issuesFor('mock_me@esel.local'), hasLength(1));
+    final moved = mock.issuesFor('mock_me@esel.local').single.photoPath;
+    expect(moved, startsWith(mock.directory!.path));
+    expect(File(moved).existsSync(), isTrue);
+    expect(mock.drafts.where((d) => d.ownerId.isEmpty), isEmpty);
+
+    final server = await LocalLibrary.open(root: root);
+    expect(server.directory!.path, endsWith('esel-local'));
+    expect(server.drafts, hasLength(2), reason: '원래 폴더는 그대로');
+
+    // 시연 모드에서 새로 저장해도 서버 모드 보관함에는 섞이지 않는다.
+    await mock.save(draft('new').copyWith(ownerId: 'mock_me@esel.local'));
+    final reopenedServer = await LocalLibrary.open(root: root);
+    expect(reopenedServer.drafts.map((d) => d.id), isNot(contains('new')));
+    // 두 번째로 열 때는 다시 옮기지 않는다.
+    final again = await LocalLibrary.open(mock: true, root: root);
+    expect(again.drafts.map((d) => d.id), contains('new'));
+    for (final l in [mock, server, reopenedServer, again]) {
+      l.dispose();
+    }
+  });
 }
