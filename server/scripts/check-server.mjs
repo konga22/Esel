@@ -39,7 +39,7 @@ for (const e of contract.endpoints) {
   if (!contract.statuses.includes(e.status)) fail(`${where}: status "${e.status}"는 없는 값이에요`, '진행 상태로 남은 일을 셉니다.', 'todo, doing, done 중 하나를 쓰세요.');
   if (!/^(base|DEV-\d{2})$/.test(e.feature)) fail(`${where}: feature는 DEV-xx 형식이어야 해요`, '어느 기능의 API인지 알아야 합격 기준을 찾을 수 있어요.', '저장소 루트 docs/dev/FEATURES.md의 기능 ID를 쓰세요.');
   for (const code of e.errors) if (!contract.errors[code]) fail(`${where}: 오류 코드 ${code}가 목록에 없어요`, '오류 모양을 한곳에서 정해야 앱이 똑같이 처리할 수 있어요.', 'api-contract.json의 errors에 먼저 추가하세요.');
-  if (!/^\/[a-z0-9\-/:]*$/.test(e.path) || /[A-Z_]/.test(e.path.replace(/:[a-zA-Z]+/g, ''))) fail(`${where}: 주소 ${e.path}가 규칙과 달라요`, '주소는 소문자와 하이픈만 써요(API_RULES 2장).', '예: /share-links, /me/records/:date/restore');
+  if (!/^(\/([a-z0-9-]+|:[a-z][a-zA-Z0-9]*))+$/.test(e.path)) fail(`${where}: 주소 ${e.path}가 규칙과 달라요`, '주소는 소문자와 하이픈만 써요(API_RULES 2장).', '예: /share-links, /me/records/:date/restore');
   if (!existsSync(path.join(server, e.test))) fail(`${where}: 테스트 파일 ${e.test}가 없어요`, 'API마다 합격 기준을 확인할 테스트 자리가 있어야 해요.', '파일을 만들고 it.todo로 할 일을 적어 두세요.');
 }
 
