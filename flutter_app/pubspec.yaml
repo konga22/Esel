@@ -18,8 +18,11 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # of the product and file versions while build-number is used as the build suffix.
 version: 1.0.0+1
 
+# 기준 Flutter 3.44.x(Dart 3.12) 이상. SDK 차이로 pubspec.lock의 sdk 고정 패키지만
+# 바뀌면 커밋하지 않는다(docs/flutter/MIDTERM_DEMO.md).
 environment:
   sdk: ^3.11.5
+  flutter: ">=3.44.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions

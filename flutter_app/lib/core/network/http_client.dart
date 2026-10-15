@@ -97,7 +97,9 @@ class StandardHttpClient implements AppHttpClient {
         } finally {
           _refreshing = null;
         }
-        return _send(
+        // try 안에서는 기다린 뒤 돌려준다. 그래야 다시 보낸 요청의 오류도 아래 catch가
+        // 받고, finally의 client.close가 응답을 받기 전에 실행되지 않는다.
+        return await _send(
           method,
           path,
           body: body,

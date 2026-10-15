@@ -4,6 +4,12 @@
 기준: AGENTS.md → docs/ESEL_HARNESS.md → harness.json → docs/dev.
 DEV-03의 기존 모의 어댑터를 명시적으로 선택하며 서버 실패 시 자동 전환하지 않는다.
 
+## Flutter 버전
+
+- 기준은 **Flutter 3.44.x 이상**(Dart 3.12)이다. `pubspec.yaml`의 `environment.flutter: ">=3.44.0"`가 막는다. `flutter --version`으로 먼저 확인한다.
+- `flutter pub get`이나 `flutter test`를 돌리면 설치한 SDK에 따라 `pubspec.lock`의 SDK 고정 패키지(meta, test_api 등)만 바뀔 수 있다. 의존성을 바꾸지 않았다면 그 변경은 커밋하지 않고 `git checkout -- flutter_app/pubspec.lock`으로 되돌린다. 커밋된 lock은 3.44.0 기준이다.
+- `flutter analyze`는 경고 없이 통과해야 한다(3.44.0에서 확인. 다른 버전에서 새 경고가 나오면 고치고 버전을 적는다).
+
 ## 팀원 Android 휴대폰 실행
 
 Flutter SDK·Android SDK를 준비하고 휴대폰 USB 디버깅을 켠다. USB 연결 후 휴대폰에서 디버깅을 허용한다.
