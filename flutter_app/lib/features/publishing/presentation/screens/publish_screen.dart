@@ -17,6 +17,9 @@ class PublishScreen extends StatefulWidget {
 
   /// 오늘의 후보 3색(P17). 이 밖의 색으로는 발행하지 않는다.
   final List<EselPaint> candidates;
+
+  /// 서비스 날짜로 오늘 호를 발행한다(TodayController.publish).
+  final Future<CoverDraft> Function(CoverDraft draft) publish;
   const PublishScreen({
     super.key,
     required this.controller,
@@ -28,6 +31,7 @@ class PublishScreen extends StatefulWidget {
     required this.onClose,
     required this.library,
     required this.candidates,
+    required this.publish,
   });
   @override
   State<PublishScreen> createState() => _PublishScreenState();
@@ -41,8 +45,11 @@ class _PublishScreenState extends State<PublishScreen> {
     final drafts = widget.library.drafts.where(
       (d) => d.ownerId == widget.ownerId && d.issueNumber == 0,
     );
+    // 어제 고른 색으로 저장된 초안은 오늘 후보 색으로 바꿔서 연다(P17).
     _initial = drafts.isNotEmpty
-        ? drafts.first
+        ? (widget.candidates.contains(drafts.first.color)
+              ? drafts.first
+              : drafts.first.copyWith(color: widget.candidates.first))
         : CoverDraft(
             id: widget.library.newId(),
             photoPath: '',
@@ -79,7 +86,7 @@ class _PublishScreenState extends State<PublishScreen> {
       candidates: widget.candidates,
       onClose: widget.onClose,
       onPublish: (draft) async {
-        final issue = await widget.library.publish(draft, widget.ownerId);
+        final issue = await widget.publish(draft);
         widget.controller.setColor(issue.color.name);
         widget.controller.setCaption(issue.caption);
         if (mounted) widget.onPublishSuccess(issue.issueNumber);

@@ -36,7 +36,7 @@ class EselApp extends StatefulWidget {
   State<EselApp> createState() => _EselAppState();
 }
 
-class _EselAppState extends State<EselApp> {
+class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
   final _sl = ServiceLocator();
 
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
@@ -54,14 +54,27 @@ class _EselAppState extends State<EselApp> {
     super.initState();
     _sl.authController.addListener(_onAuthChanged);
     _sl.todayController.addListener(_onTodayChanged);
+    WidgetsBinding.instance.addObserver(this);
+    _sl.todayController.watchMidnight();
     _onAuthChanged();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _sl.todayController.stopWatchingMidnight();
     _sl.authController.removeListener(_onAuthChanged);
     _sl.todayController.removeListener(_onTodayChanged);
     super.dispose();
+  }
+
+  /// 앱을 다시 열면 서비스 날짜와 오늘 발행 여부를 다시 계산한다(P04). 백그라운드에서는
+  /// 자정 타이머가 늦을 수 있다.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+    _sl.todayController.refresh();
+    _sl.todayController.watchMidnight();
   }
 
   void _onTodayChanged() {
@@ -347,6 +360,7 @@ class _EselAppState extends State<EselApp> {
           currentIssueCount: _issueCount,
           hasPublishedToday: _hasPublishedToday,
           candidates: _sl.todayController.candidates,
+          publish: _sl.todayController.publish,
           onPublishSuccess: (_) => setState(() => _currentTab = AppTab.me),
           onClose: () => setState(() => _currentTab = AppTab.feed),
         );

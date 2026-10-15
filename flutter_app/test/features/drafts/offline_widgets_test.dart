@@ -164,6 +164,7 @@ void main() {
               EselPaint.lilac,
               EselPaint.olive,
             ],
+            publish: (draft) async => draft,
             onPublishSuccess: (_) {},
             onClose: () => closed = true,
           ),

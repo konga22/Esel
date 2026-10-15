@@ -134,13 +134,7 @@ void main() {
     testWidgets('오늘 발행하면 모든 방이 열린다', (tester) async {
       final stand = StandController();
       await pumpStand(tester, stand);
-      await tester.runAsync(
-        () => library.publish(
-          draft(EselPaint.lilac),
-          'reader-a',
-          now: clock.now(),
-        ),
-      );
+      await tester.runAsync(() => today.publish(draft(EselPaint.lilac)));
       await tester.pump();
 
       expect(today.hasPublishedToday, isTrue);
@@ -156,11 +150,7 @@ void main() {
     });
 
     test('자정이 지나면 어제 방은 열리고 새 날짜 후보 방은 다시 잠긴다', () async {
-      await library.publish(
-        draft(EselPaint.camel),
-        'reader-a',
-        now: clock.now(),
-      );
+      await today.publish(draft(EselPaint.camel));
       expect(today.hasPublishedToday, isTrue);
       final yesterday = today.today;
 

@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 import 'package:path_provider/path_provider.dart';
+import '../../../core/time/service_date.dart';
 import '../domain/cover_draft.dart';
 
 /// 메모리에만 둔 사진(웹 시연)의 photoPath 접두사.
@@ -140,17 +141,18 @@ class LocalLibrary extends ChangeNotifier {
       _drafts.where((d) => d.ownerId == ownerId && d.issueNumber > 0).toList()
         ..sort((a, b) => b.issueNumber.compareTo(a.issueNumber));
 
+  /// [on]은 서비스 날짜(Asia/Seoul)다. 기기 현지 날짜로 하루를 나누지 않는다(P04).
   Future<CoverDraft> publish(
     CoverDraft draft,
     String ownerId, {
-    DateTime? now,
+    required ServiceDate on,
+    DateTime? at,
   }) async {
     final error = draft.validationError;
     if (error != null) throw FormatException(error);
     if (ownerId.isEmpty) throw const FormatException('로그인이 필요해요.');
-    final date = now ?? DateTime.now();
-    final day =
-        '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    final date = at ?? DateTime.now();
+    final day = on.key;
     late CoverDraft issue;
     await _change(() {
       final existing = issuesFor(ownerId);
