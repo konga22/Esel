@@ -43,6 +43,9 @@ abstract final class DemoIssueCatalog {
     EselPaint.powder,
   ];
 
+  /// 디자인에서 먹 제호를 쓴 표지(위쪽이 밝은 사진).
+  static const Set<String> _inkMasthead = {'dana', 'kofi', 'maya', 'leo'};
+
   static const List<FaceLayoutMode> _shelfModes = [
     FaceLayoutMode.original,
     FaceLayoutMode.paintStroke,
@@ -104,6 +107,7 @@ abstract final class DemoIssueCatalog {
       faceMode: faceMode,
       caption: person.caption,
       alt: person.alt,
+      inkMasthead: _inkMasthead.contains(person.name),
     );
   }
 
@@ -129,5 +133,6 @@ abstract final class DemoIssueCatalog {
     faceMode: issue.faceMode,
     caption: issue.caption,
     alt: '${issue.masthead}의 오늘 착장',
+    inkMasthead: !issue.whiteTitle,
   );
 }

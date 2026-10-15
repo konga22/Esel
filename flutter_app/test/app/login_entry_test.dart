@@ -43,7 +43,7 @@ void main() {
       await tester.pumpAndSettle();
       final bar = find.descendant(
         of: find.byType(IntroScreen),
-        matching: find.byType(EselGlass),
+        matching: find.byKey(const Key('login-bar')),
       );
       await tester.tap(find.descendant(of: bar, matching: find.text('로그인')));
       await tester.pumpAndSettle();

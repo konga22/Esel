@@ -45,7 +45,7 @@ void main() {
     await tester.pumpWidget(const EselApp());
     await tester.pumpAndSettle();
 
-    final capsule = find.byType(EselGlass);
+    final capsule = find.byKey(const Key('menu-capsule'));
     expect(capsule, findsOneWidget);
     expect(tester.getSize(capsule), const Size(196, 60));
     expect(tester.widget<EselGlass>(capsule).solid, isFalse);
@@ -66,7 +66,7 @@ void main() {
     await tester.tap(find.bySemanticsLabel('오늘의 색 가판대'));
     await tester.pumpAndSettle();
 
-    final capsule = find.byType(EselGlass);
+    final capsule = find.byKey(const Key('menu-capsule'));
     expect(tester.getSize(capsule), const Size(196, 60));
     expect(tester.widget<EselGlass>(capsule).solid, isTrue);
     expect(backdropIn(capsule), findsNothing);

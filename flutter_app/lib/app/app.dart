@@ -268,6 +268,8 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
     // 2. 비로그인 첫 화면(J1)
     if (!auth.isAuthenticated) {
       return IntroScreen(
+        feedController: _sl.feedController,
+        today: _sl.todayController.today,
         onOpenLogin: () => _openLoginSheet(ctx: context),
         onStartJoin: _startFounding,
       );
@@ -401,11 +403,14 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
         return FeedScreen(
           feedController: _sl.feedController,
           reactionsController: _sl.reactionsController,
-          isAuthenticated: true,
           viewer: today.viewer,
-          readerMasthead: session.masthead,
-          onRequestLogin: () => _openLoginSheet(ctx: context),
           onOpenAuthorShelf: _openAuthorShelf,
+          onOpenIssue: (issue) => _openIssue(context, issue),
+          onOpenStand: (color) {
+            _sl.standController.select(color);
+            setState(() => _currentTab = AppTab.stand);
+          },
+          onMakeTodayIssue: () => setState(() => _currentTab = AppTab.publish),
         );
 
       case AppTab.stand:
@@ -484,6 +489,7 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
   /// 사진이 깔린 피드에서만 글라스, 흰 화면 탭에서는 단색 + 그림자.
   Widget _buildGlassBottomBar(BuildContext context) {
     return EselGlass(
+      key: const Key('menu-capsule'),
       width: EselSizes.capsuleWidth,
       height: EselSizes.capsuleHeight,
       borderRadius: EselSizes.capsuleHeight / 2,

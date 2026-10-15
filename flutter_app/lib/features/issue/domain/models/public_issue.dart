@@ -31,6 +31,9 @@ class PublicIssue {
   /// 사진 대체 텍스트(착장 설명).
   final String alt;
 
+  /// 제호를 먹으로 쓰는 표지(사진 위쪽이 밝음). 아니면 흰 제호 + 위쪽 그림자.
+  final bool inkMasthead;
+
   const PublicIssue({
     required this.id,
     required this.ownerId,
@@ -46,6 +49,7 @@ class PublicIssue {
     required this.faceMode,
     required this.caption,
     required this.alt,
+    this.inkMasthead = false,
   });
 
   String get issueLabel => 'Nº ${issueNumber.toString().padLeft(3, '0')}';
