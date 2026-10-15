@@ -2,6 +2,7 @@ import '../../../../core/design/tokens.g.dart';
 import '../../../../core/time/service_date.dart';
 import '../../../media/domain/models/face_box.dart';
 import '../../../media/domain/models/face_layout_mode.dart';
+import '../../../publishing/domain/rules/publish_rule.dart';
 
 /// 남에게 보이는 한 호(피드 지면·가판대 표지·서가). 공개 응답 모델이다.
 ///
@@ -52,5 +53,5 @@ class PublicIssue {
     this.inkMasthead = false,
   });
 
-  String get issueLabel => 'Nº ${issueNumber.toString().padLeft(3, '0')}';
+  String get issueLabel => PublishRule.formatIssueNumber(issueNumber);
 }

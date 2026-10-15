@@ -18,8 +18,17 @@ class TwinController extends ChangeNotifier {
   EselPaint get myColor => _myColor;
   EselPaint get partnerColor => _partnerColor;
   String get myPhoto => _myPhoto;
+  bool _userPosted = true;
+  bool _partnerPosted = true;
+
+  /// 상대 표지는 둘 다 게시한 뒤에만 보인다(P08).
   String? get visiblePartnerPhoto =>
-      (_stage == TwinStage.waitingForPartner) ? null : _partnerPhoto;
+      TwinRule.canRevealPartnerPhoto(
+        hasUserPosted: _userPosted,
+        hasPartnerPosted: _partnerPosted,
+      )
+      ? _partnerPhoto
+      : null;
   TwinVisibility get visibility => _visibility;
   bool get userConsented => _userConsented;
 
@@ -27,6 +36,8 @@ class TwinController extends ChangeNotifier {
     _partnerMasthead = partner;
     _stage = TwinStage.colorSelection;
     _userConsented = false;
+    _userPosted = false;
+    _partnerPosted = false;
     notifyListeners();
   }
 
@@ -37,7 +48,15 @@ class TwinController extends ChangeNotifier {
   }
 
   void postMyCover() {
-    _stage = TwinStage.revealed; // 상대도 이미 게시한 상태로 시뮬레이션
+    _userPosted = true;
+    _stage = _partnerPosted ? TwinStage.revealed : TwinStage.waitingForPartner;
+    notifyListeners();
+  }
+
+  /// 상대가 게시했다(서버 알림 자리. 시연에서는 화면이 부른다).
+  void partnerPosted() {
+    _partnerPosted = true;
+    if (_userPosted) _stage = TwinStage.revealed;
     notifyListeners();
   }
 
@@ -67,6 +86,8 @@ class TwinController extends ChangeNotifier {
 
   void reset() {
     _stage = TwinStage.revealed;
+    _userPosted = true;
+    _partnerPosted = true;
     _userConsented = false;
     notifyListeners();
   }

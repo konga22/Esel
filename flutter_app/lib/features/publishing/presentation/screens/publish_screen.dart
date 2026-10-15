@@ -3,11 +3,9 @@ import '../../../../core/design/tokens.g.dart';
 import '../../../drafts/data/local_library.dart';
 import '../../../drafts/domain/cover_draft.dart';
 import '../../../drafts/presentation/cover_editor_screen.dart';
-import '../controllers/publishing_controller.dart';
 
 /// DEV-03 local adapter. The real server entry point is kept separately.
 class PublishScreen extends StatefulWidget {
-  final PublishingController controller;
   final String masthead, ownerId;
   final int currentIssueCount;
   final bool hasPublishedToday;
@@ -22,7 +20,6 @@ class PublishScreen extends StatefulWidget {
   final Future<CoverDraft> Function(CoverDraft draft) publish;
   const PublishScreen({
     super.key,
-    required this.controller,
     required this.masthead,
     required this.ownerId,
     required this.currentIssueCount,
@@ -87,8 +84,6 @@ class _PublishScreenState extends State<PublishScreen> {
       onClose: widget.onClose,
       onPublish: (draft) async {
         final issue = await widget.publish(draft);
-        widget.controller.setColor(issue.color.name);
-        widget.controller.setCaption(issue.caption);
         if (mounted) widget.onPublishSuccess(issue.issueNumber);
       },
     );

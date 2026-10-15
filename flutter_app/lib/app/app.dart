@@ -435,7 +435,6 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
         return PublishScreen(
           library: _sl.localLibrary!,
           ownerId: session.userId,
-          controller: _sl.publishingController,
           masthead: session.masthead,
           currentIssueCount: _issueCount,
           hasPublishedToday: _hasPublishedToday,

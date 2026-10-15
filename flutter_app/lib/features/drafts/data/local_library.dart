@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../core/time/service_date.dart';
+import '../../publishing/domain/rules/publish_rule.dart';
 import '../domain/cover_draft.dart';
 
 /// 메모리에만 둔 사진(웹 시연)의 photoPath 접두사.
@@ -202,12 +203,14 @@ class LocalLibrary extends ChangeNotifier {
     late CoverDraft issue;
     await _change(() {
       final existing = issuesFor(ownerId);
-      if (existing.any((d) => d.publishedOn == day)) {
+      if (!PublishRule.canPublishToday(
+        hasPublishedToday: existing.any((d) => d.publishedOn == day),
+      )) {
         throw const FormatException('오늘은 이미 한 호를 발행했어요.');
       }
       issue = draft.copyWith(
         ownerId: ownerId,
-        issueNumber: existing.length + 1,
+        issueNumber: PublishRule.nextIssueNumber(existing.length),
         publishedOn: day,
         updatedAt: date,
       );

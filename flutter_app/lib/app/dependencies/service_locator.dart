@@ -19,7 +19,6 @@ import '../../features/magazine/data/sources/magazine_mock_source.dart';
 import '../../features/magazine/data/sources/magazine_remote_source.dart';
 import '../../features/magazine/presentation/controllers/magazine_controller.dart';
 import '../../features/onboarding/presentation/controllers/onboarding_controller.dart';
-import '../../features/publishing/presentation/controllers/publishing_controller.dart';
 import '../../features/reactions/presentation/controllers/reactions_controller.dart';
 import '../../features/records/presentation/controllers/records_controller.dart';
 import '../../features/stand/data/sources/stand_mock_source.dart';
@@ -43,7 +42,6 @@ class ServiceLocator {
   late final AuthController authController;
   late final TodayController todayController;
   late final OnboardingController onboardingController;
-  late final PublishingController publishingController;
   late final ReactionsController reactionsController;
   late final FeedController feedController;
   late final StandController standController;
@@ -87,7 +85,6 @@ class ServiceLocator {
     onboardingController = OnboardingController(
       checkMasthead: authController.isMastheadAvailable,
     );
-    publishingController = PublishingController();
     reactionsController = ReactionsController();
     // 피드·가판대·서가도 ESEL_API_MODE 하나로 mock과 서버 소스를 바꾼다(DEV-03).
     // 서버 소스는 아직 미구현이라 부르면 "아직 연결하지 않았어요"로 끝난다.
