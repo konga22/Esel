@@ -19,6 +19,8 @@ flutter run -d <휴대폰장치ID> --dart-define=ESEL_API_MODE=mock
 Docker·DB·.env·OAuth 설정은 필요 없다.
 설치 파일은 `flutter build apk --debug --dart-define=ESEL_API_MODE=mock`으로 만든다.
 경로: flutter_app/build/app/outputs/flutter-apk/app-debug.apk.
+
+> **APK를 외부에 배포하지 않는다(로컬 시연용).** 앱에 든 예시 인물 사진은 Pexels 사진이고, Pexels는 모델 초상권 동의를 보장하지 않는다(하네스 §6). 팀원 기기에 직접 설치해 시연하는 데만 쓰고, 스토어·공개 링크·메신저 파일 공유로 내보내지 않는다. 사진 출처는 [flutter_app/assets/README.md](../../flutter_app/assets/README.md).
 Windows에서 symlink 오류가 나면 Windows 개발자 모드 또는 관리자 터미널에서 패키지를 준비한다.
 iPhone은 macOS/Xcode·서명이 필요하며 이번 환경에서 검증하지 않았다.
 

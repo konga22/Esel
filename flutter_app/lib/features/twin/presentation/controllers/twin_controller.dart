@@ -3,12 +3,12 @@ import '../../../../core/design/tokens.g.dart';
 import '../../domain/rules/twin_rule.dart';
 
 class TwinController extends ChangeNotifier {
-  String _partnerMasthead = 'seul';
+  String _partnerMasthead = 'elin';
   TwinStage _stage = TwinStage.revealed;
   EselPaint _myColor = EselPaint.powder;
   final EselPaint _partnerColor = EselPaint.sage;
-  final String _myPhoto = 'assets/demo/dana.jpg';
-  final String _partnerPhoto = 'assets/models/m01.jpg';
+  final String _myPhoto = 'assets/models/camel-02.jpg';
+  final String _partnerPhoto = 'assets/models/sage-01.jpg';
   TwinVisibility _visibility = TwinVisibility.jointPublic;
   bool _userConsented = false;
   final bool _partnerConsented = true;

@@ -61,9 +61,10 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  # 예시 사진은 저장소 루트 assets/models·assets/demo의 원본을 같은 이름으로 복사한 것이다.
+  # 쓰는 사진만 넣고 출처는 assets/README.md에 둔다(Pexels, 로컬 시연용).
   assets:
     - assets/paint/
-    - assets/icons/
     - assets/models/
     - assets/demo/
 

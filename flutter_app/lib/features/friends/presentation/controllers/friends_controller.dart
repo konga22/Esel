@@ -30,23 +30,23 @@ class FriendsController extends ChangeNotifier {
   final List<FriendItem> _friends = [
     const FriendItem(
       id: 'friend_1',
-      masthead: 'seul',
-      bio: '필름 카메라와 가을빛 일상.',
-      photoAsset: 'assets/models/m01.jpg',
+      masthead: 'elin',
+      bio: '라탄 의자, 세이지 셋업. 일요일 오전.',
+      photoAsset: 'assets/models/sage-01.jpg',
     ),
     const FriendItem(
       id: 'friend_2',
-      masthead: 'min',
-      bio: '조용한 골목 끝에서.',
-      photoAsset: 'assets/models/m02.jpg',
+      masthead: 'ama',
+      bio: '노란 셋업에 은색 가방 하나.',
+      photoAsset: 'assets/models/butter-01.jpg',
     ),
   ];
 
   final List<FriendRequestItem> _pendingRequests = [
     const FriendRequestItem(
       id: 'req_1',
-      fromMasthead: 'yoon',
-      photoAsset: 'assets/models/m03.jpg',
+      fromMasthead: 'kofi',
+      photoAsset: 'assets/models/olive-01.jpg',
     ),
   ];
 
