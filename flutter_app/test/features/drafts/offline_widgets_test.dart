@@ -18,7 +18,7 @@ void main() {
     );
   });
   tearDown(() {
-    library.directory.deleteSync(recursive: true);
+    library.directory!.deleteSync(recursive: true);
     library.dispose();
   });
   testWidgets(
@@ -133,7 +133,7 @@ void main() {
         ).scale(10),
         12,
       );
-      final reopened = LocalLibrary(library.directory);
+      final reopened = LocalLibrary(library.directory!);
       await tester.runAsync(reopened.load);
       expect(reopened.largeText, isTrue);
       reopened.dispose();

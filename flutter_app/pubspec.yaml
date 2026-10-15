@@ -67,6 +67,30 @@ flutter:
     - assets/models/
     - assets/demo/
 
+  # 디자인 글꼴(SIL OFL 1.1, 라이선스는 assets/fonts/OFL-*.txt).
+  # 한글 본문은 디자인 캔버스처럼 기기 기본 한글 글꼴을 쓴다.
+  fonts:
+    - family: Cormorant Garamond
+      fonts:
+        - asset: assets/fonts/CormorantGaramond-Regular.ttf
+        - asset: assets/fonts/CormorantGaramond-Italic.ttf
+          style: italic
+        - asset: assets/fonts/CormorantGaramond-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/CormorantGaramond-Bold.ttf
+          weight: 700
+    - family: Nanum Myeongjo
+      fonts:
+        - asset: assets/fonts/NanumMyeongjo-Regular.ttf
+    - family: Instrument Sans
+      fonts:
+        - asset: assets/fonts/InstrumentSans-Variable.ttf
+    - family: DM Mono
+      fonts:
+        - asset: assets/fonts/DMMono-Regular.ttf
+        - asset: assets/fonts/DMMono-Medium.ttf
+          weight: 500
+
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

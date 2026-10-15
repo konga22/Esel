@@ -1,8 +1,8 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../core/design/tokens.g.dart';
 import '../../../core/design/typography.dart';
 import '../../../core/ui/esel_paint_asset.dart';
+import '../../drafts/data/local_library.dart';
 import '../../drafts/domain/cover_draft.dart';
 import '../domain/models/face_layout_mode.dart';
 
@@ -36,8 +36,8 @@ class CoverPreview extends StatelessWidget {
                   child: Icon(Icons.add_a_photo_outlined, size: 56),
                 ),
               )
-            : Image.file(
-                File(draft.photoPath),
+            : Image(
+                image: localPhotoProvider(draft.photoPath),
                 fit: BoxFit.cover,
                 errorBuilder: (_, _, _) =>
                     const Center(child: Text('사진을 다시 골라 주세요.')),

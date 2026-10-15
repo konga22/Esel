@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/design/tokens.g.dart';
@@ -60,7 +61,7 @@ class _DeviceHomeScreenState extends State<DeviceHomeScreen> {
       }
       setState(() => _library = library);
       if (library.recoveryNotice != null) _message(library.recoveryNotice!);
-      if (Platform.isAndroid) {
+      if (!kIsWeb && Platform.isAndroid) {
         final lost = await ImagePicker().retrieveLostData();
         if (!mounted || lost.isEmpty) return;
         if (lost.files?.isNotEmpty == true) {
