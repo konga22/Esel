@@ -73,20 +73,14 @@ class TwinScreen extends StatelessWidget {
     if (stage == TwinStage.revealed || stage == TwinStage.consentWaiting) {
       return _buildRevealedView(context);
     } else if (stage == TwinStage.published) {
-      return _buildDoneView(
-        '공동 발행 완료 (T10)',
-        '두 사람의 표지가 우리들의 한 호로 공동 발행되었습니다.',
-      );
+      return _buildDoneView('공동 발행 완료', '두 사람의 표지가 우리들의 한 호로 공동 발행되었습니다.');
     } else if (stage == TwinStage.privateOnly) {
       return _buildDoneView(
-        '둘만의 기록으로 저장 (T8private)',
+        '둘만의 기록으로 저장',
         '이 호는 다른 사람에게 공개되지 않고 둘만의 소중한 기록으로 남습니다.',
       );
     } else if (stage == TwinStage.soloOnly) {
-      return _buildDoneView(
-        '내 표지만 공개 (T8solo)',
-        '상대방의 표지는 비공개로 유지되고 내 표지만 피드에 공개됩니다.',
-      );
+      return _buildDoneView('내 표지만 공개', '상대방의 표지는 비공개로 유지되고 내 표지만 피드에 공개됩니다.');
     }
 
     return _buildRevealedView(context);
@@ -101,14 +95,14 @@ class TwinScreen extends StatelessWidget {
         children: [
           const SizedBox(height: EselTokens.space12),
           Text(
-            '두 사람의 표지가 열렸습니다 (T6)',
+            '두 사람의 표지가 열렸습니다',
             style: EselTypography.headlineSmall.copyWith(
               fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 6),
           Text(
-            '공동 발행 시 두 사람의 동의가 필요합니다 (P10).',
+            '공동 발행 시 두 사람의 동의가 필요합니다.',
             style: EselTypography.bodySmall.copyWith(
               color: EselTokens.inkMuted,
             ),
@@ -128,7 +122,7 @@ class TwinScreen extends StatelessWidget {
                           top: 10,
                           left: 10,
                           child: Text(
-                            '나 (dana)',
+                            '나',
                             style: EselTypography.labelSmall.copyWith(
                               color: Colors.white,
                             ),
@@ -138,8 +132,8 @@ class TwinScreen extends StatelessWidget {
                           bottom: 10,
                           left: 10,
                           child: EselPaintAsset(
-                            colorKey: controller.myColor,
-                            size: 24,
+                            paint: controller.myColor,
+                            width: 24,
                           ),
                         ),
                       ],
@@ -169,17 +163,15 @@ class TwinScreen extends StatelessWidget {
                                 bottom: 10,
                                 left: 10,
                                 child: EselPaintAsset(
-                                  colorKey: controller.partnerColor,
-                                  size: 24,
+                                  paint: controller.partnerColor,
+                                  width: 24,
                                 ),
                               ),
                             ],
                           )
                         : Container(
                             color: EselTokens.paperWarm,
-                            child: const Center(
-                              child: Text('상대 게시 대기 중 (P08)'),
-                            ),
+                            child: const Center(child: Text('상대 게시 대기 중')),
                           ),
                   ),
                 ),
@@ -204,7 +196,7 @@ class TwinScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           EselButton(
-            label: '동의하고 공동 발행하기 (T9)',
+            label: '동의하고 공동 발행하기',
             isPrimary: true,
             onTap: controller.giveConsent,
           ),
@@ -215,7 +207,7 @@ class TwinScreen extends StatelessWidget {
     return Column(
       children: [
         EselButton(
-          label: '우리의 한 호로 공동 공개 (T7 Joint)',
+          label: '우리의 한 호로 공동 공개',
           isPrimary: true,
           onTap: () => controller.selectVisibility(TwinVisibility.jointPublic),
         ),

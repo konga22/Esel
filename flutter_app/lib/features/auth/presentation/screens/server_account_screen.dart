@@ -94,6 +94,8 @@ class _ServerAccountScreenState extends State<ServerAccountScreen> {
                     context,
                     authController: widget.auth,
                     onLoginSuccess: () {},
+                    // 흰 화면 위라 글라스 대신 단색 시트.
+                    solid: true,
                   ),
                 ),
               ] else ...[

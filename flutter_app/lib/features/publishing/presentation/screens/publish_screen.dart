@@ -3,20 +3,23 @@ import '../../../../core/design/tokens.g.dart';
 import '../../../drafts/data/local_library.dart';
 import '../../../drafts/domain/cover_draft.dart';
 import '../../../drafts/presentation/cover_editor_screen.dart';
-import '../controllers/publishing_controller.dart';
 
 /// DEV-03 local adapter. The real server entry point is kept separately.
 class PublishScreen extends StatefulWidget {
-  final PublishingController controller;
   final String masthead, ownerId;
   final int currentIssueCount;
   final bool hasPublishedToday;
   final ValueChanged<int> onPublishSuccess;
   final VoidCallback onClose;
   final LocalLibrary library;
+
+  /// 오늘의 후보 3색(P17). 이 밖의 색으로는 발행하지 않는다.
+  final List<EselPaint> candidates;
+
+  /// 서비스 날짜로 오늘 호를 발행한다(TodayController.publish).
+  final Future<CoverDraft> Function(CoverDraft draft) publish;
   const PublishScreen({
     super.key,
-    required this.controller,
     required this.masthead,
     required this.ownerId,
     required this.currentIssueCount,
@@ -24,6 +27,8 @@ class PublishScreen extends StatefulWidget {
     required this.onPublishSuccess,
     required this.onClose,
     required this.library,
+    required this.candidates,
+    required this.publish,
   });
   @override
   State<PublishScreen> createState() => _PublishScreenState();
@@ -37,14 +42,17 @@ class _PublishScreenState extends State<PublishScreen> {
     final drafts = widget.library.drafts.where(
       (d) => d.ownerId == widget.ownerId && d.issueNumber == 0,
     );
+    // 어제 고른 색으로 저장된 초안은 오늘 후보 색으로 바꿔서 연다(P17).
     _initial = drafts.isNotEmpty
-        ? drafts.first
+        ? (widget.candidates.contains(drafts.first.color)
+              ? drafts.first
+              : drafts.first.copyWith(color: widget.candidates.first))
         : CoverDraft(
             id: widget.library.newId(),
             photoPath: '',
             masthead: widget.masthead,
             ownerId: widget.ownerId,
-            color: EselPaint.camel,
+            color: widget.candidates.first,
             updatedAt: DateTime.now(),
           );
   }
@@ -72,12 +80,10 @@ class _PublishScreenState extends State<PublishScreen> {
     return CoverEditorScreen(
       library: widget.library,
       initial: _initial,
-      candidates: const [EselPaint.camel, EselPaint.lilac, EselPaint.olive],
+      candidates: widget.candidates,
       onClose: widget.onClose,
       onPublish: (draft) async {
-        final issue = await widget.library.publish(draft, widget.ownerId);
-        widget.controller.setColor(issue.color.name);
-        widget.controller.setCaption(issue.caption);
+        final issue = await widget.publish(draft);
         if (mounted) widget.onPublishSuccess(issue.issueNumber);
       },
     );

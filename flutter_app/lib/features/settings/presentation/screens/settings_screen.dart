@@ -4,7 +4,6 @@ import '../../../../core/design/typography.dart';
 import '../../../../core/ui/esel_button.dart';
 import '../../../../core/ui/esel_pressable.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
-import '../../../onboarding/domain/rules/masthead_rule.dart';
 
 class SettingsScreen extends StatefulWidget {
   final AuthController authController;
@@ -12,12 +11,16 @@ class SettingsScreen extends StatefulWidget {
   final VoidCallback onLogoutComplete;
   final VoidCallback onDeleteComplete;
 
+  /// 계정과 이 기기의 모든 호·사진·내보낸 이미지를 지운다. 없으면 계정만 지운다.
+  final Future<void> Function()? deleteAccount;
+
   const SettingsScreen({
     super.key,
     required this.authController,
     required this.onBack,
     required this.onLogoutComplete,
     required this.onDeleteComplete,
+    this.deleteAccount,
   });
 
   @override
@@ -39,10 +42,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     final session = widget.authController.currentSession;
-    _bioController = TextEditingController(text: '매일의 일상과 푸른빛을 기록하는 잡지.');
-    _mastheadController = TextEditingController(
-      text: session?.masthead ?? 'dana',
-    );
+    _bioController = TextEditingController();
+    _mastheadController = TextEditingController(text: session?.masthead ?? '');
   }
 
   @override
@@ -60,7 +61,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(EselTokens.radius20),
         ),
-        title: Text('로그아웃 (S5)', style: EselTypography.headlineSmall),
+        title: Text('로그아웃', style: EselTypography.headlineSmall),
         content: Text('정말 로그아웃하시겠습니까?', style: EselTypography.bodyMedium),
         actions: [
           TextButton(
@@ -97,10 +98,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(EselTokens.radius20),
         ),
-        title: Text(
-          '계정 삭제 최종 확인 (S6confirm)',
-          style: EselTypography.headlineSmall,
-        ),
+        title: Text('계정 삭제 최종 확인', style: EselTypography.headlineSmall),
         content: Text(
           '탈퇴 시 모든 호와 데이터가 영구히 삭제되며 복구할 수 없습니다. 계속하시겠습니까?',
           style: EselTypography.bodyMedium,
@@ -116,7 +114,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           TextButton(
             onPressed: () async {
               Navigator.of(ctx).pop();
-              await widget.authController.deleteAccount();
+              await (widget.deleteAccount ??
+                  widget.authController.deleteAccount)();
               widget.onDeleteComplete();
             },
             child: const Text(
@@ -149,10 +148,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildHeader() {
-    String title = '나의 설정 (S1)';
-    if (_activeView == 1) title = '프로필 편집 (S2)';
-    if (_activeView == 2) title = '알림 설정 (S3)';
-    if (_activeView == 3) title = '계정 관리 (S4)';
+    String title = '나의 설정';
+    if (_activeView == 1) title = '프로필 편집';
+    if (_activeView == 2) title = '알림 설정';
+    if (_activeView == 3) title = '계정 관리';
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -213,19 +212,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
       children: [
         _buildMenuTile(
           Icons.person_outline,
-          '프로필 편집 (S2)',
+          '프로필 편집',
           '제호, 한 줄 소개',
           () => setState(() => _activeView = 1),
         ),
         _buildMenuTile(
           Icons.notifications_outlined,
-          '알림 설정 (S3)',
+          '알림 설정',
           '새 호 발행, 반응 알림',
           () => setState(() => _activeView = 2),
         ),
         _buildMenuTile(
           Icons.shield_outlined,
-          '계정 관리 (S4)',
+          '계정 관리',
           '이메일, 로그아웃, 회원 탈퇴',
           () => setState(() => _activeView = 3),
         ),
@@ -291,10 +290,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // 제호 변경·금칙어 정책은 아직 정하지 않았다(사용자 결정). 바꾸는 척하지 않는다.
           TextField(
             controller: _mastheadController,
+            enabled: false,
             decoration: InputDecoration(
-              labelText: '제호 (영문 2–10자)',
+              labelText: '제호',
+              helperText: '창간 때 정한 이름이에요. 바꾸는 방법은 아직 정하지 않았어요.',
               filled: true,
               fillColor: EselTokens.paperWarm,
               border: OutlineInputBorder(
@@ -306,9 +308,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 16),
           TextField(
             controller: _bioController,
+            enabled: false,
             maxLines: 3,
             decoration: InputDecoration(
-              labelText: '소개 (Bio)',
+              labelText: '한 줄 소개',
+              helperText: '소개는 서버를 연결한 뒤 쓸 수 있어요.',
               filled: true,
               fillColor: EselTokens.paperWarm,
               border: OutlineInputBorder(
@@ -316,26 +320,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 borderSide: BorderSide.none,
               ),
             ),
-          ),
-          const Spacer(),
-          EselButton(
-            label: '프로필 저장',
-            isPrimary: true,
-            onTap: () {
-              final masthead = _mastheadController.text.trim();
-              if (!MastheadRule.isValid(masthead)) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('제호는 영문 소문자 2–10자여야 합니다 (P14).'),
-                  ),
-                );
-                return;
-              }
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('프로필을 저장했어요')));
-              setState(() => _activeView = 0);
-            },
           ),
         ],
       ),
@@ -384,21 +368,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       children: [
         Text('로그인된 계정', style: EselTypography.labelSmall),
         const SizedBox(height: 4),
-        Text(
-          session?.email ?? 'dana@esel.app',
-          style: EselTypography.headlineSmall,
-        ),
+        Text(session?.email ?? '', style: EselTypography.headlineSmall),
         const SizedBox(height: 32),
-        EselButton(
-          label: '로그아웃 (S5)',
-          isPrimary: false,
-          onTap: _showLogoutDialog,
-        ),
+        EselButton(label: '로그아웃', isPrimary: false, onTap: _showLogoutDialog),
         const SizedBox(height: 32),
         const Divider(),
         const SizedBox(height: 16),
         Text(
-          '회원 탈퇴 (S6)',
+          '회원 탈퇴',
           style: EselTypography.labelMedium.copyWith(
             color: EselTokens.semanticRed,
             fontWeight: FontWeight.w700,

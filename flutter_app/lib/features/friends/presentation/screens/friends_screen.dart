@@ -41,7 +41,7 @@ class FriendsScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                '친구 찾기 (F2)',
+                '친구 찾기',
                 style: EselTypography.headlineSmall.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -223,9 +223,7 @@ class FriendsScreen extends StatelessWidget {
               final ok = controller.acceptRequest(r.id);
               if (ok) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('${r.fromMasthead} 님과 친구가 되었어요! (F3)'),
-                  ),
+                  SnackBar(content: Text('${r.fromMasthead} 님과 친구가 되었어요!')),
                 );
               }
             },

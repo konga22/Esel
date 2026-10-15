@@ -10,6 +10,9 @@ import '../design/tokens.g.dart';
 class EselGlass extends StatelessWidget {
   final Widget child;
   final double borderRadius;
+
+  /// 모서리를 따로 줄 때. 로그인 시트는 위쪽만 28이다.
+  final BorderRadius? corners;
   final EdgeInsetsGeometry? padding;
   final double? width;
   final double? height;
@@ -22,6 +25,7 @@ class EselGlass extends StatelessWidget {
     super.key,
     required this.child,
     this.borderRadius = EselRadius.card,
+    this.corners,
     this.padding,
     this.width,
     this.height,
@@ -63,7 +67,7 @@ class EselGlass extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final highContrast = MediaQuery.maybeOf(context)?.highContrast ?? false;
-    final radius = BorderRadius.circular(borderRadius);
+    final radius = corners ?? BorderRadius.circular(borderRadius);
 
     if (solid || highContrast) {
       return Container(
@@ -98,6 +102,11 @@ class EselGlass extends StatelessWidget {
             padding: padding,
             decoration: BoxDecoration(
               color: EselGlassTokens.background,
+              borderRadius: radius,
+            ),
+            // CSS inset box-shadow처럼 안쪽 흰 선은 자리를 차지하지 않는다.
+            // decoration의 border로 두면 내용이 1px씩 안으로 밀린다.
+            foregroundDecoration: BoxDecoration(
               borderRadius: radius,
               border: border ?? Border.all(color: innerLine),
             ),

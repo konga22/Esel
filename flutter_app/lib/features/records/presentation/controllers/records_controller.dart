@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../../../../core/design/tokens.g.dart';
 import '../../domain/rules/restore_rule.dart';
 
 enum RecordType {
@@ -11,15 +12,15 @@ enum RecordType {
 class DayRecord {
   final int day;
   final RecordType type;
-  final String? colorKey;
+  final EselPaint? color;
 
-  const DayRecord({required this.day, required this.type, this.colorKey});
+  const DayRecord({required this.day, required this.type, this.color});
 
-  DayRecord copyWith({RecordType? type, String? colorKey}) {
+  DayRecord copyWith({RecordType? type, EselPaint? color}) {
     return DayRecord(
       day: day,
       type: type ?? this.type,
-      colorKey: colorKey ?? this.colorKey,
+      color: color ?? this.color,
     );
   }
 }
@@ -29,6 +30,9 @@ class RecordsController extends ChangeNotifier {
   int _usedRestores = 0;
 
   int get usedRestores => _usedRestores;
+
+  /// 화면 머리의 달(`2026. 9`). 기록 화면은 아직 시연 범위 밖이라 예시 달을 쓴다.
+  String get monthLabel => '${_today.year}. ${_today.month}';
   int get remainingRestores =>
       (RestoreRule.maxMonthlyRestores - _usedRestores).clamp(0, 2);
 
@@ -47,7 +51,7 @@ class RecordsController extends ChangeNotifier {
         _daysMap[day] = DayRecord(
           day: day,
           type: RecordType.published,
-          colorKey: day % 2 == 0 ? 'powder-blue' : 'sage',
+          color: day % 2 == 0 ? EselPaint.powder : EselPaint.sage,
         );
       } else {
         // 빈 날 (복원 대상: 3일, 4일)
@@ -80,13 +84,13 @@ class RecordsController extends ChangeNotifier {
     );
   }
 
-  bool restoreDay(int day, String colorKey) {
+  bool restoreDay(int day, EselPaint color) {
     if (!canRestore(day)) return false;
 
     _daysMap[day] = DayRecord(
       day: day,
       type: RecordType.restored,
-      colorKey: colorKey,
+      color: color,
     );
     _usedRestores++;
     notifyListeners();

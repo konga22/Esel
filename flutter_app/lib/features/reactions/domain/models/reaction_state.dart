@@ -33,5 +33,8 @@ class OwnerReactionStats {
     required this.readerLineCount,
   });
 
-  static const String privacyNotice = '오늘 n명이 읽었어요 · 나에게만 보여요';
+  /// "오늘 n명이 읽었어요 · 나에게만 보여요". 아직 아무도 읽지 않았으면 그렇게 말한다.
+  String get privacyNotice => readCount == 0
+      ? '아직 읽은 독자가 없어요 · 나에게만 보여요'
+      : '오늘 $readCount명이 읽었어요 · 나에게만 보여요';
 }

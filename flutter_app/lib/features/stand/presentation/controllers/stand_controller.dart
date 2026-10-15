@@ -1,131 +1,73 @@
 import 'package:flutter/foundation.dart';
+import '../../../../core/design/tokens.g.dart';
+import '../../../../core/errors/failures.dart';
+import '../../../../core/time/service_date.dart';
+import '../../data/sources/stand_source.dart';
+import '../../domain/models/stand_shelf.dart';
 import '../../domain/rules/same_color_rule.dart';
 
-class StandItem {
-  final String id;
-  final String masthead;
-  final String photoAsset;
-  final String colorKey;
-  final String issueNumber;
-  final String caption;
+export '../../domain/models/stand_shelf.dart';
 
-  const StandItem({
-    required this.id,
-    required this.masthead,
-    required this.photoAsset,
-    required this.colorKey,
-    required this.issueNumber,
-    required this.caption,
-  });
-}
-
+/// 가판대 상태. 데이터는 [StandSource](mock 또는 서버)에서만 받는다.
 class StandController extends ChangeNotifier {
-  String _selectedColorKey = 'powder-blue';
+  final StandSource source;
 
-  String get selectedColorKey => _selectedColorKey;
+  StandController(this.source);
 
-  final Map<String, List<StandItem>> _colorItemsMap = {
-    'powder-blue': [
-      const StandItem(
-        id: 'dana_249',
-        masthead: 'dana',
-        photoAsset: 'assets/demo/dana.jpg',
-        colorKey: 'powder-blue',
-        issueNumber: 'Nº 249',
-        caption: '난간에 기대서, 셔츠 하나로.',
-      ),
-      const StandItem(
-        id: 'm01_item',
-        masthead: 'seul',
-        photoAsset: 'assets/models/m01.jpg',
-        colorKey: 'powder-blue',
-        issueNumber: 'Nº 120',
-        caption: '바람이 불어오는 계절.',
-      ),
-      const StandItem(
-        id: 'm02_item',
-        masthead: 'min',
-        photoAsset: 'assets/models/m02.jpg',
-        colorKey: 'powder-blue',
-        issueNumber: 'Nº 088',
-        caption: '조용한 골목 끝에서.',
-      ),
-      const StandItem(
-        id: 'm03_item',
-        masthead: 'yoon',
-        photoAsset: 'assets/models/m03.jpg',
-        colorKey: 'powder-blue',
-        issueNumber: 'Nº 045',
-        caption: '빛이 머무는 자리.',
-      ),
-      const StandItem(
-        id: 'm04_item',
-        masthead: 'chae',
-        photoAsset: 'assets/models/m04.jpg',
-        colorKey: 'powder-blue',
-        issueNumber: 'Nº 012',
-        caption: '파란 오후의 공기.',
-      ),
-    ],
-    'sage': [
-      const StandItem(
-        id: 'm05_item',
-        masthead: 'arin',
-        photoAsset: 'assets/models/m05.jpg',
-        colorKey: 'sage',
-        issueNumber: 'Nº 099',
-        caption: '풀잎의 온기.',
-      ),
-      const StandItem(
-        id: 'm06_item',
-        masthead: 'haru',
-        photoAsset: 'assets/models/m06.jpg',
-        colorKey: 'sage',
-        issueNumber: 'Nº 054',
-        caption: '초록 사이로.',
-      ),
-    ],
-    'butter': [
-      const StandItem(
-        id: 'm07_item',
-        masthead: 'noah',
-        photoAsset: 'assets/models/m07.jpg',
-        colorKey: 'butter',
-        issueNumber: 'Nº 210',
-        caption: '오후 햇살 한 스푼.',
-      ),
-    ],
-  };
+  EselPaint? _selected;
+  StandShelf? _shelf;
+  bool _loading = false;
+  String? _error;
+  SameColorViewer? _viewer;
+  String? _viewerId;
+  int _request = 0;
 
-  void selectColor(String colorKey) {
-    _selectedColorKey = colorKey;
+  /// null이면 전체.
+  EselPaint? get selected => _selected;
+  StandShelf? get shelf => _shelf;
+  bool get isLoading => _loading;
+  String? get errorMessage => _error;
+
+  /// 보는 사람이 바뀌면(로그인·발행·자정) 다시 받는다.
+  void configure({required SameColorViewer viewer, String? viewerId}) {
+    final changed = _viewer != viewer || _viewerId != viewerId;
+    _viewer = viewer;
+    _viewerId = viewerId;
+    if (changed || _shelf == null) load();
+  }
+
+  void select(EselPaint? color) {
+    if (_selected == color && _shelf != null) return;
+    _selected = color;
+    load();
+  }
+
+  Future<void> load() async {
+    final viewer = _viewer;
+    if (viewer == null) return;
+    final request = ++_request;
+    _loading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final shelf = await source.shelf(
+        viewer: viewer,
+        viewerId: _viewerId,
+        color: _selected,
+      );
+      if (request != _request) return;
+      _shelf = shelf;
+    } on Failure catch (failure) {
+      if (request != _request) return;
+      _error = failure.message;
+    } catch (_) {
+      if (request != _request) return;
+      _error = '가판대를 불러오지 못했어요. 다시 시도해 주세요.';
+    }
+    _loading = false;
     notifyListeners();
   }
 
-  SameColorPreviewResult getRoomEvaluation({
-    required String mySelectedColorKey,
-    required bool hasPublishedToday,
-  }) {
-    final items = _colorItemsMap[_selectedColorKey] ?? [];
-    return SameColorRule.evaluateRoom(
-      roomColorKey: _selectedColorKey,
-      mySelectedColorKey: mySelectedColorKey,
-      hasPublishedToday: hasPublishedToday,
-      allCoverIdsInRoom: items.map((e) => e.id).toList(),
-    );
-  }
-
-  List<StandItem> getVisibleItems({
-    required String mySelectedColorKey,
-    required bool hasPublishedToday,
-  }) {
-    final eval = getRoomEvaluation(
-      mySelectedColorKey: mySelectedColorKey,
-      hasPublishedToday: hasPublishedToday,
-    );
-    final allItems = _colorItemsMap[_selectedColorKey] ?? [];
-    return allItems
-        .where((item) => eval.visibleCoverIds.contains(item.id))
-        .toList();
-  }
+  Future<int> sameColorCount(ServiceDate date, EselPaint color) =>
+      source.sameColorCount(date, color);
 }

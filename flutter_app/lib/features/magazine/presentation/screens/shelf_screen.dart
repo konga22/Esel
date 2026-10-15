@@ -1,66 +1,104 @@
 import 'package:flutter/material.dart';
 import '../../../../core/design/tokens.g.dart';
 import '../../../../core/design/typography.dart';
-import '../../../../core/ui/esel_button.dart';
+import '../../../../core/ui/esel_cover_mini.dart';
 import '../../../../core/ui/esel_paint_asset.dart';
 import '../../../../core/ui/esel_pressable.dart';
-import '../../../../core/ui/esel_image.dart';
-import '../../../reactions/presentation/controllers/reactions_controller.dart';
-import '../../domain/models/magazine_models.dart';
-import '../controllers/magazine_controller.dart';
+import '../../../drafts/domain/cover_draft.dart';
+import '../../../issue/domain/models/public_issue.dart';
+import '../../../issue/presentation/issue_photo.dart';
+import '../../../media/presentation/cover_photo.dart';
 import '../../../media/presentation/cover_preview.dart';
+import '../../../reactions/presentation/controllers/reactions_controller.dart';
+import '../../../stand/domain/rules/same_color_rule.dart';
+import '../controllers/magazine_controller.dart';
 
-class ShelfScreen extends StatelessWidget {
-  final String masthead;
+/// C5 서가(개인 잡지). 누른 사람의 잡지를 연다. 구독자 수 같은 숫자는 없다(P18).
+/// 지난 호는 결호 없이 하나씩 내려가고(P04), 표지/책등으로 본다.
+class ShelfScreen extends StatefulWidget {
+  final String ownerId;
+
+  /// 아직 호가 없는 내 잡지의 이름.
+  final String? masthead;
+  final bool isOwner;
   final MagazineController controller;
   final ReactionsController reactionsController;
-  final Function(IssueSummary issue) onSelectIssue;
+  final SameColorViewer viewer;
+  final String? viewerId;
+  final void Function(PublicIssue issue, CoverDraft? local) onSelectIssue;
   final VoidCallback onBack;
-  final bool isOwner;
 
   const ShelfScreen({
     super.key,
-    required this.masthead,
+    required this.ownerId,
     required this.controller,
     required this.reactionsController,
+    required this.viewer,
     required this.onSelectIssue,
     required this.onBack,
+    this.viewerId,
+    this.masthead,
     this.isOwner = false,
   });
 
   @override
+  State<ShelfScreen> createState() => _ShelfScreenState();
+}
+
+class _ShelfScreenState extends State<ShelfScreen> {
+  MagazineController get controller => widget.controller;
+
+  void _configure() => controller.configure(
+    ownerId: widget.ownerId,
+    viewer: widget.viewer,
+    viewerId: widget.viewerId,
+    masthead: widget.masthead,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _configure();
+  }
+
+  @override
+  void didUpdateWidget(ShelfScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _configure();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: Listenable.merge([controller, reactionsController]),
+      animation: Listenable.merge([controller, widget.reactionsController]),
       builder: (context, _) {
-        final profile = controller.getMagazineProfile(
-          masthead,
-          myIssueCount: 249,
-          hasPublishedToday: true,
-        );
-        final isSubscribed = reactionsController.isSubscribed(masthead);
-        final isSpines = controller.viewMode == ShelfViewMode.spines;
-
+        final profile = controller.profile;
         return Scaffold(
-          backgroundColor: EselTokens.paper,
+          backgroundColor: EselColors.paper,
           body: SafeArea(
+            bottom: false,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _buildTopBar(),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: EselTokens.space24,
-                  ),
-                  child: _buildProfileHeader(profile, isSubscribed),
-                ),
-                const SizedBox(height: EselTokens.space16),
-                _buildViewToggle(isSpines),
-                const SizedBox(height: EselTokens.space12),
                 Expanded(
-                  child: isSpines
-                      ? _buildSpinesView(profile)
-                      : _buildCoversView(profile),
+                  child: profile == null
+                      ? _buildStatus()
+                      : ListView(
+                          padding: const EdgeInsets.only(bottom: 120),
+                          children: [
+                            _buildHeader(profile),
+                            _buildShelfTitle(),
+                            const SizedBox(height: 8),
+                            if (profile.issues.isEmpty)
+                              _buildEmpty()
+                            else if (controller.viewMode ==
+                                ShelfViewMode.spines)
+                              _buildSpines(profile)
+                            else
+                              _buildCovers(profile),
+                          ],
+                        ),
                 ),
               ],
             ),
@@ -71,167 +109,223 @@ class ShelfScreen extends StatelessWidget {
   }
 
   Widget _buildTopBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: EselTokens.space16,
-        vertical: 8,
-      ),
+    return SizedBox(
+      height: 48,
       child: Row(
         children: [
+          const SizedBox(width: 6),
           EselPressable(
-            onTap: onBack,
+            semanticsLabel: '뒤로',
+            onTap: widget.onBack,
             child: const SizedBox(
               width: 48,
               height: 48,
               child: Icon(
                 Icons.arrow_back_ios_new,
                 size: 20,
-                color: EselTokens.ink,
+                color: EselColors.ink,
               ),
             ),
           ),
           const Spacer(),
+          Text(
+            'ESEL · 개인 잡지',
+            style: EselTypography.meta(color: EselColors.ink),
+          ),
+          const SizedBox(width: 18),
         ],
       ),
     );
   }
 
-  Widget _buildProfileHeader(MagazineProfile profile, bool isSubscribed) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              profile.masthead,
-              style: EselTypography.headlineLarge.copyWith(
-                fontWeight: FontWeight.w700,
+  Widget _buildStatus() {
+    final error = controller.errorMessage;
+    return Center(
+      child: error == null
+          ? const CircularProgressIndicator(strokeWidth: 2)
+          : Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                error,
+                textAlign: TextAlign.center,
+                style: EselTypography.body(color: EselColors.muted),
               ),
             ),
-            if (!isOwner)
-              EselButton(
-                label: isSubscribed ? '구독 중' : '구독',
-                isPrimary: !isSubscribed,
-                onTap: () => reactionsController.toggleSubscription(masthead),
-              ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text(
-          profile.bio,
-          style: EselTypography.bodyMedium.copyWith(color: EselTokens.inkMuted),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          '총 ${profile.totalIssues}호 발행 · 결호 없음',
-          style: EselTypography.caption.copyWith(color: EselTokens.inkSubtle),
-        ),
-      ],
     );
   }
 
-  Widget _buildViewToggle(bool isSpines) {
+  Widget _buildHeader(MagazineProfile profile) {
+    final subscribed = widget.reactionsController.isSubscribed(profile.ownerId);
+    final today = profile.todayColor;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: EselTokens.space24),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          EselPressable(
-            onTap: controller.toggleViewMode,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: EselTokens.paperWarm,
-                borderRadius: BorderRadius.circular(EselTokens.radiusPill),
-                border: Border.all(color: EselTokens.borderDefault),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    isSpines ? Icons.grid_view : Icons.view_column_outlined,
-                    size: 16,
-                    color: EselTokens.ink,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    isSpines ? '표지 보기' : '책등 보기',
-                    style: EselTypography.caption.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+          Semantics(
+            header: true,
+            label: '${profile.masthead}의 잡지',
+            child: ExcludeSemantics(
+              child: FittedBox(
+                alignment: Alignment.centerLeft,
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  profile.masthead,
+                  maxLines: 1,
+                  style: EselTypography.name(
+                    fontSize: 92,
+                  ).copyWith(height: 0.95, letterSpacing: -0.03 * 92),
+                ),
               ),
             ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (today != null)
+                      Row(
+                        children: [
+                          EselPaintAsset(paint: today, width: 52),
+                          const SizedBox(width: 6),
+                          Text(
+                            '오늘은 ${EselPaints.of(today).nameKo}',
+                            style: EselTypography.body(fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    Text(
+                      '${profile.totalIssues}호 발행',
+                      style: EselTypography.body(
+                        fontSize: 14,
+                        color: EselColors.muted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (!widget.isOwner)
+                EselPressable(
+                  semanticsLabel: subscribed ? '구독 중' : '구독',
+                  onTap: () => widget.reactionsController.toggleSubscription(
+                    profile.ownerId,
+                  ),
+                  child: Container(
+                    height: 44,
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: subscribed ? Colors.transparent : EselColors.ink,
+                      borderRadius: BorderRadius.circular(22),
+                      border: subscribed
+                          ? Border.all(color: EselColors.ink, width: 1.5)
+                          : null,
+                    ),
+                    child: Text(
+                      subscribed ? '구독 중' : '구독',
+                      style: EselTypography.label(
+                        fontSize: 15,
+                        color: subscribed ? EselColors.ink : EselColors.paper,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCoversView(MagazineProfile profile) {
-    if (profile.issues.isEmpty) {
-      return const Center(child: Text('아직 발행한 호가 없어요. 오늘의 표지를 만들어 보세요.'));
-    }
-    return GridView.builder(
-      padding: const EdgeInsets.all(EselTokens.space24),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 14,
-        mainAxisSpacing: 16,
-        childAspectRatio: 0.72,
+  Widget _buildShelfTitle() {
+    final spines = controller.viewMode == ShelfViewMode.spines;
+    Widget toggle(String label, bool active) => EselPressable(
+      semanticsLabel: '$label로 보기',
+      onTap: active ? null : controller.toggleViewMode,
+      child: SizedBox(
+        height: 44,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Center(
+            child: Text(
+              label,
+              style: EselTypography.label(
+                fontSize: 14,
+                fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+                color: active ? EselColors.ink : EselColors.muted,
+              ),
+            ),
+          ),
+        ),
       ),
-      itemCount: profile.issues.length,
-      itemBuilder: (context, idx) {
-        final issue = profile.issues[idx];
-        return EselPressable(
-          onTap: () => onSelectIssue(issue),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(EselTokens.radius14),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                if (issue.cover != null)
-                  FittedBox(
-                    child: SizedBox(
-                      width: 360,
-                      height: 480,
-                      child: CoverPreview(draft: issue.cover!),
-                    ),
-                  )
-                else
-                  EselAssetImage(issue.photoAsset, fit: BoxFit.cover),
-                Positioned(
-                  top: 10,
-                  left: 10,
-                  child: Text(
-                    issue.issueString,
-                    style: EselTypography.monoSmall.copyWith(
-                      color: Colors.white,
-                      shadows: [
-                        Shadow(
-                          color: Colors.black.withOpacity(0.6),
-                          blurRadius: 4,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 10,
-                  left: 10,
-                  child: Row(
+    );
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 14, 20, 10),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: EselColors.ink, width: 2)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text('지난 호', style: EselTypography.heading(fontSize: 21)),
+          ),
+          toggle('표지', !spines),
+          toggle('책등', spines),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmpty() => Padding(
+    padding: const EdgeInsets.fromLTRB(20, 32, 20, 0),
+    child: Text(
+      widget.isOwner
+          ? '아직 발행한 호가 없어요. 오늘 호를 만들면 첫 호가 여기에 꽂혀요.'
+          : '아직 보여 줄 호가 없어요.',
+      textAlign: TextAlign.center,
+      style: EselTypography.body(color: EselColors.muted),
+    ),
+  );
+
+  Widget _buildCovers(MagazineProfile profile) {
+    return LayoutBuilder(
+      builder: (context, box) {
+        final w = ((box.maxWidth - 40 - 2 * 8) / 3).floorToDouble();
+        final h = (w * 166 / 113).roundToDouble();
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final issue in profile.issues)
+                SizedBox(
+                  width: w,
+                  child: Column(
                     children: [
-                      EselPaintAsset(colorKey: issue.colorKey, size: 18),
-                      const SizedBox(width: 6),
-                      Text(
-                        issue.date,
-                        style: EselTypography.caption.copyWith(
-                          color: Colors.white,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black.withOpacity(0.6),
-                              blurRadius: 4,
+                      _cover(profile, issue, w, h),
+                      SizedBox(
+                        height: 26,
+                        child: Row(
+                          children: [
+                            Text(
+                              issue.issueLabel,
+                              style: EselTypography.meta(
+                                fontSize: 11,
+                                color: EselColors.ink,
+                              ),
+                            ),
+                            const Spacer(),
+                            Container(
+                              width: 22,
+                              height: 4,
+                              decoration: BoxDecoration(
+                                color: EselPaints.of(issue.color).color,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
                             ),
                           ],
                         ),
@@ -239,61 +333,126 @@ class ShelfScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-              ],
-            ),
+            ],
           ),
         );
       },
     );
   }
 
-  Widget _buildSpinesView(MagazineProfile profile) {
-    return ListView.separated(
-      padding: const EdgeInsets.all(EselTokens.space24),
-      itemCount: profile.issues.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemBuilder: (context, idx) {
-        final issue = profile.issues[idx];
-        return EselPressable(
-          onTap: () => onSelectIssue(issue),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              color: EselTokens.paperWarm,
-              borderRadius: BorderRadius.circular(EselTokens.radius12),
-              border: Border.all(color: EselTokens.borderDefault),
-            ),
-            child: Row(
-              children: [
-                EselPaintAsset(colorKey: issue.colorKey, size: 24),
-                const SizedBox(width: 14),
-                Text(
-                  issue.issueString,
-                  style: EselTypography.monoMedium.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Text(
-                    issue.caption,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: EselTypography.bodySmall,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  issue.date,
-                  style: EselTypography.caption.copyWith(
-                    color: EselTokens.inkSubtle,
-                  ),
-                ),
-              ],
+  Widget _cover(
+    MagazineProfile profile,
+    PublicIssue issue,
+    double w,
+    double h,
+  ) {
+    final local = profile.localCovers[issue.id];
+    final label = '${issue.issueLabel} 표지 보기';
+    if (local != null) {
+      return EselPressable(
+        semanticsLabel: label,
+        onTap: () => widget.onSelectIssue(issue, local),
+        child: SizedBox(
+          width: w,
+          height: h,
+          child: FittedBox(
+            fit: BoxFit.cover,
+            clipBehavior: Clip.hardEdge,
+            child: SizedBox(
+              width: 360,
+              height: 480,
+              child: CoverPreview(draft: local),
             ),
           ),
-        );
-      },
+        ),
+      );
+    }
+    return EselCoverMini(
+      author: issue.masthead,
+      masthead: issue.masthead,
+      photo: issuePhotoProvider(issue.photo),
+      alt: issue.alt,
+      width: w,
+      height: h,
+      showAuthor: false,
+      semanticsLabel: label,
+      photoChild: CoverPhoto(
+        image: issuePhotoProvider(issue.photo),
+        photoRatio: issue.photoRatio,
+        face: issue.face,
+        mode: issue.faceMode,
+        paint: issue.color,
+        semanticLabel: issue.alt,
+      ),
+      onTap: () => widget.onSelectIssue(issue, null),
+    );
+  }
+
+  Widget _buildSpines(MagazineProfile profile) {
+    const dark = {
+      EselPaint.burgundy,
+      EselPaint.olive,
+      EselPaint.charcoal,
+      EselPaint.cobalt,
+      EselPaint.terracotta,
+    };
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Wrap(
+        spacing: 5,
+        runSpacing: 18,
+        children: [
+          for (final issue in profile.issues)
+            EselPressable(
+              semanticsLabel:
+                  '${issue.issueLabel} · ${EselPaints.of(issue.color).nameKo} · ${issue.date.shortLabel}',
+              onTap: () =>
+                  widget.onSelectIssue(issue, profile.localCovers[issue.id]),
+              child: Container(
+                width: 22,
+                height: 196,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color: EselPaints.of(issue.color).color,
+                  border: const Border(
+                    right: BorderSide(color: Color(0x1F000000)),
+                    left: BorderSide(color: Color(0x59FFFFFF)),
+                  ),
+                ),
+                child: ExcludeSemantics(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      RotatedBox(
+                        quarterTurns: 1,
+                        child: Text(
+                          profile.masthead,
+                          maxLines: 1,
+                          style: EselTypography.spineOwner(
+                            color: dark.contains(issue.color)
+                                ? Colors.white
+                                : EselColors.ink,
+                          ),
+                        ),
+                      ),
+                      RotatedBox(
+                        quarterTurns: 1,
+                        child: Text(
+                          issue.issueLabel,
+                          style: EselTypography.spineIssue(
+                            color: dark.contains(issue.color)
+                                ? Colors.white
+                                : EselColors.ink,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
