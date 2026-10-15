@@ -1,25 +1,53 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../../core/design/tokens.g.dart';
 import '../../../../core/design/typography.dart';
+import '../../../../core/time/service_date.dart';
 import '../../../../core/ui/esel_button.dart';
-import '../../../../core/ui/esel_chip.dart';
+import '../../../../core/ui/esel_glass.dart';
 import '../../../../core/ui/esel_paint_asset.dart';
 import '../../../../core/ui/esel_pressable.dart';
-import '../../../../core/ui/esel_image.dart';
+import '../../../drafts/data/local_library.dart';
+import '../../../media/presentation/cover_preview.dart';
 import '../../domain/models/onboarding_draft.dart';
-import '../../domain/rules/masthead_rule.dart';
 import '../controllers/onboarding_controller.dart';
 
+/// 사진을 골라 기기 보관함에 들이고 그 경로를 돌려준다. 취소하면 null.
+typedef PickFoundingPhoto = Future<String?> Function(ImageSource source);
+
+/// 창간 J3~J7: 색 → 촬영 → 제호 → 얼굴 → 창간호(P13).
+///
+/// 한 화면에 결정 하나, 각 단계에 뒤로가기. 창간하기를 누르면 [onFound]가 계정·제호를
+/// 정하고 Nº 001을 실제로 발행한 뒤 [OnboardingController.markFounded]로 J7을 연다.
 class OnboardingScreen extends StatefulWidget {
   final OnboardingController controller;
   final VoidCallback onCancel;
-  final VoidCallback onComplete;
+
+  /// 계정을 확인하고 제호를 정한 뒤 창간호를 발행한다.
+  final Future<void> Function() onFound;
+  final VoidCallback onOpenFeed;
+  final VoidCallback onOpenMyMagazine;
+
+  /// 오늘의 후보 3색(P17).
+  final List<EselPaint> candidates;
+  final ServiceDate today;
+  final LocalLibrary library;
+
+  /// 테스트에서 사진 고르기를 바꿔 끼운다. 기본은 카메라·앨범(image_picker).
+  final PickFoundingPhoto? pickPhoto;
 
   const OnboardingScreen({
     super.key,
     required this.controller,
+    required this.candidates,
+    required this.today,
+    required this.library,
     required this.onCancel,
-    required this.onComplete,
+    required this.onFound,
+    required this.onOpenFeed,
+    required this.onOpenMyMagazine,
+    this.pickPhoto,
   });
 
   @override
@@ -27,425 +55,313 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  late final TextEditingController _nameTextController;
+  late final TextEditingController _name;
+  bool _busy = false;
+
+  OnboardingController get _c => widget.controller;
 
   @override
   void initState() {
     super.initState();
-    _nameTextController = TextEditingController(
-      text: widget.controller.draft.masthead,
-    );
+    _name = TextEditingController(text: _c.draft.masthead);
   }
 
   @override
   void dispose() {
-    _nameTextController.dispose();
+    _name.dispose();
     super.dispose();
+  }
+
+  void _message(String text) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+  }
+
+  Future<String?> _defaultPick(ImageSource source) async {
+    final file = await ImagePicker().pickImage(
+      source: source,
+      requestFullMetadata: false,
+    );
+    if (file == null) return null;
+    return widget.library.persistent
+        ? widget.library.importPhoto(file.path)
+        : widget.library.importPhotoBytes(await file.readAsBytes());
+  }
+
+  Future<void> _pick(ImageSource source) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      final path = await (widget.pickPhoto ?? _defaultPick)(source);
+      if (path == null || !mounted) return;
+      _c.setPhoto(path);
+      _c.nextStep();
+    } on PlatformException catch (error) {
+      _message(
+        error.code.contains('denied')
+            ? '카메라·사진 접근 권한이 필요해요. 기기 설정에서 허용한 뒤 다시 시도해 주세요.'
+            : '사진을 열지 못했어요. 다시 시도해 주세요.',
+      );
+    } on FormatException catch (error) {
+      _message(error.message);
+    } catch (_) {
+      _message('사진을 저장하지 못했어요. 기기 저장 공간을 확인해 주세요.');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _found() async {
+    if (_busy || !_c.canProceed()) return;
+    setState(() => _busy = true);
+    try {
+      await widget.onFound();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  void _back() {
+    if (_c.currentStep == OnboardingStep.color) {
+      widget.onCancel();
+    } else {
+      _c.prevStep();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: widget.controller,
+      animation: _c,
       builder: (context, _) {
-        final draft = widget.controller.draft;
-        return Scaffold(
-          backgroundColor: EselTokens.paper,
-          body: SafeArea(
-            child: Column(
-              children: [
-                _buildHeader(draft.step),
-                Expanded(child: _buildStepContent(draft)),
-                _buildBottomBar(draft),
-              ],
-            ),
-          ),
-        );
+        final draft = _c.draft;
+        return switch (draft.step) {
+          OnboardingStep.color => _buildColor(draft),
+          OnboardingStep.shoot => _buildShoot(draft),
+          OnboardingStep.name => _buildName(draft),
+          OnboardingStep.face => _buildFace(draft),
+          OnboardingStep.done => _buildDone(draft),
+        };
       },
     );
   }
 
-  Widget _buildHeader(OnboardingStep step) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: EselTokens.space20,
-        vertical: EselTokens.space12,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          if (step != OnboardingStep.color && step != OnboardingStep.done)
-            EselPressable(
-              onTap: widget.controller.prevStep,
-              child: const SizedBox(
-                width: 48,
-                height: 48,
-                child: Icon(
-                  Icons.arrow_back_ios_new,
-                  size: 20,
-                  color: EselTokens.ink,
-                ),
+  // ───────── 공통
+
+  EselPaint _colorOf(OnboardingDraft draft) =>
+      draft.color ?? widget.candidates.first;
+
+  Widget _page({
+    required int step,
+    required List<Widget> children,
+    required Widget bottom,
+  }) {
+    return Scaffold(
+      backgroundColor: EselColors.paper,
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _StepHeader(step: step, onBack: _back),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                children: children,
               ),
-            )
-          else
-            const SizedBox(width: 48),
-          Text(
-            _getStepTitle(step),
-            style: EselTypography.labelMedium.copyWith(
-              color: EselTokens.inkMuted,
             ),
-          ),
-          if (step != OnboardingStep.done)
-            EselPressable(
-              onTap: widget.onCancel,
-              child: const SizedBox(
-                width: 48,
-                height: 48,
-                child: Icon(Icons.close, size: 22, color: EselTokens.inkSubtle),
-              ),
-            )
-          else
-            const SizedBox(width: 48),
-        ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 22),
+              child: bottom,
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  String _getStepTitle(OnboardingStep step) {
-    switch (step) {
-      case OnboardingStep.color:
-        return '1 / 4 · 창간호의 색';
-      case OnboardingStep.shoot:
-        return '2 / 4 · 사진';
-      case OnboardingStep.name:
-        return '3 / 4 · 제호';
-      case OnboardingStep.face:
-        return '4 / 4 · 얼굴 연출';
-      case OnboardingStep.done:
-        return '창간 완료';
-    }
+  Widget _primary(String label, {required bool enabled, VoidCallback? onTap}) {
+    return EselButton(
+      label: label,
+      width: double.infinity,
+      enabled: enabled && !_busy,
+      onTap: onTap,
+    );
   }
 
-  Widget _buildStepContent(OnboardingDraft draft) {
-    switch (draft.step) {
-      case OnboardingStep.color:
-        return _buildColorStep(draft);
-      case OnboardingStep.shoot:
-        return _buildShootStep(draft);
-      case OnboardingStep.name:
-        return _buildNameStep(draft);
-      case OnboardingStep.face:
-        return _buildFaceStep(draft);
-      case OnboardingStep.done:
-        return _buildDoneStep(draft);
-    }
+  // ───────── J3 창간호의 색
+
+  Widget _buildColor(OnboardingDraft draft) {
+    final picked = _colorOf(draft);
+    final name = EselPaints.of(picked).nameKo;
+    return _page(
+      step: 1,
+      children: [
+        const SizedBox(height: 26),
+        Text(
+          '${widget.today.label} 오늘의 색',
+          style: EselTypography.meta(fontSize: 12),
+        ),
+        const SizedBox(height: 8),
+        Semantics(
+          header: true,
+          child: Text(
+            '창간호는\n어떤 색으로 할까요?',
+            style: EselTypography.heading(fontSize: 36).copyWith(height: 1.2),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          '고른 색의 옷·양말·가방 무엇이든 좋아요. 그 색으로 첫 표지를 찍어요.',
+          style: EselTypography.body(
+            color: EselColors.sub,
+          ).copyWith(height: 1.55),
+        ),
+        const SizedBox(height: 26),
+        for (final color in widget.candidates) ...[
+          _ColorChoice(
+            color: color,
+            selected: color == picked,
+            onTap: () => _c.selectColor(color),
+          ),
+          const SizedBox(height: 10),
+        ],
+      ],
+      bottom: _primary(
+        '${_withParticle(name, '로', '으로')} 찍기',
+        enabled: true,
+        onTap: () {
+          if (draft.color == null) _c.selectColor(picked);
+          _c.nextStep();
+        },
+      ),
+    );
   }
 
-  Widget _buildColorStep(OnboardingDraft draft) {
-    // 3 candidate colors for today
-    final candidates = [
-      {'id': 'powder-blue', 'label': '파우더 블루'},
-      {'id': 'sage', 'label': '세이지'},
-      {'id': 'butter', 'label': '버터'},
-    ];
+  // ───────── J4 촬영
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: EselTokens.space24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildShoot(OnboardingDraft draft) {
+    final color = _colorOf(draft);
+    final hasPhoto = draft.photoPath.isNotEmpty;
+    final name = EselPaints.of(color).nameKo;
+    return Scaffold(
+      backgroundColor: const Color(0xFF111210),
+      body: Stack(
+        fit: StackFit.expand,
         children: [
-          const SizedBox(height: EselTokens.space20),
-          Text(
-            '오늘의 후보 중에서\n창간호의 색을 골라주세요.',
-            style: EselTypography.headlineMedium.copyWith(
-              fontWeight: FontWeight.w600,
+          if (hasPhoto)
+            Image(
+              image: localPhotoProvider(draft.photoPath),
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => const SizedBox.shrink(),
             ),
-          ),
-          const SizedBox(height: EselTokens.space8),
-          Text(
-            '발행된 오늘 호의 색은 하루 동안 변경할 수 없습니다.',
-            style: EselTypography.bodyMedium.copyWith(
-              color: EselTokens.inkMuted,
-            ),
-          ),
-          const SizedBox(height: EselTokens.space40),
-          ...candidates.map((c) {
-            final isSelected = draft.selectedColorId == c['id'];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: EselTokens.space16),
-              child: EselPressable(
-                onTap: () => widget.controller.selectColor(c['id']!),
-                child: Container(
-                  padding: const EdgeInsets.all(EselTokens.space16),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? EselTokens.paperWarm
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(EselTokens.radius16),
-                    border: Border.all(
-                      color: isSelected
-                          ? EselTokens.ink
-                          : EselTokens.borderDefault,
-                      width: isSelected ? 1.5 : 1.0,
-                    ),
-                  ),
+          const _Shade(top: true, height: 200, opacity: 0.5),
+          const _Shade(top: false, height: 280, opacity: 0.65),
+          SafeArea(
+            child: Column(
+              children: [
+                _StepHeader(step: 2, onBack: _back, onPhoto: true),
+                const SizedBox(height: 10),
+                EselGlass(
+                  height: 44,
+                  borderRadius: 22,
+                  padding: const EdgeInsets.fromLTRB(8, 0, 16, 0),
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      EselPaintAsset(colorKey: c['id']!, size: 44),
-                      const SizedBox(width: EselTokens.space16),
+                      EselPaintAsset(paint: color, width: 52),
+                      const SizedBox(width: 4),
                       Text(
-                        c['label']!,
-                        style: EselTypography.bodyLarge.copyWith(
-                          fontWeight: isSelected
-                              ? FontWeight.w700
-                              : FontWeight.w500,
-                        ),
+                        '${_withParticle(name, '가', '이')} 보이게 찍어요',
+                        style: EselTypography.label(fontSize: 14),
                       ),
-                      const Spacer(),
-                      if (isSelected)
-                        const Icon(
-                          Icons.check_circle_rounded,
-                          color: EselTokens.ink,
-                          size: 24,
-                        ),
                     ],
                   ),
                 ),
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildShootStep(OnboardingDraft draft) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: EselTokens.space24),
-      child: Column(
-        children: [
-          const SizedBox(height: EselTokens.space12),
-          Text(
-            '오늘을 담은 사진 한 장',
-            style: EselTypography.headlineSmall.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: EselTokens.space6),
-          Text(
-            '얼굴이나 분위기가 담긴 사진을 골라주세요.',
-            style: EselTypography.bodySmall.copyWith(
-              color: EselTokens.inkMuted,
-            ),
-          ),
-          const SizedBox(height: EselTokens.space20),
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(EselTokens.radius20),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.asset(
-                    draft.photoAsset,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: EselTokens.paperWarm,
-                      child: const Center(
-                        child: Icon(
-                          Icons.photo_size_select_actual_outlined,
-                          size: 64,
+                Expanded(
+                  child: hasPhoto
+                      ? const SizedBox.shrink()
+                      : Center(
+                          child: Container(
+                            width: 325,
+                            margin: const EdgeInsets.symmetric(vertical: 24),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: const Color(0x8CFFFFFF),
+                                width: 1.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                ),
+                Text(
+                  '얼굴은 다음 단계에서 가릴 수 있어요.',
+                  style: EselTypography.body(fontSize: 14, color: Colors.white),
+                ),
+                const SizedBox(height: 18),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(30, 0, 30, 18),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      EselPressable(
+                        semanticsLabel: '앨범에서 고르기',
+                        onTap: () => _pick(ImageSource.gallery),
+                        child: Container(
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                          child: const Icon(
+                            Icons.photo_library_outlined,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: EselTokens.space20,
-                    right: EselTokens.space20,
-                    child: EselButton(
-                      label: '다른 사진 선택',
-                      isPrimary: false,
-                      icon: Icons.refresh_rounded,
-                      onTap: widget.controller.cycleNextPhoto,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: EselTokens.space16),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNameStep(OnboardingDraft draft) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: EselTokens.space24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: EselTokens.space20),
-          Text(
-            '나만의 잡지 제호를 정하세요.',
-            style: EselTypography.headlineMedium.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: EselTokens.space8),
-          Text(
-            '영문 소문자 2–10자 (소문자 a–z만 허용)',
-            style: EselTypography.bodyMedium.copyWith(
-              color: EselTokens.inkMuted,
-            ),
-          ),
-          const SizedBox(height: EselTokens.space32),
-          TextField(
-            controller: _nameTextController,
-            autofocus: true,
-            style: EselTypography.headlineMedium.copyWith(letterSpacing: 2),
-            onChanged: (val) {
-              widget.controller.updateMasthead(val);
-              // Ensure sanitized text stays in sync if filtered
-              if (_nameTextController.text !=
-                  widget.controller.draft.masthead) {
-                _nameTextController.value = TextEditingValue(
-                  text: widget.controller.draft.masthead,
-                  selection: TextSelection.collapsed(
-                    offset: widget.controller.draft.masthead.length,
-                  ),
-                );
-              }
-            },
-            decoration: InputDecoration(
-              hintText: 'esel',
-              filled: true,
-              fillColor: EselTokens.paperWarm,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(EselTokens.radius14),
-                borderSide: BorderSide.none,
-              ),
-              suffixIcon: draft.isNameAvailable
-                  ? const Icon(
-                      Icons.check_circle_outline,
-                      color: EselTokens.semanticGreen,
-                    )
-                  : const Icon(
-                      Icons.error_outline,
-                      color: EselTokens.semanticRed,
-                    ),
-            ),
-          ),
-          const SizedBox(height: EselTokens.space12),
-          if (draft.isNameAvailable)
-            Text(
-              '쓸 수 있는 이름이에요.',
-              style: EselTypography.caption.copyWith(
-                color: EselTokens.semanticGreen,
-              ),
-            )
-          else
-            Text(
-              '이미 사용 중이거나 올바르지 않은 제호입니다.',
-              style: EselTypography.caption.copyWith(
-                color: EselTokens.semanticRed,
-              ),
-            ),
-          const SizedBox(height: EselTokens.space40),
-          Center(
-            child: Text(
-              draft.masthead.isEmpty ? 'Esel' : draft.masthead,
-              style: EselTypography.mastheadHero.copyWith(
-                fontSize: MastheadRule.calculateFontSize(draft.masthead),
-                color: EselTokens.ink,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFaceStep(OnboardingDraft draft) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: EselTokens.space24),
-      child: Column(
-        children: [
-          const SizedBox(height: EselTokens.space12),
-          Text(
-            '얼굴 연출 선택',
-            style: EselTypography.headlineSmall.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: EselTokens.space6),
-          Text(
-            '표지에서 얼굴이 보여지는 방식을 정하세요.',
-            style: EselTypography.bodySmall.copyWith(
-              color: EselTokens.inkMuted,
-            ),
-          ),
-          const SizedBox(height: EselTokens.space16),
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(EselTokens.radius20),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  EselAssetImage(draft.photoAsset, fit: BoxFit.cover),
-                  if (draft.faceMode == FaceLayoutMode.paintStroke)
-                    Positioned(
-                      top: 130,
-                      left: 100,
-                      child: Opacity(
-                        opacity: 0.88,
-                        child: EselPaintAsset(
-                          colorKey: draft.selectedColorId,
-                          size: 100,
+                      EselPressable(
+                        semanticsLabel: '촬영',
+                        onTap: () => _pick(ImageSource.camera),
+                        child: Container(
+                          width: 82,
+                          height: 82,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 4),
+                          ),
+                          child: Container(
+                            width: 66,
+                            height: 66,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  Positioned(
-                    top: 40,
-                    left: 20,
-                    right: 20,
-                    child: Text(
-                      draft.masthead,
-                      textAlign: TextAlign.center,
-                      style: EselTypography.mastheadHero.copyWith(
-                        fontSize: 64,
-                        color: draft.faceMode == FaceLayoutMode.behindLogo
-                            ? Colors.white70
-                            : Colors.white,
-                      ),
-                    ),
+                      // 찍은 사진이 있으면 다시 찍지 않고 다음으로.
+                      hasPhoto
+                          ? EselPressable(
+                              semanticsLabel: '이 사진으로 다음',
+                              onTap: _c.nextStep,
+                              child: Container(
+                                width: 52,
+                                height: 52,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Color(0x2EFFFFFF),
+                                ),
+                                child: const Icon(
+                                  Icons.arrow_forward,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            )
+                          : const SizedBox(width: 52, height: 52),
+                    ],
                   ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: EselTokens.space16),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                _buildFaceChip('그대로', FaceLayoutMode.original, draft.faceMode),
-                const SizedBox(width: EselTokens.space8),
-                _buildFaceChip(
-                  '물감 살짝',
-                  FaceLayoutMode.paintStroke,
-                  draft.faceMode,
-                ),
-                const SizedBox(width: EselTokens.space8),
-                _buildFaceChip(
-                  '제호 뒤로',
-                  FaceLayoutMode.behindLogo,
-                  draft.faceMode,
-                ),
-                const SizedBox(width: EselTokens.space8),
-                _buildFaceChip(
-                  '목 아래',
-                  FaceLayoutMode.belowNeck,
-                  draft.faceMode,
                 ),
               ],
             ),
@@ -455,68 +371,658 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildFaceChip(
-    String label,
-    FaceLayoutMode mode,
-    FaceLayoutMode current,
+  // ───────── J5 제호
+
+  Widget _buildName(OnboardingDraft draft) {
+    final shown = draft.masthead.isEmpty ? 'esel' : draft.masthead;
+    final (hint, isError) = switch (draft.mastheadStatus) {
+      MastheadStatus.tooShort => ('영문 소문자 2~10자로 적어요.', false),
+      MastheadStatus.checking => ('쓸 수 있는 이름인지 확인하고 있어요.', false),
+      MastheadStatus.available => ('${draft.masthead} — 쓸 수 있는 이름이에요.', false),
+      MastheadStatus.taken => ('이미 있는 이름이에요. 다른 이름을 적어 주세요.', true),
+      MastheadStatus.unknown => ('이름을 확인하지 못했어요. 잠시 뒤 다시 적어 주세요.', true),
+    };
+    return _page(
+      step: 3,
+      children: [
+        const SizedBox(height: 20),
+        Semantics(
+          header: true,
+          child: Text(
+            '잡지 이름을 정해요',
+            style: EselTypography.heading(fontSize: 30).copyWith(height: 1.2),
+          ),
+        ),
+        const SizedBox(height: 18),
+        Center(
+          child: _CoverFrame(
+            width: 260,
+            height: 386,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                _photo(draft.photoPath),
+                const _Shade(top: true, fraction: 0.45, opacity: 0.4),
+                const Positioned(
+                  left: 10,
+                  right: 10,
+                  top: 8,
+                  child: _MetaRow(
+                    left: 'ESEL',
+                    right: 'Nº 001 · 창간호',
+                    fontSize: 8,
+                  ),
+                ),
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 20,
+                  child: _Masthead(text: shown, width: 260, max: 140),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 18),
+        Text(
+          '영문 닉네임 · 표지 제호가 돼요',
+          style: EselTypography.body(fontSize: 12, color: EselColors.muted),
+        ),
+        TextField(
+          key: const Key('founding-masthead'),
+          controller: _name,
+          autocorrect: false,
+          enableSuggestions: false,
+          keyboardType: TextInputType.name,
+          textCapitalization: TextCapitalization.none,
+          inputFormatters: [
+            TextInputFormatter.withFunction((old, next) {
+              final clean = _c.updateMasthead(next.text);
+              return TextEditingValue(
+                text: clean,
+                selection: TextSelection.collapsed(offset: clean.length),
+              );
+            }),
+          ],
+          style: EselTypography.heading(fontSize: 28).copyWith(height: 1.2),
+          decoration: const InputDecoration(
+            isDense: true,
+            contentPadding: EdgeInsets.symmetric(vertical: 10),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: EselColors.ink, width: 1.5),
+            ),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: EselColors.ink, width: 1.5),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          hint,
+          style: EselTypography.body(
+            fontSize: 13,
+            color: isError ? EselColors.error : EselColors.muted,
+          ),
+        ),
+      ],
+      bottom: _primary('다음', enabled: _c.canProceed(), onTap: _c.nextStep),
+    );
+  }
+
+  // ───────── J6 얼굴
+
+  Widget _buildFace(OnboardingDraft draft) {
+    final cover = draft.toCover(id: 'founding', now: DateTime(2026));
+    return _page(
+      step: 4,
+      children: [
+        const SizedBox(height: 20),
+        Semantics(
+          header: true,
+          child: Text(
+            '얼굴은 어떻게 할까요?',
+            style: EselTypography.heading(fontSize: 30).copyWith(height: 1.2),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          '호마다 바꿀 수 있어요. 가려도 표지는 똑같이 멋져요.',
+          style: EselTypography.body(fontSize: 14, color: EselColors.sub),
+        ),
+        const SizedBox(height: 20),
+        Center(
+          child: _CoverFrame(
+            width: 210,
+            height: 310,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                CoverPreview(
+                  draft: cover,
+                  editing: true,
+                  aspectRatio: null,
+                  chrome: false,
+                  onFacePosition: _c.placeFace,
+                ),
+                const IgnorePointer(
+                  child: _Shade(top: true, fraction: 0.45, opacity: 0.4),
+                ),
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 14,
+                  child: IgnorePointer(
+                    child: _Masthead(
+                      text: draft.masthead,
+                      width: 210,
+                      max: 110,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          draft.faceMode == FaceLayoutMode.belowNeck
+              ? (draft.facePlaced
+                    ? '턱 아래부터 표지를 채웠어요.'
+                    : '얼굴 위치는 다른 연출에서 먼저 정해 주세요.')
+              : draft.facePlaced
+              ? '얼굴 위치를 정했어요. 다시 누르면 옮겨져요.'
+              : '표지에서 얼굴 가운데를 눌러 위치를 정해 주세요.',
+          textAlign: TextAlign.center,
+          style: EselTypography.body(fontSize: 13, color: EselColors.muted),
+        ),
+        const SizedBox(height: 14),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 8,
+          crossAxisSpacing: 8,
+          childAspectRatio: 172 / 64,
+          children: [
+            for (final (mode, title, sub) in const [
+              (FaceLayoutMode.original, '그대로', '얼굴을 보여요'),
+              (FaceLayoutMode.paintStroke, '물감 한 획', '오늘의 색으로 가려요'),
+              (FaceLayoutMode.behindLogo, '제호 뒤로', '이름 뒤에 숨겨요'),
+              (FaceLayoutMode.belowNeck, '목 아래', '옷만 보여요'),
+            ])
+              _FaceCard(
+                title: title,
+                sub: sub,
+                selected: draft.faceMode == mode,
+                onTap: () => _c.selectFaceMode(mode),
+              ),
+          ],
+        ),
+      ],
+      bottom: _primary(
+        _busy ? '창간하는 중…' : '창간하기',
+        enabled: _c.canProceed(),
+        onTap: _found,
+      ),
+    );
+  }
+
+  // ───────── J7 창간호
+
+  Widget _buildDone(OnboardingDraft draft) {
+    final issue = draft.issue!;
+    final info = EselPaints.of(issue.color);
+    return Scaffold(
+      backgroundColor: const Color(0xFFD9D2C6),
+      body: LayoutBuilder(
+        builder: (context, box) {
+          final top = MediaQuery.paddingOf(context).top;
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              CoverPreview(draft: issue, aspectRatio: null, chrome: false),
+              const _Shade(top: true, height: 340, opacity: 0.42),
+              const _Shade(top: false, height: 420, opacity: 0.7),
+              Positioned(
+                left: 20,
+                right: 20,
+                top: top + 4,
+                child: _MetaRow(
+                  left: 'ESEL',
+                  right: 'Nº 001 · 창간호 · ${widget.today.label}',
+                  fontSize: 12,
+                ),
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                top: top + 30,
+                child: _Masthead(
+                  text: issue.masthead,
+                  width: box.maxWidth,
+                  max: 200,
+                ),
+              ),
+              Positioned(
+                left: 20,
+                right: 20,
+                bottom: MediaQuery.paddingOf(context).bottom + 12,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      '창간을 축하해요',
+                      style: EselTypography.meta(color: Colors.white),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${issue.masthead}의 첫 호가\n오늘 가판대에 올라갔어요.',
+                      style: EselTypography.heading(
+                        fontSize: 30,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        EselPaintAsset(paint: issue.color, width: 56),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${info.nameKo} · 같은 색 ${draft.sameColorCount}명과 함께',
+                          style: EselTypography.label(color: Colors.white),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    EselPressable(
+                      semanticsLabel: '오늘의 표지 보러 가기',
+                      onTap: widget.onOpenFeed,
+                      child: Container(
+                        height: EselSizes.button,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: EselColors.paper,
+                          borderRadius: BorderRadius.circular(
+                            EselSizes.button / 2,
+                          ),
+                        ),
+                        child: Text(
+                          '오늘의 표지 보러 가기',
+                          style: EselTypography.label(fontSize: 16),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    EselPressable(
+                      semanticsLabel: '내 잡지 보기',
+                      onTap: widget.onOpenMyMagazine,
+                      child: SizedBox(
+                        height: 48,
+                        child: Center(
+                          child: Text(
+                            '내 잡지 보기',
+                            style: EselTypography.label(
+                              fontSize: 15,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _photo(String path) => path.isEmpty
+      ? const ColoredBox(color: EselColors.photo)
+      : Image(
+          image: localPhotoProvider(path),
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => const ColoredBox(color: EselColors.photo),
+        );
+
+  /// 받침이 있으면 [withFinal], 없으면(또는 ㄹ 받침 + 로) [withoutFinal].
+  static String _withParticle(
+    String word,
+    String withoutFinal,
+    String withFinal,
   ) {
-    final isSelected = mode == current;
-    return EselChip(
-      label: label,
-      isActive: isSelected,
-      onTap: () => widget.controller.selectFaceMode(mode),
+    final last = word.codeUnitAt(word.length - 1) - 0xAC00;
+    if (last < 0 || last > 11171) return '$word$withoutFinal';
+    final jong = last % 28;
+    if (jong == 0) return '$word$withoutFinal';
+    if (withoutFinal == '로' && jong == 8) return '$word$withoutFinal';
+    return '$word$withFinal';
+  }
+}
+
+class _StepHeader extends StatelessWidget {
+  final int step;
+  final VoidCallback onBack;
+  final bool onPhoto;
+
+  const _StepHeader({
+    required this.step,
+    required this.onBack,
+    this.onPhoto = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = onPhoto ? Colors.white : EselColors.ink;
+    return Column(
+      children: [
+        SizedBox(
+          height: 48,
+          child: Row(
+            children: [
+              const SizedBox(width: 6),
+              EselPressable(
+                semanticsLabel: '이전',
+                onTap: onBack,
+                child: SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: Icon(Icons.arrow_back_ios_new, size: 20, color: fg),
+                ),
+              ),
+              const Spacer(),
+              Text('창간 $step / 4', style: EselTypography.meta(color: fg)),
+              const SizedBox(width: 18),
+            ],
+          ),
+        ),
+        if (!onPhoto)
+          ExcludeSemantics(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  for (var i = 1; i <= 4; i++) ...[
+                    if (i > 1) const SizedBox(width: 4),
+                    Expanded(
+                      child: Container(
+                        height: 2,
+                        decoration: BoxDecoration(
+                          color: i <= step ? EselColors.ink : EselColors.line,
+                          borderRadius: BorderRadius.circular(1),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
+}
 
-  Widget _buildDoneStep(OnboardingDraft draft) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: EselTokens.space24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: EselTokens.paperWarm,
-              borderRadius: BorderRadius.circular(EselTokens.radiusPill),
+class _ColorChoice extends StatelessWidget {
+  final EselPaint color;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _ColorChoice({
+    required this.color,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final info = EselPaints.of(color);
+    return Semantics(
+      selected: selected,
+      child: EselPressable(
+        semanticsLabel: info.nameKo,
+        onTap: onTap,
+        child: Container(
+          height: 92,
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          decoration: BoxDecoration(
+            color: selected ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(EselRadius.colorPick),
+            border: Border.all(
+              color: selected ? EselColors.ink : EselColors.hairline,
+              width: selected ? 1.5 : 1,
             ),
-            child: Text('Nº 001 · 창간호', style: EselTypography.monoSmall),
+            boxShadow: selected
+                ? const [
+                    BoxShadow(
+                      color: Color(0x14292A27),
+                      blurRadius: 18,
+                      offset: Offset(0, 6),
+                    ),
+                  ]
+                : null,
           ),
-          const SizedBox(height: EselTokens.space24),
-          Text(
-            draft.masthead,
-            style: EselTypography.mastheadHero.copyWith(
-              fontSize: MastheadRule.calculateFontSize(draft.masthead),
+          child: ExcludeSemantics(
+            child: Row(
+              children: [
+                EselPaintAsset(paint: color, width: 120),
+                const SizedBox(width: 16),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      info.nameKo,
+                      style: EselTypography.label(fontSize: 18),
+                    ),
+                    Text(
+                      info.nameEn,
+                      style: EselTypography.name(
+                        fontSize: 16,
+                        color: EselColors.muted,
+                      ),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                Container(
+                  width: 26,
+                  height: 26,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: selected ? EselColors.ink : Colors.transparent,
+                  ),
+                  child: selected
+                      ? const Icon(
+                          Icons.check,
+                          size: 16,
+                          color: EselColors.paper,
+                        )
+                      : null,
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: EselTokens.space16),
-          Text(
-            '축하합니다! 당신만의 잡지가 창간되었습니다.\n오늘부터 매일 하루 한 호를 발행해 보세요.',
-            textAlign: TextAlign.center,
-            style: EselTypography.bodyMedium.copyWith(
-              color: EselTokens.inkMuted,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
+}
 
-  Widget _buildBottomBar(OnboardingDraft draft) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: EselTokens.space24,
-        vertical: EselTokens.space16,
+class _FaceCard extends StatelessWidget {
+  final String title;
+  final String sub;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _FaceCard({
+    required this.title,
+    required this.sub,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = selected ? EselColors.paper : EselColors.ink;
+    return Semantics(
+      selected: selected,
+      child: EselPressable(
+        semanticsLabel: '$title · $sub',
+        onTap: onTap,
+        child: Container(
+          height: 64,
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: selected ? EselColors.ink : Colors.transparent,
+            borderRadius: BorderRadius.circular(EselRadius.card),
+            border: Border.all(color: EselColors.ink, width: 1.5),
+          ),
+          child: ExcludeSemantics(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: EselTypography.label(fontSize: 15, color: fg),
+                ),
+                Text(
+                  sub,
+                  style: EselTypography.body(
+                    fontSize: 12,
+                    color: fg.withValues(alpha: 0.8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
-      child: EselButton(
-        label: draft.step == OnboardingStep.done
-            ? '내 잡지 시작하기'
-            : (draft.step == OnboardingStep.face ? '창간호 발행 (Nº 001)' : '다음'),
-        isPrimary: true,
-        onTap: draft.step == OnboardingStep.done
-            ? widget.onComplete
-            : widget.controller.nextStep,
+    );
+  }
+}
+
+/// 미리보기 표지 틀(디자인: 그림자 0 14 36 rgba(41,42,39,0.2)).
+class _CoverFrame extends StatelessWidget {
+  final double width;
+  final double height;
+  final Widget child;
+
+  const _CoverFrame({
+    required this.width,
+    required this.height,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: width,
+    height: height,
+    clipBehavior: Clip.hardEdge,
+    decoration: const BoxDecoration(
+      color: EselColors.photo,
+      boxShadow: [
+        BoxShadow(
+          color: Color(0x33292A27),
+          blurRadius: 36,
+          offset: Offset(0, 14),
+        ),
+      ],
+    ),
+    child: child,
+  );
+}
+
+class _Masthead extends StatelessWidget {
+  final String text;
+  final double width;
+  final double max;
+
+  const _Masthead({required this.text, required this.width, required this.max});
+
+  @override
+  Widget build(BuildContext context) => ExcludeSemantics(
+    child: Text(
+      text,
+      textAlign: TextAlign.center,
+      maxLines: 1,
+      softWrap: false,
+      overflow: TextOverflow.visible,
+      style: EselTypography.masthead(
+        fontSize: EselTypography.mastheadSize(
+          text,
+          width,
+          max: max,
+        ).floorToDouble(),
+        color: Colors.white,
       ),
+    ),
+  );
+}
+
+class _MetaRow extends StatelessWidget {
+  final String left;
+  final String right;
+  final double fontSize;
+
+  const _MetaRow({
+    required this.left,
+    required this.right,
+    required this.fontSize,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final style = EselTypography.meta(fontSize: fontSize, color: Colors.white);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(left, style: style),
+        Text(right, style: style),
+      ],
+    );
+  }
+}
+
+/// 사진 위 글자를 위한 그림자(위·아래).
+class _Shade extends StatelessWidget {
+  final bool top;
+  final double? height;
+  final double? fraction;
+  final double opacity;
+
+  const _Shade({
+    required this.top,
+    this.height,
+    this.fraction,
+    required this.opacity,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Colors.black.withValues(alpha: opacity);
+    final shade = DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: top ? [dark, Colors.transparent] : [Colors.transparent, dark],
+        ),
+      ),
+    );
+    return Align(
+      alignment: top ? Alignment.topCenter : Alignment.bottomCenter,
+      child: fraction != null
+          ? FractionallySizedBox(
+              widthFactor: 1,
+              heightFactor: fraction,
+              child: shade,
+            )
+          : SizedBox(width: double.infinity, height: height, child: shade),
     );
   }
 }

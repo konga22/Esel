@@ -37,6 +37,6 @@ class TwinRule {
     return hasUserConsented && hasPartnerConsented;
   }
 
-  static bool doesAffectPersonalIssueCount() => false; // P09: 개인 호수에 무영향
-  static bool doesUnlockSameColorRoom() => false;      // P09: 같은 색 방 열지 않음
+  // P09: 트윈 게시는 개인 호수·기록·같은 색 잠금과 독립이다. 트윈 상태는 기기 보관함과
+  // TodayController에 닿지 않는다(twin_test가 확인).
 }

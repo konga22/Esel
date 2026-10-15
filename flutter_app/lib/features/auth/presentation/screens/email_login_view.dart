@@ -10,11 +10,15 @@ class EmailLoginView extends StatefulWidget {
   final VoidCallback onBack;
   final VoidCallback onSuccess;
 
+  /// 처음부터 회원가입 화면으로 연다(창간 끝의 계정 만들기).
+  final bool startInSignUp;
+
   const EmailLoginView({
     super.key,
     required this.authController,
     required this.onBack,
     required this.onSuccess,
+    this.startInSignUp = false,
   });
 
   @override
@@ -25,7 +29,7 @@ class _EmailLoginViewState extends State<EmailLoginView> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  bool _isSignUp = false;
+  late bool _isSignUp = widget.startInSignUp;
   bool _obscurePassword = true;
 
   @override

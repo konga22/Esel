@@ -208,7 +208,8 @@ export async function checkDev() {
   for (const s of screenIds) assert(usedScreens.has(s), `어느 기능에도 연결되지 않은 화면: ${s}`);
   for (const c of manifest.productContracts) assert(usedContracts.has(c), `어느 기능에도 배정되지 않은 계약: ${c}`);
   for (const [rel, text] of Object.entries(await generated())) {
-    const current = await readFile(path.join(root, rel), 'utf8').catch(() => '');
+    // Windows checkouts may turn LF into CRLF; compare content, not line endings.
+    const current = (await readFile(path.join(root, rel), 'utf8').catch(() => '')).replace(/\r\n/g, '\n');
     assert.equal(current, text, `${rel}가 최신이 아님. npm run dev:docs`);
   }
   return { features: dev.features.length, screens: dev.screens.length, done: dev.features.filter((f) => f.status === 'done').length };

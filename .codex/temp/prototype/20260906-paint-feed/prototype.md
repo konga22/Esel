@@ -58,7 +58,7 @@ flowchart LR
 
 `prototype-design`은 기존 앱과 분리된 비교 시안·캡처 기록에, `apple-design`은 작은 유리 재질과 중단 가능한 상단 움직임에, `mobile-design`은 노치·48px 터치 영역과 접근성 대응에 적용했다. `figma-flow-to-implementation`과 `cognitive-writing`은 스크린샷 해석·상태 흐름·검토 문서 정리에, `orchestrate-subagents`는 독립적인 여백·하단바 장단점 검토에 사용했다. 이번 후속 변경에서는 새 이미지를 생성하지 않았다.
 
-구현 범위와 전제: [UI 작업 문서](/Users/gimminsang/Desktop/Esel/.codex/temp/20260906-0210-feat-feed-chrome-ui-workflow.md).
+구현 범위와 전제: [UI 작업 문서](../../20260906-0210-feat-feed-chrome-ui-workflow.md).
 
 ## 설계 목표
 
@@ -127,7 +127,7 @@ flowchart LR
 
 ## 가정과 제한
 
-- 프로필과 닉네임은 기존 스톡 사진을 재사용한 가상의 샘플이다. 실제 이용자 계정이 아니다. 사진 출처는 `/Users/gimminsang/Desktop/Esel/assets/demo-sources.md`에 있다.
+- 프로필과 닉네임은 기존 스톡 사진을 재사용한 가상의 샘플이다. 실제 이용자 계정이 아니다. 사진 출처는 `assets/demo-sources.md`에 있다.
 - 모의 노치·상태바·홈 인디케이터는 화면 배치 확인용이며 아이폰 실기기 검증이 아니다.
 - 실제 가입, 카메라 촬영, 파일 업로드, 서버, 국가별 피드, 동일 색 잠금은 이번 시각 검토 범위 밖이다.
 - 내 전시의 샘플 기록과 좋아요는 새로고침하면 사라진다. 공유 주소는 이 서버가 켜진 동일 기기에서만 열 수 있다.

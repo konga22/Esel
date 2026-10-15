@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:esel/core/time/service_date.dart';
 import 'package:esel/features/drafts/data/local_library.dart';
 import 'package:esel/features/drafts/domain/cover_draft.dart';
 import 'package:esel/features/media/domain/models/face_layout_mode.dart';
@@ -32,7 +33,7 @@ void main() {
       draft('a').copyWith(
         faceMode: FaceLayoutMode.paintStroke,
         faceX: .7,
-        maskSize: .6,
+        faceWidth: .2,
         caption: '수정',
       ),
     );
@@ -136,33 +137,168 @@ void main() {
     expect(await source.readAsString(), 'not a photo');
     expect(library.drafts, isEmpty);
   });
-  test('local publication is persistent, rejects repeat day and keeps consecutive issues per owner', () async {
-    final first = await library.publish(draft('first'), 'owner-a', now: DateTime(2026, 10, 14));
-    expect(first.issueNumber, 1);
-    await expectLater(library.publish(draft('duplicate'), 'owner-a', now: DateTime(2026, 10, 14)), throwsFormatException);
-    final second = await library.publish(draft('second'), 'owner-a', now: DateTime(2026, 10, 15));
-    expect(second.issueNumber, 2);
-    await library.publish(draft('other'), 'owner-b', now: DateTime(2026, 10, 14));
+  test(
+    'local publication is persistent, rejects repeat day and keeps consecutive issues per owner',
+    () async {
+      final first = await library.publish(
+        draft('first'),
+        'owner-a',
+        on: const ServiceDate(2026, 10, 14),
+      );
+      expect(first.issueNumber, 1);
+      await expectLater(
+        library.publish(
+          draft('duplicate'),
+          'owner-a',
+          on: const ServiceDate(2026, 10, 14),
+        ),
+        throwsFormatException,
+      );
+      final second = await library.publish(
+        draft('second'),
+        'owner-a',
+        on: const ServiceDate(2026, 10, 15),
+      );
+      expect(second.issueNumber, 2);
+      await library.publish(
+        draft('other'),
+        'owner-b',
+        on: const ServiceDate(2026, 10, 14),
+      );
+      final reopened = LocalLibrary(directory);
+      await reopened.load();
+      expect(reopened.issuesFor('owner-a').map((d) => d.issueNumber), [2, 1]);
+      expect(reopened.issuesFor('owner-b').single.issueNumber, 1);
+      reopened.dispose();
+    },
+  );
+
+  test(
+    'in-memory library (web) keeps photo, draft and issue without files',
+    () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      final memory = LocalLibrary.inMemory();
+      addTearDown(memory.dispose);
+      await memory.load();
+      expect(memory.persistent, isFalse);
+      final onePixelPng = base64Decode(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+      );
+      final path = await memory.importPhotoBytes(onePixelPng);
+      expect(path, startsWith(memoryPhotoPrefix));
+      expect(localPhotoProvider(path), isA<MemoryImage>());
+      await memory.save(draft('m').copyWith(photoPath: path));
+      final issue = await memory.publish(
+        memory.drafts.single,
+        'owner',
+        on: const ServiceDate(2026, 10, 15),
+      );
+      expect(issue.issueNumber, 1);
+      expect(memory.issuesFor('owner').single.photoPath, path);
+    },
+  );
+
+  test('탈퇴하면 그 사람의 호·초안·사진, 내보낸 이미지, 쓰지 않는 사진까지 지운다', () async {
+    Future<String> photo(String name) async {
+      final file = File('${directory.path}/$name.png');
+      await file.writeAsBytes([1, 2, 3]);
+      return file.path;
+    }
+
+    final aIssue = await photo('a-issue');
+    final aDraft = await photo('a-draft');
+    final bIssue = await photo('b-issue');
+    final abandoned = await photo('abandoned');
+    final exports = Directory('${directory.path}/exports')..createSync();
+    File('${exports.path}/esel-1.png').writeAsBytesSync([1]);
+    // 사진첩 원본(보관함 밖)은 지우지 않는다.
+    final outside = await Directory.systemTemp.createTemp('esel-album-');
+    final original = File('${outside.path}/original.jpg')
+      ..writeAsBytesSync([9]);
+
+    await library.publish(
+      draft('a1').copyWith(photoPath: aIssue),
+      'owner-a',
+      on: const ServiceDate(2026, 10, 14),
+    );
+    await library.save(
+      draft('a2').copyWith(photoPath: aDraft, ownerId: 'owner-a'),
+    );
+    await library.save(
+      draft('a3').copyWith(photoPath: original.path, ownerId: 'owner-a'),
+    );
+    await library.publish(
+      draft('b1').copyWith(photoPath: bIssue),
+      'owner-b',
+      on: const ServiceDate(2026, 10, 14),
+    );
+
+    await library.deleteOwnerData('owner-a');
+
+    expect(library.drafts.map((d) => d.ownerId), everyElement('owner-b'));
+    expect(File(aIssue).existsSync(), isFalse);
+    expect(File(aDraft).existsSync(), isFalse);
+    expect(File(abandoned).existsSync(), isFalse);
+    expect(exports.existsSync(), isFalse);
+    expect(File(bIssue).existsSync(), isTrue);
+    expect(original.existsSync(), isTrue);
     final reopened = LocalLibrary(directory);
     await reopened.load();
-    expect(reopened.issuesFor('owner-a').map((d) => d.issueNumber), [2, 1]);
-    expect(reopened.issuesFor('owner-b').single.issueNumber, 1);
+    expect(reopened.issuesFor('owner-a'), isEmpty);
+    expect(reopened.issuesFor('owner-b'), hasLength(1));
     reopened.dispose();
+    await outside.delete(recursive: true);
   });
 
-  test('in-memory library (web) keeps photo, draft and issue without files', () async {
-    TestWidgetsFlutterBinding.ensureInitialized();
-    final memory = LocalLibrary.inMemory();
-    addTearDown(memory.dispose);
-    await memory.load();
-    expect(memory.persistent, isFalse);
-    final onePixelPng = base64Decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==');
-    final path = await memory.importPhotoBytes(onePixelPng);
-    expect(path, startsWith(memoryPhotoPrefix));
-    expect(localPhotoProvider(path), isA<MemoryImage>());
-    await memory.save(draft('m').copyWith(photoPath: path));
-    final issue = await memory.publish(memory.drafts.single, 'owner', now: DateTime(2026, 10, 15));
-    expect(issue.issueNumber, 1);
-    expect(memory.issuesFor('owner').single.photoPath, path);
+  test('초안을 지우면 그 초안만 쓰던 사진도 지운다', () async {
+    final file = File('${directory.path}/only.png')..writeAsBytesSync([1]);
+    final shared = File('${directory.path}/shared.png')..writeAsBytesSync([1]);
+    await library.save(draft('x').copyWith(photoPath: file.path));
+    await library.save(draft('y').copyWith(photoPath: shared.path));
+    await library.save(draft('z').copyWith(photoPath: shared.path));
+    await library.delete('x');
+    await library.delete('y');
+    expect(file.existsSync(), isFalse);
+    expect(shared.existsSync(), isTrue, reason: 'z가 아직 쓴다');
+  });
+
+  test('서버 모드와 시연 모드는 다른 보관함을 쓰고, 예전 시연 기록은 한 번만 옮겨 온다', () async {
+    final root = await Directory.systemTemp.createTemp('esel-root-');
+    addTearDown(() => root.delete(recursive: true));
+    // 예전: 두 모드가 esel-local 하나를 같이 썼다.
+    final legacy = LocalLibrary(Directory('${root.path}/esel-local'));
+    await legacy.load();
+    final mine = File('${legacy.directory!.path}/mine.png')
+      ..writeAsBytesSync([1, 2]);
+    await legacy.publish(
+      draft('m').copyWith(photoPath: mine.path),
+      'mock_me@esel.local',
+      on: const ServiceDate(2026, 10, 14),
+    );
+    await legacy.save(draft('s').copyWith(ownerId: ''));
+    legacy.dispose();
+
+    final mock = await LocalLibrary.open(mock: true, root: root);
+    expect(mock.directory!.path, endsWith('esel-mock'));
+    expect(mock.issuesFor('mock_me@esel.local'), hasLength(1));
+    final moved = mock.issuesFor('mock_me@esel.local').single.photoPath;
+    expect(moved, startsWith(mock.directory!.path));
+    expect(File(moved).existsSync(), isTrue);
+    expect(mock.drafts.where((d) => d.ownerId.isEmpty), isEmpty);
+
+    final server = await LocalLibrary.open(root: root);
+    expect(server.directory!.path, endsWith('esel-local'));
+    expect(server.drafts, hasLength(2), reason: '원래 폴더는 그대로');
+
+    // 시연 모드에서 새로 저장해도 서버 모드 보관함에는 섞이지 않는다.
+    await mock.save(draft('new').copyWith(ownerId: 'mock_me@esel.local'));
+    final reopenedServer = await LocalLibrary.open(root: root);
+    expect(reopenedServer.drafts.map((d) => d.id), isNot(contains('new')));
+    // 두 번째로 열 때는 다시 옮기지 않는다.
+    final again = await LocalLibrary.open(mock: true, root: root);
+    expect(again.drafts.map((d) => d.id), contains('new'));
+    for (final l in [mock, server, reopenedServer, again]) {
+      l.dispose();
+    }
   });
 }

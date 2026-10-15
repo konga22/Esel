@@ -6,6 +6,7 @@ class EselAssetImage extends StatelessWidget {
   final double? width;
   final double? height;
   final BoxFit fit;
+  final Alignment alignment;
   final Widget? fallback;
 
   const EselAssetImage(
@@ -14,6 +15,7 @@ class EselAssetImage extends StatelessWidget {
     this.width,
     this.height,
     this.fit = BoxFit.cover,
+    this.alignment = Alignment.center,
     this.fallback,
   });
 
@@ -24,6 +26,7 @@ class EselAssetImage extends StatelessWidget {
       width: width,
       height: height,
       fit: fit,
+      alignment: alignment,
       errorBuilder: (context, error, stackTrace) {
         return fallback ??
             Container(

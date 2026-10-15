@@ -178,7 +178,7 @@ ${spec('소셜 로그인', `<span style="display: flex; gap: 10px"><span style="
 <section style="display: flex; flex-direction: column; gap: 18px">
 ${h2('선택')}
 <div style="display: flex; gap: 32px; flex-wrap: wrap; align-items: flex-start">
-${spec('같은 색 칩 · 선택 / 내 색 발행 전 / 기본', `<span style="display: flex; gap: 8px">${chipSpec('전체', null, true)}${lockedChipSpec('camel')}${chipSpec('코발트', 'cobalt', false)}</span>`)}
+${spec('같은 색 칩 · 선택 / 오늘 후보 색 발행 전 / 기본', `<span style="display: flex; gap: 8px">${chipSpec('전체', null, true)}${lockedChipSpec('camel')}${chipSpec('코발트', 'cobalt', false)}</span>`)}
 ${spec('세그먼트 · 얼굴', segSpec(['그대로', '물감', '제호 뒤', '목 아래'], 1))}
 ${spec('색 고르기 · 선택', `<span style="width: 340px; height: 92px; display: flex; align-items: center; gap: 16px; padding: 0 18px; box-sizing: border-box; border-radius: 22px; background: #FFFFFF; box-shadow: inset 0 0 0 1.5px ${INK}, 0 6px 18px rgba(41, 42, 39, 0.08)">${paint('camel', 110, '', '')}<span style="display: flex; flex-direction: column"><span style="font-size: 18px; font-weight: 600">카멜</span><span style="font-family: ${SERIF}; font-style: italic; font-size: 16px; color: ${MUTED}">Camel</span></span><span style="margin-left: auto; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: ${INK}; color: ${PAPER}">${icon('check', 16, 2.2)}</span></span>`)}
 ${spec('반응 · 남의 표지 · 숫자 없음 / 좋아요', `<span style="display: flex; gap: 28px">${statsSpec(false)}${statsSpec(true)}</span>`)}

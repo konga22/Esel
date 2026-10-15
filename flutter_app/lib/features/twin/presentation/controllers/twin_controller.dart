@@ -1,23 +1,34 @@
 import 'package:flutter/foundation.dart';
+import '../../../../core/design/tokens.g.dart';
 import '../../domain/rules/twin_rule.dart';
 
 class TwinController extends ChangeNotifier {
-  String _partnerMasthead = 'seul';
+  String _partnerMasthead = 'elin';
   TwinStage _stage = TwinStage.revealed;
-  String _myColor = 'powder-blue';
-  final String _partnerColor = 'sage';
-  final String _myPhoto = 'assets/demo/dana.jpg';
-  final String _partnerPhoto = 'assets/models/m01.jpg';
+  EselPaint _myColor = EselPaint.powder;
+  final EselPaint _partnerColor = EselPaint.sage;
+  final String _myPhoto = 'assets/models/camel-02.jpg';
+  final String _partnerPhoto = 'assets/models/sage-01.jpg';
   TwinVisibility _visibility = TwinVisibility.jointPublic;
   bool _userConsented = false;
   final bool _partnerConsented = true;
 
   String get partnerMasthead => _partnerMasthead;
   TwinStage get stage => _stage;
-  String get myColor => _myColor;
-  String get partnerColor => _partnerColor;
+  EselPaint get myColor => _myColor;
+  EselPaint get partnerColor => _partnerColor;
   String get myPhoto => _myPhoto;
-  String? get visiblePartnerPhoto => (_stage == TwinStage.waitingForPartner) ? null : _partnerPhoto;
+  bool _userPosted = true;
+  bool _partnerPosted = true;
+
+  /// 상대 표지는 둘 다 게시한 뒤에만 보인다(P08).
+  String? get visiblePartnerPhoto =>
+      TwinRule.canRevealPartnerPhoto(
+        hasUserPosted: _userPosted,
+        hasPartnerPosted: _partnerPosted,
+      )
+      ? _partnerPhoto
+      : null;
   TwinVisibility get visibility => _visibility;
   bool get userConsented => _userConsented;
 
@@ -25,17 +36,27 @@ class TwinController extends ChangeNotifier {
     _partnerMasthead = partner;
     _stage = TwinStage.colorSelection;
     _userConsented = false;
+    _userPosted = false;
+    _partnerPosted = false;
     notifyListeners();
   }
 
-  void chooseColor(String colorKey) {
-    _myColor = colorKey;
+  void chooseColor(EselPaint color) {
+    _myColor = color;
     _stage = TwinStage.readyToPost;
     notifyListeners();
   }
 
   void postMyCover() {
-    _stage = TwinStage.revealed; // 상대도 이미 게시한 상태로 시뮬레이션
+    _userPosted = true;
+    _stage = _partnerPosted ? TwinStage.revealed : TwinStage.waitingForPartner;
+    notifyListeners();
+  }
+
+  /// 상대가 게시했다(서버 알림 자리. 시연에서는 화면이 부른다).
+  void partnerPosted() {
+    _partnerPosted = true;
+    if (_userPosted) _stage = TwinStage.revealed;
     notifyListeners();
   }
 
@@ -65,6 +86,8 @@ class TwinController extends ChangeNotifier {
 
   void reset() {
     _stage = TwinStage.revealed;
+    _userPosted = true;
+    _partnerPosted = true;
     _userConsented = false;
     notifyListeners();
   }

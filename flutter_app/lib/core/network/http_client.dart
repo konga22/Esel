@@ -97,7 +97,9 @@ class StandardHttpClient implements AppHttpClient {
         } finally {
           _refreshing = null;
         }
-        return _send(
+        // try 안에서는 기다린 뒤 돌려준다. 그래야 다시 보낸 요청의 오류도 아래 catch가
+        // 받고, finally의 client.close가 응답을 받기 전에 실행되지 않는다.
+        return await _send(
           method,
           path,
           body: body,
@@ -119,7 +121,7 @@ class StandardHttpClient implements AppHttpClient {
       );
     } on io.SocketException {
       throw const NetworkFailure(
-        '서버에 연결할 수 없어요. Docker 서버 실행 상태를 확인해 주세요.',
+        '서버에 연결할 수 없어요. 인터넷 연결을 확인하고 잠시 뒤 다시 시도해 주세요.',
         code: 'OFFLINE',
       );
     } on FormatException {

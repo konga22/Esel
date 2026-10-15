@@ -84,10 +84,12 @@
         "투명도 줄이기·고대비에서 글라스가 Paper 단색으로 바뀜"
       ],
       "tests": [
-        "flutter_app/test/core/tokens_test.dart"
+        "flutter_app/test/core/components_test.dart",
+        "flutter_app/test/core/phone_frame_test.dart",
+        "flutter_app/test/app/capsule_test.dart"
       ],
       "openDecisions": [],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-02",
@@ -112,13 +114,14 @@
       "client": [
         "flutter_app/lib/features/<기능>/domain/에 화면·네트워크와 무관한 순수 함수로 둔다",
         "팔레트는 12색 key(sage…cobalt)를 쓴다. 기준 구현의 sage·butter·blue·rare 4색은 옮기지 않는다",
-        "기준 구현의 테스트 59개(`npm run test:rules`)를 12색 기준으로 옮기고, 같은 이름의 경우를 모두 통과시킨다"
+        "기준 구현의 테스트 60개(`npm run test:rules`)를 12색 기준으로 옮기고, 같은 이름의 경우를 모두 통과시킨다"
       ],
       "server": [
         "같은 규칙을 서버 서비스 함수로도 구현한다. 클라이언트 판정은 보안 경계가 아니다"
       ],
       "acceptance": [
-        "sameColorRoom: 오늘 발행 전 최신 3장, 나머지는 개수만 반환",
+        "sameColorRoom: 오늘 발행 전에는 그날 후보 3색 방 모두 최신 3장, 나머지는 개수만 반환",
+        "발행 전에 색을 바꿔도 어느 후보 색 방도 열리지 않음(점검 보고서 H2), 후보가 아닌 색 방은 공개",
         "내 발행·자정 이후·미성년자는 방 전체 공개, 확정·복원·트윈 게시로는 열리지 않음",
         "하루 두 번째 발행은 거절, 개인 호수는 발행으로만 1 증가",
         "복원은 이번 달 지난 빈 날짜만, 월 2회, 게시·호수에 영향 없음",
@@ -135,7 +138,7 @@
         "같은 색 미리보기 3장을 고르는 기준(현재 최신순 가정)",
         "미성년자 판별 방법"
       ],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-03",
@@ -157,7 +160,7 @@
         "공개 응답 모델에는 좋아요·구독자·독자 한 줄·스크랩 수 필드를 두지 않는다(소유자용 타입에만)"
       ],
       "server": [
-        "서버 PR konga22/Esel#4 병합 후 Swagger(/api/docs)를 계약의 정본으로 삼는다"
+        "정본 관계: 경로·권한·오류 코드는 server/api-contract.json, 요청·응답 데이터 모양은 Swagger(/api/docs, 코드의 DTO)"
       ],
       "acceptance": [
         "모의 어댑터만으로 목업의 모든 흐름을 앱에서 끝까지 진행할 수 있음",
@@ -168,7 +171,7 @@
         "flutter_app/test/data/mock_contract_test.dart"
       ],
       "openDecisions": [],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-04",
@@ -189,7 +192,7 @@
       ],
       "client": [
         "제호 녹아들기와 작은 로고 값은 generator/scroll.mjs와 같게(위 48px, 아래 18px, 맨 위 360px, 크기 0.14)",
-        "React Native에서는 Animated/Reanimated의 네이티브 드라이버로 transform·opacity만 움직인다(새 라이브러리는 승인 후)"
+        "Flutter에서는 Transform·Opacity(AnimatedBuilder)로 transform·opacity만 움직인다(새 패키지는 승인 후)"
       ],
       "server": [
         "GET /api/today/cover: 비로그인용 오늘의 표지 1장과 안쪽 2쪽(숫자 없음)"
@@ -200,10 +203,11 @@
         "작은 로고를 누르면 맨 위로 이동하고 제호로 녹아듦"
       ],
       "tests": [
-        "flutter_app/test/features/intro/intro_test.dart"
+        "flutter_app/test/features/intro/intro_test.dart",
+        "server/test/contracts/today.e2e-spec.ts"
       ],
       "openDecisions": [],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-05",
@@ -236,14 +240,17 @@
         "로그인 후 원래 하려던 동작(예: 좋아요)으로 돌아감"
       ],
       "tests": [
-        "server/test/auth.e2e-spec.ts",
-        "flutter_app/test/features/auth/auth_flow_test.dart"
+        "flutter_app/test/features/auth/auth_test.dart",
+        "flutter_app/test/features/auth/login_sheet_test.dart",
+        "flutter_app/test/features/auth/real_auth_test.dart",
+        "flutter_app/test/app/profile_route_test.dart",
+        "server/test/contracts/auth.e2e-spec.ts"
       ],
       "openDecisions": [
         "Apple·Google 로그인 도입 시점",
         "이메일 인증 메일 발송 서비스"
       ],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-07",
@@ -276,13 +283,16 @@
         "발행 후 색 변경은 거절"
       ],
       "tests": [
-        "server/test/today.e2e-spec.ts"
+        "flutter_app/test/features/today/daily_candidates_test.dart",
+        "flutter_app/test/features/today/today_test.dart",
+        "flutter_app/test/app/day_boundary_test.dart",
+        "server/test/contracts/today.e2e-spec.ts"
       ],
       "openDecisions": [
         "후보 3색을 고르는 방식과 희귀 팔레트 확률",
         "시간대가 다른 사용자의 날짜 기준"
       ],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-08",
@@ -319,13 +329,13 @@
       ],
       "tests": [
         "flutter_app/test/features/media/face_layout_test.dart",
-        "server/test/media.e2e-spec.ts"
+        "server/test/contracts/media.e2e-spec.ts"
       ],
       "openDecisions": [
         "이미지 저장소(S3 호환·로컬 등)",
         "기기 얼굴 감지 방식"
       ],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-09",
@@ -356,14 +366,15 @@
       "acceptance": [
         "동시에 두 번 눌러도 호가 하나만 생김(DB unique)",
         "실패하면 호수가 오르지 않고 다시 시도할 수 있음",
-        "발행 후 가판대의 내 색 칩 자물쇠가 사라짐"
+        "발행 후 가판대의 후보 3색 칩 자물쇠가 모두 사라짐"
       ],
       "tests": [
-        "server/test/issues.e2e-spec.ts",
-        "flutter_app/test/features/publishing/make_test.dart"
+        "flutter_app/test/features/publishing/publishing_test.dart",
+        "flutter_app/test/features/today/today_test.dart",
+        "server/test/contracts/issues.e2e-spec.ts"
       ],
       "openDecisions": [],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-06",
@@ -405,13 +416,13 @@
       ],
       "tests": [
         "flutter_app/test/features/onboarding/join_test.dart",
-        "server/test/profile.e2e-spec.ts"
+        "server/test/contracts/profile.e2e-spec.ts"
       ],
       "openDecisions": [
         "닉네임 금칙어·예약어 목록",
         "한글만 쓰는 사용자의 제호"
       ],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-10",
@@ -435,25 +446,25 @@
       "client": [
         "이미 그린 지면은 다시 정렬하지 않고 뒤에만 붙임",
         "어두운 사진 표지는 흰 제호와 위·아래 그림자",
-        "발행 전에는 내 색 표지를 피드에서 빼고 '발행하면 함께 펼쳐집니다' 안내를 한 번 넣음"
+        "발행 전에는 오늘 후보 3색 표지를 피드에서 빼고 '발행하면 함께 펼쳐집니다' 안내를 한 번 넣음"
       ],
       "server": [
         "GET /api/feed?tab=all|subs&cursor=: 공개 권한 필터를 먼저 적용한 뒤 인기 혼합",
         "응답에 좋아요 수 등 숫자 없음"
       ],
       "acceptance": [
-        "발행 전 응답에 오늘 내 색 표지가 없음",
+        "발행 전 응답에 오늘 후보 3색 표지가 없음",
         "미래 날짜·잘못된 날짜 지면은 오지 않음",
         "30초 뒤 인기 혼합이 들어와도 이미 본 지면 순서가 바뀌지 않음"
       ],
       "tests": [
-        "server/test/feed.e2e-spec.ts",
+        "server/test/contracts/feed.e2e-spec.ts",
         "flutter_app/test/features/feed/feed_test.dart"
       ],
       "openDecisions": [
         "인기 혼합에 쓰는 내부 신호"
       ],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-11",
@@ -482,22 +493,23 @@
       ],
       "acceptance": [
         "남의 표지 응답에 숫자 필드가 없음",
-        "잠긴 표지(P01)의 id로 직접 요청하면 403/404",
+        "잠긴 표지(P01)의 id로 직접 요청하면 404(존재 여부를 알리지 않음)",
         "한 줄은 60자 이내, 빈 줄 거절"
       ],
       "tests": [
-        "server/test/reactions.e2e-spec.ts"
+        "flutter_app/test/features/issue/owner_numbers_test.dart",
+        "server/test/contracts/issues.e2e-spec.ts"
       ],
       "openDecisions": [
         "독자 한 줄 신고·삭제 정책"
       ],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-12",
       "phase": 3,
       "title": "가판대와 같은 색",
-      "summary": "가판대에서 12색 칩으로 오늘의 표지를 거른다. 내 색은 발행 전 자물쇠이고, 누르면 최신 3장과 흐린 책등만 보인다.",
+      "summary": "가판대에서 12색 칩으로 오늘의 표지를 거른다. 오늘 후보 3색은 발행 전 자물쇠이고, 누르면 최신 3장과 흐린 책등만 보인다.",
       "screens": [
         "C4",
         "C8",
@@ -520,18 +532,18 @@
         "preview일 때 4번째 이후 표지의 id·이름·이미지 URL을 응답에 넣지 않음"
       ],
       "acceptance": [
-        "발행 전 내 색 요청에 표지 3장과 hiddenCount만 옴",
+        "발행 전 후보 3색 요청에 표지 3장과 hiddenCount만 옴(고른 색을 바꿔도 같음)",
         "발행·자정 이후에는 전체",
-        "다른 색·지난 날짜는 발행 전에도 전체"
+        "후보가 아닌 색·지난 날짜는 발행 전에도 전체"
       ],
       "tests": [
-        "server/test/stand.e2e-spec.ts",
+        "server/test/contracts/stand.e2e-spec.ts",
         "flutter_app/test/features/stand/stand_test.dart"
       ],
       "openDecisions": [
         "미리보기 3장 선정 기준"
       ],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-13",
@@ -562,10 +574,11 @@
         "구독하면 피드 구독 탭에 나타남"
       ],
       "tests": [
-        "server/test/magazines.e2e-spec.ts"
+        "flutter_app/test/features/magazine/shelf_test.dart",
+        "server/test/contracts/magazines.e2e-spec.ts"
       ],
       "openDecisions": [],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-14",
@@ -592,14 +605,14 @@
         "GET /api/me/issues/{id}/reactions (소유자만)"
       ],
       "acceptance": [
-        "남의 issue id로 reactions를 부르면 403",
+        "볼 수 있는 남의 issue id로 reactions를 부르면 403, 볼 수 없는(잠긴·삭제된) 호면 404",
         "소유자 응답에만 숫자가 있음"
       ],
       "tests": [
-        "server/test/me.e2e-spec.ts"
+        "server/test/contracts/me.e2e-spec.ts"
       ],
       "openDecisions": [],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-15",
@@ -635,7 +648,7 @@
         "복원으로 issue_count가 바뀌지 않음"
       ],
       "tests": [
-        "server/test/records.e2e-spec.ts"
+        "server/test/contracts/records.e2e-spec.ts"
       ],
       "openDecisions": [
         "복원 후보 색(그날의 후보 3색 가정)"
@@ -673,7 +686,7 @@
         "같은 요청 중복 생성 불가"
       ],
       "tests": [
-        "server/test/friends.e2e-spec.ts"
+        "server/test/contracts/friends.e2e-spec.ts"
       ],
       "openDecisions": [
         "차단한 사람의 검색 노출"
@@ -727,7 +740,7 @@
         "상대 사진을 혼자 공개할 수 없음"
       ],
       "tests": [
-        "server/test/twins.e2e-spec.ts",
+        "server/test/contracts/twins.e2e-spec.ts",
         "flutter_app/test/features/twin/twin_test.dart"
       ],
       "openDecisions": [
@@ -756,7 +769,7 @@
         "DEV-17"
       ],
       "client": [
-        "React Native Share로 기기 공유 메뉴를 연다. 목업의 '메시지·다른 앱' 목록은 옮기지 않음",
+        "share_plus로 기기 공유 메뉴를 연다. 목업의 '메시지·다른 앱' 목록은 옮기지 않음",
         "링크 복사 후 상단 알림 '공유 링크를 복사했어요'"
       ],
       "server": [
@@ -768,7 +781,7 @@
         "링크 응답에 숫자·사용자 내부 ID 없음"
       ],
       "tests": [
-        "server/test/share.e2e-spec.ts"
+        "server/test/contracts/share.e2e-spec.ts"
       ],
       "openDecisions": [
         "링크를 앱 미설치자가 열었을 때의 웹 화면"
@@ -815,7 +828,7 @@
         "알림을 끄면 하위 알림이 비활성"
       ],
       "tests": [
-        "server/test/account.e2e-spec.ts"
+        "server/test/contracts/account.e2e-spec.ts"
       ],
       "openDecisions": [
         "제호 변경 허용 여부와 주기",
@@ -842,13 +855,18 @@
         "화면은 02 컴포넌트로 새로 그리고, 먼저 디자인 보드에 추가한 뒤 구현"
       ],
       "server": [
+        "POST /api/issues/:id/reports, POST /api/issues/:id/lines/:lineId/reports: 표지·독자 한 줄 신고",
+        "POST·DELETE /api/users/:masthead/block, GET /api/me/blocks: 차단과 차단 목록(개수 없이 cursor)",
+        "DELETE /api/issues/:id(owner): 내 호 삭제",
         "삭제한 호는 공개 응답·공유 링크·이미지 URL에서 모두 사라짐",
         "삭제 후 같은 색 방의 잠금 상태 재계산"
       ],
       "acceptance": [
         "차단한 사람의 표지·한 줄이 피드·가판대·서가에 나오지 않음"
       ],
-      "tests": [],
+      "tests": [
+        "server/test/contracts/moderation.e2e-spec.ts"
+      ],
       "openDecisions": [
         "신고 처리 주체와 기준",
         "삭제 후 재발행 허용 여부"

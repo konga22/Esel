@@ -80,14 +80,21 @@
     return { ...state, confirmed: true, post, history };
   }
 
+  // The palettes this person may publish with today. Rare joins only after a winning draw.
+  function candidates(state) {
+    return PALETTE_IDS.filter((id) => id !== 'rare' || state.rareEligible);
+  }
+
+  // Every candidate room stays at the preview until today's own publication (2026-10-15 decision),
+  // so switching the selected palette back and forth before publishing never opens a room.
   function canView(state, { date, paletteId }) {
     assertPalette(state, paletteId, false);
     if (!isCalendarDate(date)) return false;
     if (date < TODAY) return true;
     if (date > TODAY) return false;
-    if (paletteId !== state.selected) return true;
+    if (!candidates(state).includes(paletteId)) return true;
     if (state.minor) return true;
-    return Boolean(state.post && state.post.date === TODAY && state.post.paletteId === paletteId);
+    return Boolean(state.post && state.post.date === TODAY);
   }
 
   const newestFirst = (a, b) => (b.minute || 0) - (a.minute || 0) || String(a.id).localeCompare(String(b.id));
@@ -189,5 +196,5 @@
     return randomValue < 0.032;
   }
 
-  return { TODAY, MONTH, PREVIEW_COUNT, create, choose, confirm, publish, canView, sameColorRoom, restore, invite, acceptTwin, proposeTwinColor, approveTwinColor, declineTwinColor, publishTwin, simulateFriendPost, twinVisible, canChoose, isRareDraw };
+  return { TODAY, MONTH, PREVIEW_COUNT, create, choose, confirm, publish, candidates, canView, sameColorRoom, restore, invite, acceptTwin, proposeTwinColor, approveTwinColor, declineTwinColor, publishTwin, simulateFriendPost, twinVisible, canChoose, isRareDraw };
 });

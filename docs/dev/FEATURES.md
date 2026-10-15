@@ -4,20 +4,20 @@
 
 | ID | 기능 | 단계 | 목업 화면 | 계약 | 먼저 할 것 | 상태 |
 |---|---|---|---|---|---|---|
-| [DEV-01](#dev-01) | 디자인 토큰과 기본 UI | 0 기반 | — | P17 | — | todo |
-| [DEV-02](#dev-02) | 도메인 규칙 이식 | 0 기반 | — | P01 P02 P03 P04 P06 P07 P08 P09 P10 P14 P18 | — | todo |
-| [DEV-03](#dev-03) | API 계약과 모의 어댑터 | 0 기반 | — | P12 P18 | DEV-02 | todo |
-| [DEV-04](#dev-04) | 비로그인 첫 표지와 로그인 바 | 1 계정 | J1 J1b | P12 P16 | DEV-01 DEV-03 | todo |
-| [DEV-05](#dev-05) | 로그인 | 1 계정 | J2 | P12 | DEV-04 | todo |
-| [DEV-07](#dev-07) | 오늘의 색 | 2 창간·발행 | J3 | P03 P05 P17 | DEV-02 DEV-03 | todo |
-| [DEV-08](#dev-08) | 사진과 얼굴 연출 | 2 창간·발행 | J4 J6 C6 | P11 P15 | DEV-01 | todo |
-| [DEV-09](#dev-09) | 오늘 호 발행 | 2 창간·발행 | C6 C8b | P04 P01 | DEV-07 DEV-08 | todo |
-| [DEV-06](#dev-06) | 창간 | 2 창간·발행 | J3 J4 J5 J6 J7 | P13 P14 P15 P04 | DEV-05 DEV-07 DEV-08 DEV-09 | todo |
-| [DEV-10](#dev-10) | 표지 피드 | 3 읽기 | C1 C2 C7 | P01 P02 P16 P18 | DEV-09 | todo |
-| [DEV-11](#dev-11) | 펼침면과 독자 한 줄 | 3 읽기 | C3 | P12 P18 | DEV-10 | todo |
-| [DEV-12](#dev-12) | 가판대와 같은 색 | 3 읽기 | C4 C8 C8b | P01 P02 P18 | DEV-10 | todo |
-| [DEV-13](#dev-13) | 서가와 구독 | 3 읽기 | C5 C5b | P04 P18 | DEV-10 | todo |
-| [DEV-14](#dev-14) | 내 잡지와 반응 | 4 내 잡지 | M1 A4 | P18 | DEV-09 DEV-11 | todo |
+| [DEV-01](#dev-01) | 디자인 토큰과 기본 UI | 0 기반 | — | P17 | — | doing |
+| [DEV-02](#dev-02) | 도메인 규칙 이식 | 0 기반 | — | P01 P02 P03 P04 P06 P07 P08 P09 P10 P14 P18 | — | doing |
+| [DEV-03](#dev-03) | API 계약과 모의 어댑터 | 0 기반 | — | P12 P18 | DEV-02 | doing |
+| [DEV-04](#dev-04) | 비로그인 첫 표지와 로그인 바 | 1 계정 | J1 J1b | P12 P16 | DEV-01 DEV-03 | doing |
+| [DEV-05](#dev-05) | 로그인 | 1 계정 | J2 | P12 | DEV-04 | doing |
+| [DEV-07](#dev-07) | 오늘의 색 | 2 창간·발행 | J3 | P03 P05 P17 | DEV-02 DEV-03 | doing |
+| [DEV-08](#dev-08) | 사진과 얼굴 연출 | 2 창간·발행 | J4 J6 C6 | P11 P15 | DEV-01 | doing |
+| [DEV-09](#dev-09) | 오늘 호 발행 | 2 창간·발행 | C6 C8b | P04 P01 | DEV-07 DEV-08 | doing |
+| [DEV-06](#dev-06) | 창간 | 2 창간·발행 | J3 J4 J5 J6 J7 | P13 P14 P15 P04 | DEV-05 DEV-07 DEV-08 DEV-09 | doing |
+| [DEV-10](#dev-10) | 표지 피드 | 3 읽기 | C1 C2 C7 | P01 P02 P16 P18 | DEV-09 | doing |
+| [DEV-11](#dev-11) | 펼침면과 독자 한 줄 | 3 읽기 | C3 | P12 P18 | DEV-10 | doing |
+| [DEV-12](#dev-12) | 가판대와 같은 색 | 3 읽기 | C4 C8 C8b | P01 P02 P18 | DEV-10 | doing |
+| [DEV-13](#dev-13) | 서가와 구독 | 3 읽기 | C5 C5b | P04 P18 | DEV-10 | doing |
+| [DEV-14](#dev-14) | 내 잡지와 반응 | 4 내 잡지 | M1 A4 | P18 | DEV-09 DEV-11 | doing |
 | [DEV-15](#dev-15) | 월간 색 기록과 복원 | 4 내 잡지 | R1 R2 R3 R4 R5 | P06 P07 P03 | DEV-02 DEV-09 | todo |
 | [DEV-16](#dev-16) | 친구 | 5 관계 | F1 F2 F3 | P12 | DEV-06 | todo |
 | [DEV-17](#dev-17) | 트윈 | 5 관계 | T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T8private T8solo | P08 P09 P10 | DEV-16 DEV-08 | todo |
@@ -27,7 +27,7 @@
 
 ## DEV-01
 
-**디자인 토큰과 기본 UI** · 0단계 기반 · 상태 `todo`
+**디자인 토큰과 기본 UI** · 0단계 기반 · 상태 `doing`
 
 Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 파일 flutter_app/lib/core/design/tokens.g.dart에서만 가져오고, 02 컴포넌트 보드의 버튼·칩·세그먼트·입력·글라스 캡슐·시트·알림을 공용 컴포넌트로 만든다.
 
@@ -53,11 +53,13 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
-- `flutter_app/test/core/tokens_test.dart`
+- `flutter_app/test/core/components_test.dart`
+- `flutter_app/test/core/phone_frame_test.dart`
+- `flutter_app/test/app/capsule_test.dart`
 
 ## DEV-02
 
-**도메인 규칙 이식** · 0단계 기반 · 상태 `todo`
+**도메인 규칙 이식** · 0단계 기반 · 상태 `doing`
 
 같은 색 방(P01), 하루 한 호(P04), 색 복원(P06·P07), 트윈(P08~P10), 제호 규칙(P14), 숫자 공개 범위(P18)를 Flutter 앱의 순수 Dart 함수로 옮긴다. 기준 구현은 20260906-minimal-gallery/src/social-state.js와 앱 목업 app.js다.
 
@@ -67,7 +69,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 - flutter_app/lib/features/<기능>/domain/에 화면·네트워크와 무관한 순수 함수로 둔다
 - 팔레트는 12색 key(sage…cobalt)를 쓴다. 기준 구현의 sage·butter·blue·rare 4색은 옮기지 않는다
-- 기준 구현의 테스트 59개(`npm run test:rules`)를 12색 기준으로 옮기고, 같은 이름의 경우를 모두 통과시킨다
+- 기준 구현의 테스트 60개(`npm run test:rules`)를 12색 기준으로 옮기고, 같은 이름의 경우를 모두 통과시킨다
 
 **서버 (초안)**
 
@@ -75,7 +77,8 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **합격 기준**
 
-- sameColorRoom: 오늘 발행 전 최신 3장, 나머지는 개수만 반환
+- sameColorRoom: 오늘 발행 전에는 그날 후보 3색 방 모두 최신 3장, 나머지는 개수만 반환
+- 발행 전에 색을 바꿔도 어느 후보 색 방도 열리지 않음(점검 보고서 H2), 후보가 아닌 색 방은 공개
 - 내 발행·자정 이후·미성년자는 방 전체 공개, 확정·복원·트윈 게시로는 열리지 않음
 - 하루 두 번째 발행은 거절, 개인 호수는 발행으로만 1 증가
 - 복원은 이번 달 지난 빈 날짜만, 월 2회, 게시·호수에 영향 없음
@@ -96,7 +99,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 ## DEV-03
 
-**API 계약과 모의 어댑터** · 0단계 기반 · 상태 `todo`
+**API 계약과 모의 어댑터** · 0단계 기반 · 상태 `doing`
 
 화면이 서버 완성을 기다리지 않도록, 앱이 쓰는 API를 하나의 인터페이스로 정의하고 메모리 모의 구현과 HTTP 구현을 바꿔 끼울 수 있게 한다.
 
@@ -111,7 +114,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **서버 (초안)**
 
-- 서버 PR konga22/Esel#4 병합 후 Swagger(/api/docs)를 계약의 정본으로 삼는다
+- 정본 관계: 경로·권한·오류 코드는 server/api-contract.json, 요청·응답 데이터 모양은 Swagger(/api/docs, 코드의 DTO)
 
 **합격 기준**
 
@@ -125,7 +128,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 ## DEV-04
 
-**비로그인 첫 표지와 로그인 바** · 1단계 계정 · 상태 `todo`
+**비로그인 첫 표지와 로그인 바** · 1단계 계정 · 상태 `doing`
 
 앱을 처음 열면 오늘의 표지와 안쪽 2쪽까지 읽을 수 있고, 640px 지나면 캡슐 자리에서 로그인 바가 올라온다.
 
@@ -138,7 +141,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 **앱(Flutter)**
 
 - 제호 녹아들기와 작은 로고 값은 generator/scroll.mjs와 같게(위 48px, 아래 18px, 맨 위 360px, 크기 0.14)
-- React Native에서는 Animated/Reanimated의 네이티브 드라이버로 transform·opacity만 움직인다(새 라이브러리는 승인 후)
+- Flutter에서는 Transform·Opacity(AnimatedBuilder)로 transform·opacity만 움직인다(새 패키지는 승인 후)
 
 **서버 (초안)**
 
@@ -153,10 +156,11 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 **추가할 테스트**
 
 - `flutter_app/test/features/intro/intro_test.dart`
+- `server/test/contracts/today.e2e-spec.ts`
 
 ## DEV-05
 
-**로그인** · 1단계 계정 · 상태 `todo`
+**로그인** · 1단계 계정 · 상태 `doing`
 
 로그인 시트에서 계정으로 들어간다. 서버 계획상 이메일 가입·로그인과 refresh token 회전이 먼저이고, Apple·Google은 그 뒤다.
 
@@ -187,8 +191,11 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
-- `server/test/auth.e2e-spec.ts`
-- `flutter_app/test/features/auth/auth_flow_test.dart`
+- `flutter_app/test/features/auth/auth_test.dart`
+- `flutter_app/test/features/auth/login_sheet_test.dart`
+- `flutter_app/test/features/auth/real_auth_test.dart`
+- `flutter_app/test/app/profile_route_test.dart`
+- `server/test/contracts/auth.e2e-spec.ts`
 
 **사용자 결정이 필요한 것**
 
@@ -197,7 +204,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 ## DEV-07
 
-**오늘의 색** · 2단계 창간·발행 · 상태 `todo`
+**오늘의 색** · 2단계 창간·발행 · 상태 `doing`
 
 서버가 서비스 날짜마다 12색 중 후보 3개를 정하고, 사용자는 하나를 고른다. 발행하면 그날 색은 바꿀 수 없다.
 
@@ -225,7 +232,10 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
-- `server/test/today.e2e-spec.ts`
+- `flutter_app/test/features/today/daily_candidates_test.dart`
+- `flutter_app/test/features/today/today_test.dart`
+- `flutter_app/test/app/day_boundary_test.dart`
+- `server/test/contracts/today.e2e-spec.ts`
 
 **사용자 결정이 필요한 것**
 
@@ -234,7 +244,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 ## DEV-08
 
-**사진과 얼굴 연출** · 2단계 창간·발행 · 상태 `todo`
+**사진과 얼굴 연출** · 2단계 창간·발행 · 상태 `doing`
 
 사진을 찍거나 고르고, 얼굴 연출(그대로·물감 한 획·제호 뒤로·목 아래)을 기기 안에서 합성한 뒤 올린다.
 
@@ -266,7 +276,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 **추가할 테스트**
 
 - `flutter_app/test/features/media/face_layout_test.dart`
-- `server/test/media.e2e-spec.ts`
+- `server/test/contracts/media.e2e-spec.ts`
 
 **사용자 결정이 필요한 것**
 
@@ -275,7 +285,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 ## DEV-09
 
-**오늘 호 발행** · 2단계 창간·발행 · 상태 `todo`
+**오늘 호 발행** · 2단계 창간·발행 · 상태 `doing`
 
 오늘 호 만들기에서 표지 문구와 제호 색을 정해 발행한다. 발행은 하루 한 번이고, 성공하면 호수가 1 오르고 같은 색 방이 열린다.
 
@@ -300,16 +310,17 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 - 동시에 두 번 눌러도 호가 하나만 생김(DB unique)
 - 실패하면 호수가 오르지 않고 다시 시도할 수 있음
-- 발행 후 가판대의 내 색 칩 자물쇠가 사라짐
+- 발행 후 가판대의 후보 3색 칩 자물쇠가 모두 사라짐
 
 **추가할 테스트**
 
-- `server/test/issues.e2e-spec.ts`
-- `flutter_app/test/features/publishing/make_test.dart`
+- `flutter_app/test/features/publishing/publishing_test.dart`
+- `flutter_app/test/features/today/today_test.dart`
+- `server/test/contracts/issues.e2e-spec.ts`
 
 ## DEV-06
 
-**창간** · 2단계 창간·발행 · 상태 `todo`
+**창간** · 2단계 창간·발행 · 상태 `doing`
 
 처음 쓰는 사람은 색 → 촬영 → 제호 → 얼굴 연출 → 창간호 순서로 내 잡지를 만든다. 창간호 발행은 DEV-09의 발행과 같은 규칙이다.
 
@@ -339,7 +350,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 **추가할 테스트**
 
 - `flutter_app/test/features/onboarding/join_test.dart`
-- `server/test/profile.e2e-spec.ts`
+- `server/test/contracts/profile.e2e-spec.ts`
 
 **사용자 결정이 필요한 것**
 
@@ -348,7 +359,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 ## DEV-10
 
-**표지 피드** · 3단계 읽기 · 상태 `todo`
+**표지 피드** · 3단계 읽기 · 상태 `doing`
 
 피드의 첫 장만 표지이고 나머지는 안쪽 지면이다. 전체/구독 탭, 최신순에 가끔 인기 혼합, 반응 숫자는 보이지 않는다.
 
@@ -362,7 +373,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 - 이미 그린 지면은 다시 정렬하지 않고 뒤에만 붙임
 - 어두운 사진 표지는 흰 제호와 위·아래 그림자
-- 발행 전에는 내 색 표지를 피드에서 빼고 '발행하면 함께 펼쳐집니다' 안내를 한 번 넣음
+- 발행 전에는 오늘 후보 3색 표지를 피드에서 빼고 '발행하면 함께 펼쳐집니다' 안내를 한 번 넣음
 
 **서버 (초안)**
 
@@ -371,13 +382,13 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **합격 기준**
 
-- 발행 전 응답에 오늘 내 색 표지가 없음
+- 발행 전 응답에 오늘 후보 3색 표지가 없음
 - 미래 날짜·잘못된 날짜 지면은 오지 않음
 - 30초 뒤 인기 혼합이 들어와도 이미 본 지면 순서가 바뀌지 않음
 
 **추가할 테스트**
 
-- `server/test/feed.e2e-spec.ts`
+- `server/test/contracts/feed.e2e-spec.ts`
 - `flutter_app/test/features/feed/feed_test.dart`
 
 **사용자 결정이 필요한 것**
@@ -386,7 +397,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 ## DEV-11
 
-**펼침면과 독자 한 줄** · 3단계 읽기 · 상태 `todo`
+**펼침면과 독자 한 줄** · 3단계 읽기 · 상태 `doing`
 
 표지를 펼치면 큰 제목, 사진 2장, 반응, 독자 한 줄이 나온다. 한 줄을 남길 수 있다.
 
@@ -411,12 +422,13 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 **합격 기준**
 
 - 남의 표지 응답에 숫자 필드가 없음
-- 잠긴 표지(P01)의 id로 직접 요청하면 403/404
+- 잠긴 표지(P01)의 id로 직접 요청하면 404(존재 여부를 알리지 않음)
 - 한 줄은 60자 이내, 빈 줄 거절
 
 **추가할 테스트**
 
-- `server/test/reactions.e2e-spec.ts`
+- `flutter_app/test/features/issue/owner_numbers_test.dart`
+- `server/test/contracts/issues.e2e-spec.ts`
 
 **사용자 결정이 필요한 것**
 
@@ -424,9 +436,9 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 ## DEV-12
 
-**가판대와 같은 색** · 3단계 읽기 · 상태 `todo`
+**가판대와 같은 색** · 3단계 읽기 · 상태 `doing`
 
-가판대에서 12색 칩으로 오늘의 표지를 거른다. 내 색은 발행 전 자물쇠이고, 누르면 최신 3장과 흐린 책등만 보인다.
+가판대에서 12색 칩으로 오늘의 표지를 거른다. 오늘 후보 3색은 발행 전 자물쇠이고, 누르면 최신 3장과 흐린 책등만 보인다.
 
 **목업 화면**
 
@@ -446,13 +458,13 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **합격 기준**
 
-- 발행 전 내 색 요청에 표지 3장과 hiddenCount만 옴
+- 발행 전 후보 3색 요청에 표지 3장과 hiddenCount만 옴(고른 색을 바꿔도 같음)
 - 발행·자정 이후에는 전체
-- 다른 색·지난 날짜는 발행 전에도 전체
+- 후보가 아닌 색·지난 날짜는 발행 전에도 전체
 
 **추가할 테스트**
 
-- `server/test/stand.e2e-spec.ts`
+- `server/test/contracts/stand.e2e-spec.ts`
 - `flutter_app/test/features/stand/stand_test.dart`
 
 **사용자 결정이 필요한 것**
@@ -461,7 +473,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 ## DEV-13
 
-**서가와 구독** · 3단계 읽기 · 상태 `todo`
+**서가와 구독** · 3단계 읽기 · 상태 `doing`
 
 남의 이름을 누르면 그 사람의 잡지(서가)가 열린다. 지난 호를 표지/책등으로 보고 구독할 수 있다.
 
@@ -488,11 +500,12 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
-- `server/test/magazines.e2e-spec.ts`
+- `flutter_app/test/features/magazine/shelf_test.dart`
+- `server/test/contracts/magazines.e2e-spec.ts`
 
 ## DEV-14
 
-**내 잡지와 반응** · 4단계 내 잡지 · 상태 `todo`
+**내 잡지와 반응** · 4단계 내 잡지 · 상태 `doing`
 
 내 잡지에서 오늘 호, 지난 호, 메뉴(월간 색 기록·트윈·친구·설정)를 보고, 내 표지의 반응 수와 목록은 나만 본다.
 
@@ -514,12 +527,12 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **합격 기준**
 
-- 남의 issue id로 reactions를 부르면 403
+- 볼 수 있는 남의 issue id로 reactions를 부르면 403, 볼 수 없는(잠긴·삭제된) 호면 404
 - 소유자 응답에만 숫자가 있음
 
 **추가할 테스트**
 
-- `server/test/me.e2e-spec.ts`
+- `server/test/contracts/me.e2e-spec.ts`
 
 ## DEV-15
 
@@ -550,7 +563,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
-- `server/test/records.e2e-spec.ts`
+- `server/test/contracts/records.e2e-spec.ts`
 
 **사용자 결정이 필요한 것**
 
@@ -587,7 +600,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
-- `server/test/friends.e2e-spec.ts`
+- `server/test/contracts/friends.e2e-spec.ts`
 
 **사용자 결정이 필요한 것**
 
@@ -628,7 +641,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
-- `server/test/twins.e2e-spec.ts`
+- `server/test/contracts/twins.e2e-spec.ts`
 - `flutter_app/test/features/twin/twin_test.dart`
 
 **사용자 결정이 필요한 것**
@@ -650,7 +663,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **앱(Flutter)**
 
-- React Native Share로 기기 공유 메뉴를 연다. 목업의 '메시지·다른 앱' 목록은 옮기지 않음
+- share_plus로 기기 공유 메뉴를 연다. 목업의 '메시지·다른 앱' 목록은 옮기지 않음
 - 링크 복사 후 상단 알림 '공유 링크를 복사했어요'
 
 **서버 (초안)**
@@ -665,7 +678,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
-- `server/test/share.e2e-spec.ts`
+- `server/test/contracts/share.e2e-spec.ts`
 
 **사용자 결정이 필요한 것**
 
@@ -703,7 +716,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
-- `server/test/account.e2e-spec.ts`
+- `server/test/contracts/account.e2e-spec.ts`
 
 **사용자 결정이 필요한 것**
 
@@ -725,6 +738,9 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **서버 (초안)**
 
+- POST /api/issues/:id/reports, POST /api/issues/:id/lines/:lineId/reports: 표지·독자 한 줄 신고
+- POST·DELETE /api/users/:masthead/block, GET /api/me/blocks: 차단과 차단 목록(개수 없이 cursor)
+- DELETE /api/issues/:id(owner): 내 호 삭제
 - 삭제한 호는 공개 응답·공유 링크·이미지 URL에서 모두 사라짐
 - 삭제 후 같은 색 방의 잠금 상태 재계산
 
@@ -734,7 +750,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
-- 없음
+- `server/test/contracts/moderation.e2e-spec.ts`
 
 **사용자 결정이 필요한 것**
 

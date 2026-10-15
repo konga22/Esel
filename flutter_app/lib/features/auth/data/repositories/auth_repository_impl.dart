@@ -108,12 +108,14 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<bool> isMastheadAvailable(String masthead) async {
+    if (config.isMock) return !await mockSource.isMastheadTaken(masthead);
+    return remoteSource.isMastheadAvailable(masthead);
+  }
+
+  @override
   Future<AuthSession> createProfile(String masthead) async {
-    if (config.isMock) {
-      final session = mockSource.currentSession;
-      if (session == null) throw const AuthFailure('로그인이 필요해요.');
-      return session.copyWith(masthead: masthead);
-    }
+    if (config.isMock) return mockSource.createProfile(masthead);
     await remoteSource.httpClient.post(
       '/profile',
       body: {'masthead': masthead},

@@ -173,7 +173,8 @@ let S = fresh();
 let stack = [{ name: 'intro' }];
 
 const locked = () => S.auth === 'in' && !S.published && !S.me.minor;
-const visibleToday = (k) => !(locked() && PEOPLE[k].color === S.me.color);
+// P01 (10-15): before publishing, every one of today's candidate colors is at the preview, so switching color opens nothing.
+const visibleToday = (k) => !(locked() && TODAY_COLORS.includes(PEOPLE[k].color));
 const myIssue = () => S.me.issues + (S.published ? 0 : 1);
 const issueOf = (k) => (k === ME ? myIssue() : ISSUES[k] || 12);
 const meName = () => S.me.name;
@@ -446,14 +447,13 @@ function readerLine(r, t) {
 
 // C4 가판대
 function chips(active) {
-  const mine = S.me.color;
-  const lockChip = locked()
-    ? `<button type="button" class="chip locked${active === mine ? ' on' : ''}" data-go="same" aria-label="${cname(mine)} · 오늘 발행 전이라 세 장만 먼저 보여요"><span>${paintImg(mine, 40)}<span>${cname(mine)}</span>${icon('lock', 15, 1.8)}</span></button>`
-    : `<button type="button" class="chip${active === mine ? ' on' : ''}" data-go="stand:${mine}" aria-pressed="${active === mine}"><span id="mychip">${paintImg(mine, 40)}<span>${cname(mine)}</span></span></button>`;
+  const today = [S.me.color, ...TODAY_COLORS.filter((c) => c !== S.me.color)];
+  const lockChip = (c) => `<button type="button" class="chip locked${active === c ? ' on' : ''}" data-go="same:${c}" aria-label="${cname(c)} · 오늘 발행 전이라 세 장만 먼저 보여요"><span>${paintImg(c, 40)}<span>${cname(c)}</span>${icon('lock', 15, 1.8)}</span></button>`;
+  const openChip = (c) => `<button type="button" class="chip${active === c ? ' on' : ''}" data-go="stand:${c}" aria-pressed="${active === c}"><span${c === S.me.color ? ' id="mychip"' : ''}>${paintImg(c, 40)}<span>${cname(c)}</span></span></button>`;
   return `<div class="chips" role="group" aria-label="같은 색">
 <button type="button" class="chip plain${!active ? ' on' : ''}" data-go="stand" aria-pressed="${!active}"><span>전체</span></button>
-${lockChip}
-${ORDER.filter((c) => c !== mine).map((c) => `<button type="button" class="chip${active === c ? ' on' : ''}" data-go="stand:${c}" aria-pressed="${active === c}"><span>${paintImg(c, 40)}<span>${cname(c)}</span></span></button>`).join('')}
+${today.map((c) => (locked() ? lockChip(c) : openChip(c))).join('')}
+${ORDER.filter((c) => !today.includes(c)).map(openChip).join('')}
 </div>`;
 }
 function shelfGrid(keys, { rise = false } = {}) {
@@ -465,7 +465,7 @@ function shelfGrid(keys, { rise = false } = {}) {
   return rows.join('');
 }
 SCREENS.stand = (c) => {
-  if (c && c === S.me.color && locked()) return { redirect: { name: 'same' } };
+  if (c && TODAY_COLORS.includes(c) && locked()) return { redirect: { name: 'same', arg: c } };
   let keys = FEED.filter(visibleToday).filter((k) => !c || PEOPLE[k].color === c);
   if (S.published && (!c || c === S.me.color)) keys = [ME, ...keys];
   return {
@@ -482,10 +482,10 @@ ${c ? `<div style="flex-shrink:0;height:40px;display:flex;align-items:center;gap
   };
 };
 
-// C8 같은 색 · 발행 전 (P01: three newest covers, the rest are closed spines; opens on own publish or at midnight)
+// C8 같은 색 · 발행 전 (P01: every candidate color shows three newest covers, the rest are closed spines; opens on own publish or at midnight)
 const LOCK_FACE = { leo: { style: 'neck', mastColor: INK }, noor: { style: 'behind' }, mara: { fs: 38 } };
-SCREENS.same = () => {
-  const c = S.me.color;
+SCREENS.same = (color) => {
+  const c = color || S.me.color;
   const room = FEED.filter((k) => PEOPLE[k].color === c).sort((a, b) => minutes(PEOPLE[b].time) - minutes(PEOPLE[a].time));
   if (!locked()) {
     const fx = S.justPublished;
@@ -499,7 +499,7 @@ ${chips(c)}
 <div style="display:flex;align-items:center;gap:6px;height:40px">${paintImg(c, 56)}<span style="font-size:15px;font-weight:600">오늘의 ${cname(c)} · ${sameCount(c)}명</span></div>
 ${fx ? `<p class="note" style="margin:0">발행해서 같은 색 표지가 모두 펼쳐졌어요.</p>` : ''}
 </div>
-<div class="scroll" id="scroller">${shelfGrid([ME, ...room], { rise: fx })}<div style="height:100px"></div></div>
+<div class="scroll" id="scroller">${shelfGrid(c === S.me.color ? [ME, ...room] : room, { rise: fx })}<div style="height:100px"></div></div>
 </div>`,
       capsule: 'stand',
       mount: (el) => { if (fx) $('#mychip', el)?.classList.add('unlock-fill'); },

@@ -4,16 +4,21 @@ import '../../../../core/design/typography.dart';
 import '../../../../core/ui/esel_button.dart';
 import '../../../../core/ui/esel_paint_asset.dart';
 import '../../../../core/ui/esel_pressable.dart';
-import '../../../../core/ui/esel_image.dart';
+import '../../../../core/time/service_date.dart';
+import '../../../drafts/domain/cover_draft.dart';
 import '../../../reactions/presentation/controllers/reactions_controller.dart';
-import '../controllers/magazine_controller.dart';
 import '../../../media/presentation/cover_preview.dart';
 
 class MyMagazineScreen extends StatelessWidget {
   final String masthead;
   final int issueCount;
   final bool hasPublishedToday;
-  final MagazineController controller;
+
+  /// 오늘 내 색(발행 전이면 고른 후보).
+  final EselPaint todayColor;
+
+  /// 오늘 발행한 호(없으면 null).
+  final CoverDraft? todayIssue;
   final ReactionsController reactionsController;
   final VoidCallback onMakeTodayIssue;
   final VoidCallback onOpenShelf;
@@ -28,7 +33,8 @@ class MyMagazineScreen extends StatelessWidget {
     required this.masthead,
     required this.issueCount,
     required this.hasPublishedToday,
-    required this.controller,
+    required this.todayColor,
+    this.todayIssue,
     required this.reactionsController,
     required this.onMakeTodayIssue,
     required this.onOpenShelf,
@@ -42,7 +48,7 @@ class MyMagazineScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: Listenable.merge([controller, reactionsController]),
+      animation: reactionsController,
       builder: (context, _) {
         final stats = reactionsController.getOwnerStats('my_today');
 
@@ -124,7 +130,7 @@ class MyMagazineScreen extends StatelessWidget {
           children: [
             Row(
               children: [
-                const EselPaintAsset(colorKey: 'powder-blue', size: 24),
+                EselPaintAsset(paint: todayColor, width: 24),
                 const SizedBox(width: 8),
                 Text('오늘 호가 아직 발행되지 않았습니다', style: EselTypography.labelSmall),
               ],
@@ -192,16 +198,7 @@ class MyMagazineScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  controller
-                          .getMagazineProfile(
-                            masthead,
-                            myIssueCount: issueCount,
-                            hasPublishedToday: hasPublishedToday,
-                          )
-                          .issues
-                          .firstOrNull
-                          ?.date ??
-                      '',
+                  ServiceDate.tryParse(todayIssue?.publishedOn)?.label ?? '',
                   style: EselTypography.caption.copyWith(
                     color: EselTokens.inkMuted,
                   ),
@@ -234,7 +231,7 @@ class MyMagazineScreen extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                '오늘 ${stats.readCount}명이 읽었어요 · 나에게만 보여요',
+                stats.privacyNotice,
                 style: EselTypography.caption.copyWith(
                   color: EselTokens.inkMuted,
                   fontWeight: FontWeight.w600,
@@ -257,24 +254,17 @@ class MyMagazineScreen extends StatelessWidget {
   }
 
   Widget _localCover() {
-    final issue = controller
-        .getMagazineProfile(
-          masthead,
-          myIssueCount: issueCount,
-          hasPublishedToday: hasPublishedToday,
-        )
-        .issues
-        .firstOrNull;
-    if (issue?.cover != null) {
-      return FittedBox(
-        child: SizedBox(
-          width: 360,
-          height: 480,
-          child: CoverPreview(draft: issue!.cover!),
-        ),
-      );
-    }
-    return const EselAssetImage('assets/demo/dana.jpg');
+    final issue = todayIssue;
+    if (issue == null) return const ColoredBox(color: EselColors.photo);
+    return FittedBox(
+      fit: BoxFit.cover,
+      clipBehavior: Clip.hardEdge,
+      child: SizedBox(
+        width: 360,
+        height: 480,
+        child: CoverPreview(draft: issue),
+      ),
+    );
   }
 
   Widget _buildReactionMetric(String label, String value) {

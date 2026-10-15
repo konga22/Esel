@@ -54,6 +54,15 @@ class AuthController extends ChangeNotifier {
     }
   }
 
+  /// 창간 제호가 쓸 수 있는지. 확인하지 못하면 null.
+  Future<bool?> isMastheadAvailable(String masthead) async {
+    try {
+      return await _repository.isMastheadAvailable(masthead);
+    } catch (_) {
+      return null;
+    }
+  }
+
   void clearError() {
     _errorMessage = null;
     notifyListeners();

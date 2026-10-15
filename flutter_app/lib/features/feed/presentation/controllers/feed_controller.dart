@@ -1,89 +1,78 @@
 import 'package:flutter/foundation.dart';
+import '../../../../core/errors/failures.dart';
+import '../../../stand/domain/rules/same_color_rule.dart';
+import '../../data/sources/feed_source.dart';
+import '../../domain/models/feed_page.dart';
 
-enum FeedTab { all, subs }
+export '../../domain/models/feed_page.dart';
 
-class FeedItem {
-  final String id;
-  final String masthead;
-  final String date;
-  final String issueNumber;
-  final String colorKey;
-  final String photoAsset;
-  final String secondPhotoAsset;
-  final String caption;
-  final int sameColorCount;
-  final bool isDarkCover;
-
-  const FeedItem({
-    required this.id,
-    required this.masthead,
-    required this.date,
-    required this.issueNumber,
-    required this.colorKey,
-    required this.photoAsset,
-    required this.secondPhotoAsset,
-    required this.caption,
-    required this.sameColorCount,
-    this.isDarkCover = false,
-  });
-}
-
+/// 표지 피드 상태. 데이터는 [FeedSource](mock 또는 서버)에서만 받는다.
 class FeedController extends ChangeNotifier {
-  FeedTab _currentTab = FeedTab.all;
+  final FeedSource source;
 
-  FeedTab get currentTab => _currentTab;
+  FeedController(this.source);
 
-  final List<FeedItem> _allItems = const [
-    FeedItem(
-      id: 'dana_249',
-      masthead: 'dana',
-      date: '2026. 9. 6',
-      issueNumber: 'Nº 249',
-      colorKey: 'powder-blue',
-      photoAsset: 'assets/demo/dana.jpg',
-      secondPhotoAsset: 'assets/models/m01.jpg',
-      caption: '난간에 기대서, 셔츠 하나로.',
-      sameColorCount: 187,
-      isDarkCover: false,
-    ),
-    FeedItem(
-      id: 'seul_120',
-      masthead: 'seul',
-      date: '2026. 9. 6',
-      issueNumber: 'Nº 120',
-      colorKey: 'sage',
-      photoAsset: 'assets/models/m01.jpg',
-      secondPhotoAsset: 'assets/models/m02.jpg',
-      caption: '바람이 불어오는 계절.',
-      sameColorCount: 142,
-      isDarkCover: true,
-    ),
-    FeedItem(
-      id: 'min_088',
-      masthead: 'min',
-      date: '2026. 9. 6',
-      issueNumber: 'Nº 088',
-      colorKey: 'butter',
-      photoAsset: 'assets/models/m02.jpg',
-      secondPhotoAsset: 'assets/models/m03.jpg',
-      caption: '조용한 골목 끝에서.',
-      sameColorCount: 95,
-      isDarkCover: false,
-    ),
-  ];
+  FeedTab _tab = FeedTab.all;
+  FeedPage? _page;
+  bool _loading = false;
+  String? _error;
 
-  void switchTab(FeedTab tab) {
-    _currentTab = tab;
-    notifyListeners();
+  SameColorViewer? _viewer;
+  bool _signedIn = false;
+  Set<String> _subscribed = const {};
+  int _request = 0;
+
+  FeedTab get currentTab => _tab;
+  FeedPage? get page => _page;
+  bool get isLoading => _loading;
+  String? get errorMessage => _error;
+
+  /// 보는 사람이 바뀌면(로그인·발행·자정·구독) 다시 받는다.
+  void configure({
+    required SameColorViewer viewer,
+    required bool signedIn,
+    required Set<String> subscribedOwnerIds,
+  }) {
+    final changed =
+        _viewer != viewer ||
+        _signedIn != signedIn ||
+        !setEquals(_subscribed, subscribedOwnerIds);
+    _viewer = viewer;
+    _signedIn = signedIn;
+    _subscribed = Set.of(subscribedOwnerIds);
+    if (changed || _page == null) load();
   }
 
-  List<FeedItem> getItems(Set<String> subscribedMastheads) {
-    if (_currentTab == FeedTab.all) {
-      return _allItems;
+  void switchTab(FeedTab tab) {
+    if (_tab == tab) return;
+    _tab = tab;
+    load();
+  }
+
+  Future<void> load() async {
+    final viewer = _viewer;
+    if (viewer == null) return;
+    final request = ++_request;
+    _loading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final page = await source.today(
+        viewer: viewer,
+        signedIn: _signedIn,
+        tab: _tab,
+        subscribedOwnerIds: _subscribed,
+      );
+      if (request != _request) return;
+      _page = page;
+    } on Failure catch (failure) {
+      if (request != _request) return;
+      _error = failure.message;
+    } catch (_) {
+      if (request != _request) return;
+      _error = '오늘의 표지를 불러오지 못했어요. 다시 시도해 주세요.';
     }
-    // 구독 탭 필터링
-    return _allItems
-        .where((i) => subscribedMastheads.contains(i.masthead))
-        .toList();
+    _loading = false;
+    notifyListeners();
   }
 }

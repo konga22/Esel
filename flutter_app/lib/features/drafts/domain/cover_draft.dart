@@ -2,14 +2,21 @@ import 'package:flutter/widgets.dart';
 import '../../../core/design/tokens.g.dart';
 import '../../media/domain/models/face_layout_mode.dart';
 
+/// 내 표지 초안(발행하면 issueNumber·publishedOn이 붙는다).
+///
+/// 얼굴 위치 [faceX]·[faceY]와 얼굴 폭 [faceWidth]는 사진에 대한 비율이다(디자인 생성기
+/// PEOPLE의 fx·fy·fw와 같은 뜻). 얼굴 연출(P15)은 이 값으로 계산한다.
 class CoverDraft {
+  /// 얼굴 폭 기본값(예시 인물 25명의 중간쯤).
+  static const double defaultFaceWidth = 0.16;
+
   final String id;
   final String photoPath;
   final String masthead;
   final String caption;
   final EselPaint color;
   final FaceLayoutMode faceMode;
-  final double faceX, faceY, maskSize, cropTop;
+  final double faceX, faceY, faceWidth;
   final bool faceConfirmed, whiteTitle;
   final DateTime updatedAt;
   final int issueNumber;
@@ -24,8 +31,7 @@ class CoverDraft {
     this.faceMode = FaceLayoutMode.original,
     this.faceX = .5,
     this.faceY = .3,
-    this.maskSize = .4,
-    this.cropTop = .35,
+    this.faceWidth = defaultFaceWidth,
     this.faceConfirmed = false,
     this.whiteTitle = true,
     required this.updatedAt,
@@ -41,8 +47,7 @@ class CoverDraft {
     FaceLayoutMode? faceMode,
     double? faceX,
     double? faceY,
-    double? maskSize,
-    double? cropTop,
+    double? faceWidth,
     bool? faceConfirmed,
     bool? whiteTitle,
     DateTime? updatedAt,
@@ -58,8 +63,7 @@ class CoverDraft {
     faceMode: faceMode ?? this.faceMode,
     faceX: faceX ?? this.faceX,
     faceY: faceY ?? this.faceY,
-    maskSize: maskSize ?? this.maskSize,
-    cropTop: cropTop ?? this.cropTop,
+    faceWidth: faceWidth ?? this.faceWidth,
     faceConfirmed: faceConfirmed ?? this.faceConfirmed,
     whiteTitle: whiteTitle ?? this.whiteTitle,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -86,8 +90,7 @@ class CoverDraft {
     'faceMode': faceMode.name,
     'faceX': faceX,
     'faceY': faceY,
-    'maskSize': maskSize,
-    'cropTop': cropTop,
+    'faceWidth': faceWidth,
     'faceConfirmed': faceConfirmed,
     'whiteTitle': whiteTitle,
     'updatedAt': updatedAt.toIso8601String(),
@@ -104,8 +107,13 @@ class CoverDraft {
     faceMode: FaceLayoutMode.values.byName(json['faceMode'] as String),
     faceX: (json['faceX'] as num).toDouble().clamp(0, 1),
     faceY: (json['faceY'] as num).toDouble().clamp(0, 1),
-    maskSize: (json['maskSize'] as num).toDouble().clamp(.15, .9),
-    cropTop: (json['cropTop'] as num).toDouble().clamp(0, .8),
+    // 이전 저장본은 물감 폭(maskSize, 표지 폭 비율)만 있어서 얼굴 폭 = 물감 폭 ÷ 2.15로 읽는다.
+    faceWidth:
+        ((json['faceWidth'] as num?)?.toDouble() ??
+                ((json['maskSize'] as num?)?.toDouble() ??
+                        defaultFaceWidth * 2.15) /
+                    2.15)
+            .clamp(.05, .45),
     faceConfirmed: json['faceConfirmed'] as bool,
     whiteTitle: json['whiteTitle'] as bool,
     updatedAt: DateTime.parse(json['updatedAt'] as String),

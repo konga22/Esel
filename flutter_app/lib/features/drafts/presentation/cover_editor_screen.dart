@@ -73,6 +73,11 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
     });
   }
 
+  /// 그대로 연출인데 제호를 줄여도 얼굴에 닿는지(P15). 미리보기 표지 360×480 기준.
+  bool get _plainTouchesFace =>
+      _draft.photoPath.isNotEmpty &&
+      CoverPreview.plainMastheadTouchesFace(_draft, const Size(360, 480));
+
   void _undo() {
     if (_history.isEmpty) return;
     setState(() {
@@ -431,35 +436,28 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
             ),
             Text(
               _draft.faceMode == FaceLayoutMode.belowNeck
-                  ? '슬라이더로 얼굴이 보이지 않는 자르기 영역을 정해 주세요.'
-                  : '표지에서 얼굴 중심을 누르거나 움직여 위치를 정해 주세요.',
+                  ? '목 아래는 턱 아래부터 표지를 채워요. 얼굴 위치는 다른 연출에서 먼저 정해 주세요.'
+                  : '표지에서 얼굴 가운데를 누르거나 움직여 위치를 정해 주세요.',
             ),
-            if (_draft.faceMode == FaceLayoutMode.belowNeck)
-              Slider(
-                semanticFormatterCallback: (v) =>
-                    '위쪽 ${(v * 100).round()}퍼센트 자르기',
-                value: _draft.cropTop,
-                min: 0,
-                max: .8,
-                onChangeStart: (_) => _history.add(_draft),
-                onChanged: (v) => _edit(
-                  _draft.copyWith(cropTop: v, faceConfirmed: false),
-                  history: false,
-                ),
+            if (_plainTouchesFace)
+              Text(
+                '그대로에서는 제호가 얼굴에 닿아요. 물감 한 획이나 제호 뒤로를 골라 보세요.',
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
-            if (_draft.faceMode == FaceLayoutMode.paintStroke) ...[
-              const Text('물감 크기'),
-              Slider(
-                value: _draft.maskSize,
-                min: .15,
-                max: .9,
-                onChangeStart: (_) => _history.add(_draft),
-                onChanged: (v) => _edit(
-                  _draft.copyWith(maskSize: v, faceConfirmed: false),
-                  history: false,
-                ),
+            // 얼굴 크기는 물감 폭(얼굴 폭의 2.15배)과 목 아래 자르기(턱 위치)를 함께 정한다.
+            const Text('얼굴 크기'),
+            Slider(
+              semanticFormatterCallback: (v) =>
+                  '얼굴 폭 사진의 ${(v * 100).round()}퍼센트',
+              value: _draft.faceWidth.clamp(.05, .45),
+              min: .05,
+              max: .45,
+              onChangeStart: (_) => _history.add(_draft),
+              onChanged: (v) => _edit(
+                _draft.copyWith(faceWidth: v, faceConfirmed: false),
+                history: false,
               ),
-            ],
+            ),
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
               title: const Text('얼굴 위치와 연출을 확인했어요'),
