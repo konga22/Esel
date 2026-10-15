@@ -296,7 +296,7 @@ npm run mockup:build
 npm run dev:docs
 ```
 
-- `check:harness`: 문서 진입점·경로·자산, 생성기 `lib.mjs`와 `harness.json`의 색·인물·토큰 일치, 제호 규칙, 계약 ID, 보관 자료 표시(README 목록·맨 위 표시·등록 안 된 시안 폴더)를 확인한다. 미적 판정이나 보안 감사가 아니다.
+- `check:harness`: 문서 진입점·경로·자산, 생성기 `lib.mjs`와 `harness.json`의 색·인물·토큰 일치, 제호 규칙, 계약 ID, 보관 자료 표시(README 목록·맨 위 표시·등록 안 된 시안 폴더), Flutter 앱 경로와 디자인 글꼴 번들을 확인한다. 미적 판정이나 보안 감사가 아니다.
 - `test:rules`: 이전 HTML 프로토타입의 순수 기능 규칙 테스트(같은 색 공개와 발행 전 3장 미리보기, 트윈, 복구, 헤더 상태).
 - `design:build`: 생성기로 캔버스 화면 파일을 `generator/project/`에 다시 쓴다. 캔버스에는 이 파일을 올려야 반영된다.
 - `dev:docs`: [기능 목록](dev/features.json)에서 `FEATURES.md`를, `harness.json`의 토큰과 생성기 물감에서 `flutter_app/lib/core/design/tokens.g.dart`를 만든다. `check:harness`가 두 파일이 최신인지, 기능이 실제 목업 화면·계약에 연결됐는지, 완료 기능의 테스트 파일이 있는지 확인한다. `mockup:capture`는 목업을 상태별로 찍어 `docs/dev/screens/`를 다시 쓴다.

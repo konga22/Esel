@@ -23,7 +23,7 @@ const screenFiles = design.pages.flatMap(page => page.files.map(file => `${desig
 const paintFiles = Object.keys(manifest.colors).map(color => `${design.paint}/esel-paint-${color}.png`);
 const files = [...manifest.entrypoints, ...manifest.keyAssets, design.readme, design.library, ...screenFiles, ...paintFiles,
   ...Object.values(manifest.demoPeople), rules.source, rules.stateTests, rules.headerTests,
-  manifest.nativeApp.routes, manifest.nativeApp.source, ...manifest.evidence,
+  manifest.nativeApp.root, manifest.nativeApp.routes, manifest.nativeApp.source, manifest.nativeApp.tests, ...manifest.evidence,
   ...(manifest.appMockup ? [manifest.appMockup.readme, manifest.appMockup.build, ...manifest.appMockup.source] : [])];
 for (const file of files) await access(resolveLocal(file));
 
@@ -47,6 +47,13 @@ assert.equal(lib.ME, manifest.signedInDemoUser, '로그인 예시 사용자 불�
 assert.match('selin', new RegExp(manifest.foundingFlow.mastheadPattern), '제호 규칙이 예시 닉네임을 거부함');
 assert(lib.mastSize('magdalena', 393, 200) < lib.mastSize('Esel', 393, 200), '제호 맞춤 크기 규칙 오류');
 
+// The Flutter app must bundle the design fonts the harness names (Korean body text uses the device font).
+const pubspec = await readFile(resolveLocal(`${manifest.nativeApp.root}/pubspec.yaml`), 'utf8');
+const families = new Set(Object.values(manifest.typography).flatMap((t) => (t.family ?? '').split('+')).map((f) => f.replace(/ Italic$/, '').trim()).filter(Boolean));
+families.delete('Pretendard');
+for (const family of families) assert(pubspec.includes(`- family: ${family}\n`), `Flutter 앱에 디자인 글꼴이 없음: ${family} (${manifest.nativeApp.root}/pubspec.yaml)`);
+for (const match of pubspec.matchAll(/- asset: (assets\/fonts\/\S+)/g)) await access(resolveLocal(`${manifest.nativeApp.root}/${match[1]}`));
+
 const pkg = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
 for (const [name, command] of Object.entries(manifest.commands)) assert.equal(pkg.scripts[name], command, `실행 명령 불일치: ${name}`);
 assert.equal(new URL(rules.url).port, String(rules.port));
@@ -54,7 +61,7 @@ assert.equal(new URL(design.canvas).hostname, 'claude.ai');
 
 const agents = await readFile(resolveLocal('AGENTS.md'), 'utf8');
 assert(agents.includes('docs/ESEL_HARNESS.md') && agents.includes('harness.json'), 'AI 진입점 연결 누락');
-for (const file of ['README.md', design.readme, 'docs/ESEL_HARNESS.md', 'AGENTS.md', 'assets/models-sources.md', 'docs/design/README.md', manifest.appMockup?.readme, manifest.development?.guide, 'docs/dev/FEATURES.md', ...manifest.archive.map((a) => a.banner)].filter(Boolean)) {
+for (const file of ['README.md', design.readme, 'docs/ESEL_HARNESS.md', 'AGENTS.md', 'assets/models-sources.md', 'docs/design/README.md', manifest.appMockup?.readme, manifest.development?.guide, 'docs/dev/FEATURES.md', 'docs/flutter/MIDTERM_DEMO.md', 'docs/flutter/PROGRESS.md', `${manifest.nativeApp.root}/README.md`, ...manifest.archive.map((a) => a.banner)].filter(Boolean)) {
   const fullPath = resolveLocal(file);
   const markdown = await readFile(fullPath, 'utf8');
   for (const match of markdown.matchAll(/\]\(([^)]+)\)|<img src="([^"]+)"/g)) {
