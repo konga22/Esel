@@ -14,6 +14,9 @@ class PublishScreen extends StatefulWidget {
   final ValueChanged<int> onPublishSuccess;
   final VoidCallback onClose;
   final LocalLibrary library;
+
+  /// 오늘의 후보 3색(P17). 이 밖의 색으로는 발행하지 않는다.
+  final List<EselPaint> candidates;
   const PublishScreen({
     super.key,
     required this.controller,
@@ -24,6 +27,7 @@ class PublishScreen extends StatefulWidget {
     required this.onPublishSuccess,
     required this.onClose,
     required this.library,
+    required this.candidates,
   });
   @override
   State<PublishScreen> createState() => _PublishScreenState();
@@ -44,7 +48,7 @@ class _PublishScreenState extends State<PublishScreen> {
             photoPath: '',
             masthead: widget.masthead,
             ownerId: widget.ownerId,
-            color: EselPaint.camel,
+            color: widget.candidates.first,
             updatedAt: DateTime.now(),
           );
   }
@@ -72,7 +76,7 @@ class _PublishScreenState extends State<PublishScreen> {
     return CoverEditorScreen(
       library: widget.library,
       initial: _initial,
-      candidates: const [EselPaint.camel, EselPaint.lilac, EselPaint.olive],
+      candidates: widget.candidates,
       onClose: widget.onClose,
       onPublish: (draft) async {
         final issue = await widget.library.publish(draft, widget.ownerId);

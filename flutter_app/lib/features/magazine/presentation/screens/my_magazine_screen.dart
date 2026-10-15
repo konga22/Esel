@@ -13,6 +13,9 @@ class MyMagazineScreen extends StatelessWidget {
   final String masthead;
   final int issueCount;
   final bool hasPublishedToday;
+
+  /// 오늘 내 색(발행 전이면 고른 후보).
+  final EselPaint todayColor;
   final MagazineController controller;
   final ReactionsController reactionsController;
   final VoidCallback onMakeTodayIssue;
@@ -28,6 +31,7 @@ class MyMagazineScreen extends StatelessWidget {
     required this.masthead,
     required this.issueCount,
     required this.hasPublishedToday,
+    required this.todayColor,
     required this.controller,
     required this.reactionsController,
     required this.onMakeTodayIssue,
@@ -124,7 +128,7 @@ class MyMagazineScreen extends StatelessWidget {
           children: [
             Row(
               children: [
-                const EselPaintAsset(colorKey: 'powder-blue', size: 24),
+                EselPaintAsset(paint: todayColor, width: 24),
                 const SizedBox(width: 8),
                 Text('오늘 호가 아직 발행되지 않았습니다', style: EselTypography.labelSmall),
               ],

@@ -257,10 +257,10 @@ class _FeedScreenState extends State<FeedScreen> {
               const SizedBox(height: 10),
               Row(
                 children: [
-                  EselPaintAsset(colorKey: item.colorKey, size: 24),
+                  EselPaintAsset(paint: item.color, width: 24),
                   const SizedBox(width: 8),
                   Text(
-                    '파우더 블루 · 같은 색 ${item.sameColorCount}명',
+                    '${EselPaints.of(item.color).nameKo} · 같은 색 ${item.sameColorCount}명',
                     style: EselTypography.bodySmall.copyWith(
                       color: Colors.white,
                     ),
@@ -328,7 +328,7 @@ class _FeedScreenState extends State<FeedScreen> {
                       authorMasthead: item.masthead,
                       mainPhoto: item.photoAsset,
                       secondPhoto: item.secondPhotoAsset,
-                      colorKey: item.colorKey,
+                      color: item.color,
                       caption: item.caption,
                       issueNumber: item.issueNumber,
                       isOwner: false,

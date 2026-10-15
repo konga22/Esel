@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../../../../core/design/tokens.g.dart';
 import '../../domain/models/magazine_models.dart';
 import '../../../drafts/data/local_library.dart';
 
@@ -35,7 +36,7 @@ class MagazineController extends ChangeNotifier {
                 id: d.id,
                 issueNumber: d.issueNumber,
                 date: d.publishedOn!,
-                colorKey: d.color.name,
+                color: d.color,
                 photoAsset: d.photoPath,
                 caption: d.caption,
                 cover: d,
@@ -52,7 +53,7 @@ class MagazineController extends ChangeNotifier {
             id: 'my_issue_$i',
             issueNumber: i,
             date: '2026. 9. ${i.clamp(1, 30)}',
-            colorKey: i % 2 == 0 ? 'powder-blue' : 'sage',
+            color: i % 2 == 0 ? EselPaint.powder : EselPaint.sage,
             photoAsset: i % 2 == 0
                 ? 'assets/demo/dana.jpg'
                 : 'assets/models/m01.jpg',
@@ -80,7 +81,7 @@ class MagazineController extends ChangeNotifier {
           id: 'seul_120',
           issueNumber: 120,
           date: '2026. 9. 6',
-          colorKey: 'powder-blue',
+          color: EselPaint.powder,
           photoAsset: 'assets/models/m01.jpg',
           caption: '바람이 불어오는 계절.',
         ),
@@ -88,7 +89,7 @@ class MagazineController extends ChangeNotifier {
           id: 'seul_119',
           issueNumber: 119,
           date: '2026. 9. 5',
-          colorKey: 'sage',
+          color: EselPaint.sage,
           photoAsset: 'assets/models/m02.jpg',
           caption: '작은 정원의 그림자.',
         ),
@@ -96,7 +97,7 @@ class MagazineController extends ChangeNotifier {
           id: 'seul_118',
           issueNumber: 118,
           date: '2026. 9. 4',
-          colorKey: 'butter',
+          color: EselPaint.butter,
           photoAsset: 'assets/models/m03.jpg',
           caption: '노란빛 오후 티타임.',
         ),

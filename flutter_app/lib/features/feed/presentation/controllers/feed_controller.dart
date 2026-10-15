@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../../../../core/design/tokens.g.dart';
 
 enum FeedTab { all, subs }
 
@@ -7,7 +8,7 @@ class FeedItem {
   final String masthead;
   final String date;
   final String issueNumber;
-  final String colorKey;
+  final EselPaint color;
   final String photoAsset;
   final String secondPhotoAsset;
   final String caption;
@@ -19,7 +20,7 @@ class FeedItem {
     required this.masthead,
     required this.date,
     required this.issueNumber,
-    required this.colorKey,
+    required this.color,
     required this.photoAsset,
     required this.secondPhotoAsset,
     required this.caption,
@@ -39,7 +40,7 @@ class FeedController extends ChangeNotifier {
       masthead: 'dana',
       date: '2026. 9. 6',
       issueNumber: 'Nº 249',
-      colorKey: 'powder-blue',
+      color: EselPaint.powder,
       photoAsset: 'assets/demo/dana.jpg',
       secondPhotoAsset: 'assets/models/m01.jpg',
       caption: '난간에 기대서, 셔츠 하나로.',
@@ -51,7 +52,7 @@ class FeedController extends ChangeNotifier {
       masthead: 'seul',
       date: '2026. 9. 6',
       issueNumber: 'Nº 120',
-      colorKey: 'sage',
+      color: EselPaint.sage,
       photoAsset: 'assets/models/m01.jpg',
       secondPhotoAsset: 'assets/models/m02.jpg',
       caption: '바람이 불어오는 계절.',
@@ -63,7 +64,7 @@ class FeedController extends ChangeNotifier {
       masthead: 'min',
       date: '2026. 9. 6',
       issueNumber: 'Nº 088',
-      colorKey: 'butter',
+      color: EselPaint.butter,
       photoAsset: 'assets/models/m02.jpg',
       secondPhotoAsset: 'assets/models/m03.jpg',
       caption: '조용한 골목 끝에서.',

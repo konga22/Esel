@@ -1,17 +1,20 @@
+import '../../../../core/design/tokens.g.dart';
 import '../../../media/domain/models/face_layout_mode.dart';
 export '../../../media/domain/models/face_layout_mode.dart';
 
 enum OnboardingStep {
   color, // J3
   shoot, // J4
-  name,  // J5
-  face,  // J6
-  done,  // J7
+  name, // J5
+  face, // J6
+  done, // J7
 }
 
 class OnboardingDraft {
   final OnboardingStep step;
-  final String selectedColorId;
+
+  /// 창간호의 색. 오늘 후보 중에서 고른다(P17). 고르기 전에는 null.
+  final EselPaint? color;
   final String photoAsset;
   final String masthead;
   final FaceLayoutMode faceMode;
@@ -19,7 +22,7 @@ class OnboardingDraft {
 
   const OnboardingDraft({
     this.step = OnboardingStep.color,
-    this.selectedColorId = 'powder-blue',
+    this.color,
     this.photoAsset = 'assets/demo/dana.jpg',
     this.masthead = 'dana',
     this.faceMode = FaceLayoutMode.paintStroke,
@@ -28,7 +31,7 @@ class OnboardingDraft {
 
   OnboardingDraft copyWith({
     OnboardingStep? step,
-    String? selectedColorId,
+    EselPaint? color,
     String? photoAsset,
     String? masthead,
     FaceLayoutMode? faceMode,
@@ -36,7 +39,7 @@ class OnboardingDraft {
   }) {
     return OnboardingDraft(
       step: step ?? this.step,
-      selectedColorId: selectedColorId ?? this.selectedColorId,
+      color: color ?? this.color,
       photoAsset: photoAsset ?? this.photoAsset,
       masthead: masthead ?? this.masthead,
       faceMode: faceMode ?? this.faceMode,

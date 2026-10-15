@@ -45,33 +45,38 @@ class _EselAppState extends State<EselApp> {
   ActiveScreen _activeScreen = ActiveScreen.main;
   String _authorShelfMasthead = 'seul';
 
-  // 사용자의 오늘 상태
-  bool _hasPublishedToday = false;
-  int _issueCount = 0;
+  // 사용자의 오늘 상태는 TodayController 한 곳에서 계산한다(P01·P04).
+  bool get _hasPublishedToday => _sl.todayController.hasPublishedToday;
+  int get _issueCount => _sl.todayController.issueCount;
 
   @override
   void initState() {
     super.initState();
     _sl.authController.addListener(_onAuthChanged);
+    _sl.todayController.addListener(_onTodayChanged);
+    _onAuthChanged();
   }
 
   @override
   void dispose() {
     _sl.authController.removeListener(_onAuthChanged);
+    _sl.todayController.removeListener(_onTodayChanged);
     super.dispose();
+  }
+
+  void _onTodayChanged() {
+    if (mounted) setState(() {});
   }
 
   void _onAuthChanged() {
     final session = _sl.authController.currentSession;
-    if (_sl.config.isMock && session != null) {
-      _sl.magazineController.localOwnerId = session.userId;
-      _sl.magazineController.localMasthead = session.masthead;
-      final issues = _sl.localLibrary!.issuesFor(session.userId);
-      _issueCount = issues.length;
-      final now = DateTime.now();
-      final today =
-          '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-      _hasPublishedToday = issues.any((d) => d.publishedOn == today);
+    if (_sl.config.isMock) {
+      _sl.magazineController.localOwnerId = session?.userId;
+      _sl.magazineController.localMasthead = session?.masthead;
+      _sl.todayController.bindUser(
+        ownerId: session?.userId,
+        isMinor: session?.isMinor ?? false,
+      );
     }
     if (mounted) setState(() {});
   }
@@ -156,6 +161,7 @@ class _EselAppState extends State<EselApp> {
     if (_activeScreen == ActiveScreen.onboarding) {
       return OnboardingScreen(
         controller: _sl.onboardingController,
+        candidates: _sl.todayController.candidates,
         onCancel: () => setState(() => _activeScreen = ActiveScreen.main),
         onComplete: () {
           // 창간 완료 시 로그인 세션 생성 및 메인 진입
@@ -166,8 +172,6 @@ class _EselAppState extends State<EselApp> {
             draft.masthead,
           );
           setState(() {
-            _hasPublishedToday = true;
-            _issueCount = 1;
             _activeScreen = ActiveScreen.main;
             _currentTab = AppTab.feed;
           });
@@ -232,7 +236,7 @@ class _EselAppState extends State<EselApp> {
             authorMasthead: _authorShelfMasthead,
             mainPhoto: issue.photoAsset,
             secondPhoto: 'assets/models/m02.jpg',
-            colorKey: issue.colorKey,
+            color: issue.color,
             caption: issue.caption,
             issueNumber: issue.issueString,
             isOwner: false,
@@ -298,8 +302,8 @@ class _EselAppState extends State<EselApp> {
       case AppTab.stand:
         return StandScreen(
           controller: _sl.standController,
-          mySelectedColorKey: _sl.publishingController.colorId,
-          hasPublishedToday: _hasPublishedToday,
+          viewer: _sl.todayController.viewer,
+          onMakeTodayIssue: () => setState(() => _currentTab = AppTab.publish),
           onSelectCover: (item) {
             IssueBottomSheet.show(
               context,
@@ -307,9 +311,9 @@ class _EselAppState extends State<EselApp> {
               authorMasthead: item.masthead,
               mainPhoto: item.photoAsset,
               secondPhoto: 'assets/models/m01.jpg',
-              colorKey: item.colorKey,
+              color: item.color,
               caption: item.caption,
-              issueNumber: item.issueNumber,
+              issueNumber: item.issueLabel,
               isOwner: item.masthead == myMasthead,
               reactionsController: _sl.reactionsController,
               onOpenAuthorShelf: () {
@@ -322,7 +326,7 @@ class _EselAppState extends State<EselApp> {
                 context,
                 issueId: item.id,
                 masthead: item.masthead,
-                issueNumber: item.issueNumber,
+                issueNumber: item.issueLabel,
               ),
               onReport: () => ModerationSheet.show(
                 context,
@@ -342,13 +346,8 @@ class _EselAppState extends State<EselApp> {
           masthead: myMasthead,
           currentIssueCount: _issueCount,
           hasPublishedToday: _hasPublishedToday,
-          onPublishSuccess: (newCount) {
-            setState(() {
-              _hasPublishedToday = true;
-              _issueCount = newCount;
-              _currentTab = AppTab.me;
-            });
-          },
+          candidates: _sl.todayController.candidates,
+          onPublishSuccess: (_) => setState(() => _currentTab = AppTab.me),
           onClose: () => setState(() => _currentTab = AppTab.feed),
         );
 
@@ -377,7 +376,7 @@ class _EselAppState extends State<EselApp> {
               authorMasthead: myMasthead,
               mainPhoto: issue.photoAsset,
               secondPhoto: 'assets/models/m01.jpg',
-              colorKey: issue.colorKey,
+              color: issue.color,
               caption: issue.caption,
               issueNumber: issue.issueString,
               isOwner: true,
@@ -401,6 +400,7 @@ class _EselAppState extends State<EselApp> {
           masthead: myMasthead,
           issueCount: _issueCount,
           hasPublishedToday: _hasPublishedToday,
+          todayColor: _sl.todayController.myColor,
           controller: _sl.magazineController,
           reactionsController: _sl.reactionsController,
           onMakeTodayIssue: () => setState(() => _currentTab = AppTab.publish),
@@ -433,7 +433,7 @@ class _EselAppState extends State<EselApp> {
             AppTab.stand,
             context,
             child: EselPaintAsset(
-              colorKey: _sl.publishingController.colorId,
+              paint: _sl.todayController.myColor,
               width: 52,
             ),
           ),

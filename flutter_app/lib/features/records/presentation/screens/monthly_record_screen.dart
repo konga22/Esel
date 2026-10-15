@@ -16,7 +16,7 @@ class MonthlyRecordScreen extends StatelessWidget {
   });
 
   void _showRestoreDialog(BuildContext context, int day) {
-    String selectedColor = 'powder-blue';
+    EselPaint selectedColor = EselPaint.powder;
 
     showDialog<void>(
       context: context,
@@ -49,20 +49,17 @@ class MonthlyRecordScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _buildColorOption(
-                        'powder-blue',
-                        '파우더 블루',
+                        EselPaint.powder,
                         selectedColor,
                         (c) => setDialogState(() => selectedColor = c),
                       ),
                       _buildColorOption(
-                        'sage',
-                        '세이지',
+                        EselPaint.sage,
                         selectedColor,
                         (c) => setDialogState(() => selectedColor = c),
                       ),
                       _buildColorOption(
-                        'butter',
-                        '버터',
+                        EselPaint.butter,
                         selectedColor,
                         (c) => setDialogState(() => selectedColor = c),
                       ),
@@ -112,12 +109,12 @@ class MonthlyRecordScreen extends StatelessWidget {
   }
 
   Widget _buildColorOption(
-    String key,
-    String label,
-    String current,
-    Function(String) onSelect,
+    EselPaint key,
+    EselPaint current,
+    ValueChanged<EselPaint> onSelect,
   ) {
     final isSelected = key == current;
+    final label = EselPaints.of(key).nameKo;
     return GestureDetector(
       onTap: () => onSelect(key),
       child: Column(
@@ -131,7 +128,7 @@ class MonthlyRecordScreen extends StatelessWidget {
                 width: 2,
               ),
             ),
-            child: EselPaintAsset(colorKey: key, size: 36),
+            child: EselPaintAsset(paint: key, width: 36),
           ),
           const SizedBox(height: 4),
           Text(label, style: EselTypography.caption.copyWith(fontSize: 10)),
@@ -275,11 +272,10 @@ class MonthlyRecordScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                if (record.type == RecordType.published &&
-                    record.colorKey != null)
-                  EselPaintAsset(colorKey: record.colorKey!, size: 20)
+                if (record.type == RecordType.published && record.color != null)
+                  EselPaintAsset(paint: record.color!, width: 20)
                 else if (record.type == RecordType.restored &&
-                    record.colorKey != null)
+                    record.color != null)
                   Container(
                     width: 18,
                     height: 18,

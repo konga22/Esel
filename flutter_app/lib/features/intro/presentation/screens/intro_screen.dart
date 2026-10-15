@@ -170,7 +170,7 @@ class _IntroScreenState extends State<IntroScreen> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    const EselPaintAsset(colorKey: 'powder-blue', size: 24),
+                    const EselPaintAsset(paint: EselPaint.powder, width: 24),
                     const SizedBox(width: 8),
                     Text(
                       '파우더 블루 · 같은 색 187명',

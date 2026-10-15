@@ -222,7 +222,7 @@ class ShelfScreen extends StatelessWidget {
                   left: 10,
                   child: Row(
                     children: [
-                      EselPaintAsset(colorKey: issue.colorKey, size: 18),
+                      EselPaintAsset(paint: issue.color, width: 18),
                       const SizedBox(width: 6),
                       Text(
                         issue.date,
@@ -265,7 +265,7 @@ class ShelfScreen extends StatelessWidget {
             ),
             child: Row(
               children: [
-                EselPaintAsset(colorKey: issue.colorKey, size: 24),
+                EselPaintAsset(paint: issue.color, width: 24),
                 const SizedBox(width: 14),
                 Text(
                   issue.issueString,

@@ -138,8 +138,8 @@ class TwinScreen extends StatelessWidget {
                           bottom: 10,
                           left: 10,
                           child: EselPaintAsset(
-                            colorKey: controller.myColor,
-                            size: 24,
+                            paint: controller.myColor,
+                            width: 24,
                           ),
                         ),
                       ],
@@ -169,8 +169,8 @@ class TwinScreen extends StatelessWidget {
                                 bottom: 10,
                                 left: 10,
                                 child: EselPaintAsset(
-                                  colorKey: controller.partnerColor,
-                                  size: 24,
+                                  paint: controller.partnerColor,
+                                  width: 24,
                                 ),
                               ),
                             ],

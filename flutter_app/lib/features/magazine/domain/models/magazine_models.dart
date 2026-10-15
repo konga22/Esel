@@ -1,3 +1,4 @@
+import '../../../../core/design/tokens.g.dart';
 import '../../../drafts/domain/cover_draft.dart';
 
 enum ShelfViewMode { covers, spines }
@@ -6,7 +7,7 @@ class IssueSummary {
   final String id;
   final int issueNumber;
   final String date;
-  final String colorKey;
+  final EselPaint color;
   final String photoAsset;
   final String caption;
   final CoverDraft? cover;
@@ -15,7 +16,7 @@ class IssueSummary {
     required this.id,
     required this.issueNumber,
     required this.date,
-    required this.colorKey,
+    required this.color,
     required this.photoAsset,
     required this.caption,
     this.cover,

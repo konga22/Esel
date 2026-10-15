@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:esel/core/design/tokens.g.dart';
 import 'package:esel/features/drafts/data/local_library.dart';
 import 'package:esel/features/drafts/presentation/cover_editor_screen.dart';
 import 'package:esel/features/drafts/presentation/local_calendar_screen.dart';
@@ -158,6 +159,11 @@ void main() {
             ownerId: 'owner',
             currentIssueCount: 1,
             hasPublishedToday: true,
+            candidates: const [
+              EselPaint.camel,
+              EselPaint.lilac,
+              EselPaint.olive,
+            ],
             onPublishSuccess: (_) {},
             onClose: () => closed = true,
           ),

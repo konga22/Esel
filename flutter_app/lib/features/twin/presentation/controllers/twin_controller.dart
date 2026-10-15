@@ -1,11 +1,12 @@
 import 'package:flutter/foundation.dart';
+import '../../../../core/design/tokens.g.dart';
 import '../../domain/rules/twin_rule.dart';
 
 class TwinController extends ChangeNotifier {
   String _partnerMasthead = 'seul';
   TwinStage _stage = TwinStage.revealed;
-  String _myColor = 'powder-blue';
-  final String _partnerColor = 'sage';
+  EselPaint _myColor = EselPaint.powder;
+  final EselPaint _partnerColor = EselPaint.sage;
   final String _myPhoto = 'assets/demo/dana.jpg';
   final String _partnerPhoto = 'assets/models/m01.jpg';
   TwinVisibility _visibility = TwinVisibility.jointPublic;
@@ -14,10 +15,11 @@ class TwinController extends ChangeNotifier {
 
   String get partnerMasthead => _partnerMasthead;
   TwinStage get stage => _stage;
-  String get myColor => _myColor;
-  String get partnerColor => _partnerColor;
+  EselPaint get myColor => _myColor;
+  EselPaint get partnerColor => _partnerColor;
   String get myPhoto => _myPhoto;
-  String? get visiblePartnerPhoto => (_stage == TwinStage.waitingForPartner) ? null : _partnerPhoto;
+  String? get visiblePartnerPhoto =>
+      (_stage == TwinStage.waitingForPartner) ? null : _partnerPhoto;
   TwinVisibility get visibility => _visibility;
   bool get userConsented => _userConsented;
 
@@ -28,8 +30,8 @@ class TwinController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void chooseColor(String colorKey) {
-    _myColor = colorKey;
+  void chooseColor(EselPaint color) {
+    _myColor = color;
     _stage = TwinStage.readyToPost;
     notifyListeners();
   }

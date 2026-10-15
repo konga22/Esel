@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../../../../core/design/tokens.g.dart';
 import '../../domain/rules/restore_rule.dart';
 
 enum RecordType {
@@ -11,15 +12,15 @@ enum RecordType {
 class DayRecord {
   final int day;
   final RecordType type;
-  final String? colorKey;
+  final EselPaint? color;
 
-  const DayRecord({required this.day, required this.type, this.colorKey});
+  const DayRecord({required this.day, required this.type, this.color});
 
-  DayRecord copyWith({RecordType? type, String? colorKey}) {
+  DayRecord copyWith({RecordType? type, EselPaint? color}) {
     return DayRecord(
       day: day,
       type: type ?? this.type,
-      colorKey: colorKey ?? this.colorKey,
+      color: color ?? this.color,
     );
   }
 }
@@ -47,7 +48,7 @@ class RecordsController extends ChangeNotifier {
         _daysMap[day] = DayRecord(
           day: day,
           type: RecordType.published,
-          colorKey: day % 2 == 0 ? 'powder-blue' : 'sage',
+          color: day % 2 == 0 ? EselPaint.powder : EselPaint.sage,
         );
       } else {
         // 빈 날 (복원 대상: 3일, 4일)
@@ -80,13 +81,13 @@ class RecordsController extends ChangeNotifier {
     );
   }
 
-  bool restoreDay(int day, String colorKey) {
+  bool restoreDay(int day, EselPaint color) {
     if (!canRestore(day)) return false;
 
     _daysMap[day] = DayRecord(
       day: day,
       type: RecordType.restored,
-      colorKey: colorKey,
+      color: color,
     );
     _usedRestores++;
     notifyListeners();

@@ -15,9 +15,13 @@ class OnboardingScreen extends StatefulWidget {
   final VoidCallback onCancel;
   final VoidCallback onComplete;
 
+  /// 오늘의 후보 3색(P17).
+  final List<EselPaint> candidates;
+
   const OnboardingScreen({
     super.key,
     required this.controller,
+    required this.candidates,
     required this.onCancel,
     required this.onComplete,
   });
@@ -142,13 +146,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildColorStep(OnboardingDraft draft) {
-    // 3 candidate colors for today
-    final candidates = [
-      {'id': 'powder-blue', 'label': '파우더 블루'},
-      {'id': 'sage', 'label': '세이지'},
-      {'id': 'butter', 'label': '버터'},
-    ];
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: EselTokens.space24),
       child: Column(
@@ -169,12 +166,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ),
           const SizedBox(height: EselTokens.space40),
-          ...candidates.map((c) {
-            final isSelected = draft.selectedColorId == c['id'];
+          ...widget.candidates.map((c) {
+            final isSelected = draft.color == c;
             return Padding(
               padding: const EdgeInsets.only(bottom: EselTokens.space16),
               child: EselPressable(
-                onTap: () => widget.controller.selectColor(c['id']!),
+                onTap: () => widget.controller.selectColor(c),
                 child: Container(
                   padding: const EdgeInsets.all(EselTokens.space16),
                   decoration: BoxDecoration(
@@ -191,10 +188,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                   child: Row(
                     children: [
-                      EselPaintAsset(colorKey: c['id']!, size: 44),
+                      EselPaintAsset(paint: c, width: 44),
                       const SizedBox(width: EselTokens.space16),
                       Text(
-                        c['label']!,
+                        EselPaints.of(c).nameKo,
                         style: EselTypography.bodyLarge.copyWith(
                           fontWeight: isSelected
                               ? FontWeight.w700
@@ -392,16 +389,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 fit: StackFit.expand,
                 children: [
                   EselAssetImage(draft.photoAsset, fit: BoxFit.cover),
-                  if (draft.faceMode == FaceLayoutMode.paintStroke)
+                  if (draft.faceMode == FaceLayoutMode.paintStroke &&
+                      draft.color != null)
                     Positioned(
                       top: 130,
                       left: 100,
                       child: Opacity(
                         opacity: 0.88,
-                        child: EselPaintAsset(
-                          colorKey: draft.selectedColorId,
-                          size: 100,
-                        ),
+                        child: EselPaintAsset(paint: draft.color!, width: 100),
                       ),
                     ),
                   Positioned(

@@ -11,7 +11,7 @@ class IssueBottomSheet extends StatefulWidget {
   final String authorMasthead;
   final String mainPhoto;
   final String secondPhoto;
-  final String colorKey;
+  final EselPaint color;
   final String caption;
   final String issueNumber;
   final bool isOwner;
@@ -26,7 +26,7 @@ class IssueBottomSheet extends StatefulWidget {
     required this.authorMasthead,
     required this.mainPhoto,
     required this.secondPhoto,
-    required this.colorKey,
+    required this.color,
     required this.caption,
     required this.issueNumber,
     required this.isOwner,
@@ -42,7 +42,7 @@ class IssueBottomSheet extends StatefulWidget {
     required String authorMasthead,
     required String mainPhoto,
     required String secondPhoto,
-    required String colorKey,
+    required EselPaint color,
     required String caption,
     required String issueNumber,
     required bool isOwner,
@@ -62,7 +62,7 @@ class IssueBottomSheet extends StatefulWidget {
           authorMasthead: authorMasthead,
           mainPhoto: mainPhoto,
           secondPhoto: secondPhoto,
-          colorKey: colorKey,
+          color: color,
           caption: caption,
           issueNumber: issueNumber,
           isOwner: isOwner,
@@ -193,7 +193,7 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
         ),
         Row(
           children: [
-            EselPaintAsset(colorKey: widget.colorKey, size: 24),
+            EselPaintAsset(paint: widget.color, width: 24),
             const SizedBox(width: 8),
             Text(widget.issueNumber, style: EselTypography.monoSmall),
             const SizedBox(width: 12),

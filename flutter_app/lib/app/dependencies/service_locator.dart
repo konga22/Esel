@@ -3,6 +3,7 @@ import '../../features/drafts/data/local_library.dart';
 import '../../core/network/http_client.dart';
 import '../../core/storage/session_storage.dart';
 import '../../core/storage/secure_session_storage.dart';
+import '../../core/time/service_clock.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/data/sources/auth_mock_source.dart';
 import '../../features/auth/data/sources/auth_remote_source.dart';
@@ -16,6 +17,7 @@ import '../../features/publishing/presentation/controllers/publishing_controller
 import '../../features/reactions/presentation/controllers/reactions_controller.dart';
 import '../../features/records/presentation/controllers/records_controller.dart';
 import '../../features/stand/presentation/controllers/stand_controller.dart';
+import '../../features/today/presentation/controllers/today_controller.dart';
 import '../../features/twin/presentation/controllers/twin_controller.dart';
 
 class ServiceLocator {
@@ -24,12 +26,14 @@ class ServiceLocator {
   ServiceLocator._internal();
 
   late final AppConfig config;
+  late final ServiceClock clock;
   LocalLibrary? localLibrary;
   late final SessionStorage storage;
   late final AppHttpClient httpClient;
 
   late final AuthRepository authRepository;
   late final AuthController authController;
+  late final TodayController todayController;
   late final OnboardingController onboardingController;
   late final PublishingController publishingController;
   late final ReactionsController reactionsController;
@@ -40,8 +44,9 @@ class ServiceLocator {
   late final FriendsController friendsController;
   late final TwinController twinController;
 
-  void initialize({AppConfig? customConfig}) {
+  void initialize({AppConfig? customConfig, ServiceClock? serviceClock}) {
     config = customConfig ?? AppConfig.current;
+    clock = serviceClock ?? const SystemServiceClock();
     storage = config.isMock
         ? InMemorySessionStorage()
         : const SecureSessionStorage();
@@ -58,6 +63,7 @@ class ServiceLocator {
     );
 
     authController = AuthController(authRepository);
+    todayController = TodayController(clock: clock);
     onboardingController = OnboardingController();
     publishingController = PublishingController();
     reactionsController = ReactionsController();

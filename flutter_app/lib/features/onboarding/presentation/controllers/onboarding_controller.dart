@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../../../../core/design/tokens.g.dart';
 import '../../domain/models/onboarding_draft.dart';
 import '../../domain/rules/masthead_rule.dart';
 
@@ -17,8 +18,8 @@ class OnboardingController extends ChangeNotifier {
     'assets/models/m05.jpg',
   ];
 
-  void selectColor(String colorId) {
-    _draft = _draft.copyWith(selectedColorId: colorId);
+  void selectColor(EselPaint color) {
+    _draft = _draft.copyWith(color: color);
     notifyListeners();
   }
 
@@ -50,7 +51,7 @@ class OnboardingController extends ChangeNotifier {
   bool canProceed() {
     switch (_draft.step) {
       case OnboardingStep.color:
-        return _draft.selectedColorId.isNotEmpty;
+        return _draft.color != null;
       case OnboardingStep.shoot:
         return _draft.photoAsset.isNotEmpty;
       case OnboardingStep.name:
