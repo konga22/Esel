@@ -1,0 +1,142 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum MediaStatus {
+  PENDING
+  READY
+  REJECTED
+  DELETED
+}
+
+enum FaceMode {
+  PLAIN
+  PAINT
+  BEHIND_MASTHEAD
+  NECK_DOWN
+}
+
+model User {
+  id          String            @id @default(uuid()) @db.Uuid
+  email       String?           @unique
+  status      UserStatus        @default(ACTIVE)
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+  profile     Profile?
+  choices     UserDailyChoice[]
+  mediaAssets MediaAsset[]
+  issues      Issue[]
+
+  @@map("users")
+}
+
+model Profile {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @unique @map("user_id") @db.Uuid
+  masthead   String   @unique @db.VarChar(10)
+  issueCount Int      @default(0) @map("issue_count")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+model Color {
+  id            String              @id @db.VarChar(32)
+  nameKo        String              @map("name_ko") @db.VarChar(32)
+  nameEn        String              @map("name_en") @db.VarChar(32)
+  hex           String              @db.Char(7)
+  sortOrder     Int                 @unique @map("sort_order") @db.SmallInt
+  paletteColors DailyPaletteColor[]
+  choices       UserDailyChoice[]
+  issues        Issue[]
+
+  @@map("colors")
+}
+
+model DailyPalette {
+  id          String              @id @default(uuid()) @db.Uuid
+  serviceDate DateTime            @unique @map("service_date") @db.Date
+  createdAt   DateTime            @default(now()) @map("created_at")
+  colors      DailyPaletteColor[]
+
+  @@map("daily_palettes")
+}
+
+model DailyPaletteColor {
+  dailyPaletteId String       @map("daily_palette_id") @db.Uuid
+  colorId        String       @map("color_id") @db.VarChar(32)
+  position       Int          @db.SmallInt
+  dailyPalette   DailyPalette @relation(fields: [dailyPaletteId], references: [id], onDelete: Cascade)
+  color          Color        @relation(fields: [colorId], references: [id], onDelete: Restrict)
+
+  @@id([dailyPaletteId, colorId])
+  @@unique([dailyPaletteId, position])
+  @@map("daily_palette_colors")
+}
+
+model UserDailyChoice {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  serviceDate DateTime  @map("service_date") @db.Date
+  colorId     String    @map("color_id") @db.VarChar(32)
+  lockedAt    DateTime? @map("locked_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  color       Color     @relation(fields: [colorId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, serviceDate])
+  @@index([serviceDate, colorId])
+  @@map("user_daily_choices")
+}
+
+model MediaAsset {
+  id         String      @id @default(uuid()) @db.Uuid
+  ownerId    String      @map("owner_id") @db.Uuid
+  storageKey String      @unique @map("storage_key")
+  status     MediaStatus @default(PENDING)
+  mimeType   String      @map("mime_type") @db.VarChar(128)
+  sizeBytes  Int         @map("size_bytes")
+  width      Int?
+  height     Int?
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+  owner      User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  issue      Issue?
+
+  @@index([ownerId, status])
+  @@map("media_assets")
+}
+
+model Issue {
+  id          String     @id @default(uuid()) @db.Uuid
+  authorId    String     @map("author_id") @db.Uuid
+  serviceDate DateTime   @map("service_date") @db.Date
+  issueNumber Int        @map("issue_number")
+  colorId     String     @map("color_id") @db.VarChar(32)
+  mediaId     String     @unique @map("media_id") @db.Uuid
+  caption     String     @db.VarChar(280)
+  faceMode    FaceMode   @map("face_mode")
+  publishedAt DateTime   @default(now()) @map("published_at")
+  author      User       @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  color       Color      @relation(fields: [colorId], references: [id], onDelete: Restrict)
+  media       MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+
+  @@unique([authorId, serviceDate])
+  @@unique([authorId, issueNumber])
+  @@index([serviceDate, colorId, publishedAt])
+  @@map("issues")
+}

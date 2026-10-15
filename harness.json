@@ -47,7 +47,7 @@
     "screens": "docs/dev/screens (생성 파일)",
     "tokens": "flutter_app/lib/core/design/tokens.g.dart (생성 파일)",
     "client": "Flutter flutter_app/ (2026-10-15 결정, Expo에서 전환)",
-    "server": {"status": "PR konga22/Esel#4 열림·미병합", "stack": "NestJS, Prisma, PostgreSQL, Docker Compose", "guideAfterMerge": "server/ARCHITECTURE.md"},
+    "server": {"status": "merged-2026-10-15 (konga22/Esel#4 기반, #7 하네스)", "stack": "NestJS, Prisma, PostgreSQL, Docker Compose", "root": "server", "agents": "server/AGENTS.md", "contract": "server/api-contract.json", "guide": "server/ARCHITECTURE.md", "learn": "server/docs/LEARN.md", "node": "24", "commands": ["npm run check:server", "npm run lint", "npm test", "npm run build", "npm run test:harness", "npm run test:e2e"], "ci": ".github/workflows/server.yml"},
     "noBaaS": true
   },
   "ruleReference": {

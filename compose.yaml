@@ -1,0 +1,61 @@
+# 로컬 개발용 구성이다. 비밀번호(esel_dev)와 NODE_ENV=production API는 이 PC 안에서만 쓰는 개발용 값이고,
+# 실제 운영에서는 비밀 관리 수단으로 따로 주입한다. 포트는 127.0.0.1에만 열어 같은 네트워크의 다른 기기에서 접속할 수 없다.
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: esel-postgres
+    environment:
+      POSTGRES_DB: esel
+      POSTGRES_USER: esel
+      POSTGRES_PASSWORD: esel_dev # 개발용
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - esel-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U esel -d esel"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: ./server
+    container_name: esel-api
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://esel:esel_dev@postgres:5432/esel?schema=public
+      CORS_ORIGINS: http://localhost:8081,http://localhost:4173
+      SERVICE_TIME_ZONE: Asia/Seoul
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  migrate:
+    build:
+      context: ./server
+      target: build
+    environment:
+      DATABASE_URL: postgresql://esel:esel_dev@postgres:5432/esel?schema=public
+    command: npm run prisma:deploy
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+volumes:
+  esel-postgres-data:

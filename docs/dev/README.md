@@ -73,9 +73,12 @@ data 계층은 인증(`features/auth/data`), 기기 보관함(`features/drafts/d
 
 ### 서버 (`server/`)
 
-- 팀원의 서버 기반 PR [konga22/Esel#4](https://github.com/konga22/Esel/pull/4)(NestJS·Prisma·PostgreSQL, Docker Compose)이 열려 있다. 병합되면 `server/ARCHITECTURE.md`를 따르고, 병합 전에는 서버 코드를 새로 만들지 않는다.
-- `controller → service → Prisma` 흐름을 지키고, 공개 권한과 발행 규칙은 테스트할 수 있는 서비스 함수로 둔다.
-- [기능 목록](FEATURES.md)의 API 경로는 초안이다. 확정은 서버 Swagger(`/api/docs`)다.
+2026-10-15에 팀원의 서버 기반([konga22/Esel#4](https://github.com/konga22/Esel/pull/4), NestJS·Prisma·PostgreSQL·Docker Compose)과 서버 하네스([konga22/Esel#7](https://github.com/konga22/Esel/pull/7))를 main에 합쳤다. 서버 작업은 [server/AGENTS.md](../../server/AGENTS.md)를 먼저 읽는다.
+
+- **정본 관계**: 경로·권한·오류 코드는 [server/api-contract.json](../../server/api-contract.json), 요청·응답 데이터 모양은 Swagger(`/api/docs`, 코드의 DTO)다. [기능 목록](FEATURES.md)의 서버 줄은 요약이다.
+- 만드는 방식은 [API 규칙](../../server/docs/API_RULES.md), 처음 배우는 사람의 순서는 [배움 안내](../../server/docs/LEARN.md), 리뷰 목록은 [리뷰 체크리스트](../../server/docs/REVIEW.md), 실행과 구조는 [서버 README](../../server/README.md)와 [ARCHITECTURE](../../server/ARCHITECTURE.md)에 있다.
+- `controller → service → Prisma` 흐름을 지키고, 공개 권한과 발행 규칙은 `<모듈>.rules.ts`의 순수 함수로 두어 테스트한다.
+- API 테스트는 `server/test/contracts/<모듈>.e2e-spec.ts`에 있다. `check:server`가 약속을 기능 목록·하네스 계약(P01~P18)·공개 금지 숫자와 대조하고, todo만 있는 API를 done으로 올리면 실패한다.
 - 초기 스키마에 없는 데이터: 좋아요·스크랩, 독자 한 줄, 구독, 친구와 친구 요청, 트윈(초대·각자 게시·동의), 색 복원 기록, 알림 설정, 공유 링크, 프로필 소개. 각 기능을 만들 때 새 migration으로 추가한다.
 - 클라이언트 잠금은 보안이 아니다. 피드·가판대·서가·공유 링크·이미지 URL 모두 서버가 같은 권한을 검사한다.
 
@@ -86,7 +89,7 @@ data 계층은 인증(`features/auth/data`), 기기 보관함(`features/drafts/d
 1. **고르기**: 선행 기능이 모두 `done`인 `todo` 하나를 고른다. [features.json](features.json)에서 상태를 `doing`으로 바꾸고 `npm run dev:docs`를 실행한다.
 2. **보기**: 그 기능의 목업 화면 그림([screens/](screens/))을 본다. 움직임이나 흐름을 직접 눌러 보려면 `node .codex/temp/prototype/20261011-app-mockup/build.mjs --local`로 만든 `dist/_local.html`을 연다.
 3. **테스트 먼저**: 기능의 "합격 기준"을 기능 목록의 "추가할 테스트" 경로에 테스트로 쓴다.
-4. **만들기**: `features/<기능>/domain` → `data`(mock 소스·저장소) → 화면 → (서버 병합 후) 서버 엔드포인트와 E2E 테스트 → 서버 소스로 교체 순서로 만든다.
+4. **만들기**: `features/<기능>/domain` → `data`(mock 소스·저장소) → 화면 → 서버 엔드포인트와 API 테스트(`server/`) → 서버 소스로 교체 순서로 만든다.
 5. **비교**: 같은 상태의 목업 그림과 앱 화면을 393×852에서 나란히 보고, 다른 점과 이유를 작업 기록에 적는다.
 6. **검사**: 아래 명령을 모두 돌리고, 실패하면 고친다. 돌리지 못한 것은 못 돌렸다고 적는다.
 7. **마치기**: 상태를 `done`으로 바꾸고 `npm run dev:docs`. 커밋과 푸시는 사용자에게 매번 허락을 받는다.
@@ -95,10 +98,11 @@ data 계층은 인증(`features/auth/data`), 기기 보관함(`features/drafts/d
 npm run check:harness   # 하네스·기능 목록·생성 파일 정합성 (done 기능의 테스트 파일이 있는지도 확인)
 npm run test:rules      # 기준 규칙 테스트
 cd flutter_app && flutter analyze && flutter test   # 앱 정적 검사·테스트
-# 서버 병합 후: cd server && npm run lint && npm test && npm run test:e2e && npm run build
+cd server && npm run check:server && npm run lint && npm test && npm run build   # 서버 약속·정적 검사·단위 테스트
+# 서버 API 테스트: PostgreSQL을 띄우고 npx prisma migrate deploy && npm run test:e2e (server/README.md)
 ```
 
-PR을 올리면 [CI](../../.github/workflows/ci.yml)가 하네스·규칙 검사를 Ubuntu와 Windows에서, Flutter 검사(Flutter 3.44.0)를 Ubuntu에서 다시 돌린다. 내 PC에서만 통과하는 변경(절대 경로 링크, 줄바꿈 차이, SDK 차이)은 여기서 걸린다.
+PR을 올리면 [CI](../../.github/workflows/ci.yml)가 하네스·규칙 검사를 Ubuntu와 Windows에서, Flutter 검사(Flutter 3.44.0)를 Ubuntu에서 다시 돌린다. 서버가 바뀌면 [서버 CI](../../.github/workflows/server.yml)가 Node 24와 PostgreSQL로 서버 검사·API 테스트를 돌리고, Docker 구성을 실제로 띄워 본다. 내 PC에서만 통과하는 변경(절대 경로 링크, 줄바꿈 차이, SDK 차이)은 여기서 걸린다.
 
 ## 5. 완료 기준 (모든 기능 공통)
 
