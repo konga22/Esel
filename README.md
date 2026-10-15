@@ -8,6 +8,7 @@
 
 | 보고 싶은 것 | 위치 |
 |---|---|
+| 서버 없이 중간발표 시연 실행 | [Flutter 중간발표 안내](docs/flutter/MIDTERM_DEMO.md): 휴대폰 실행 명령·시연 순서·검증 범위 |
 | 디자인 보드 00~04와 화면 | [docs/design](docs/design/README.md): 캔버스 캡처와 값 표 |
 | 기능 개발 가이드 | [docs/dev](docs/dev/README.md): 목업 → 앱·서버 개발 순서, [기능 목록](docs/dev/FEATURES.md), 목업 화면 그림 |
 | 눌러 보는 앱 목업 | [20261011-app-mockup](.codex/temp/prototype/20261011-app-mockup/README.md): 휴대폰에서 여는 비공개 링크 |
