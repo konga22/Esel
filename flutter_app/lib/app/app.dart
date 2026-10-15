@@ -16,6 +16,7 @@ import '../features/friends/presentation/screens/friends_screen.dart';
 import '../features/intro/presentation/screens/intro_screen.dart';
 import '../features/issue/presentation/widgets/issue_bottom_sheet.dart';
 import '../features/magazine/presentation/screens/my_magazine_screen.dart';
+import '../features/magazine/domain/rules/privacy_rule.dart';
 import '../features/magazine/presentation/screens/shelf_screen.dart';
 import '../features/moderation/presentation/widgets/moderation_sheet.dart';
 import '../features/onboarding/presentation/screens/onboarding_screen.dart';
@@ -369,7 +370,10 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
     IssueBottomSheet.show(
       context,
       issue: issue,
-      isOwner: session != null && issue.ownerId == session.userId,
+      isOwner: PrivacyRule.shouldExposeReactionCounts(
+        viewerUserId: session?.userId,
+        ownerUserId: issue.ownerId,
+      ),
       readerMasthead: session?.masthead ?? '',
       reactionsController: _sl.reactionsController,
       onOpenAuthorShelf: () => _openAuthorShelf(issue.ownerId),

@@ -230,7 +230,7 @@ class MyMagazineScreen extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                '오늘 ${stats.readCount}명이 읽었어요 · 나에게만 보여요',
+                stats.privacyNotice,
                 style: EselTypography.caption.copyWith(
                   color: EselTokens.inkMuted,
                   fontWeight: FontWeight.w600,
