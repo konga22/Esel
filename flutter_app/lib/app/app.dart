@@ -1,8 +1,12 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../core/design/theme.dart';
 import '../core/design/tokens.g.dart';
 import '../core/ui/esel_glass.dart';
+import '../core/ui/esel_paint_asset.dart';
 import '../core/ui/esel_pressable.dart';
+import '../features/drafts/data/local_library.dart';
+import '../features/drafts/domain/cover_draft.dart';
 import '../features/auth/presentation/screens/login_sheet.dart';
 import '../features/drafts/presentation/device_home_screen.dart';
 import '../features/feed/presentation/screens/feed_screen.dart';
@@ -252,13 +256,14 @@ class _EselAppState extends State<EselApp> {
       body: Stack(
         children: [
           _buildActiveTabScreen(context),
+          // 디자인: 196×60 캡슐, 가로 가운데, 화면 아래 34(홈 인디케이터가 더 높으면 그 위).
           Positioned(
-            left: 24,
-            right: 24,
-            bottom: MediaQuery.of(context).padding.bottom + 16,
+            left: 0,
+            right: 0,
+            bottom: math.max(34.0, MediaQuery.of(context).padding.bottom),
             child: _currentTab == AppTab.publish
                 ? const SizedBox.shrink()
-                : _buildGlassBottomBar(context),
+                : Center(child: _buildGlassBottomBar(context)),
           ),
         ],
       ),
@@ -405,49 +410,93 @@ class _EselAppState extends State<EselApp> {
     }
   }
 
+  /// 디자인 "메뉴 캡슐": 내 오늘의 색 물감(52) · Ink 원 48 안의 + · 내 아바타(34).
+  /// 사진이 깔린 피드에서만 글라스, 흰 화면 탭에서는 단색 + 그림자.
   Widget _buildGlassBottomBar(BuildContext context) {
     return EselGlass(
-      borderRadius: EselRadius.pill,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      width: EselSizes.capsuleWidth,
+      height: EselSizes.capsuleHeight,
+      borderRadius: EselSizes.capsuleHeight / 2,
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      solid: _currentTab != AppTab.feed,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _buildCapsuleItem(
-            Icons.auto_stories_outlined,
-            Icons.auto_stories,
-            '오늘의 색',
+            '오늘의 색 가판대',
             AppTab.stand,
             context,
+            child: EselPaintAsset(
+              colorKey: _sl.publishingController.colorId,
+              width: 52,
+            ),
           ),
           _buildCapsuleItem(
-            Icons.add_circle_outline,
-            Icons.add_circle,
-            '만들기',
+            '표지 만들기',
             AppTab.publish,
             context,
+            width: 48,
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: const BoxDecoration(
+                color: EselColors.ink,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.add, size: 22, color: EselColors.paper),
+            ),
           ),
           _buildCapsuleItem(
-            Icons.person_outline,
-            Icons.person,
             '내 잡지',
             AppTab.me,
             context,
+            child: _buildMyAvatar(),
           ),
         ],
       ),
     );
   }
 
+  Widget _buildMyAvatar() {
+    final session = _sl.authController.currentSession;
+    final issues = session == null
+        ? const <CoverDraft>[]
+        : _sl.localLibrary?.issuesFor(session.userId) ?? const <CoverDraft>[];
+    final masthead = session?.masthead ?? '';
+    final initial = Center(
+      child: Text(
+        masthead.isEmpty ? 'E' : masthead[0].toUpperCase(),
+        style: EselTypography.name(fontSize: 20),
+      ),
+    );
+    // 아바타는 장식이다. 이름은 버튼 라벨("내 잡지")로 읽힌다.
+    return ExcludeSemantics(
+      child: ClipOval(
+        child: Container(
+          width: 34,
+          height: 34,
+          color: const Color(0xFFE9E9E6),
+          child: issues.isEmpty
+              ? initial
+              : Image(
+                  image: localPhotoProvider(issues.first.photoPath),
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => initial,
+                ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildCapsuleItem(
-    IconData inactiveIcon,
-    IconData activeIcon,
     String label,
     AppTab tab,
-    BuildContext context,
-  ) {
-    final isSelected = _currentTab == tab;
-
+    BuildContext context, {
+    required Widget child,
+    double width = 60,
+  }) {
     return EselPressable(
+      semanticsLabel: label,
       onTap: () {
         if (tab == AppTab.publish || tab == AppTab.me) {
           if (!_sl.authController.isAuthenticated) {
@@ -461,19 +510,9 @@ class _EselAppState extends State<EselApp> {
         setState(() => _currentTab = tab);
       },
       child: SizedBox(
-        width: 88,
+        width: width,
         height: 48,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              isSelected ? activeIcon : inactiveIcon,
-              size: 24,
-              color: isSelected ? EselTokens.ink : EselTokens.inkMuted,
-            ),
-            Text(label, style: EselTypography.labelSmall),
-          ],
-        ),
+        child: Center(child: child),
       ),
     );
   }
