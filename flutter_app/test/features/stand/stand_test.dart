@@ -12,8 +12,8 @@ import 'package:esel/features/stand/presentation/screens/stand_screen.dart';
 import 'package:esel/features/today/presentation/controllers/today_controller.dart';
 
 void main() {
-  // 서울 2026-10-15 정오.
-  final noon = DateTime.utc(2026, 10, 15, 3);
+  // 서울 2026-09-06 정오. 디자인 시안의 날짜라 후보가 카멜·라일락·올리브다.
+  final noon = DateTime.utc(2026, 9, 6, 3);
   late Directory directory;
   late LocalLibrary library;
   late ManualServiceClock clock;
@@ -154,9 +154,9 @@ void main() {
       expect(today.hasPublishedToday, isTrue);
       final yesterday = today.today;
 
-      clock.set(DateTime.utc(2026, 10, 15, 15, 1)); // 서울 10-16 00:01
+      clock.set(DateTime.utc(2026, 9, 6, 15, 1)); // 서울 09-07 00:01
       today.refresh();
-      expect(today.today, const ServiceDate(2026, 10, 16));
+      expect(today.today, const ServiceDate(2026, 9, 7));
       expect(today.hasPublishedToday, isFalse);
       expect(today.issueCount, 1);
       for (final color in EselPaint.values) {

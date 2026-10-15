@@ -5,6 +5,7 @@ import 'package:esel/core/time/service_clock.dart';
 import 'package:esel/core/time/service_date.dart';
 import 'package:esel/features/drafts/data/local_library.dart';
 import 'package:esel/features/drafts/domain/cover_draft.dart';
+import 'package:esel/features/today/domain/rules/daily_candidates.dart';
 import 'package:esel/features/today/presentation/controllers/today_controller.dart';
 
 void main() {
@@ -65,7 +66,8 @@ void main() {
     test('편집하는 사이 자정이 지나면 발행 직전에 새 날짜로 계산한다', () async {
       await today.publish(draft());
       clock.advance(const Duration(hours: 2)); // 서울 10-16 01:00, refresh 없이
-      final next = await today.publish(draft());
+      final newDay = DailyCandidates.forDate(const ServiceDate(2026, 10, 16));
+      final next = await today.publish(draft().copyWith(color: newDay.first));
       expect(next.publishedOn, '2026-10-16');
       expect(next.issueNumber, 2);
     });
