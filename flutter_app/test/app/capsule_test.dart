@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:esel/app/app.dart';
 import 'package:esel/app/bootstrap/app_bootstrap.dart';
+import 'package:esel/features/auth/data/sources/mock_account_store.dart';
 import 'package:esel/app/dependencies/service_locator.dart';
 import 'package:esel/core/config/app_config.dart';
 import 'package:esel/core/ui/esel_glass.dart';
@@ -13,10 +14,14 @@ void main() {
   setUpAll(() async {
     AppConfig.current = const AppConfig(apiMode: ApiMode.mock);
     directory = Directory.systemTemp.createTempSync('esel-capsule-test-');
-    await AppBootstrap.setup(localLibrary: LocalLibrary(directory));
-    await ServiceLocator().authController.loginWithEmail(
+    await AppBootstrap.setup(
+      localLibrary: LocalLibrary(directory),
+      accountVault: InMemoryMockAccountVault(),
+    );
+    await ServiceLocator().authController.signupWithEmail(
       'capsule@esel.local',
       'eseldemo2026',
+      'capsule',
     );
   });
   tearDownAll(() => directory.deleteSync(recursive: true));

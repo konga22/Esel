@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../../core/config/app_config.dart';
 import '../../features/drafts/data/local_library.dart';
 import '../../core/network/http_client.dart';
@@ -7,6 +8,7 @@ import '../../core/time/service_clock.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/data/sources/auth_mock_source.dart';
 import '../../features/auth/data/sources/auth_remote_source.dart';
+import '../../features/auth/data/sources/mock_account_store.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/auth/presentation/controllers/auth_controller.dart';
 import '../../features/feed/presentation/controllers/feed_controller.dart';
@@ -44,7 +46,12 @@ class ServiceLocator {
   late final FriendsController friendsController;
   late final TwinController twinController;
 
-  void initialize({AppConfig? customConfig, ServiceClock? serviceClock}) {
+  /// [accountVault]는 시연 계정을 두는 곳이다. 기본은 기기 보안 저장소, 웹은 메모리.
+  void initialize({
+    AppConfig? customConfig,
+    ServiceClock? serviceClock,
+    MockAccountVault? accountVault,
+  }) {
     config = customConfig ?? AppConfig.current;
     clock = serviceClock ?? const SystemServiceClock();
     storage = config.isMock
@@ -52,7 +59,14 @@ class ServiceLocator {
         : const SecureSessionStorage();
     httpClient = StandardHttpClient(config: config, storage: storage);
 
-    final mockSource = AuthMockSource();
+    final mockSource = AuthMockSource(
+      accounts: MockAccountStore(
+        accountVault ??
+            (kIsWeb
+                ? InMemoryMockAccountVault()
+                : const SecureMockAccountVault()),
+      ),
+    );
     final remoteSource = AuthRemoteSource(httpClient);
 
     authRepository = AuthRepositoryImpl(

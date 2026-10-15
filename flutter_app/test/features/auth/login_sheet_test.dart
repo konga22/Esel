@@ -15,15 +15,22 @@ import 'package:esel/features/auth/presentation/screens/login_sheet.dart';
 void main() {
   late AuthController controller;
 
-  setUp(() {
+  setUp(() async {
     const config = AppConfig(apiMode: ApiMode.mock);
     AppConfig.current = config;
     final storage = InMemorySessionStorage();
+    final mockSource = AuthMockSource();
+    // 시연 계정은 가입한 이메일·비밀번호로만 열린다.
+    await mockSource.accounts.createWithPassword(
+      email: 'reader@esel.local',
+      password: 'esel1234',
+      masthead: 'reader',
+    );
     controller = AuthController(
       AuthRepositoryImpl(
         config: config,
         storage: storage,
-        mockSource: AuthMockSource(),
+        mockSource: mockSource,
         remoteSource: AuthRemoteSource(
           StandardHttpClient(config: config, storage: storage),
         ),
@@ -136,7 +143,7 @@ void main() {
     expect(find.byType(EmailLoginView), findsOneWidget);
     expect(sheetGlass(), findsOneWidget);
 
-    await tester.enterText(find.byType(TextField).at(0), 'dana@esel.app');
+    await tester.enterText(find.byType(TextField).at(0), 'reader@esel.local');
     await tester.enterText(find.byType(TextField).at(1), 'esel1234');
     await tester.tap(
       find.descendant(
@@ -152,6 +159,29 @@ void main() {
     expect(find.byType(LoginSheet), findsNothing);
   });
 
+  testWidgets('a wrong password does not open the account', (tester) async {
+    usePhone(tester);
+    var successes = 0;
+    await openSheet(tester, onLoginSuccess: () => successes++);
+    await tester.tap(find.text('이메일로 계속하기'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).at(0), 'reader@esel.local');
+    await tester.enterText(find.byType(TextField).at(1), 'someone-else');
+    await tester.tap(
+      find.descendant(
+        of: find.byType(EmailLoginView),
+        matching: find.text('로그인'),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pumpAndSettle();
+
+    expect(controller.isAuthenticated, isFalse);
+    expect(successes, 0);
+    expect(find.text('비밀번호가 맞지 않아요. 다시 입력해 주세요.'), findsOneWidget);
+  });
+
   testWidgets('Apple button still signs in through the mock', (tester) async {
     usePhone(tester);
     var successes = 0;
@@ -164,6 +194,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(controller.isAuthenticated, isTrue);
+    // 예시 인물(dana)이 아니라 이 기기의 시연 계정이고, 처음이라 제호가 없다(→ 창간).
+    expect(controller.currentSession!.userId, 'mock_apple');
+    expect(controller.currentSession!.masthead, isEmpty);
     expect(successes, 1);
     expect(find.byType(LoginSheet), findsNothing);
   });

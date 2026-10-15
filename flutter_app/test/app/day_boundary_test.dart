@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:esel/app/app.dart';
 import 'package:esel/app/bootstrap/app_bootstrap.dart';
+import 'package:esel/features/auth/data/sources/mock_account_store.dart';
 import 'package:esel/app/dependencies/service_locator.dart';
 import 'package:esel/core/config/app_config.dart';
 import 'package:esel/core/time/service_clock.dart';
@@ -21,10 +22,12 @@ void main() {
     await AppBootstrap.setup(
       localLibrary: LocalLibrary(directory),
       clock: clock,
+      accountVault: InMemoryMockAccountVault(),
     );
-    await ServiceLocator().authController.loginWithEmail(
+    await ServiceLocator().authController.signupWithEmail(
       'midnight@esel.local',
       'eseldemo2026',
+      'midnight',
     );
   });
   tearDownAll(() => directory.deleteSync(recursive: true));

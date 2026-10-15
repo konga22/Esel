@@ -104,7 +104,7 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
       authController: _sl.authController,
       onStartJoin: () {
         _sl.authController.setPendingDestination(null);
-        setState(() => _activeScreen = ActiveScreen.onboarding);
+        _startFounding();
       },
       onLoginSuccess: () {
         final pending = _sl.authController.pendingDestination;
@@ -112,11 +112,65 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
           setState(() => _currentTab = AppTab.publish);
         } else if (pending == 'me') {
           setState(() => _currentTab = AppTab.me);
-        } else if (pending == 'onboarding') {
-          setState(() => _activeScreen = ActiveScreen.onboarding);
         }
       },
     );
+  }
+
+  /// 제호가 없는 계정은 앱을 쓰기 전에 창간한다. 제호를 이메일에서 지어내지 않는다(P14).
+  bool get _needsProfile {
+    final session = _sl.authController.currentSession;
+    return session != null && session.masthead.isEmpty;
+  }
+
+  bool get _isFounding =>
+      _needsProfile || _activeScreen == ActiveScreen.onboarding;
+
+  void _startFounding() {
+    _sl.onboardingController.reset();
+    setState(() => _activeScreen = ActiveScreen.onboarding);
+  }
+
+  /// 창간을 멈춘다. 제호 없는 계정이면 로그아웃해서 첫 화면으로 돌아간다.
+  Future<void> _cancelFounding() async {
+    if (_needsProfile) await _sl.authController.logout();
+    _sl.onboardingController.reset();
+    if (mounted) setState(() => _activeScreen = ActiveScreen.main);
+  }
+
+  /// 창간하기. 계정이 없으면 계정부터 만들고, 그 계정에 제호를 정한다.
+  Future<void> _completeFounding(BuildContext context) async {
+    final auth = _sl.authController;
+    final messenger = ScaffoldMessenger.of(context);
+    if (!auth.isAuthenticated) {
+      await LoginSheet.show(
+        context,
+        authController: auth,
+        title: '계정을 만들고 창간해요',
+        lead: '창간호는 이 계정의 내 잡지에 꽂혀요.',
+        startWithEmailSignUp: true,
+        onLoginSuccess: () {},
+      );
+      if (!auth.isAuthenticated) return;
+    }
+    final draft = _sl.onboardingController.draft;
+    if (!_needsProfile) {
+      // 이미 창간한 계정으로 들어왔다. 그 잡지를 덮어쓰지 않는다.
+      messenger.showSnackBar(
+        const SnackBar(content: Text('이미 창간한 잡지가 있는 계정이에요. 그 잡지로 들어가요.')),
+      );
+    } else if (!await auth.createProfile(draft.masthead)) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(auth.errorMessage ?? '제호를 저장하지 못했어요.')),
+      );
+      return;
+    }
+    _sl.onboardingController.reset();
+    if (!mounted) return;
+    setState(() {
+      _activeScreen = ActiveScreen.main;
+      _currentTab = AppTab.feed;
+    });
   }
 
   @override
@@ -129,19 +183,23 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
       builder: (context, child) => EselPhoneFrame(child: child!),
       home: PopScope(
         canPop:
-            (_activeScreen == ActiveScreen.main &&
-                _currentTab == AppTab.feed) ||
-            _currentTab == AppTab.publish,
+            !_isFounding &&
+            ((_activeScreen == ActiveScreen.main &&
+                    _currentTab == AppTab.feed) ||
+                _currentTab == AppTab.publish),
         onPopInvokedWithResult: (didPop, result) {
-          if (didPop || _currentTab == AppTab.publish) return;
+          if (didPop) return;
+          if (_isFounding) {
+            if (_sl.onboardingController.currentStep.index > 0) {
+              _sl.onboardingController.prevStep();
+            } else {
+              _cancelFounding();
+            }
+            return;
+          }
+          if (_currentTab == AppTab.publish) return;
           setState(() {
-            if (_activeScreen == ActiveScreen.onboarding) {
-              if (_sl.onboardingController.currentStep.index > 0) {
-                _sl.onboardingController.prevStep();
-              } else {
-                _activeScreen = ActiveScreen.main;
-              }
-            } else if (_activeScreen != ActiveScreen.main) {
+            if (_activeScreen != ActiveScreen.main) {
               _activeScreen = ActiveScreen.main;
             } else {
               _currentTab = _currentTab == AppTab.shelf
@@ -161,34 +219,21 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
     }
     final auth = _sl.authController;
 
-    // 1. 비로그인 상태이면서 intro 화면인 경우
-    if (!auth.isAuthenticated && _activeScreen != ActiveScreen.onboarding) {
-      return IntroScreen(
-        onOpenLogin: () => _openLoginSheet(ctx: context),
-        onStartJoin: () =>
-            setState(() => _activeScreen = ActiveScreen.onboarding),
-      );
-    }
-
-    // 2. 창간(온보딩) 화면
-    if (_activeScreen == ActiveScreen.onboarding) {
+    // 1. 창간(J3~J7): "내 잡지 만들기"로 시작했거나, 로그인했지만 제호가 없는 계정(P13·P14)
+    if (_isFounding) {
       return OnboardingScreen(
         controller: _sl.onboardingController,
         candidates: _sl.todayController.candidates,
-        onCancel: () => setState(() => _activeScreen = ActiveScreen.main),
-        onComplete: () {
-          // 창간 완료 시 로그인 세션 생성 및 메인 진입
-          final draft = _sl.onboardingController.draft;
-          _sl.authController.signupWithEmail(
-            '${draft.masthead}@esel.app',
-            'esel1234',
-            draft.masthead,
-          );
-          setState(() {
-            _activeScreen = ActiveScreen.main;
-            _currentTab = AppTab.feed;
-          });
-        },
+        onCancel: _cancelFounding,
+        onComplete: () => _completeFounding(context),
+      );
+    }
+
+    // 2. 비로그인 첫 화면(J1)
+    if (!auth.isAuthenticated) {
+      return IntroScreen(
+        onOpenLogin: () => _openLoginSheet(ctx: context),
+        onStartJoin: _startFounding,
       );
     }
 

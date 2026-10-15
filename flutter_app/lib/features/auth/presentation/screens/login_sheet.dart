@@ -21,6 +21,11 @@ class LoginSheet extends StatefulWidget {
   /// 뒤에 사진이 없는 흰 화면에서 열면 true. 디자인의 "Glass 대체" 단색.
   final bool solid;
 
+  /// 창간 끝에서 계정을 만들 때는 제목·안내를 바꾸고 이메일 가입부터 보여 준다.
+  final String title;
+  final String lead;
+  final bool startWithEmailSignUp;
+
   /// 시트 뒤 표지를 덮는 색. 디자인 rgba(20, 20, 18, 0.32).
   static const Color barrierColor = Color(0x52141412);
 
@@ -31,6 +36,9 @@ class LoginSheet extends StatefulWidget {
     this.onCancel,
     this.onStartJoin,
     this.solid = false,
+    this.title = 'Esel에 들어가기',
+    this.lead = '오늘의 표지를 끝까지 읽고, 구독한 잡지를 모아 봐요.',
+    this.startWithEmailSignUp = false,
   });
 
   static Future<void> show(
@@ -40,6 +48,9 @@ class LoginSheet extends StatefulWidget {
     VoidCallback? onCancel,
     VoidCallback? onStartJoin,
     bool solid = false,
+    String? title,
+    String? lead,
+    bool startWithEmailSignUp = false,
   }) {
     return showModalBottomSheet<void>(
       context: context,
@@ -57,6 +68,9 @@ class LoginSheet extends StatefulWidget {
         onCancel: onCancel,
         onStartJoin: onStartJoin,
         solid: solid,
+        title: title ?? 'Esel에 들어가기',
+        lead: lead ?? '오늘의 표지를 끝까지 읽고, 구독한 잡지를 모아 봐요.',
+        startWithEmailSignUp: startWithEmailSignUp,
       ),
     );
   }
@@ -68,7 +82,7 @@ class LoginSheet extends StatefulWidget {
 class _LoginSheetState extends State<LoginSheet> {
   static const Color _divider = Color(0xFFD3D4CE);
 
-  bool _showEmailView = false;
+  late bool _showEmailView = widget.startWithEmailSignUp;
 
   @override
   Widget build(BuildContext context) {
@@ -86,6 +100,7 @@ class _LoginSheetState extends State<LoginSheet> {
                     top: false,
                     child: EmailLoginView(
                       authController: widget.authController,
+                      startInSignUp: widget.startWithEmailSignUp,
                       onBack: () => setState(() => _showEmailView = false),
                       onSuccess: () {
                         Navigator.of(context).pop();
@@ -127,7 +142,7 @@ class _LoginSheetState extends State<LoginSheet> {
             children: [
               Expanded(
                 child: Text(
-                  'Esel에 들어가기',
+                  widget.title,
                   style: EselTypography.heading(fontSize: 30),
                 ),
               ),
@@ -151,7 +166,7 @@ class _LoginSheetState extends State<LoginSheet> {
           ),
           const SizedBox(height: 10),
           Text(
-            '오늘의 표지를 끝까지 읽고, 구독한 잡지를 모아 봐요.',
+            widget.lead,
             style: EselTypography.body(
               fontSize: 14,
               color: EselColors.sub,

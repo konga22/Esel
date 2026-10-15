@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:esel/app/app.dart';
 import 'package:esel/app/bootstrap/app_bootstrap.dart';
+import 'package:esel/features/auth/data/sources/mock_account_store.dart';
 import 'package:esel/core/config/app_config.dart';
 import 'package:esel/core/ui/esel_glass.dart';
 import 'package:esel/features/auth/presentation/screens/login_sheet.dart';
@@ -15,7 +16,10 @@ void main() {
   setUpAll(() async {
     AppConfig.current = const AppConfig(apiMode: ApiMode.mock);
     directory = Directory.systemTemp.createTempSync('esel-login-entry-test-');
-    await AppBootstrap.setup(localLibrary: LocalLibrary(directory));
+    await AppBootstrap.setup(
+      localLibrary: LocalLibrary(directory),
+      accountVault: InMemoryMockAccountVault(),
+    );
   });
   tearDownAll(() => directory.deleteSync(recursive: true));
 
