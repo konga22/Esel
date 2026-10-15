@@ -18,7 +18,7 @@
 | 에셋 정리, 화면의 내부 ID·예시 값, 앱 이름 Esel, Flutter 3.44 고정 | 고침 |
 
 실행 방법·시연 순서·검증과 제한은 [MIDTERM_DEMO.md](MIDTERM_DEMO.md)를 따른다.
-Flutter 테스트 134개 통과, `flutter analyze` 경고 없음(Flutter 3.44.0).
+Flutter 테스트 136개 통과, `flutter analyze` 경고 없음(Flutter 3.44.0).
 실제 서버 연동·실제 인증·친구/트윈/월간 기록 화면·실기기(Android·iOS) 재검증은 완료 범위가 아니다.
 오늘 호 만들기(C6) 편집 화면과 내 잡지(M1)는 아직 디자인 보드와 다르다.
 DEV-01~20 전체 완료로 표시하지 않는다.
