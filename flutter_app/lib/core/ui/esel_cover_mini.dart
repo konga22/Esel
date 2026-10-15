@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 import '../design/tokens.g.dart';
 import '../design/typography.dart';
-import 'esel_image.dart';
 import 'esel_pressable.dart';
 
 /// 디자인 "작은 표지"(생성기 miniCover): 가판대·서가에 꽂히는 표지.
@@ -9,7 +8,10 @@ import 'esel_pressable.dart';
 class EselCoverMini extends StatelessWidget {
   final String author;
   final String masthead;
-  final String photoAsset;
+  final ImageProvider photo;
+
+  /// 사진 대체 텍스트(착장 설명).
+  final String? alt;
   final double width;
   final double height;
   final VoidCallback? onTap;
@@ -20,6 +22,9 @@ class EselCoverMini extends StatelessWidget {
   /// 이름을 숨기려면 false(서가에서는 이름 대신 Nº를 아래에 따로 쓴다).
   final bool showAuthor;
 
+  /// 스크린 리더가 읽는 이름. 기본은 "{이름}의 표지 보기".
+  final String? semanticsLabel;
+
   /// 사진 위치(BoxFit.cover의 정렬). 디자인의 object-position.
   final Alignment photoAlignment;
 
@@ -27,13 +32,15 @@ class EselCoverMini extends StatelessWidget {
     super.key,
     required this.author,
     required this.masthead,
-    required this.photoAsset,
+    required this.photo,
+    this.alt,
     this.width = 113.0,
     this.height = 166.0,
     this.onTap,
     this.mastheadColor = const Color(0xFFFFFFFF),
     this.showAuthor = true,
     this.photoAlignment = Alignment.center,
+    this.semanticsLabel,
   });
 
   @override
@@ -46,7 +53,7 @@ class EselCoverMini extends StatelessWidget {
 
     return EselPressable(
       onTap: onTap,
-      semanticsLabel: '$author의 표지 보기',
+      semanticsLabel: semanticsLabel ?? '$author의 표지 보기',
       child: Container(
         width: width,
         height: height,
@@ -64,10 +71,13 @@ class EselCoverMini extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            EselAssetImage(
-              photoAsset,
+            Image(
+              image: photo,
               fit: BoxFit.cover,
               alignment: photoAlignment,
+              semanticLabel: alt,
+              errorBuilder: (_, _, _) =>
+                  const ColoredBox(color: EselColors.photo),
             ),
             if (mastheadColor == const Color(0xFFFFFFFF))
               Positioned(

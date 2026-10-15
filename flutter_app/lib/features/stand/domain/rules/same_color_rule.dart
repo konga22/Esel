@@ -36,6 +36,25 @@ class SameColorViewer {
     : candidates = const [],
       hasPublishedToday = false,
       isMinor = false;
+
+  @override
+  bool operator ==(Object other) =>
+      other is SameColorViewer &&
+      other.today == today &&
+      other.hasPublishedToday == hasPublishedToday &&
+      other.isMinor == isMinor &&
+      other.candidates.length == candidates.length &&
+      Iterable.generate(
+        candidates.length,
+      ).every((i) => other.candidates[i] == candidates[i]);
+
+  @override
+  int get hashCode => Object.hash(
+    today,
+    Object.hashAll(candidates),
+    hasPublishedToday,
+    isMinor,
+  );
 }
 
 /// 방에 꽂힌 표지 하나. 규칙은 id와 발행 시각만 본다.

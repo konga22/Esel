@@ -5,6 +5,8 @@ import '../../../../core/design/typography.dart';
 import '../../../../core/ui/esel_cover_mini.dart';
 import '../../../../core/ui/esel_paint_asset.dart';
 import '../../../../core/ui/esel_pressable.dart';
+import '../../../issue/domain/models/public_issue.dart';
+import '../../../issue/presentation/issue_photo.dart';
 import '../../domain/rules/same_color_rule.dart';
 import '../controllers/stand_controller.dart';
 
@@ -12,19 +14,42 @@ import '../controllers/stand_controller.dart';
 ///
 /// 칩 순서는 전체 → 오늘 나의 후보 3색 → 나머지 9색. 발행 전에는 후보 3색 칩 모두에 자물쇠가
 /// 붙고, 그 방은 최신 3장과 흐린 책등(개수만)으로 보인다(P01).
-class StandScreen extends StatelessWidget {
+class StandScreen extends StatefulWidget {
   final StandController controller;
   final SameColorViewer viewer;
-  final void Function(StandItem item) onSelectCover;
+  final String? viewerId;
+  final void Function(PublicIssue issue) onSelectCover;
   final VoidCallback onMakeTodayIssue;
 
   const StandScreen({
     super.key,
     required this.controller,
     required this.viewer,
+    this.viewerId,
     required this.onSelectCover,
     required this.onMakeTodayIssue,
   });
+
+  @override
+  State<StandScreen> createState() => _StandScreenState();
+}
+
+class _StandScreenState extends State<StandScreen> {
+  StandController get controller => widget.controller;
+  SameColorViewer get viewer => widget.viewer;
+
+  @override
+  void initState() {
+    super.initState();
+    controller.configure(viewer: viewer, viewerId: widget.viewerId);
+  }
+
+  @override
+  void didUpdateWidget(StandScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 발행·자정·로그인으로 보는 사람이 바뀌면 다시 받는다(잠금이 풀리거나 다시 잠김).
+    controller.configure(viewer: viewer, viewerId: widget.viewerId);
+  }
 
   List<EselPaint> get _chipOrder => [
     ...viewer.candidates,
@@ -36,7 +61,7 @@ class StandScreen extends StatelessWidget {
     return AnimatedBuilder(
       animation: controller,
       builder: (context, _) {
-        final shelf = controller.shelfFor(viewer);
+        final shelf = controller.shelf;
         return Scaffold(
           backgroundColor: EselColors.paper,
           body: SafeArea(
@@ -47,22 +72,53 @@ class StandScreen extends StatelessWidget {
                 _buildHeader(),
                 _buildChips(),
                 Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.only(bottom: 120),
-                    children: [
-                      if (shelf.color != null) _buildRoomHeader(shelf),
-                      if (shelf.isPreview)
-                        ..._buildPreviewRoom(shelf)
-                      else
-                        ..._buildOpenShelves(shelf),
-                    ],
-                  ),
+                  child: shelf == null
+                      ? _buildStatus()
+                      : ListView(
+                          padding: const EdgeInsets.only(bottom: 120),
+                          children: [
+                            if (shelf.color != null) _buildRoomHeader(shelf),
+                            if (shelf.isPreview)
+                              ..._buildPreviewRoom(shelf)
+                            else
+                              ..._buildOpenShelves(shelf),
+                          ],
+                        ),
                 ),
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  /// 처음 받는 중이거나 받지 못했을 때.
+  Widget _buildStatus() {
+    final error = controller.errorMessage;
+    if (error == null) {
+      return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+    }
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              error,
+              textAlign: TextAlign.center,
+              style: EselTypography.body(color: EselColors.muted),
+            ),
+            const SizedBox(height: 12),
+            EselPressable(
+              semanticsLabel: '다시 불러오기',
+              onTap: controller.load,
+              child: Text('다시 불러오기', style: EselTypography.label()),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -289,7 +345,7 @@ class StandScreen extends StatelessWidget {
       Center(
         child: EselPressable(
           semanticsLabel: '오늘 호 만들기',
-          onTap: onMakeTodayIssue,
+          onTap: widget.onMakeTodayIssue,
           child: Container(
             height: 48,
             padding: const EdgeInsets.symmetric(horizontal: 26),
@@ -317,15 +373,16 @@ class StandScreen extends StatelessWidget {
     ];
   }
 
-  Widget _miniCover(StandItem item, double w, double h) {
+  Widget _miniCover(PublicIssue item, double w, double h) {
     return EselCoverMini(
       author: item.masthead,
       masthead: 'Esel',
-      photoAsset: item.photoAsset,
+      photo: issuePhotoProvider(item.photo),
+      alt: item.alt,
       width: w,
       height: h,
       photoAlignment: const Alignment(0, -0.4),
-      onTap: () => onSelectCover(item),
+      onTap: () => widget.onSelectCover(item),
     );
   }
 }

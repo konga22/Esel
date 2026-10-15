@@ -1,15 +1,34 @@
 import 'package:flutter/foundation.dart';
-import '../../../../core/design/tokens.g.dart';
+import '../../../../core/errors/failures.dart';
+import '../../../stand/domain/rules/same_color_rule.dart';
+import '../../data/sources/magazine_source.dart';
 import '../../domain/models/magazine_models.dart';
-import '../../../drafts/data/local_library.dart';
 
+export '../../domain/models/magazine_models.dart';
+
+/// 서가 상태. 데이터는 [MagazineSource](mock 또는 서버)에서만 받는다.
 class MagazineController extends ChangeNotifier {
-  LocalLibrary? localLibrary;
-  String? localOwnerId;
-  String? localMasthead;
+  final MagazineSource source;
+
+  MagazineController(this.source);
+
   ShelfViewMode _viewMode = ShelfViewMode.covers;
+  MagazineProfile? _profile;
+  bool _loading = false;
+  String? _error;
+  String? _ownerId;
+  SameColorViewer? _viewer;
+  String? _viewerId;
+  String? _masthead;
+  int _request = 0;
 
   ShelfViewMode get viewMode => _viewMode;
+  bool get isLoading => _loading;
+  String? get errorMessage => _error;
+
+  /// 지금 보고 있는 잡지. 다른 사람의 서가로 바뀌는 중이면 null.
+  MagazineProfile? get profile =>
+      _profile?.ownerId == _ownerId ? _profile : null;
 
   void toggleViewMode() {
     _viewMode = _viewMode == ShelfViewMode.covers
@@ -18,90 +37,50 @@ class MagazineController extends ChangeNotifier {
     notifyListeners();
   }
 
-  MagazineProfile getMagazineProfile(
-    String masthead, {
-    required int myIssueCount,
-    required bool hasPublishedToday,
+  void configure({
+    required String ownerId,
+    required SameColorViewer viewer,
+    String? viewerId,
+    String? masthead,
   }) {
-    if (localLibrary != null && masthead == localMasthead) {
-      final issues = localLibrary!.issuesFor(localOwnerId ?? '');
-      return MagazineProfile(
-        masthead: masthead,
-        bio: '',
-        profilePhoto: issues.isEmpty ? '' : issues.first.photoPath,
-        totalIssues: issues.length,
-        issues: issues
-            .map(
-              (d) => IssueSummary(
-                id: d.id,
-                issueNumber: d.issueNumber,
-                date: d.publishedOn!,
-                color: d.color,
-                photoAsset: d.photoPath,
-                caption: d.caption,
-                cover: d,
-              ),
-            )
-            .toList(),
-      );
-    }
-    if (masthead == 'dana' || masthead == '나') {
-      final list = <IssueSummary>[];
-      for (int i = myIssueCount; i >= 1; i--) {
-        list.add(
-          IssueSummary(
-            id: 'my_issue_$i',
-            issueNumber: i,
-            date: '2026. 9. ${i.clamp(1, 30)}',
-            color: i % 2 == 0 ? EselPaint.powder : EselPaint.sage,
-            photoAsset: i % 2 == 0
-                ? 'assets/demo/dana.jpg'
-                : 'assets/models/m01.jpg',
-            caption: '매일 한 장씩 남기는 나의 기록.',
-          ),
-        );
-      }
-      return MagazineProfile(
-        masthead: 'dana',
-        bio: '매일의 일상과 푸른빛을 기록하는 잡지.',
-        profilePhoto: 'assets/demo/dana.jpg',
-        totalIssues: myIssueCount,
-        issues: list,
-      );
-    }
+    final changed =
+        ownerId != _ownerId ||
+        viewer != _viewer ||
+        viewerId != _viewerId ||
+        masthead != _masthead;
+    _ownerId = ownerId;
+    _viewer = viewer;
+    _viewerId = viewerId;
+    _masthead = masthead;
+    if (changed || _profile == null) load();
+  }
 
-    // 타인 서가 (결호 없음 P04)
-    return const MagazineProfile(
-      masthead: 'seul',
-      bio: '필름 카메라와 가을빛 일상.',
-      profilePhoto: 'assets/models/m01.jpg',
-      totalIssues: 120,
-      issues: [
-        IssueSummary(
-          id: 'seul_120',
-          issueNumber: 120,
-          date: '2026. 9. 6',
-          color: EselPaint.powder,
-          photoAsset: 'assets/models/m01.jpg',
-          caption: '바람이 불어오는 계절.',
-        ),
-        IssueSummary(
-          id: 'seul_119',
-          issueNumber: 119,
-          date: '2026. 9. 5',
-          color: EselPaint.sage,
-          photoAsset: 'assets/models/m02.jpg',
-          caption: '작은 정원의 그림자.',
-        ),
-        IssueSummary(
-          id: 'seul_118',
-          issueNumber: 118,
-          date: '2026. 9. 4',
-          color: EselPaint.butter,
-          photoAsset: 'assets/models/m03.jpg',
-          caption: '노란빛 오후 티타임.',
-        ),
-      ],
-    );
+  Future<void> load() async {
+    final ownerId = _ownerId;
+    final viewer = _viewer;
+    if (ownerId == null || viewer == null) return;
+    final request = ++_request;
+    _loading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final profile = await source.magazine(
+        ownerId,
+        viewer: viewer,
+        viewerId: _viewerId,
+        masthead: _masthead,
+      );
+      if (request != _request) return;
+      _profile = profile;
+      if (profile == null) _error = '이 잡지를 찾지 못했어요.';
+    } on Failure catch (failure) {
+      if (request != _request) return;
+      _error = failure.message;
+    } catch (_) {
+      if (request != _request) return;
+      _error = '서가를 불러오지 못했어요. 다시 시도해 주세요.';
+    }
+    _loading = false;
+    notifyListeners();
   }
 }

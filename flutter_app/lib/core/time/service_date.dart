@@ -84,3 +84,11 @@ class ServiceDate implements Comparable<ServiceDate> {
 
   static String _two(int value) => value.toString().padLeft(2, '0');
 }
+
+/// 지면 머리의 시각 표기(서울 기준, `오전 8:12`).
+String seoulTimeLabel(DateTime instant) {
+  final seoul = instant.toUtc().add(ServiceDate.seoulOffset);
+  final half = seoul.hour < 12 ? '오전' : '오후';
+  final hour = seoul.hour % 12 == 0 ? 12 : seoul.hour % 12;
+  return '$half $hour:${seoul.minute.toString().padLeft(2, '0')}';
+}

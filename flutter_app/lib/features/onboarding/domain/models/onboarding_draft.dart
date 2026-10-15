@@ -37,6 +37,9 @@ class OnboardingDraft {
   /// 발행된 창간호(Nº 001). done 단계에서만 있다.
   final CoverDraft? issue;
 
+  /// 나를 포함한 오늘 같은 색 인원(공개 숫자, P18).
+  final int sameColorCount;
+
   const OnboardingDraft({
     this.step = OnboardingStep.color,
     this.color,
@@ -48,6 +51,7 @@ class OnboardingDraft {
     this.faceY = .3,
     this.facePlaced = false,
     this.issue,
+    this.sameColorCount = 1,
   });
 
   OnboardingDraft copyWith({
@@ -61,6 +65,7 @@ class OnboardingDraft {
     double? faceY,
     bool? facePlaced,
     CoverDraft? issue,
+    int? sameColorCount,
   }) {
     return OnboardingDraft(
       step: step ?? this.step,
@@ -73,6 +78,7 @@ class OnboardingDraft {
       faceY: faceY ?? this.faceY,
       facePlaced: facePlaced ?? this.facePlaced,
       issue: issue ?? this.issue,
+      sameColorCount: sameColorCount ?? this.sameColorCount,
     );
   }
 

@@ -117,9 +117,13 @@ class OnboardingController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// 창간호(Nº 001)가 발행됐다.
-  void markFounded(CoverDraft issue) {
-    _draft = _draft.copyWith(step: OnboardingStep.done, issue: issue);
+  /// 창간호(Nº 001)가 발행됐다. [sameColorCount]는 나를 포함한 오늘 같은 색 인원.
+  void markFounded(CoverDraft issue, {int sameColorCount = 1}) {
+    _draft = _draft.copyWith(
+      step: OnboardingStep.done,
+      issue: issue,
+      sameColorCount: sameColorCount,
+    );
     notifyListeners();
   }
 

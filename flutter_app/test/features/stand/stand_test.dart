@@ -7,6 +7,7 @@ import 'package:esel/core/time/service_date.dart';
 import 'package:esel/features/drafts/data/local_library.dart';
 import 'package:esel/features/drafts/domain/cover_draft.dart';
 import 'package:esel/features/stand/domain/rules/same_color_rule.dart';
+import 'package:esel/features/stand/data/sources/stand_mock_source.dart';
 import 'package:esel/features/stand/presentation/controllers/stand_controller.dart';
 import 'package:esel/features/stand/presentation/screens/stand_screen.dart';
 import 'package:esel/features/today/presentation/controllers/today_controller.dart';
@@ -53,6 +54,7 @@ void main() {
           builder: (context, _) => StandScreen(
             controller: stand,
             viewer: today.viewer,
+            viewerId: today.ownerId,
             onSelectCover: (_) {},
             onMakeTodayIssue: () {},
           ),
@@ -66,7 +68,7 @@ void main() {
 
   group('DEV-12 가판대 · 같은 색 잠금(P01)', () {
     testWidgets('발행 전에는 후보 3색 칩 모두에 자물쇠, 그 방은 3장과 흐린 책등', (tester) async {
-      final stand = StandController();
+      final stand = StandController(StandMockSource(library: () => library));
       await pumpStand(tester, stand);
 
       expect(find.text('가판대'), findsOneWidget);
@@ -97,7 +99,7 @@ void main() {
     });
 
     testWidgets('후보 색을 몇 번 바꿔도 어떤 방도 열리지 않는다', (tester) async {
-      final stand = StandController();
+      final stand = StandController(StandMockSource(library: () => library));
       await pumpStand(tester, stand);
 
       for (final picked in [
@@ -111,7 +113,8 @@ void main() {
         for (final color in today.candidates) {
           expect(SameColorRule.isLockedToday(color, today.viewer), isTrue);
           stand.select(color);
-          expect(stand.shelfFor(today.viewer).isPreview, isTrue);
+          await tester.pump();
+          expect(stand.shelf!.isPreview, isTrue);
         }
       }
       // 후보 밖의 색은 고를 수 없다(P17).
@@ -132,7 +135,7 @@ void main() {
     });
 
     testWidgets('오늘 발행하면 모든 방이 열린다', (tester) async {
-      final stand = StandController();
+      final stand = StandController(StandMockSource(library: () => library));
       await pumpStand(tester, stand);
       await tester.runAsync(() => today.publish(draft(EselPaint.lilac)));
       await tester.pump();
@@ -175,23 +178,23 @@ void main() {
     });
 
     testWidgets('후보가 아닌 색은 발행 전에도 열려 있다', (tester) async {
-      final stand = StandController();
+      final stand = StandController(StandMockSource(library: () => library));
       await pumpStand(tester, stand);
       final open = EselPaint.values.firstWhere(
         (c) => !today.candidates.contains(c),
       );
       stand.select(open);
       await tester.pump();
-      final shelf = stand.shelfFor(today.viewer);
+      final shelf = stand.shelf!;
       expect(shelf.isPreview, isFalse);
       expect(shelf.hiddenCount, 0);
       expect(find.text('발행하면 함께 펼쳐집니다'), findsNothing);
     });
 
     testWidgets('전체 칸에는 잠긴 후보 색 표지가 꽂히지 않는다', (tester) async {
-      final stand = StandController();
+      final stand = StandController(StandMockSource(library: () => library));
       await pumpStand(tester, stand);
-      final shelf = stand.shelfFor(today.viewer);
+      final shelf = stand.shelf!;
       expect(
         shelf.items.where((item) => today.candidates.contains(item.color)),
         isEmpty,
@@ -201,11 +204,12 @@ void main() {
 
     testWidgets('미성년자는 잠금이 없다', (tester) async {
       today.bindUser(ownerId: 'reader-a', isMinor: true);
-      final stand = StandController();
+      final stand = StandController(StandMockSource(library: () => library));
       await pumpStand(tester, stand);
       expect(lockIcons(), findsNothing);
       stand.select(today.candidates.first);
-      expect(stand.shelfFor(today.viewer).isPreview, isFalse);
+      await tester.pump();
+      expect(stand.shelf!.isPreview, isFalse);
     });
   });
 }

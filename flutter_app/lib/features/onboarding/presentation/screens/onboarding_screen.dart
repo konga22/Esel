@@ -34,9 +34,6 @@ class OnboardingScreen extends StatefulWidget {
   final ServiceDate today;
   final LocalLibrary library;
 
-  /// 오늘 그 색으로 발행한 사람 수(나 포함). 같은 색 인원은 공개 숫자다(P18).
-  final int Function(EselPaint color) sameColorCount;
-
   /// 테스트에서 사진 고르기를 바꿔 끼운다. 기본은 카메라·앨범(image_picker).
   final PickFoundingPhoto? pickPhoto;
 
@@ -50,7 +47,6 @@ class OnboardingScreen extends StatefulWidget {
     required this.onFound,
     required this.onOpenFeed,
     required this.onOpenMyMagazine,
-    required this.sameColorCount,
     this.pickPhoto,
   });
 
@@ -628,7 +624,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         EselPaintAsset(paint: issue.color, width: 56),
                         const SizedBox(width: 8),
                         Text(
-                          '${info.nameKo} · 같은 색 ${widget.sameColorCount(issue.color)}명과 함께',
+                          '${info.nameKo} · 같은 색 ${draft.sameColorCount}명과 함께',
                           style: EselTypography.label(color: Colors.white),
                         ),
                       ],

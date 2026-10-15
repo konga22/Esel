@@ -215,7 +215,6 @@ void main() {
           candidates: const [EselPaint.camel, EselPaint.lilac, EselPaint.olive],
           today: ManualServiceClock(DateTime.utc(2026, 9, 6, 3)).today,
           library: LocalLibrary.inMemory(),
-          sameColorCount: (_) => 1,
           onCancel: () {},
           onFound: () async {},
           onOpenFeed: () {},

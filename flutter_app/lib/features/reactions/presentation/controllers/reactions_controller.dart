@@ -4,7 +4,9 @@ import '../../domain/models/reaction_state.dart';
 class ReactionsController extends ChangeNotifier {
   final Set<String> _likedIssueIds = {};
   final Set<String> _scrappedIssueIds = {};
-  final Set<String> _subscribedMastheads = {'seul', 'min'};
+
+  /// 구독한 잡지(주인 id). 처음에는 아무것도 구독하지 않았다.
+  final Set<String> _subscribedOwners = {};
 
   final Map<String, List<ReaderLine>> _readerLinesMap = {
     'dana_249': [
@@ -25,7 +27,8 @@ class ReactionsController extends ChangeNotifier {
 
   bool isLiked(String issueId) => _likedIssueIds.contains(issueId);
   bool isScrapped(String issueId) => _scrappedIssueIds.contains(issueId);
-  bool isSubscribed(String masthead) => _subscribedMastheads.contains(masthead);
+  bool isSubscribed(String ownerId) => _subscribedOwners.contains(ownerId);
+  Set<String> get subscribedOwnerIds => Set.unmodifiable(_subscribedOwners);
 
   void toggleLike(String issueId) {
     if (_likedIssueIds.contains(issueId)) {
@@ -45,11 +48,11 @@ class ReactionsController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleSubscription(String masthead) {
-    if (_subscribedMastheads.contains(masthead)) {
-      _subscribedMastheads.remove(masthead);
+  void toggleSubscription(String ownerId) {
+    if (_subscribedOwners.contains(ownerId)) {
+      _subscribedOwners.remove(ownerId);
     } else {
-      _subscribedMastheads.add(masthead);
+      _subscribedOwners.add(ownerId);
     }
     notifyListeners();
   }

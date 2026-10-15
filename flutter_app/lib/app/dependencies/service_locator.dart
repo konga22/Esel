@@ -11,13 +11,19 @@ import '../../features/auth/data/sources/auth_remote_source.dart';
 import '../../features/auth/data/sources/mock_account_store.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/auth/presentation/controllers/auth_controller.dart';
+import '../../features/feed/data/sources/feed_mock_source.dart';
+import '../../features/feed/data/sources/feed_remote_source.dart';
 import '../../features/feed/presentation/controllers/feed_controller.dart';
 import '../../features/friends/presentation/controllers/friends_controller.dart';
+import '../../features/magazine/data/sources/magazine_mock_source.dart';
+import '../../features/magazine/data/sources/magazine_remote_source.dart';
 import '../../features/magazine/presentation/controllers/magazine_controller.dart';
 import '../../features/onboarding/presentation/controllers/onboarding_controller.dart';
 import '../../features/publishing/presentation/controllers/publishing_controller.dart';
 import '../../features/reactions/presentation/controllers/reactions_controller.dart';
 import '../../features/records/presentation/controllers/records_controller.dart';
+import '../../features/stand/data/sources/stand_mock_source.dart';
+import '../../features/stand/data/sources/stand_remote_source.dart';
 import '../../features/stand/presentation/controllers/stand_controller.dart';
 import '../../features/today/presentation/controllers/today_controller.dart';
 import '../../features/twin/presentation/controllers/twin_controller.dart';
@@ -83,9 +89,22 @@ class ServiceLocator {
     );
     publishingController = PublishingController();
     reactionsController = ReactionsController();
-    feedController = FeedController();
-    standController = StandController();
-    magazineController = MagazineController();
+    // 피드·가판대·서가도 ESEL_API_MODE 하나로 mock과 서버 소스를 바꾼다(DEV-03).
+    // 서버 소스는 아직 미구현이라 부르면 "아직 연결하지 않았어요"로 끝난다.
+    LocalLibrary? library() => localLibrary;
+    feedController = FeedController(
+      config.isMock ? FeedMockSource() : FeedRemoteSource(httpClient),
+    );
+    standController = StandController(
+      config.isMock
+          ? StandMockSource(library: library)
+          : StandRemoteSource(httpClient),
+    );
+    magazineController = MagazineController(
+      config.isMock
+          ? MagazineMockSource(library: library)
+          : MagazineRemoteSource(httpClient),
+    );
     recordsController = RecordsController();
     friendsController = FriendsController();
     twinController = TwinController();

@@ -3,7 +3,9 @@ import '../../../../core/design/tokens.g.dart';
 import '../../../../core/design/typography.dart';
 import '../../../../core/ui/esel_paint_asset.dart';
 import '../../../../core/ui/esel_pressable.dart';
-import '../../../../core/ui/esel_image.dart';
+import '../../../issue/domain/models/public_issue.dart';
+import '../../../issue/presentation/issue_photo.dart';
+import '../../../stand/domain/rules/same_color_rule.dart';
 import '../../../issue/presentation/widgets/issue_bottom_sheet.dart';
 import '../../../moderation/presentation/widgets/moderation_sheet.dart';
 import '../../../reactions/presentation/controllers/reactions_controller.dart';
@@ -14,14 +16,18 @@ class FeedScreen extends StatefulWidget {
   final FeedController feedController;
   final ReactionsController reactionsController;
   final bool isAuthenticated;
+  final SameColorViewer viewer;
+  final String readerMasthead;
   final VoidCallback onRequestLogin;
-  final Function(String masthead) onOpenAuthorShelf;
+  final void Function(String ownerId) onOpenAuthorShelf;
 
   const FeedScreen({
     super.key,
     required this.feedController,
     required this.reactionsController,
     required this.isAuthenticated,
+    required this.viewer,
+    required this.readerMasthead,
     required this.onRequestLogin,
     required this.onOpenAuthorShelf,
   });
@@ -32,6 +38,24 @@ class FeedScreen extends StatefulWidget {
 
 class _FeedScreenState extends State<FeedScreen> {
   final PageController _pageController = PageController();
+
+  void _configure() => widget.feedController.configure(
+    viewer: widget.viewer,
+    signedIn: widget.isAuthenticated,
+    subscribedOwnerIds: widget.reactionsController.subscribedOwnerIds,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _configure();
+  }
+
+  @override
+  void didUpdateWidget(FeedScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _configure();
+  }
 
   @override
   void dispose() {
@@ -67,7 +91,8 @@ class _FeedScreenState extends State<FeedScreen> {
       builder: (context, _) {
         final fc = widget.feedController;
         final rc = widget.reactionsController;
-        final items = fc.getItems({'seul', 'min'});
+        final page = fc.page;
+        final items = page?.issues ?? const <PublicIssue>[];
 
         return Scaffold(
           backgroundColor: EselTokens.paper,
@@ -90,7 +115,11 @@ class _FeedScreenState extends State<FeedScreen> {
                   itemCount: items.length,
                   itemBuilder: (context, idx) {
                     final item = items[idx];
-                    return _buildCoverPage(item, rc);
+                    return _buildCoverPage(
+                      item,
+                      rc,
+                      page!.sameColorCount(item.color),
+                    );
                   },
                 ),
               Positioned(top: 0, left: 0, right: 0, child: _buildTopTabBar(fc)),
@@ -115,7 +144,7 @@ class _FeedScreenState extends State<FeedScreen> {
               children: [
                 _buildTabButton('오늘의 표지', FeedTab.all, fc),
                 const SizedBox(width: 14),
-                _buildTabButton('내 구독', FeedTab.subs, fc),
+                _buildTabButton('내 구독', FeedTab.subscribed, fc),
               ],
             ),
             Text(
@@ -153,15 +182,23 @@ class _FeedScreenState extends State<FeedScreen> {
     );
   }
 
-  Widget _buildCoverPage(FeedItem item, ReactionsController rc) {
+  Widget _buildCoverPage(
+    PublicIssue item,
+    ReactionsController rc,
+    int sameColorCount,
+  ) {
     final isLiked = rc.isLiked(item.id);
     final isScrapped = rc.isScrapped(item.id);
-    final isSubscribed = rc.isSubscribed(item.masthead);
+    final isSubscribed = rc.isSubscribed(item.ownerId);
 
     return Stack(
       fit: StackFit.expand,
       children: [
-        EselAssetImage(item.photoAsset, fit: BoxFit.cover),
+        Image(
+          image: issuePhotoProvider(item.photo),
+          fit: BoxFit.cover,
+          semanticLabel: item.alt,
+        ),
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -214,7 +251,7 @@ class _FeedScreenState extends State<FeedScreen> {
               Row(
                 children: [
                   EselPressable(
-                    onTap: () => widget.onOpenAuthorShelf(item.masthead),
+                    onTap: () => widget.onOpenAuthorShelf(item.ownerId),
                     child: Text(
                       item.masthead,
                       style: EselTypography.headlineSmall.copyWith(
@@ -227,7 +264,7 @@ class _FeedScreenState extends State<FeedScreen> {
                   const SizedBox(width: 12),
                   EselPressable(
                     onTap: () => _handleProtectedAction(
-                      () => rc.toggleSubscription(item.masthead),
+                      () => rc.toggleSubscription(item.ownerId),
                     ),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
@@ -260,7 +297,7 @@ class _FeedScreenState extends State<FeedScreen> {
                   EselPaintAsset(paint: item.color, width: 24),
                   const SizedBox(width: 8),
                   Text(
-                    '${EselPaints.of(item.color).nameKo} · 같은 색 ${item.sameColorCount}명',
+                    '${EselPaints.of(item.color).nameKo} · 같은 색 $sameColorCount명',
                     style: EselTypography.bodySmall.copyWith(
                       color: Colors.white,
                     ),
@@ -308,7 +345,7 @@ class _FeedScreenState extends State<FeedScreen> {
                       context,
                       issueId: item.id,
                       masthead: item.masthead,
-                      issueNumber: item.issueNumber,
+                      issueNumber: item.issueLabel,
                     ),
                     child: const SizedBox(
                       width: 44,
@@ -324,22 +361,17 @@ class _FeedScreenState extends State<FeedScreen> {
                   EselPressable(
                     onTap: () => IssueBottomSheet.show(
                       context,
-                      issueId: item.id,
-                      authorMasthead: item.masthead,
-                      mainPhoto: item.photoAsset,
-                      secondPhoto: item.secondPhotoAsset,
-                      color: item.color,
-                      caption: item.caption,
-                      issueNumber: item.issueNumber,
+                      issue: item,
                       isOwner: false,
+                      readerMasthead: widget.readerMasthead,
                       reactionsController: rc,
                       onOpenAuthorShelf: () =>
-                          widget.onOpenAuthorShelf(item.masthead),
+                          widget.onOpenAuthorShelf(item.ownerId),
                       onShare: () => ShareSheet.show(
                         context,
                         issueId: item.id,
                         masthead: item.masthead,
-                        issueNumber: item.issueNumber,
+                        issueNumber: item.issueLabel,
                       ),
                       onReport: () => ModerationSheet.show(
                         context,

@@ -8,6 +8,7 @@ import '../core/ui/esel_phone_frame.dart';
 import '../core/ui/esel_pressable.dart';
 import '../features/drafts/data/local_library.dart';
 import '../features/drafts/domain/cover_draft.dart';
+import '../features/issue/domain/models/public_issue.dart';
 import '../features/auth/presentation/screens/login_sheet.dart';
 import '../features/drafts/presentation/device_home_screen.dart';
 import '../features/feed/presentation/screens/feed_screen.dart';
@@ -43,7 +44,7 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
 
   AppTab _currentTab = AppTab.feed;
   ActiveScreen _activeScreen = ActiveScreen.main;
-  String _authorShelfMasthead = 'seul';
+  String? _authorShelfOwnerId;
 
   // 사용자의 오늘 상태는 TodayController 한 곳에서 계산한다(P01·P04).
   bool get _hasPublishedToday => _sl.todayController.hasPublishedToday;
@@ -84,8 +85,6 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
   void _onAuthChanged() {
     final session = _sl.authController.currentSession;
     if (_sl.config.isMock) {
-      _sl.magazineController.localOwnerId = session?.userId;
-      _sl.magazineController.localMasthead = session?.masthead;
       _sl.todayController.bindUser(
         ownerId: session?.userId,
         isMinor: session?.isMinor ?? false,
@@ -178,7 +177,10 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
       final issue = await _sl.todayController.publish(
         draft.toCover(id: _sl.localLibrary!.newId(), now: _sl.clock.now()),
       );
-      onboarding.markFounded(issue);
+      final others = await _sl.standController
+          .sameColorCount(_sl.todayController.today, issue.color)
+          .catchError((Object _) => 0);
+      onboarding.markFounded(issue, sameColorCount: others + 1);
     } on FormatException catch (error) {
       messenger.showSnackBar(SnackBar(content: Text(error.message)));
       _finishFounding(AppTab.me);
@@ -255,8 +257,6 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
         candidates: today.candidates,
         today: today.today,
         library: _sl.localLibrary!,
-        sameColorCount: (color) =>
-            _sl.standController.countOn(today.today, color) + 1,
         onCancel: _cancelFounding,
         onFound: () => _found(context),
         onOpenFeed: () => _finishFounding(AppTab.feed),
@@ -316,39 +316,16 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
       );
     }
 
-    // 7. 서브스크린: 타인 서가 (C5)
-    if (_activeScreen == ActiveScreen.authorShelf) {
+    // 7. 서브스크린: 다른 사람의 서가(C5). 누른 사람의 잡지를 연다.
+    final authorShelf = _authorShelfOwnerId;
+    if (_activeScreen == ActiveScreen.authorShelf && authorShelf != null) {
       return ShelfScreen(
-        masthead: _authorShelfMasthead,
+        ownerId: authorShelf,
         controller: _sl.magazineController,
         reactionsController: _sl.reactionsController,
-        onSelectIssue: (issue) {
-          IssueBottomSheet.show(
-            context,
-            issueId: issue.id,
-            authorMasthead: _authorShelfMasthead,
-            mainPhoto: issue.photoAsset,
-            secondPhoto: 'assets/models/m02.jpg',
-            color: issue.color,
-            caption: issue.caption,
-            issueNumber: issue.issueString,
-            isOwner: false,
-            reactionsController: _sl.reactionsController,
-            onOpenAuthorShelf: () {},
-            onShare: () => ShareSheet.show(
-              context,
-              issueId: issue.id,
-              masthead: _authorShelfMasthead,
-              issueNumber: issue.issueString,
-            ),
-            onReport: () => ModerationSheet.show(
-              context,
-              authorMasthead: _authorShelfMasthead,
-              onReport: () {},
-              onBlock: () {},
-            ),
-          );
-        },
+        viewer: _sl.todayController.viewer,
+        viewerId: auth.currentSession?.userId,
+        onSelectIssue: (issue, _) => _openIssue(context, issue),
         onBack: () => setState(() => _activeScreen = ActiveScreen.main),
       );
     }
@@ -373,116 +350,105 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildActiveTabScreen(BuildContext context) {
+  /// 다른 사람의 서가로. 내 이름을 누르면 내 서가로 간다.
+  void _openAuthorShelf(String ownerId) {
+    setState(() {
+      if (ownerId == _sl.authController.currentSession?.userId) {
+        _activeScreen = ActiveScreen.main;
+        _currentTab = AppTab.shelf;
+      } else {
+        _authorShelfOwnerId = ownerId;
+        _activeScreen = ActiveScreen.authorShelf;
+      }
+    });
+  }
+
+  /// 펼침면(C3). 반응 숫자는 발행한 본인에게만 보인다(P18).
+  void _openIssue(BuildContext context, PublicIssue issue) {
     final session = _sl.authController.currentSession;
-    final myMasthead = session?.masthead ?? 'dana';
+    IssueBottomSheet.show(
+      context,
+      issue: issue,
+      isOwner: session != null && issue.ownerId == session.userId,
+      readerMasthead: session?.masthead ?? '',
+      reactionsController: _sl.reactionsController,
+      onOpenAuthorShelf: () => _openAuthorShelf(issue.ownerId),
+      onShare: () => ShareSheet.show(
+        context,
+        issueId: issue.id,
+        masthead: issue.masthead,
+        issueNumber: issue.issueLabel,
+      ),
+      onReport: () => ModerationSheet.show(
+        context,
+        authorMasthead: issue.masthead,
+        onReport: () {},
+        onBlock: () {},
+      ),
+    );
+  }
+
+  Widget _buildActiveTabScreen(BuildContext context) {
+    final session = _sl.authController.currentSession!;
+    final today = _sl.todayController;
 
     switch (_currentTab) {
       case AppTab.feed:
         return FeedScreen(
           feedController: _sl.feedController,
           reactionsController: _sl.reactionsController,
-          isAuthenticated: _sl.authController.isAuthenticated,
+          isAuthenticated: true,
+          viewer: today.viewer,
+          readerMasthead: session.masthead,
           onRequestLogin: () => _openLoginSheet(ctx: context),
-          onOpenAuthorShelf: (masthead) {
-            setState(() {
-              _authorShelfMasthead = masthead;
-              _activeScreen = ActiveScreen.authorShelf;
-            });
-          },
+          onOpenAuthorShelf: _openAuthorShelf,
         );
 
       case AppTab.stand:
         return StandScreen(
           controller: _sl.standController,
-          viewer: _sl.todayController.viewer,
+          viewer: today.viewer,
+          viewerId: session.userId,
           onMakeTodayIssue: () => setState(() => _currentTab = AppTab.publish),
-          onSelectCover: (item) {
-            IssueBottomSheet.show(
-              context,
-              issueId: item.id,
-              authorMasthead: item.masthead,
-              mainPhoto: item.photoAsset,
-              secondPhoto: 'assets/models/m01.jpg',
-              color: item.color,
-              caption: item.caption,
-              issueNumber: item.issueLabel,
-              isOwner: item.masthead == myMasthead,
-              reactionsController: _sl.reactionsController,
-              onOpenAuthorShelf: () {
-                setState(() {
-                  _authorShelfMasthead = item.masthead;
-                  _activeScreen = ActiveScreen.authorShelf;
-                });
-              },
-              onShare: () => ShareSheet.show(
-                context,
-                issueId: item.id,
-                masthead: item.masthead,
-                issueNumber: item.issueLabel,
-              ),
-              onReport: () => ModerationSheet.show(
-                context,
-                authorMasthead: item.masthead,
-                onReport: () {},
-                onBlock: () {},
-              ),
-            );
-          },
+          onSelectCover: (issue) => _openIssue(context, issue),
         );
 
       case AppTab.publish:
         return PublishScreen(
           library: _sl.localLibrary!,
-          ownerId: session!.userId,
+          ownerId: session.userId,
           controller: _sl.publishingController,
-          masthead: myMasthead,
+          masthead: session.masthead,
           currentIssueCount: _issueCount,
           hasPublishedToday: _hasPublishedToday,
-          candidates: _sl.todayController.candidates,
-          publish: _sl.todayController.publish,
+          candidates: today.candidates,
+          publish: today.publish,
           onPublishSuccess: (_) => setState(() => _currentTab = AppTab.me),
           onClose: () => setState(() => _currentTab = AppTab.feed),
         );
 
       case AppTab.shelf:
         return ShelfScreen(
+          ownerId: session.userId,
+          masthead: session.masthead,
           isOwner: true,
-          masthead: myMasthead,
           controller: _sl.magazineController,
           reactionsController: _sl.reactionsController,
-          onSelectIssue: (issue) {
-            if (issue.cover != null) {
-              Navigator.push<void>(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => Scaffold(
-                    appBar: AppBar(title: Text(issue.issueString)),
-                    body: Center(child: CoverPreview(draft: issue.cover!)),
-                  ),
-                ),
-              );
+          viewer: today.viewer,
+          viewerId: session.userId,
+          onSelectIssue: (issue, local) {
+            if (local == null) {
+              _openIssue(context, issue);
               return;
             }
-            IssueBottomSheet.show(
+            Navigator.push<void>(
               context,
-              issueId: issue.id,
-              authorMasthead: myMasthead,
-              mainPhoto: issue.photoAsset,
-              secondPhoto: 'assets/models/m01.jpg',
-              color: issue.color,
-              caption: issue.caption,
-              issueNumber: issue.issueString,
-              isOwner: true,
-              reactionsController: _sl.reactionsController,
-              onOpenAuthorShelf: () {},
-              onShare: () => ShareSheet.show(
-                context,
-                issueId: issue.id,
-                masthead: myMasthead,
-                issueNumber: issue.issueString,
+              MaterialPageRoute(
+                builder: (_) => Scaffold(
+                  appBar: AppBar(title: Text(issue.issueLabel)),
+                  body: Center(child: CoverPreview(draft: local)),
+                ),
               ),
-              onReport: () {},
             );
           },
           onBack: () => setState(() => _currentTab = AppTab.me),
@@ -491,11 +457,11 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
       case AppTab.me:
         return MyMagazineScreen(
           showExtendedFeatures: !_sl.config.isMock,
-          masthead: myMasthead,
+          masthead: session.masthead,
           issueCount: _issueCount,
           hasPublishedToday: _hasPublishedToday,
-          todayColor: _sl.todayController.myColor,
-          controller: _sl.magazineController,
+          todayColor: today.myColor,
+          todayIssue: today.todayIssue,
           reactionsController: _sl.reactionsController,
           onMakeTodayIssue: () => setState(() => _currentTab = AppTab.publish),
           onOpenShelf: () => setState(() => _currentTab = AppTab.shelf),

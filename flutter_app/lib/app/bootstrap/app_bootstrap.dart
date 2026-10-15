@@ -15,8 +15,6 @@ class AppBootstrap {
     );
     if (ServiceLocator().config.isMock) {
       ServiceLocator().localLibrary = localLibrary ?? await LocalLibrary.open();
-      ServiceLocator().magazineController.localLibrary =
-          ServiceLocator().localLibrary;
       ServiceLocator().todayController.library = ServiceLocator().localLibrary;
     }
     await ServiceLocator().authController.restoreSession();

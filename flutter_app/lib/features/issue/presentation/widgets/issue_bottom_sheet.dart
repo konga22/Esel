@@ -3,18 +3,16 @@ import '../../../../core/design/tokens.g.dart';
 import '../../../../core/design/typography.dart';
 import '../../../../core/ui/esel_paint_asset.dart';
 import '../../../../core/ui/esel_pressable.dart';
-import '../../../../core/ui/esel_image.dart';
 import '../../../reactions/presentation/controllers/reactions_controller.dart';
+import '../../domain/models/public_issue.dart';
+import '../issue_photo.dart';
 
 class IssueBottomSheet extends StatefulWidget {
-  final String issueId;
-  final String authorMasthead;
-  final String mainPhoto;
-  final String secondPhoto;
-  final EselPaint color;
-  final String caption;
-  final String issueNumber;
+  final PublicIssue issue;
   final bool isOwner;
+
+  /// 한 줄을 남기는 사람(로그인한 나)의 제호.
+  final String readerMasthead;
   final ReactionsController reactionsController;
   final VoidCallback onOpenAuthorShelf;
   final VoidCallback onShare;
@@ -22,14 +20,9 @@ class IssueBottomSheet extends StatefulWidget {
 
   const IssueBottomSheet({
     super.key,
-    required this.issueId,
-    required this.authorMasthead,
-    required this.mainPhoto,
-    required this.secondPhoto,
-    required this.color,
-    required this.caption,
-    required this.issueNumber,
+    required this.issue,
     required this.isOwner,
+    required this.readerMasthead,
     required this.reactionsController,
     required this.onOpenAuthorShelf,
     required this.onShare,
@@ -38,14 +31,9 @@ class IssueBottomSheet extends StatefulWidget {
 
   static Future<void> show(
     BuildContext context, {
-    required String issueId,
-    required String authorMasthead,
-    required String mainPhoto,
-    required String secondPhoto,
-    required EselPaint color,
-    required String caption,
-    required String issueNumber,
+    required PublicIssue issue,
     required bool isOwner,
+    required String readerMasthead,
     required ReactionsController reactionsController,
     required VoidCallback onOpenAuthorShelf,
     required VoidCallback onShare,
@@ -58,14 +46,9 @@ class IssueBottomSheet extends StatefulWidget {
       builder: (context) => FractionallySizedBox(
         heightFactor: 0.92,
         child: IssueBottomSheet(
-          issueId: issueId,
-          authorMasthead: authorMasthead,
-          mainPhoto: mainPhoto,
-          secondPhoto: secondPhoto,
-          color: color,
-          caption: caption,
-          issueNumber: issueNumber,
+          issue: issue,
           isOwner: isOwner,
+          readerMasthead: readerMasthead,
           reactionsController: reactionsController,
           onOpenAuthorShelf: onOpenAuthorShelf,
           onShare: onShare,
@@ -91,9 +74,9 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
   void _submitReaderLine() {
     final text = _lineTextController.text;
     final success = widget.reactionsController.addReaderLine(
-      issueId: widget.issueId,
+      issueId: widget.issue.id,
       text: text,
-      authorMasthead: '나',
+      authorMasthead: widget.readerMasthead,
     );
     if (success) {
       _lineTextController.clear();
@@ -107,9 +90,9 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
       animation: widget.reactionsController,
       builder: (context, _) {
         final rc = widget.reactionsController;
-        final isLiked = rc.isLiked(widget.issueId);
-        final isScrapped = rc.isScrapped(widget.issueId);
-        final readerLines = rc.getReaderLines(widget.issueId);
+        final isLiked = rc.isLiked(widget.issue.id);
+        final isScrapped = rc.isScrapped(widget.issue.id);
+        final readerLines = rc.getReaderLines(widget.issue.id);
 
         return Container(
           decoration: const BoxDecoration(
@@ -176,7 +159,7 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
           child: Row(
             children: [
               Text(
-                widget.authorMasthead,
+                widget.issue.masthead,
                 style: EselTypography.headlineSmall.copyWith(
                   fontWeight: FontWeight.w600,
                   color: EselTokens.ink,
@@ -193,9 +176,9 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
         ),
         Row(
           children: [
-            EselPaintAsset(paint: widget.color, width: 24),
+            EselPaintAsset(paint: widget.issue.color, width: 24),
             const SizedBox(width: 8),
-            Text(widget.issueNumber, style: EselTypography.monoSmall),
+            Text(widget.issue.issueLabel, style: EselTypography.monoSmall),
             const SizedBox(width: 12),
             EselPressable(
               onTap: widget.onReport,
@@ -215,29 +198,44 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
     );
   }
 
+  /// 펼침면 사진 2장: 표지 사진과 같은 사진의 디테일(디자인 C3).
   Widget _buildTwoPhotos() {
+    final photo = issuePhotoProvider(widget.issue.photo);
+    Widget frame(Widget child) => Expanded(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(EselRadius.spreadPhoto),
+        child: child,
+      ),
+    );
     return SizedBox(
       height: 280,
       child: Row(
         children: [
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(EselTokens.radius14),
-              child: EselAssetImage(
-                widget.mainPhoto,
-                fit: BoxFit.cover,
-                height: double.infinity,
-              ),
+          frame(
+            Image(
+              image: photo,
+              fit: BoxFit.cover,
+              height: double.infinity,
+              semanticLabel: widget.issue.alt,
+              errorBuilder: (_, _, _) =>
+                  const ColoredBox(color: EselColors.photo),
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(EselTokens.radius14),
-              child: EselAssetImage(
-                widget.secondPhoto,
-                fit: BoxFit.cover,
-                height: double.infinity,
+          const SizedBox(width: 8),
+          frame(
+            ClipRect(
+              child: Transform.scale(
+                scale: 2.6,
+                alignment: const Alignment(0.1, 0.6),
+                child: Image(
+                  image: photo,
+                  fit: BoxFit.cover,
+                  height: double.infinity,
+                  width: double.infinity,
+                  semanticLabel: '${widget.issue.alt}의 디테일',
+                  errorBuilder: (_, _, _) =>
+                      const ColoredBox(color: EselColors.photo),
+                ),
               ),
             ),
           ),
@@ -252,7 +250,7 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
       children: [
         Expanded(
           child: Text(
-            widget.caption,
+            widget.issue.caption,
             style: EselTypography.bodyLarge.copyWith(height: 1.5),
           ),
         ),
@@ -261,7 +259,7 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
           children: [
             EselPressable(
               onTap: () =>
-                  widget.reactionsController.toggleLike(widget.issueId),
+                  widget.reactionsController.toggleLike(widget.issue.id),
               child: AnimatedScale(
                 scale: isLiked ? 1.15 : 1.0,
                 duration: const Duration(milliseconds: 160),
@@ -278,7 +276,7 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
             ),
             EselPressable(
               onTap: () =>
-                  widget.reactionsController.toggleScrap(widget.issueId),
+                  widget.reactionsController.toggleScrap(widget.issue.id),
               child: SizedBox(
                 width: 44,
                 height: 44,
@@ -308,7 +306,7 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
   }
 
   Widget _buildOwnerStatsCard(ReactionsController rc) {
-    final stats = rc.getOwnerStats(widget.issueId);
+    final stats = rc.getOwnerStats(widget.issue.id);
     return Container(
       padding: const EdgeInsets.all(EselTokens.space16),
       decoration: BoxDecoration(
