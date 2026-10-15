@@ -67,8 +67,17 @@ for (const file of ['README.md', design.readme, 'docs/ESEL_HARNESS.md', 'AGENTS.
   for (const match of markdown.matchAll(/\]\(([^)]+)\)|<img src="([^"]+)"/g)) {
     const link = (match[1] ?? match[2]).split('#')[0];
     if (!link || /^[a-z]+:/i.test(link)) continue;
+    // An absolute path only exists on the author's machine and fails everywhere else.
+    assert(!path.isAbsolute(link) && !/^[A-Za-z]:[\\/]/.test(link), `${file}: 절대 경로 링크(${link})는 다른 PC에서 깨짐. 저장소 상대 경로를 쓰고, 저장소 밖 파일은 링크 대신 글로 적기`);
     await access(path.resolve(path.dirname(fullPath), link));
   }
+}
+// No Markdown file may link to an absolute path on someone's machine (archived notes included).
+for (const rel of await readdir(root, { recursive: true })) {
+  if (!rel.endsWith('.md') || /(^|[\\/])(node_modules|\.git|\.dart_tool|build)([\\/]|$)/.test(rel)) continue;
+  const text = await readFile(path.join(root, rel), 'utf8');
+  const bad = text.match(/\]\((\/(?:Users|home)\/[^)]+|[A-Za-z]:[\\/][^)]*)\)/);
+  assert(!bad, `${rel}: 절대 경로 링크(${bad?.[1]})는 다른 PC에서 깨짐. 저장소 상대 경로를 쓰고, 저장소 밖 파일은 링크 대신 글로 적기`);
 }
 // Old material stays in place but must be marked: registered in harness.json.archive, bannered at the top, and listed in README.
 const readme = await readFile(resolveLocal('README.md'), 'utf8');
