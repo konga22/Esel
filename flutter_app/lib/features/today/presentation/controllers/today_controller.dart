@@ -48,13 +48,29 @@ class TodayController extends ChangeNotifier {
 
   bool get hasPublishedToday => todayIssue != null;
 
-  /// 캡슐·만들기에 보이는 내 오늘의 색. 발행했으면 그 호의 색, 아니면 고른 후보.
+  /// 캡슐·만들기에 보이는 내 오늘의 색. 발행했으면 그 호의 색, 아니면 고른 후보,
+  /// 그것도 없으면 저장해 둔 초안의 색(오늘 후보일 때), 마지막으로 첫 후보.
   EselPaint get myColor {
     final published = todayIssue;
     if (published != null) return published.color;
-    final picked = _picked;
-    if (picked != null && candidates.contains(picked)) return picked;
+    for (final color in [_picked, _draftColor]) {
+      if (color != null && candidates.contains(color)) return color;
+    }
     return candidates.first;
+  }
+
+  EselPaint? get _draftColor {
+    final owner = _ownerId;
+    final library = _library;
+    if (owner == null || library == null) return null;
+    CoverDraft? latest;
+    for (final draft in library.drafts) {
+      if (draft.ownerId != owner || draft.issueNumber != 0) continue;
+      if (latest == null || draft.updatedAt.isAfter(latest.updatedAt)) {
+        latest = draft;
+      }
+    }
+    return latest?.color;
   }
 
   SameColorViewer get viewer => _ownerId == null
@@ -77,9 +93,10 @@ class TodayController extends ChangeNotifier {
 
   /// 로그인·로그아웃 때 부른다.
   void bindUser({required String? ownerId, bool isMinor = false}) {
+    // 같은 사람이면 고른 색을 그대로 둔다(로그인 중 상태 알림마다 불릴 수 있다).
+    if (ownerId != _ownerId) _picked = null;
     _ownerId = ownerId;
     _isMinor = isMinor;
-    _picked = null;
     refresh();
   }
 

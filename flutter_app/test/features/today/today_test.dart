@@ -93,5 +93,19 @@ void main() {
       expect(today.hasPublishedToday, isFalse);
       today.stopWatchingMidnight();
     });
+
+    test('같은 사람으로 다시 묶어도 고른 색은 그대로, 다른 사람이면 처음부터', () {
+      today.pick(today.candidates[1]);
+      today.bindUser(ownerId: 'owner-a');
+      expect(today.myColor, today.candidates[1]);
+      today.bindUser(ownerId: 'owner-b');
+      expect(today.myColor, today.candidates.first);
+    });
+
+    test('저장해 둔 오늘 후보 색 초안이 있으면 그 색이 내 색', () async {
+      final color = today.candidates[2];
+      await library.save(draft().copyWith(color: color, ownerId: 'owner-a'));
+      expect(today.myColor, color);
+    });
   });
 }
