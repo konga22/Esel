@@ -39,7 +39,7 @@ function featuresMarkdown(dev) {
       out.push('**목업 화면**', '', f.screens.map((id) => `[${id} ${screens[id].title}](${screens[id].image.replace('docs/dev/', '')})`).join(' · '), '');
     }
     out.push(`**지킬 계약** ${f.contracts.join(', ')} · **먼저 할 것** ${f.dependsOn.join(', ') || '없음'}`, '');
-    out.push('**앱(Expo)**', '', list(f.client), '', '**서버 (초안)**', '', list(f.server), '', '**합격 기준**', '', list(f.acceptance), '', '**추가할 테스트**', '', list(f.tests.map((t) => `\`${t}\``)), '');
+    out.push('**앱(Flutter)**', '', list(f.client), '', '**서버 (초안)**', '', list(f.server), '', '**합격 기준**', '', list(f.acceptance), '', '**추가할 테스트**', '', list(f.tests.map((t) => `\`${t}\``)), '');
     if (f.openDecisions.length) out.push('**사용자 결정이 필요한 것**', '', list(f.openDecisions), '');
   }
   out.push('## 화면 등록부', '', '| 화면 | 이름 | 목업 경로 | 참고 그림 | 피그마 노드 |', '|---|---|---|---|---|');

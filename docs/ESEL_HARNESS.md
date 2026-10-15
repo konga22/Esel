@@ -66,6 +66,7 @@ Esel은 오늘의 색으로 옷을 입고, 그 착장을 한 권의 잡지 표�
 | 10-05 | 오류 수정 | 서가 호수가 249·247…로 건너뛰던 것을 결호 없는 개인 호수(Nº 038, 037…)로 고치고 지난 호를 표지/책등으로 보게 함 | C5, P04 |
 | 10-11 | 사용자 선택 | 앱 목업은 휴대폰에서 눌러 보는 앱으로. 팀원이 피그마에 정리한 추가 기능(내 잡지·월간 색 기록·트윈·친구·설정·공유)은 흐름과 문구를 따르되 디자인 보드 문법으로 다시 그림. 범위는 전부 | [앱 목업](../.codex/temp/prototype/20261011-app-mockup/README.md). 피그마 원본은 수정하지 않음 |
 | 10-11 | 사용자 요청 | 목업을 기준으로 다른 AI가 기능 개발까지 제대로 하도록 가이드와 하네스를 갖춤 | [개발 가이드](dev/README.md), [기능 목록](dev/FEATURES.md) DEV-01~20. 서버는 팀원 PR konga22/Esel#4(NestJS·Prisma) 구조를 따름 |
+| 10-15 | 사용자 결정 | 클라이언트를 Expo(`app/`·`src/`)에서 Flutter(`flutter_app/`)로 바꿈. 팀원 PR konga22/Esel#8의 Flutter 시연 앱을 출발점으로 삼음 | Expo 앱은 지움(마지막 상태는 커밋 `bbdaf2d`). 디자인 토큰은 `npm run dev:docs`가 `tokens.g.dart`로 만든다. 팀원 실행 안내는 Android 기기·에뮬레이터 기준, iOS 확인은 맥에서. 새 Flutter 패키지는 PR에서 승인받고 추가 |
 | — | 보류 | 해석 반응, 컬러 정체성 분석, 전용 외부 SNS 공유 카드, Generative UI | 별도 승인 없이 구현하지 않음 |
 | — | 미확정 | 색 공급처, 실제 확률·일일 배정·시차, 닉네임 중복·금칙어, 실제 얼굴 감지, 삭제·차단 정책, 같은 색 미리보기 3장을 고르는 기준, 미성년자 판별 방법 | 데모 값과 실서비스 결정을 구분 |
 
@@ -263,19 +264,19 @@ flowchart LR
 | 영역 | 경로 | 상태와 주의 |
 |---|---|---|
 | 최신 디자인 | Claude Design 캔버스 (`harness.json.activeDesign.canvas`, 비공개) | 00~04 보드와 03 화면 2개 페이지. 공유 전에는 소유자만 열 수 있음 |
-| 기능 개발 | [docs/dev](dev/README.md), `harness.json.development` | 개발 가이드, 기능 목록(features.json → FEATURES.md), 목업 화면 그림 54장, 생성 토큰 `src/design/tokens.ts`. 서버는 PR konga22/Esel#4 병합 후 `server/` |
+| 기능 개발 | [docs/dev](dev/README.md), `harness.json.development` | 개발 가이드, 기능 목록(features.json → FEATURES.md), 목업 화면 그림 54장, 생성 토큰 `flutter_app/lib/core/design/tokens.g.dart`. 서버는 PR konga22/Esel#4 병합 후 `server/` |
 | 앱 목업 | [20261011-app-mockup](../.codex/temp/prototype/20261011-app-mockup/README.md) (`harness.json.appMockup`) | 모든 화면을 한 앱으로 이어 눌러 보는 비공개 웹 목업. 인물·12색은 생성기 `lib.mjs`에서 빌드 때 주입. 실제 저장·로그인 없음 |
 | 디자인 보드 사본 | [docs/design](design/README.md) | 캔버스의 보드·화면 캡처와 값 표. 레포에서 사람과 다른 AI가 읽는 곳. `npm run design:capture`로 다시 찍음 |
 | 생성기 | [20261003-cover-sns/README](../.codex/temp/prototype/20261003-cover-sns/README.md), `generator/` | `lib.mjs`(색·인물·얼굴 값·조각), `scroll.mjs`(제호 녹아들기), `gen-cover2/join/boards.mjs`. 출력 사본은 `generator/project/` |
 | 물감 | `20261003-cover-sns/paint/` | 12색, 투명 배경 1200×600. `stretch.cjs`·`recolor.cjs`로 다시 만듦 |
 | 기능 규칙 기준 | `.codex/temp/prototype/20260906-minimal-gallery/` | 같은 색 공개·트윈·복구 규칙과 테스트. 시각 기준으로 쓰지 않음. 이전 HTML 화면은 아직 발행 전 같은 색을 통째로 막아 보여 주며, 3장 미리보기는 규칙 함수와 C8에만 있음 |
 | 보관된 자료 | [README의 보관 목록](../README.md#보관된-자료), `harness.json.archive` | 9월 시안 폴더, 9월 작업 기록, 이전 아이콘 시안, 캔버스 "보관 · …" 페이지. 문서 맨 위에 보관 표시가 있고 결정 근거로 쓰지 않음 |
-| 갱신하지 않는 자료 | Expo 앱, 팀원 정리 피그마 | Expo 앱은 9월 디자인 기준. 피그마는 이 저장소에서 고치지 않는 참고 자료이고 규칙이 다르면 하네스를 따름 |
-| Expo 앱 | `app/`, `src/` | 새 디자인이 자동 반영되지 않음 |
+| 갱신하지 않는 자료 | 팀원 정리 피그마 | 이 저장소에서 고치지 않는 참고 자료이고 규칙이 다르면 하네스를 따름 |
+| 앱 (Flutter) | `flutter_app/` (`harness.json.nativeApp`) | 중간발표 시연 앱에서 출발. 디자인은 캔버스를 기준으로 맞춰 가는 중이고 자동으로 반영되지 않음 |
 
 ### 실제 앱과 시안의 차이
 
-Expo 앱에는 닉네임 입장, 카메라·앨범, 회전·자르기, 짧은 글, 상세·좋아요·저장이 있다. 표지 SNS 디자인, 개인 잡지, 창간 흐름, 얼굴 연출, 12색은 아직 없다. 캔버스 시안은 화면과 일부 상호작용(스크롤 녹아들기, 로그인 바, 색·제호·얼굴 선택)만 있고 실제 카메라·저장·인증은 없다. 둘 다 메모리 상태다.
+Flutter 앱은 시연(mock) 모드에서 이메일 로그인, 표지 피드, 가판대, 만들기(사진·문구·얼굴 연출 4종), 하루 한 호 로컬 발행, 내 잡지·서가가 동작한다. 기록은 기기에만 저장하고(웹은 메모리) 서버와 동기화하지 않는다. 창간 흐름(J3~J7)·친구·트윈·월간 기록은 코드가 있어도 시연 범위 밖이다. 같은 색 잠금(P01), 창간호(P13), 표지는 첫 장만(P16)은 아직 계약대로 동작하지 않는다. 캔버스 시안은 화면과 일부 상호작용(스크롤 녹아들기, 로그인 바, 색·제호·얼굴 선택)만 있고 실제 카메라·저장·인증은 없다.
 
 ### 자산
 
@@ -298,12 +299,12 @@ npm run dev:docs
 - `check:harness`: 문서 진입점·경로·자산, 생성기 `lib.mjs`와 `harness.json`의 색·인물·토큰 일치, 제호 규칙, 계약 ID, 보관 자료 표시(README 목록·맨 위 표시·등록 안 된 시안 폴더)를 확인한다. 미적 판정이나 보안 감사가 아니다.
 - `test:rules`: 이전 HTML 프로토타입의 순수 기능 규칙 테스트(같은 색 공개와 발행 전 3장 미리보기, 트윈, 복구, 헤더 상태).
 - `design:build`: 생성기로 캔버스 화면 파일을 `generator/project/`에 다시 쓴다. 캔버스에는 이 파일을 올려야 반영된다.
-- `dev:docs`: [기능 목록](dev/features.json)에서 `FEATURES.md`를, `harness.json`의 토큰에서 `src/design/tokens.ts`를 만든다. `check:harness`가 두 파일이 최신인지, 기능이 실제 목업 화면·계약에 연결됐는지, 완료 기능의 테스트 파일이 있는지 확인한다. `mockup:capture`는 목업을 상태별로 찍어 `docs/dev/screens/`를 다시 쓴다.
+- `dev:docs`: [기능 목록](dev/features.json)에서 `FEATURES.md`를, `harness.json`의 토큰과 생성기 물감에서 `flutter_app/lib/core/design/tokens.g.dart`를 만든다. `check:harness`가 두 파일이 최신인지, 기능이 실제 목업 화면·계약에 연결됐는지, 완료 기능의 테스트 파일이 있는지 확인한다. `mockup:capture`는 목업을 상태별로 찍어 `docs/dev/screens/`를 다시 쓴다.
 - `mockup:build`: 앱 목업 원본(`src/shell.html`, `src/app.js`)과 생성기 데이터로 `dist/`를 만든다. `dist/`는 git에 올리지 않고, 게시본은 같은 아티팩트 주소에 다시 올린다.
 - `design:capture`: 그 파일을 로컬 사진·물감으로 바꿔 Google Chrome으로 찍고 [docs/design](design/README.md)의 보드(PNG)와 화면(JPEG)을 다시 쓴다. Chrome 경로는 `CHROME` 환경 변수로 바꿀 수 있다.
 - 이전 HTML 시안 미리보기(보관된 화면, 규칙 확인용): `npm run preview:rules` → `http://localhost:4177/`. 다른 작업 서버를 임의로 끄지 않는다.
 
-Expo 작업이 명시된 경우에만 `npm run typecheck`, `npm test`, `npm run web`을 쓴다.
+Flutter 앱은 `flutter_app/`에서 `flutter analyze`와 `flutter test`로 검사하고, `flutter run -d <기기> --dart-define=ESEL_API_MODE=mock`으로 띄운다. 팀원 실행 안내는 Android 기기·에뮬레이터 기준이고, iOS는 맥(Xcode)에서만 확인할 수 있다.
 
 ### 캔버스 검증 시나리오
 

@@ -64,27 +64,27 @@
       "id": "DEV-01",
       "phase": 0,
       "title": "디자인 토큰과 기본 UI",
-      "summary": "Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 파일 src/design/tokens.ts에서만 가져오고, 02 컴포넌트 보드의 버튼·칩·세그먼트·입력·글라스 캡슐·시트·알림을 공용 컴포넌트로 만든다.",
+      "summary": "Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 파일 flutter_app/lib/core/design/tokens.g.dart에서만 가져오고, 02 컴포넌트 보드의 버튼·칩·세그먼트·입력·글라스 캡슐·시트·알림을 공용 컴포넌트로 만든다.",
       "screens": [],
       "contracts": [
         "P17"
       ],
       "dependsOn": [],
       "client": [
-        "src/design/tokens.ts는 `npm run dev:docs`가 harness.json에서 만든다. 손으로 고치지 않는다",
-        "공용 컴포넌트는 src/ui/에 두고 02 컴포넌트 보드의 치수(버튼 54px, 칩 38px, 누르는 영역 48px)를 따른다",
-        "기존 src/components/theme.ts의 이전 색(#252522, #DE6B4A 등)은 쓰지 않는다",
-        "Cormorant Garamond·Instrument Sans·DM Mono·Nanum Myeongjo를 expo-font로 불러온다. 새 글꼴 패키지는 사용자 승인 후 추가"
+        "tokens.g.dart는 `npm run dev:docs`가 harness.json에서 만든다. 손으로 고치지 않는다",
+        "공용 컴포넌트는 flutter_app/lib/core/ui/에 두고 02 컴포넌트 보드의 치수(버튼 54px, 칩 38px, 누르는 영역 48px)를 따른다",
+        "legacy_tokens.dart(EselTokens)의 하네스 밖 값(inkSubtle, paperWarm 등)은 새 코드에서 쓰지 않고 정리한다",
+        "Cormorant Garamond·Instrument Sans·DM Mono·Nanum Myeongjo는 flutter_app/assets/fonts에 넣어 pubspec으로 불러온다. 새 글꼴 패키지는 사용자 승인 후 추가"
       ],
       "server": [],
       "acceptance": [
-        "src/ui의 모든 누르는 요소가 48×48 이상",
-        "색·글꼴·간격 값이 tokens.ts 밖에 하드코딩되지 않음(오늘의 색 hex 포함)",
+        "flutter_app/lib/core/ui의 모든 누르는 요소가 48×48 이상",
+        "색·글꼴·간격 값이 tokens.g.dart 밖에 하드코딩되지 않음(오늘의 색 hex 포함)",
         "누름 반응 scale 0.97·160ms, 움직임 줄이기 설정에서 즉시 바뀜",
         "투명도 줄이기·고대비에서 글라스가 Paper 단색으로 바뀜"
       ],
       "tests": [
-        "tests/ui/tokens.test.ts"
+        "flutter_app/test/core/tokens_test.dart"
       ],
       "openDecisions": [],
       "status": "todo"
@@ -93,7 +93,7 @@
       "id": "DEV-02",
       "phase": 0,
       "title": "도메인 규칙 이식",
-      "summary": "같은 색 방(P01), 하루 한 호(P04), 색 복원(P06·P07), 트윈(P08~P10), 제호 규칙(P14), 숫자 공개 범위(P18)를 Expo 앱의 순수 TypeScript 함수로 옮긴다. 기준 구현은 20260906-minimal-gallery/src/social-state.js와 앱 목업 app.js다.",
+      "summary": "같은 색 방(P01), 하루 한 호(P04), 색 복원(P06·P07), 트윈(P08~P10), 제호 규칙(P14), 숫자 공개 범위(P18)를 Flutter 앱의 순수 Dart 함수로 옮긴다. 기준 구현은 20260906-minimal-gallery/src/social-state.js와 앱 목업 app.js다.",
       "screens": [],
       "contracts": [
         "P01",
@@ -110,7 +110,7 @@
       ],
       "dependsOn": [],
       "client": [
-        "src/domain/에 화면·네트워크와 무관한 순수 함수로 둔다",
+        "flutter_app/lib/features/<기능>/domain/에 화면·네트워크와 무관한 순수 함수로 둔다",
         "팔레트는 12색 key(sage…cobalt)를 쓴다. 기준 구현의 sage·butter·blue·rare 4색은 옮기지 않는다",
         "기준 구현의 테스트 59개(`npm run test:rules`)를 12색 기준으로 옮기고, 같은 이름의 경우를 모두 통과시킨다"
       ],
@@ -125,11 +125,11 @@
         "트윈은 각자 후보 3개 중 겹치는 색 1개, 서로 다른 색 허용, 두 사람 게시 전 비공개, 공동 공개는 양측 동의"
       ],
       "tests": [
-        "tests/domain/same-color.test.ts",
-        "tests/domain/publish.test.ts",
-        "tests/domain/record.test.ts",
-        "tests/domain/twin.test.ts",
-        "tests/domain/masthead.test.ts"
+        "flutter_app/test/features/stand/same_color_test.dart",
+        "flutter_app/test/features/publishing/publishing_test.dart",
+        "flutter_app/test/features/records/restore_test.dart",
+        "flutter_app/test/features/twin/twin_test.dart",
+        "flutter_app/test/features/onboarding/masthead_test.dart"
       ],
       "openDecisions": [
         "같은 색 미리보기 3장을 고르는 기준(현재 최신순 가정)",
@@ -151,10 +151,10 @@
         "DEV-02"
       ],
       "client": [
-        "src/api/contract.ts에 기능별 요청·응답 타입을 둔다. 서버 OpenAPI(/api/docs)가 생기면 그 타입을 기준으로 맞춘다",
-        "src/api/mock.ts는 앱 목업의 예시 데이터와 DEV-02 규칙으로 동작한다",
-        "src/api/http.ts는 서버 호출. 어느 쪽을 쓸지는 환경 설정 하나로 바꾼다",
-        "공개 응답 타입에는 좋아요·구독자·독자 한 줄·스크랩 수 필드를 두지 않는다(소유자용 타입에만)"
+        "features/<기능>/domain/models에 기능별 요청·응답 모델을 둔다. 서버 OpenAPI(/api/docs)가 생기면 그 모양에 맞춘다",
+        "features/<기능>/data의 mock 소스는 앱 목업의 예시 데이터와 DEV-02 규칙으로 동작한다",
+        "서버 소스는 core/network/http_client.dart로 호출한다. 어느 쪽을 쓸지는 --dart-define=ESEL_API_MODE 하나로 바꾼다",
+        "공개 응답 모델에는 좋아요·구독자·독자 한 줄·스크랩 수 필드를 두지 않는다(소유자용 타입에만)"
       ],
       "server": [
         "서버 PR konga22/Esel#4 병합 후 Swagger(/api/docs)를 계약의 정본으로 삼는다"
@@ -165,7 +165,7 @@
         "로그인 없이 쓰기 API를 부르면 401 계열 오류로 끝남"
       ],
       "tests": [
-        "tests/api/mock-contract.test.ts"
+        "flutter_app/test/data/mock_contract_test.dart"
       ],
       "openDecisions": [],
       "status": "todo"
@@ -200,7 +200,7 @@
         "작은 로고를 누르면 맨 위로 이동하고 제호로 녹아듦"
       ],
       "tests": [
-        "tests/screens/intro.test.tsx"
+        "flutter_app/test/features/intro/intro_test.dart"
       ],
       "openDecisions": [],
       "status": "todo"
@@ -220,7 +220,7 @@
         "DEV-04"
       ],
       "client": [
-        "토큰은 expo-secure-store 같은 보안 저장소에 둔다(AsyncStorage 금지). 패키지 추가는 승인 후",
+        "토큰은 flutter_secure_storage 같은 보안 저장소에 둔다(SharedPreferences 금지). 패키지 추가는 승인 후",
         "목업의 \"목업이라 실제로 로그인하지 않아요\" 문구는 옮기지 않는다"
       ],
       "server": [
@@ -237,7 +237,7 @@
       ],
       "tests": [
         "server/test/auth.e2e-spec.ts",
-        "tests/api/auth-flow.test.ts"
+        "flutter_app/test/features/auth/auth_flow_test.dart"
       ],
       "openDecisions": [
         "Apple·Google 로그인 도입 시점",
@@ -302,8 +302,8 @@
         "DEV-01"
       ],
       "client": [
-        "카메라·앨범은 기존 expo-camera·expo-image-picker를 쓴다",
-        "물감 합성과 자르기는 기기에서(expo-image-manipulator 등). 원본 얼굴 사진을 서버로 보내 가리지 않음",
+        "카메라·앨범은 기존 image_picker를 쓴다",
+        "물감 합성과 자르기는 기기에서(RepaintBoundary 합성 등). 원본 얼굴 사진을 서버로 보내 가리지 않음",
         "얼굴 위치를 못 찾으면 직접 위치를 정하게 하거나 목 아래를 권함",
         "\"익명화된다\"는 표현을 쓰지 않음"
       ],
@@ -318,7 +318,7 @@
         "15MB 초과·이미지 아닌 파일은 이유와 함께 거절"
       ],
       "tests": [
-        "tests/domain/face-layout.test.ts",
+        "flutter_app/test/features/media/face_layout_test.dart",
         "server/test/media.e2e-spec.ts"
       ],
       "openDecisions": [
@@ -360,7 +360,7 @@
       ],
       "tests": [
         "server/test/issues.e2e-spec.ts",
-        "tests/screens/make.test.tsx"
+        "flutter_app/test/features/publishing/make_test.dart"
       ],
       "openDecisions": [],
       "status": "todo"
@@ -404,7 +404,7 @@
         "중간에 앱을 닫았다 열면 마지막 단계부터 이어감"
       ],
       "tests": [
-        "tests/screens/join.test.tsx",
+        "flutter_app/test/features/onboarding/join_test.dart",
         "server/test/profile.e2e-spec.ts"
       ],
       "openDecisions": [
@@ -448,7 +448,7 @@
       ],
       "tests": [
         "server/test/feed.e2e-spec.ts",
-        "tests/screens/feed.test.tsx"
+        "flutter_app/test/features/feed/feed_test.dart"
       ],
       "openDecisions": [
         "인기 혼합에 쓰는 내부 신호"
@@ -526,7 +526,7 @@
       ],
       "tests": [
         "server/test/stand.e2e-spec.ts",
-        "tests/screens/stand.test.tsx"
+        "flutter_app/test/features/stand/stand_test.dart"
       ],
       "openDecisions": [
         "미리보기 3장 선정 기준"
@@ -728,7 +728,7 @@
       ],
       "tests": [
         "server/test/twins.e2e-spec.ts",
-        "tests/domain/twin.test.ts"
+        "flutter_app/test/features/twin/twin_test.dart"
       ],
       "openDecisions": [
         "초대 만료 시간",

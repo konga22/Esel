@@ -29,16 +29,16 @@
 
 **디자인 토큰과 기본 UI** · 0단계 기반 · 상태 `todo`
 
-Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 파일 src/design/tokens.ts에서만 가져오고, 02 컴포넌트 보드의 버튼·칩·세그먼트·입력·글라스 캡슐·시트·알림을 공용 컴포넌트로 만든다.
+Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 파일 flutter_app/lib/core/design/tokens.g.dart에서만 가져오고, 02 컴포넌트 보드의 버튼·칩·세그먼트·입력·글라스 캡슐·시트·알림을 공용 컴포넌트로 만든다.
 
 **지킬 계약** P17 · **먼저 할 것** 없음
 
-**앱(Expo)**
+**앱(Flutter)**
 
-- src/design/tokens.ts는 `npm run dev:docs`가 harness.json에서 만든다. 손으로 고치지 않는다
-- 공용 컴포넌트는 src/ui/에 두고 02 컴포넌트 보드의 치수(버튼 54px, 칩 38px, 누르는 영역 48px)를 따른다
-- 기존 src/components/theme.ts의 이전 색(#252522, #DE6B4A 등)은 쓰지 않는다
-- Cormorant Garamond·Instrument Sans·DM Mono·Nanum Myeongjo를 expo-font로 불러온다. 새 글꼴 패키지는 사용자 승인 후 추가
+- tokens.g.dart는 `npm run dev:docs`가 harness.json에서 만든다. 손으로 고치지 않는다
+- 공용 컴포넌트는 flutter_app/lib/core/ui/에 두고 02 컴포넌트 보드의 치수(버튼 54px, 칩 38px, 누르는 영역 48px)를 따른다
+- legacy_tokens.dart(EselTokens)의 하네스 밖 값(inkSubtle, paperWarm 등)은 새 코드에서 쓰지 않고 정리한다
+- Cormorant Garamond·Instrument Sans·DM Mono·Nanum Myeongjo는 flutter_app/assets/fonts에 넣어 pubspec으로 불러온다. 새 글꼴 패키지는 사용자 승인 후 추가
 
 **서버 (초안)**
 
@@ -46,26 +46,26 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 
 **합격 기준**
 
-- src/ui의 모든 누르는 요소가 48×48 이상
-- 색·글꼴·간격 값이 tokens.ts 밖에 하드코딩되지 않음(오늘의 색 hex 포함)
+- flutter_app/lib/core/ui의 모든 누르는 요소가 48×48 이상
+- 색·글꼴·간격 값이 tokens.g.dart 밖에 하드코딩되지 않음(오늘의 색 hex 포함)
 - 누름 반응 scale 0.97·160ms, 움직임 줄이기 설정에서 즉시 바뀜
 - 투명도 줄이기·고대비에서 글라스가 Paper 단색으로 바뀜
 
 **추가할 테스트**
 
-- `tests/ui/tokens.test.ts`
+- `flutter_app/test/core/tokens_test.dart`
 
 ## DEV-02
 
 **도메인 규칙 이식** · 0단계 기반 · 상태 `todo`
 
-같은 색 방(P01), 하루 한 호(P04), 색 복원(P06·P07), 트윈(P08~P10), 제호 규칙(P14), 숫자 공개 범위(P18)를 Expo 앱의 순수 TypeScript 함수로 옮긴다. 기준 구현은 20260906-minimal-gallery/src/social-state.js와 앱 목업 app.js다.
+같은 색 방(P01), 하루 한 호(P04), 색 복원(P06·P07), 트윈(P08~P10), 제호 규칙(P14), 숫자 공개 범위(P18)를 Flutter 앱의 순수 Dart 함수로 옮긴다. 기준 구현은 20260906-minimal-gallery/src/social-state.js와 앱 목업 app.js다.
 
 **지킬 계약** P01, P02, P03, P04, P06, P07, P08, P09, P10, P14, P18 · **먼저 할 것** 없음
 
-**앱(Expo)**
+**앱(Flutter)**
 
-- src/domain/에 화면·네트워크와 무관한 순수 함수로 둔다
+- flutter_app/lib/features/<기능>/domain/에 화면·네트워크와 무관한 순수 함수로 둔다
 - 팔레트는 12색 key(sage…cobalt)를 쓴다. 기준 구현의 sage·butter·blue·rare 4색은 옮기지 않는다
 - 기준 구현의 테스트 59개(`npm run test:rules`)를 12색 기준으로 옮기고, 같은 이름의 경우를 모두 통과시킨다
 
@@ -83,11 +83,11 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 
 **추가할 테스트**
 
-- `tests/domain/same-color.test.ts`
-- `tests/domain/publish.test.ts`
-- `tests/domain/record.test.ts`
-- `tests/domain/twin.test.ts`
-- `tests/domain/masthead.test.ts`
+- `flutter_app/test/features/stand/same_color_test.dart`
+- `flutter_app/test/features/publishing/publishing_test.dart`
+- `flutter_app/test/features/records/restore_test.dart`
+- `flutter_app/test/features/twin/twin_test.dart`
+- `flutter_app/test/features/onboarding/masthead_test.dart`
 
 **사용자 결정이 필요한 것**
 
@@ -102,12 +102,12 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 
 **지킬 계약** P12, P18 · **먼저 할 것** DEV-02
 
-**앱(Expo)**
+**앱(Flutter)**
 
-- src/api/contract.ts에 기능별 요청·응답 타입을 둔다. 서버 OpenAPI(/api/docs)가 생기면 그 타입을 기준으로 맞춘다
-- src/api/mock.ts는 앱 목업의 예시 데이터와 DEV-02 규칙으로 동작한다
-- src/api/http.ts는 서버 호출. 어느 쪽을 쓸지는 환경 설정 하나로 바꾼다
-- 공개 응답 타입에는 좋아요·구독자·독자 한 줄·스크랩 수 필드를 두지 않는다(소유자용 타입에만)
+- features/<기능>/domain/models에 기능별 요청·응답 모델을 둔다. 서버 OpenAPI(/api/docs)가 생기면 그 모양에 맞춘다
+- features/<기능>/data의 mock 소스는 앱 목업의 예시 데이터와 DEV-02 규칙으로 동작한다
+- 서버 소스는 core/network/http_client.dart로 호출한다. 어느 쪽을 쓸지는 --dart-define=ESEL_API_MODE 하나로 바꾼다
+- 공개 응답 모델에는 좋아요·구독자·독자 한 줄·스크랩 수 필드를 두지 않는다(소유자용 타입에만)
 
 **서버 (초안)**
 
@@ -121,7 +121,7 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 
 **추가할 테스트**
 
-- `tests/api/mock-contract.test.ts`
+- `flutter_app/test/data/mock_contract_test.dart`
 
 ## DEV-04
 
@@ -135,7 +135,7 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 
 **지킬 계약** P12, P16 · **먼저 할 것** DEV-01, DEV-03
 
-**앱(Expo)**
+**앱(Flutter)**
 
 - 제호 녹아들기와 작은 로고 값은 generator/scroll.mjs와 같게(위 48px, 아래 18px, 맨 위 360px, 크기 0.14)
 - React Native에서는 Animated/Reanimated의 네이티브 드라이버로 transform·opacity만 움직인다(새 라이브러리는 승인 후)
@@ -152,7 +152,7 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 
 **추가할 테스트**
 
-- `tests/screens/intro.test.tsx`
+- `flutter_app/test/features/intro/intro_test.dart`
 
 ## DEV-05
 
@@ -166,9 +166,9 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 
 **지킬 계약** P12 · **먼저 할 것** DEV-04
 
-**앱(Expo)**
+**앱(Flutter)**
 
-- 토큰은 expo-secure-store 같은 보안 저장소에 둔다(AsyncStorage 금지). 패키지 추가는 승인 후
+- 토큰은 flutter_secure_storage 같은 보안 저장소에 둔다(SharedPreferences 금지). 패키지 추가는 승인 후
 - 목업의 "목업이라 실제로 로그인하지 않아요" 문구는 옮기지 않는다
 
 **서버 (초안)**
@@ -188,7 +188,7 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 **추가할 테스트**
 
 - `server/test/auth.e2e-spec.ts`
-- `tests/api/auth-flow.test.ts`
+- `flutter_app/test/features/auth/auth_flow_test.dart`
 
 **사용자 결정이 필요한 것**
 
@@ -207,7 +207,7 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 
 **지킬 계약** P03, P05, P17 · **먼저 할 것** DEV-02, DEV-03
 
-**앱(Expo)**
+**앱(Flutter)**
 
 - 색은 물감·스와치·띠·칩에만. 버튼이나 화면 바탕을 오늘의 색으로 칠하지 않음
 
@@ -244,10 +244,10 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 
 **지킬 계약** P11, P15 · **먼저 할 것** DEV-01
 
-**앱(Expo)**
+**앱(Flutter)**
 
-- 카메라·앨범은 기존 expo-camera·expo-image-picker를 쓴다
-- 물감 합성과 자르기는 기기에서(expo-image-manipulator 등). 원본 얼굴 사진을 서버로 보내 가리지 않음
+- 카메라·앨범은 기존 image_picker를 쓴다
+- 물감 합성과 자르기는 기기에서(RepaintBoundary 합성 등). 원본 얼굴 사진을 서버로 보내 가리지 않음
 - 얼굴 위치를 못 찾으면 직접 위치를 정하게 하거나 목 아래를 권함
 - "익명화된다"는 표현을 쓰지 않음
 
@@ -265,7 +265,7 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 
 **추가할 테스트**
 
-- `tests/domain/face-layout.test.ts`
+- `flutter_app/test/features/media/face_layout_test.dart`
 - `server/test/media.e2e-spec.ts`
 
 **사용자 결정이 필요한 것**
@@ -285,7 +285,7 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 
 **지킬 계약** P04, P01 · **먼저 할 것** DEV-07, DEV-08
 
-**앱(Expo)**
+**앱(Flutter)**
 
 - 발행 도장(0.96배 두 번)과 호수 넘김은 합 600ms 이내, 하루 한 번만
 - 발행 직후 같은 색 열림(칩 칠하기 400ms, 표지 300ms·40ms 간격)
@@ -305,7 +305,7 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 **추가할 테스트**
 
 - `server/test/issues.e2e-spec.ts`
-- `tests/screens/make.test.tsx`
+- `flutter_app/test/features/publishing/make_test.dart`
 
 ## DEV-06
 
@@ -319,7 +319,7 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 
 **지킬 계약** P13, P14, P15, P04 · **먼저 할 것** DEV-05, DEV-07, DEV-08, DEV-09
 
-**앱(Expo)**
+**앱(Flutter)**
 
 - 한 화면에 결정 하나, 각 단계에 뒤로가기
 - 제호 입력은 소문자 a–z만 남기고 10자에서 멈춤, 글자 수에 맞춰 제호 크기를 줄임
@@ -338,7 +338,7 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 
 **추가할 테스트**
 
-- `tests/screens/join.test.tsx`
+- `flutter_app/test/features/onboarding/join_test.dart`
 - `server/test/profile.e2e-spec.ts`
 
 **사용자 결정이 필요한 것**
@@ -358,7 +358,7 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 
 **지킬 계약** P01, P02, P16, P18 · **먼저 할 것** DEV-09
 
-**앱(Expo)**
+**앱(Flutter)**
 
 - 이미 그린 지면은 다시 정렬하지 않고 뒤에만 붙임
 - 어두운 사진 표지는 흰 제호와 위·아래 그림자
@@ -378,7 +378,7 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 **추가할 테스트**
 
 - `server/test/feed.e2e-spec.ts`
-- `tests/screens/feed.test.tsx`
+- `flutter_app/test/features/feed/feed_test.dart`
 
 **사용자 결정이 필요한 것**
 
@@ -396,7 +396,7 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 
 **지킬 계약** P12, P18 · **먼저 할 것** DEV-10
 
-**앱(Expo)**
+**앱(Flutter)**
 
 - 하트는 채울 때만 scale 0.85→1 200ms, 해제는 즉시
 - 내 표지에서만 숫자와 '오늘 n명이 읽었어요 · 나에게만 보여요'
@@ -434,7 +434,7 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 
 **지킬 계약** P01, P02, P18 · **먼저 할 것** DEV-10
 
-**앱(Expo)**
+**앱(Flutter)**
 
 - 흐린 책등은 서버가 준 개수로만 그린다(이름·사진을 받지 않음)
 - 안내는 '발행하면 함께 펼쳐집니다'와 자정 안내만. 손실 문구·카운트다운 금지
@@ -453,7 +453,7 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 **추가할 테스트**
 
 - `server/test/stand.e2e-spec.ts`
-- `tests/screens/stand.test.tsx`
+- `flutter_app/test/features/stand/stand_test.dart`
 
 **사용자 결정이 필요한 것**
 
@@ -471,7 +471,7 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 
 **지킬 계약** P04, P18 · **먼저 할 것** DEV-10
 
-**앱(Expo)**
+**앱(Flutter)**
 
 - 호수는 결호 없이 내려감
 - 구독자 수는 보여 주지 않음
@@ -502,7 +502,7 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 
 **지킬 계약** P18 · **먼저 할 것** DEV-09, DEV-11
 
-**앱(Expo)**
+**앱(Flutter)**
 
 - 오늘 발행 전이면 '오늘 호 만들기' 카드
 - 반응 목록 화면에 '다른 사람에게는 좋아요 수가 표시되지 않아요'
@@ -533,7 +533,7 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 
 **지킬 계약** P06, P07, P03 · **먼저 할 것** DEV-02, DEV-09
 
-**앱(Expo)**
+**앱(Flutter)**
 
 - 복원한 날은 나만 보고, 게시·호수·같은 색 방에 영향이 없음을 화면에 적음
 
@@ -568,7 +568,7 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 
 **지킬 계약** P12 · **먼저 할 것** DEV-06
 
-**앱(Expo)**
+**앱(Flutter)**
 
 - 친구 추가 완료는 화면(F3)으로 보여 주고 트윈 홈으로 이어짐
 
@@ -605,7 +605,7 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 
 **지킬 계약** P08, P09, P10 · **먼저 할 것** DEV-16, DEV-08
 
-**앱(Expo)**
+**앱(Flutter)**
 
 - 목업의 '시연' 버튼(수락·게시 도착·동의)은 옮기지 않는다. 실제로는 서버 상태 변화와 알림으로 넘어감
 - 트윈 게시는 개인 오늘 호와 따로 세고 같은 색 방을 열지 않음(P09)
@@ -629,7 +629,7 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 **추가할 테스트**
 
 - `server/test/twins.e2e-spec.ts`
-- `tests/domain/twin.test.ts`
+- `flutter_app/test/features/twin/twin_test.dart`
 
 **사용자 결정이 필요한 것**
 
@@ -648,7 +648,7 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 
 **지킬 계약** P01, P18 · **먼저 할 것** DEV-11, DEV-17
 
-**앱(Expo)**
+**앱(Flutter)**
 
 - React Native Share로 기기 공유 메뉴를 연다. 목업의 '메시지·다른 앱' 목록은 옮기지 않음
 - 링크 복사 후 상단 알림 '공유 링크를 복사했어요'
@@ -683,7 +683,7 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 
 **지킬 계약** P14 · **먼저 할 것** DEV-05, DEV-06
 
-**앱(Expo)**
+**앱(Flutter)**
 
 - 프로필 이름은 제호 규칙(영문 소문자 2~10자)을 따른다. 피그마 S2의 '2–20자'는 쓰지 않음
 - 프로필 저장은 화면 대신 상단 알림
@@ -719,7 +719,7 @@ Expo 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 �
 
 **지킬 계약** P01, P02 · **먼저 할 것** DEV-11, DEV-16
 
-**앱(Expo)**
+**앱(Flutter)**
 
 - 화면은 02 컴포넌트로 새로 그리고, 먼저 디자인 보드에 추가한 뒤 구현
 
