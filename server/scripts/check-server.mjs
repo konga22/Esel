@@ -1,4 +1,5 @@
-// Server harness: checks the server against api-contract.json and the team rules, and explains every failure in plain Korean. Plain Node, no install: `npm run check:server`.
+// Server harness: checks the server against api-contract.json, the repository root harness (harness.json, docs/dev/features.json)
+// and the team rules, and explains every failure in plain Korean. Plain Node, no install: `npm run check:server`.
 // `--lock-migrations` records new migrations after review (add-only). Self-tests: `npm run test:harness`.
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
@@ -14,12 +15,15 @@ import {
   mergeMigrationLock,
   migrationHash,
   publicDtoProblems,
+  seededColors,
   swaggerInProduction,
   testBlocks,
   usesPrismaDirectly,
 } from './check-server-lib.mjs';
 
 const server = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const repo = path.resolve(server, '..');
+const serverDir = path.relative(repo, server).split(path.sep).join('/');
 const rel = (p) => path.relative(server, p).split(path.sep).join('/');
 const read = (p) => readFileSync(path.join(server, p), 'utf8');
 const failures = [];
@@ -84,6 +88,54 @@ for (const e of contract.endpoints) {
   if (e.access !== 'public' && e.errors.includes('AUTH_REQUIRED')) fail(`${where}: errors에 AUTH_REQUIRED를 따로 적었어요`, 'public이 아닌 API의 401은 인증 가드가 돌려주므로 access로 정해져요. 한쪽에만 적으면 문서끼리 어긋나요.', `${e.id}의 errors에서 "AUTH_REQUIRED"를 빼세요.`);
   if (e.feature !== 'base' && e.test !== `test/contracts/${e.module}.e2e-spec.ts`) fail(`${where}: test는 test/contracts/${e.module}.e2e-spec.ts여야 해요`, '모듈마다 계약 테스트 파일이 하나예요. 루트 features.json의 tests도 이 경로를 가리켜요.', `test를 "test/contracts/${e.module}.e2e-spec.ts"로 고치세요.`);
   if (!existsSync(path.join(server, e.test))) fail(`${where}: 테스트 파일 ${e.test}가 없어요`, 'API마다 합격 기준을 확인할 테스트 자리가 있어야 해요.', '파일을 만들고 it.todo로 할 일을 적어 두세요.');
+}
+
+// 2. The repository root harness: product contracts, owner-only numbers, the 12 colors and the feature list.
+const harnessFile = path.join(repo, 'harness.json');
+const harness = existsSync(harnessFile) ? JSON.parse(readFileSync(harnessFile, 'utf8')) : null;
+if (!harness) {
+  fail('저장소 루트 harness.json을 찾을 수 없어요', '서버 약속은 루트 하네스(제품 계약 P01~P18, 숫자 공개 범위, 12색)를 따라야 해요. 루트를 못 읽으면 어긋나도 알 수 없어요.', 'server/는 저장소 안에서 실행하세요. 루트 파일을 옮겼다면 이 검사도 같이 고치세요.');
+} else {
+  const productIds = new Set(harness.productContracts ?? []);
+  for (const e of contract.endpoints) {
+    for (const p of e.contracts) if (!productIds.has(p)) fail(`api-contract.json의 ${e.id}: 계약 ${p}가 루트 harness.json의 productContracts에 없어요`, '계약 ID는 루트 하네스(docs/ESEL_HARNESS.md)에 있는 것만 써요. 없는 ID는 리뷰어가 근거를 찾을 수 없어요.', `있는 ID로 고치세요: ${[...productIds].join(', ')}`);
+  }
+  for (const key of harness.publicCounts?.ownerOnly ?? []) {
+    const field = contract.publicCountFields?.[key];
+    if (!field) fail(`루트 harness.json의 숫자 "${key}"(본인만 보는 숫자)에 맞는 서버 필드 이름이 없어요`, '좋아요·구독자·독자 한 줄 수·스크랩 수는 본인만 봐요(P18). 루트가 정한 숫자마다 서버의 필드 이름을 정해야 공개 응답 검사가 그 이름을 막을 수 있어요.', `api-contract.json의 publicCountFields에 "${key}": "…Count"를 더하고, 그 이름을 publicForbiddenFields에도 넣으세요.`);
+    else if (!contract.publicForbiddenFields.includes(field)) fail(`api-contract.json: ${field}("${key}")가 publicForbiddenFields에 없어요`, '본인만 보는 숫자는 공개 응답에 들어가면 안 돼요(P18).', `publicForbiddenFields에 "${field}"를 더하세요.`);
+  }
+  const colors = Object.entries(harness.colors ?? {}).map(([id, hex], k) => ({ id, hex, order: k + 1 }));
+  const seeded = seededColors(migrations.map(read));
+  const show = (list) => list.map((c) => `${c.order}.${c.id}${c.hex}`).join(' ');
+  if (show(colors) !== show(seeded)) fail('migration의 12색이 루트 harness.json의 colors와 달라요', '오늘의 색은 12색이고(P17), 앱·디자인·서버가 같은 key·hex·순서를 써야 같은 색을 가리켜요.', `루트: ${show(colors)}\n  migration: ${show(seeded) || '(없음)'}\n  바꿀 내용을 새 migration으로 만드세요(기존 migration은 고치지 않아요).`);
+
+  const featuresPath = harness.development?.features;
+  if (!featuresPath) note('루트 harness.json에 development.features가 없어 기능 목록(features.json) 대조를 건너뛰었어요. 루트가 오래된 브랜치예요. main을 합친 뒤 다시 확인하세요.');
+  else if (!existsSync(path.join(repo, featuresPath))) fail(`루트 ${featuresPath}이 없어요`, 'harness.json이 가리키는 기능 목록이 있어야 서버 API가 어느 기능의 합격 기준을 따르는지 확인할 수 있어요.', '루트 harness.json의 development.features 경로를 확인하세요.');
+  else {
+    const features = JSON.parse(readFileSync(path.join(repo, featuresPath), 'utf8')).features ?? [];
+    const byId = new Map(features.map((f) => [f.id, f]));
+    const unlinked = new Map();
+    for (const e of contract.endpoints) {
+      if (e.feature === 'base') continue;
+      const f = byId.get(e.feature);
+      const testPath = `${serverDir}/${e.test}`;
+      if (!f) fail(`api-contract.json의 ${e.id}: 기능 ${e.feature}가 루트 ${featuresPath}에 없어요`, 'API는 루트 기능 목록(DEV-01~)의 한 기능에 속해야 합격 기준을 찾을 수 있어요.', `있는 기능 ID로 고치거나, 새 기능이면 루트 ${featuresPath}에 먼저 더하세요.`);
+      else if (!(f.tests ?? []).includes(testPath)) unlinked.set(`${f.id} ${testPath}`, [...(unlinked.get(`${f.id} ${testPath}`) ?? []), e.id]);
+    }
+    for (const [key, apis] of unlinked) {
+      const [id, testPath] = key.split(' ');
+      fail(`루트 ${featuresPath}의 ${id} tests에 ${testPath}가 없어요(${apis.join(', ')})`, '루트 하네스는 기능이 done일 때 tests의 파일이 있는지 봐요. 두 곳이 다른 파일을 가리키면 서버 테스트가 합격 기준으로 연결되지 않아요.', `루트 ${featuresPath}의 ${id} tests에 "${testPath}"를 더하세요(루트는 npm run dev:docs로 FEATURES.md도 다시 만들어요).`);
+    }
+    for (const f of features) {
+      const waiting = contract.endpoints.filter((e) => e.feature === f.id && e.status !== 'done');
+      if (f.status === 'done' && waiting.length) fail(`루트 ${featuresPath}의 ${f.id}는 done인데 서버 API가 아직 끝나지 않았어요: ${waiting.map((e) => e.id).join(', ')}`, '기능은 그 기능의 서버 API가 모두 끝나야 완료예요.', `API를 끝내고 status를 done으로 바꾸거나, ${f.id}의 status를 되돌리세요.`);
+      for (const t of f.tests ?? []) {
+        if (t.startsWith(`${serverDir}/`) && !existsSync(path.join(repo, t))) fail(`루트 ${featuresPath}의 ${f.id} tests에 있는 ${t}가 없어요`, '기능 목록이 가리키는 서버 테스트 파일이 있어야 합격 기준을 확인할 수 있어요.', `${t}를 만들거나 루트 tests의 경로를 고치세요.`);
+      }
+    }
+  }
 }
 
 // 3. Tests: every API has a todo or test, done needs a real request, and titles agree with the contract.

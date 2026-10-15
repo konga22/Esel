@@ -19,6 +19,7 @@
     "void": 204,
     "note": "성공 상태 코드. response가 void면 방법과 상관없이 204. 좋아요·스크랩·구독처럼 상태를 저장하는 POST는 이미 눌렀어도 201, DELETE는 이미 취소했어도 200"
   },
+  "publicCountFields": { "likes": "likeCount", "subscribers": "subscriberCount", "reader-line-count": "lineCount", "scrap-count": "scrapCount" },
   "publicForbiddenFields": ["likeCount", "lineCount", "scrapCount", "subscriberCount", "readerCount", "viewCount", "rank", "score", "popularity"],
   "errors": {
     "VALIDATION": { "status": 400, "message": "보낸 값의 형식이 맞지 않아요.", "hint": "details에 적힌 항목을 고쳐 다시 보내 주세요." },

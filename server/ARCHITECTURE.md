@@ -164,7 +164,7 @@ erDiagram
 - 날짜·색·발행 시각 조회를 위한 피드 인덱스를 둔다.
 - 제호는 영문 소문자 2~10자(`^[a-z]{2,10}$`)만 저장된다(CHECK).
 - 하루 후보 색 자리(`position`)는 1~3, 색 hex는 `^#[0-9A-F]{6}$`, 개인 호수는 1 이상, 발행 호 수는 0 이상이다(CHECK).
-- 12색(`colors`)은 루트 `harness.json`의 `colors`와 같은 key·hex·순서(`sort_order`)로 마이그레이션이 넣는다. 앱이 돌려면 꼭 있어야 하는 기준 데이터라 seed 스크립트가 아니라 마이그레이션에 둔다.
+- 12색(`colors`)은 루트 `harness.json`의 `colors`와 같은 key·hex·순서(`sort_order`)로 마이그레이션이 넣는다. 앱이 돌려면 꼭 있어야 하는 기준 데이터라 seed 스크립트가 아니라 마이그레이션에 둔다. `npm run check:server`가 루트 harness.json과 같은지 확인한다.
 
 API 검사만 믿지 않고 PostgreSQL의 unique constraint로 동시 요청도 방어한다. 개인 호수 증가와 `Issue` 생성은 이후 하나의 DB 트랜잭션으로 구현해야 한다.
 
