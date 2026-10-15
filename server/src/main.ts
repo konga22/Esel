@@ -1,36 +1,13 @@
-import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import helmet from 'helmet';
 import { AppModule } from './app.module.js';
+import { configureApp } from './app.setup.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const config = app.get(ConfigService);
-  const port = config.getOrThrow<number>('PORT');
-  const origins = config.getOrThrow<string[]>('CORS_ORIGINS');
-
-  app.use(helmet());
-  app.enableCors({ origin: origins, credentials: true });
-  app.setGlobalPrefix('api');
-  app.useGlobalPipes(
-    new ValidationPipe({
-      transform: true,
-      whitelist: true,
-      forbidNonWhitelisted: true,
-    }),
-  );
-
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('Esel API')
-    .setDescription('Esel 직접 구축 서버 API')
-    .setVersion('0.1.0')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api/docs', app, document);
-
-  await app.listen(port);
+  configureApp(app);
+  // 종료 신호(SIGTERM 등)를 받으면 onModuleDestroy를 불러 DB 연결을 정리하고 끝낸다.
+  app.enableShutdownHooks();
+  await app.listen(app.get(ConfigService).getOrThrow<number>('PORT'));
 }
 await bootstrap();
