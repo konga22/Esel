@@ -11,6 +11,7 @@
 | 서버 없이 중간발표 시연 실행 | [Flutter 중간발표 안내](docs/flutter/MIDTERM_DEMO.md): 휴대폰 실행 명령·시연 순서·검증 범위 |
 | 디자인 보드 00~04와 화면 | [docs/design](docs/design/README.md): 캔버스 캡처와 값 표 |
 | 기능 개발 가이드 | [docs/dev](docs/dev/README.md): 목업 → 앱·서버 개발 순서, [기능 목록](docs/dev/FEATURES.md), 목업 화면 그림 |
+| 서버 | [server](server/README.md): 실행법, [AI 작업 규칙](server/AGENTS.md), [API 약속](server/api-contract.json), [배움 안내](server/docs/LEARN.md) |
 | 눌러 보는 앱 목업 | [20261011-app-mockup](.codex/temp/prototype/20261011-app-mockup/README.md): 휴대폰에서 여는 비공개 링크 |
 | 디자인 원본 | [20261003-cover-sns](.codex/temp/prototype/20261003-cover-sns/README.md): 비공개 Claude Design 캔버스와 그 생성기 |
 | 제품 결정·계약·검증 | [앱 하네스](docs/ESEL_HARNESS.md), [harness.json](harness.json) |
@@ -62,4 +63,4 @@ flutter test
 
 `--dart-define=ESEL_API_MODE=mock`을 빼면 서버 모드라서, 서버 없이는 옛 기기 보관함 화면만 보인다. 시연 순서와 검증 범위는 [Flutter 중간발표 안내](docs/flutter/MIDTERM_DEMO.md)에 있다. iOS는 맥(Xcode)에서만 빌드할 수 있다.
 
-실제 인증 서버, 서버 업로드, 데이터베이스는 아직 없다. 시연 모드의 기록은 기기에만 남는다(웹은 메모리). 사진 출처는 [demo-sources](assets/demo-sources.md)와 [models-sources](assets/models-sources.md)에 있고, 사진에 붙인 이름·숫자는 예시다.
+서버 골격(NestJS·PostgreSQL, `/api/health`)과 API 약속은 있지만, 인증·업로드·발행 같은 서버 기능은 아직 없다. 시연 모드의 기록은 기기에만 남는다(웹은 메모리). 사진 출처는 [demo-sources](assets/demo-sources.md)와 [models-sources](assets/models-sources.md)에 있고, 사진에 붙인 이름·숫자는 예시다.

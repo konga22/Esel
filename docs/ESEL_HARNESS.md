@@ -69,6 +69,7 @@ Esel은 오늘의 색으로 옷을 입고, 그 착장을 한 권의 잡지 표�
 | 10-15 | 사용자 위임 | 같은 색 잠금 강화: 발행 전에는 그날 후보 3색 방이 모두 미리보기(최신 3장 + 흐린 책등). 색을 바꿔 가며 잠금을 푸는 구멍(점검 보고서 H2)을 막고, 색을 바꿀 자유는 유지. 후보가 아닌 색과 지난 날짜는 공개. 사용자가 "추천하는 쪽으로 전부 해결"을 맡겨 추천안을 채택 | P01, C4·C8. 규칙 기준·앱 목업·디자인 생성기·서버 약속·Flutter 앱에 같은 규칙 |
 | 10-15 | 사용자 위임 | 서버 PR의 문제는 리뷰에서 바로 고치고, 일부러 검사 실패를 남기던 미션 0은 "무엇을 왜 고쳤는지 읽고 답하기"로 바꿈 | `check:server`는 항상 실패 0건 |
 | 10-15 | 사용자 위임 | 저장소 CI(GitHub Actions): PR과 main에서 하네스·규칙 검사(Ubuntu·Windows)와 Flutter 검사(3.44.0)를 돌림. 서버 병합 뒤 서버 검사(PostgreSQL 포함)를 더함 | `.github/workflows/`. 비공개 저장소라 Actions 사용 시간이 든다. 새 검사는 이 파일들에 더함 |
+| 10-15 | 사용자 위임 | 팀원의 서버 기반(PR konga22/Esel#4: NestJS·Prisma·PostgreSQL·Docker Compose)을 서버 하네스(#7)와 점검 수정을 더해 main에 합침. 직접 운영 서버, BaaS 없음 | 서버 작업은 `server/AGENTS.md`. 정본: 경로·권한·오류 = `server/api-contract.json`, 데이터 모양 = Swagger |
 | 10-15 | 사용자 결정 | 클라이언트를 Expo(`app/`·`src/`)에서 Flutter(`flutter_app/`)로 바꿈. 팀원 PR konga22/Esel#8의 Flutter 시연 앱을 출발점으로 삼음 | Expo 앱은 지움(마지막 상태는 커밋 `bbdaf2d`). 디자인 토큰은 `npm run dev:docs`가 `tokens.g.dart`로 만든다. 팀원 실행 안내는 Android 기기·에뮬레이터 기준, iOS 확인은 맥에서. 새 Flutter 패키지는 PR에서 승인받고 추가 |
 | — | 보류 | 해석 반응, 컬러 정체성 분석, 전용 외부 SNS 공유 카드, Generative UI | 별도 승인 없이 구현하지 않음 |
 | — | 미확정 | 색 공급처, 실제 확률·일일 배정·시차, 닉네임 중복·금칙어, 실제 얼굴 감지, 삭제·차단 정책, 같은 색 미리보기 3장을 고르는 기준, 미성년자 판별 방법 | 데모 값과 실서비스 결정을 구분 |
@@ -267,7 +268,8 @@ flowchart LR
 | 영역 | 경로 | 상태와 주의 |
 |---|---|---|
 | 최신 디자인 | Claude Design 캔버스 (`harness.json.activeDesign.canvas`, 비공개) | 00~04 보드와 03 화면 2개 페이지. 공유 전에는 소유자만 열 수 있음 |
-| 기능 개발 | [docs/dev](dev/README.md), `harness.json.development` | 개발 가이드, 기능 목록(features.json → FEATURES.md), 목업 화면 그림 54장, 생성 토큰 `flutter_app/lib/core/design/tokens.g.dart`. 서버는 PR konga22/Esel#4 병합 후 `server/` |
+| 기능 개발 | [docs/dev](dev/README.md), `harness.json.development` | 개발 가이드, 기능 목록(features.json → FEATURES.md), 목업 화면 그림 54장, 생성 토큰 `flutter_app/lib/core/design/tokens.g.dart` |
+| 서버 | [server/AGENTS.md](../server/AGENTS.md), [api-contract.json](../server/api-contract.json) | NestJS·Prisma·PostgreSQL. 약속(API 55개)과 `check:server`, 배움 안내, 리뷰 체크리스트 |
 | 앱 목업 | [20261011-app-mockup](../.codex/temp/prototype/20261011-app-mockup/README.md) (`harness.json.appMockup`) | 모든 화면을 한 앱으로 이어 눌러 보는 비공개 웹 목업. 인물·12색은 생성기 `lib.mjs`에서 빌드 때 주입. 실제 저장·로그인 없음 |
 | 디자인 보드 사본 | [docs/design](design/README.md) | 캔버스의 보드·화면 캡처와 값 표. 레포에서 사람과 다른 AI가 읽는 곳. `npm run design:capture`로 다시 찍음 |
 | 생성기 | [20261003-cover-sns/README](../.codex/temp/prototype/20261003-cover-sns/README.md), `generator/` | `lib.mjs`(색·인물·얼굴 값·조각), `scroll.mjs`(제호 녹아들기), `gen-cover2/join/boards.mjs`. 출력 사본은 `generator/project/` |
