@@ -26,19 +26,20 @@ npm run check:server   # 약속·규칙 검사. 설치 없이 동작하고, 실�
 docker compose up -d postgres
 ```
 
-서버 디렉터리에서 환경변수와 DB를 준비한 뒤 실행합니다.
+서버 디렉터리에서 환경변수와 DB를 준비한 뒤 실행합니다. Node.js 24 LTS를 권장합니다(Docker와 같음).
 
 ```bash
 cp .env.example .env
-npm install
-npm run prisma:generate
-npm run prisma:migrate -- --name init
+npm install            # 끝나면 prisma generate가 자동으로 돈다(postinstall)
+npm run prisma:deploy  # 커밋된 migration 적용(12색 기준 데이터 포함)
 npm run start:dev
 ```
 
 - API: `http://localhost:3000/api`
 - 상태 확인: `http://localhost:3000/api/health`
-- Swagger: `http://localhost:3000/api/docs`
+- Swagger: `http://localhost:3000/api/docs` (운영 `NODE_ENV=production`에서는 꺼짐)
+
+`.env.example`과 `compose.yaml`의 비밀번호(`esel_dev`)는 개발용입니다. 운영에서는 `CORS_ORIGINS`를 실제 앱 주소로 꼭 정해야 서버가 시작합니다.
 
 ## 검증
 

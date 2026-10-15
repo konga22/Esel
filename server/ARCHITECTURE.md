@@ -8,11 +8,11 @@
 
 - NestJS 기반 REST API 서버
 - PostgreSQL 개발 데이터베이스
-- Prisma 스키마와 초기 마이그레이션
+- Prisma 스키마, 초기 마이그레이션, 하네스 규칙 CHECK 제약과 12색 마이그레이션
 - Docker Compose 실행 환경
 - 환경변수 검증
 - CORS, Helmet, 전역 DTO 검증
-- Swagger 문서
+- Swagger 문서(운영이 아닐 때만)
 - API와 DB 연결 상태를 확인하는 헬스체크
 - 단위 테스트와 DB 연결 E2E 테스트
 
@@ -22,7 +22,7 @@
 
 | 영역 | 선택 | 이유 |
 |---|---|---|
-| 런타임 | Node.js 24 LTS | 기존 Expo 앱과 TypeScript를 공유하고 NestJS·Prisma 요구사항을 충족한다. |
+| 런타임 | Node.js 24 LTS | NestJS·Prisma 요구사항을 충족한다. Docker 이미지도 Node 24다. `package.json`의 `engines`는 의존성 요구(`^22.22.3 \|\| ^24.15.0 \|\| >=26`)를 따른다. |
 | 서버 | NestJS 12 | 기능별 모듈 분리, 의존성 주입, 요청 검증과 테스트 구성이 명확하다. |
 | API | REST + OpenAPI | Expo 앱에서 호출하기 쉽고 Swagger로 계약을 확인할 수 있다. |
 | 데이터베이스 | PostgreSQL 17 | 발행·개인 호수·공개 권한에 필요한 트랜잭션과 제약조건을 지원한다. |
@@ -55,7 +55,9 @@ Esel/
     │   └── migrations/
     ├── src/
     │   ├── main.ts
+    │   ├── app.setup.ts      # configureApp: main과 e2e가 같이 쓰는 전역 설정
     │   ├── app.module.ts
+    │   ├── common/           # service-date.ts(서비스 날짜) 등 공통 도우미
     │   ├── config/
     │   ├── health/
     │   └── prisma/
@@ -64,16 +66,17 @@ Esel/
 
 ## 4. 애플리케이션 시작 흐름
 
-`server/src/main.ts`는 다음 순서로 서버를 초기화한다.
+`server/src/main.ts`는 다음 순서로 서버를 초기화한다. 3~7은 `src/app.setup.ts`의 `configureApp(app)` 한 함수에 있고, e2e 테스트(`test/create-app.ts`)도 같은 함수를 거친다. 그래서 테스트가 실제 서버와 같은 설정을 확인한다.
 
 1. `AppModule`을 생성한다.
 2. `.env`를 읽고 Zod 스키마로 환경변수를 검증한다.
 3. Helmet 보안 헤더를 적용한다.
-4. 허용된 Expo·웹 주소에만 CORS를 연다.
+4. `CORS_ORIGINS`에 적힌 앱 주소에만 CORS를 연다.
 5. 모든 API에 `/api` prefix를 붙인다.
 6. 전역 `ValidationPipe`로 정의되지 않은 요청 필드를 거절한다.
-7. `/api/docs`에 Swagger 문서를 노출한다.
-8. 설정된 `PORT`에서 요청을 받는다.
+7. `NODE_ENV`가 `production`이 아닐 때만 `/api/docs`에 Swagger 문서를 연다.
+8. `enableShutdownHooks()`로 종료 신호를 받으면 DB 연결을 닫고 끝내게 한다.
+9. 설정된 `PORT`에서 요청을 받는다.
 
 환경변수가 빠졌거나 형식이 잘못되면 서버는 조용히 잘못된 설정으로 실행되지 않고 시작 단계에서 실패한다.
 
@@ -84,22 +87,24 @@ Esel/
 ### `postgres`
 
 - PostgreSQL 17 Alpine 이미지
-- 개발 DB·사용자 이름은 `esel`
-- 호스트의 `5432` 포트 사용
+- 개발 DB·사용자 이름은 `esel`, 비밀번호 `esel_dev`는 개발용
+- 호스트의 `127.0.0.1:5432`에만 연다(같은 네트워크의 다른 기기에서는 접속 불가)
 - named volume에 데이터를 보존
 - `pg_isready` 기반 healthcheck 제공
 
 ### `migrate`
 
 - PostgreSQL이 healthy가 된 뒤 실행
-- `prisma migrate deploy`로 커밋된 마이그레이션 적용
+- `prisma migrate deploy`로 커밋된 마이그레이션 적용(CHECK 제약과 12색 기준 데이터도 마이그레이션에 들어 있다)
 - 성공하면 종료 코드 `0`으로 끝남
 - 새 환경에서도 API 시작 전에 DB 구조를 맞추기 위한 일회성 서비스
 
 ### `api`
 
 - `migrate`가 성공해야 시작
-- 호스트의 `3000` 포트 사용
+- 호스트의 `127.0.0.1:3000`에만 연다
+- `NODE_ENV=production`으로 돌기 때문에 Swagger는 꺼져 있다. 문서는 `npm run start:dev`로 볼 수 있다
+- 컨테이너 안에서는 root가 아닌 `node` 사용자로, `node dist/main.js`가 PID 1이 되어 실행한다(종료 신호를 서버가 직접 받음)
 - `/api/health`를 Docker healthcheck로 호출
 - 멀티 스테이지 Dockerfile로 빌드 의존성과 실행 이미지를 분리
 
@@ -114,10 +119,12 @@ Esel/
 | `NODE_ENV` | 실행 환경 | `development` |
 | `PORT` | API 포트 | `3000` |
 | `DATABASE_URL` | PostgreSQL 연결 문자열 | 로컬 `esel` DB |
-| `CORS_ORIGINS` | 허용할 클라이언트 주소 목록 | Expo 웹·정적 미리보기 |
-| `SERVICE_TIME_ZONE` | 오늘의 색과 발행일 계산 기준 | `Asia/Seoul` |
+| `CORS_ORIGINS` | 허용할 클라이언트 주소 목록(쉼표로 구분, 경로 없는 http(s) 주소) | 개발: `http://localhost:8081`. **운영에서는 기본값이 없어 꼭 정해야 서버가 시작한다** |
+| `SERVICE_TIME_ZONE` | 서비스 날짜(오늘의 색·하루 한 호·같은 색 잠금 자정) 기준. IANA 시간대인지 시작할 때 확인한다 | `Asia/Seoul` |
 
 운영 환경에서는 Compose에 작성된 개발용 비밀번호를 사용하지 말고 별도 비밀 관리 수단으로 주입해야 한다.
+
+서비스 날짜는 `src/common/service-date.ts`의 `serviceDate(now, SERVICE_TIME_ZONE)`로 정한다(`"YYYY-MM-DD"`). 앱이 보낸 "오늘"은 믿지 않는다.
 
 ## 7. Prisma 데이터 모델
 
@@ -155,6 +162,9 @@ erDiagram
 - 같은 사용자의 개인 호수는 중복될 수 없다.
 - 하나의 미디어 파일은 하나의 호에만 연결된다.
 - 날짜·색·발행 시각 조회를 위한 피드 인덱스를 둔다.
+- 제호는 영문 소문자 2~10자(`^[a-z]{2,10}$`)만 저장된다(CHECK).
+- 하루 후보 색 자리(`position`)는 1~3, 색 hex는 `^#[0-9A-F]{6}$`, 개인 호수는 1 이상, 발행 호 수는 0 이상이다(CHECK).
+- 12색(`colors`)은 루트 `harness.json`의 `colors`와 같은 key·hex·순서(`sort_order`)로 마이그레이션이 넣는다. 앱이 돌려면 꼭 있어야 하는 기준 데이터라 seed 스크립트가 아니라 마이그레이션에 둔다.
 
 API 검사만 믿지 않고 PostgreSQL의 unique constraint로 동시 요청도 방어한다. 개인 호수 증가와 `Issue` 생성은 이후 하나의 DB 트랜잭션으로 구현해야 한다.
 
@@ -164,11 +174,13 @@ API 검사만 믿지 않고 PostgreSQL의 unique constraint로 동시 요청도 
 
 ```bash
 cd server
-npm run prisma:generate
 npm run prisma:migrate -- --name 변경내용
+npm run prisma:generate
 npm run build
 npm test
 ```
+
+`npm install`·`npm ci`가 끝나면 `postinstall`이, `npm run build` 전에는 `prebuild`가 `prisma generate`를 자동으로 돌린다. 스키마를 바꾼 뒤 `start:dev`·테스트 전에는 `npm run prisma:generate`를 직접 한 번 돌린다.
 
 - 이미 공유된 migration SQL을 직접 수정하지 않는다.
 - 스키마 변경은 새로운 migration으로 추가한다.
@@ -209,8 +221,8 @@ docker compose ps -a
 
 - API: `http://localhost:3000/api`
 - 헬스체크: `http://localhost:3000/api/health`
-- Swagger: `http://localhost:3000/api/docs`
-- PostgreSQL: `localhost:5432`
+- Swagger: `http://localhost:3000/api/docs`(운영이 아닐 때만. Compose의 api는 운영 모드라 `npm run start:dev`로 본다)
+- PostgreSQL: `127.0.0.1:5432`
 
 종료:
 
@@ -240,25 +252,34 @@ npm run build
 - DTO에 정의되지 않은 요청 필드는 전역에서 거절한다.
 - CORS는 명시된 클라이언트 주소만 허용한다.
 - Helmet으로 기본 보안 헤더를 적용한다.
-- Docker Compose의 계정 정보는 개발 전용이다.
+- Docker Compose의 계정 정보는 개발 전용이고, 포트는 `127.0.0.1`에만 연다.
+- API 컨테이너는 root가 아닌 `node` 사용자로 돈다.
+- Swagger 문서는 운영(`NODE_ENV=production`)에서 열지 않는다.
+- 운영에서는 `CORS_ORIGINS`를 명시해야 시작한다(localhost 기본값 없음).
 - 이미지 파일 자체를 PostgreSQL에 저장하지 않는다.
 - 잠긴 게시물의 실제 이미지 URL이나 사용자 식별자를 클라이언트에 전달하지 않는다.
 - 좋아요·구독자·독자 한 줄 수·스크랩 수는 소유자용 응답에만 포함한다.
 - 인증 구현 시 비밀번호와 refresh token 원문을 저장하지 않는다.
 
-현재 npm 감사 결과에는 해결되지 않은 의존성 취약점이 있다. `npm audit fix --force`는 호환성을 깨뜨릴 수 있으므로 검토 없이 실행하지 않는다.
+현재 npm 감사 결과에는 해결되지 않은 의존성 취약점이 있다(2026-10-15 기준 high 4건, 모두 Prisma 7 도구 체인의 `deepmerge-ts`·`mysql2` 경유). `npm audit fix --force`는 Prisma 6으로 내리는 호환성 파괴 변경이므로 검토 없이 실행하지 않는다.
 
 ## 12. 제품 계약과 서버 책임
 
 서버 기능을 구현할 때 특히 다음 제품 계약을 서버에서 강제해야 한다.
 
-- P01: 오늘 같은 색은 발행 전 3장만 공개하고 나머지는 비식별 책등으로 반환한다.
-- P02: 다른 색과 지난 날짜는 공개하되 미래·잘못된 날짜는 공개하지 않는다.
-- P04: 하루 한 번 발행하고 발행 성공으로만 개인 호수가 증가한다.
+- P01 같은 색 잠금(2026-10-15 결정): 오늘 발행 전에는 그날 나의 **후보 3색 방이 모두** 미리보기다. 각 방은 최신 3장만 주고, 나머지는 개수(`hiddenCount`)만 준다. 숨긴 표지의 이름·사진(이미지 URL)·ID는 어떤 응답에도 없다(책등은 앱이 개수로만 그린다).
+  - 어떤 색을 골랐는지·바꿨는지와 무관하다. 색을 바꿔도 아무 방도 열리지 않는다.
+  - 오늘 발행하면 전부 열린다. 서비스 날짜(`SERVICE_TIME_ZONE`) 자정이 지나면 어제 방은 지난 날짜라 열린다.
+  - 색 확정·복원·트윈 게시로는 열리지 않는다. 미성년자는 잠금이 없다(판별 방법은 미정).
+  - 잠긴 표지를 ID로 직접 부르면 403이 아니라 404로 답한다(있다는 사실도 새지 않게).
+- P02: 후보가 아닌 색과 지난 날짜는 발행 전에도 공개하되, 미래·잘못된 날짜는 공개하지 않는다. 인기 혼합도 공개 권한 필터 뒤에 적용한다.
+- P04: 하루 한 번 발행하고 발행 성공으로만 개인 호수가 증가한다(결호 없음).
 - P11: 얼굴 가리기 합성은 기기에서 처리하며 익명화를 보장한다고 표현하지 않는다.
-- P12: 반응·구독·스크랩·발행은 로그인이 필요하다.
-- P14: 개인 제호는 영문 소문자 2~10자이며 중복 검사 정책이 필요하다.
-- P18: 반응 수는 발행한 본인에게만 공개한다.
+- P12: 비로그인은 오늘의 표지와 안쪽 2쪽까지만 받는다. 좋아요·구독·독자 한 줄·스크랩·만들기(발행) 같은 쓰기는 로그인이 필요하다.
+- P14: 개인 제호는 영문 소문자 2~10자이며 중복 검사 정책이 필요하다(형식은 DB CHECK로도 막는다).
+- P18: 좋아요·구독자·독자 한 줄 수·스크랩 수는 발행한 본인에게만 보인다. 같은 색 인원·호수·독자 한 줄 글은 공개다. 호수·반응으로 정렬하거나 순위를 매기지 않고, 인기 혼합은 내부 신호로만 쓴다.
+
+정확한 문구와 전체 목록(P01~P18)은 루트 `docs/ESEL_HARNESS.md`가 정본이다. 이 요약과 다르면 하네스를 따른다.
 
 클라이언트의 잠금 UI는 보안 경계가 아니다. 피드 API, 프로필 API, 공유 링크, 이미지 접근 단계에서 모두 서버가 같은 권한을 검사해야 한다.
 
@@ -266,7 +287,7 @@ npm run build
 
 1. 이메일 회원가입·로그인과 refresh token 회전
 2. 제호 생성과 중복 검사
-3. 12색 seed 데이터와 날짜별 후보 색 3개 생성
+3. 날짜별 후보 색 3개 생성(12색 기준 데이터는 마이그레이션에 있음)
 4. 사용자의 오늘 색 선택·변경·발행 후 잠금
 5. 이미지 업로드 준비·완료·검증
 6. 하루 한 번 발행 트랜잭션과 개인 호수 할당
@@ -293,7 +314,15 @@ npm run build
 
 ## 15. 현재 검증 상태
 
-초기 기반 구현 시 다음을 실제로 확인했다.
+2026-10-15 고친 뒤 다음을 실제로 확인했다(맥, Homebrew PostgreSQL 17, Docker 없음).
+
+- `npm ci` → `npm run lint` → `npm test` → `npm run build`가 저장소 루트 설치 없이 통과
+- 새 마이그레이션 포함 `prisma migrate deploy`, 스키마와 마이그레이션 차이 없음(`prisma migrate diff`)
+- e2e: health, 앱 설정(개발 Swagger 200·운영 404, CORS 허용 목록, Helmet 헤더), DB CHECK 제약과 12색
+- 빌드 결과를 운영 모드로 실행: `CORS_ORIGINS` 없으면 시작 실패, 있으면 `/api/docs` 404, SIGTERM에 정상 종료
+- `docker compose up --build`는 이번에 확인하지 못했다(Docker 없음). Dockerfile의 `USER node`·`node dist/main.js`·포트 바인딩은 아직 실제 컨테이너로 검증하지 않았다.
+
+초기 기반 구현 시(2026-10-11) 다음을 실제로 확인했다.
 
 - PostgreSQL 컨테이너 healthy
 - Prisma 초기 migration 적용 성공
