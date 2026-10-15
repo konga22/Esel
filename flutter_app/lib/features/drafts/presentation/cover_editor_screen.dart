@@ -98,9 +98,11 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
         requestFullMetadata: false,
       );
       if (file == null) return;
-      final path = await widget.library.importPhoto(file.path);
+      final path = widget.library.persistent
+          ? await widget.library.importPhoto(file.path)
+          : await widget.library.importPhotoBytes(await file.readAsBytes());
       if (!mounted) return;
-      await precacheImage(FileImage(File(path)), context);
+      await precacheImage(localPhotoProvider(path), context);
       if (!mounted) return;
       _history.add(_draft);
       setState(() {
@@ -223,15 +225,23 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
       final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
       image.dispose();
       if (bytes == null) throw StateError('image encoding');
-      final directory = Directory('${widget.library.directory.path}/exports');
-      await directory.create(recursive: true);
-      final file = File(
-        '${directory.path}/esel-${DateTime.now().microsecondsSinceEpoch}.png',
-      );
-      await file.writeAsBytes(bytes.buffer.asUint8List(), flush: true);
+      final name = 'esel-${DateTime.now().microsecondsSinceEpoch}.png';
+      final png = bytes.buffer.asUint8List();
+      final XFile shared;
+      final libraryDirectory = widget.library.directory;
+      if (libraryDirectory == null) {
+        // 웹은 기기 파일이 없으니 바이트 그대로 공유창에 넘긴다.
+        shared = XFile.fromData(png, name: name, mimeType: 'image/png');
+      } else {
+        final directory = Directory('${libraryDirectory.path}/exports');
+        await directory.create(recursive: true);
+        final file = File('${directory.path}/$name');
+        await file.writeAsBytes(png, flush: true);
+        shared = XFile(file.path, mimeType: 'image/png');
+      }
       await SharePlus.instance.share(
         ShareParams(
-          files: [XFile(file.path, mimeType: 'image/png')],
+          files: [shared],
           title: '${_draft.masthead} 표지',
           sharePositionOrigin: origin,
         ),

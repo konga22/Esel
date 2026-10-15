@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:esel/features/drafts/data/local_library.dart';
 import 'package:esel/features/drafts/domain/cover_draft.dart';
@@ -146,5 +148,21 @@ void main() {
     expect(reopened.issuesFor('owner-a').map((d) => d.issueNumber), [2, 1]);
     expect(reopened.issuesFor('owner-b').single.issueNumber, 1);
     reopened.dispose();
+  });
+
+  test('in-memory library (web) keeps photo, draft and issue without files', () async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    final memory = LocalLibrary.inMemory();
+    addTearDown(memory.dispose);
+    await memory.load();
+    expect(memory.persistent, isFalse);
+    final onePixelPng = base64Decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==');
+    final path = await memory.importPhotoBytes(onePixelPng);
+    expect(path, startsWith(memoryPhotoPrefix));
+    expect(localPhotoProvider(path), isA<MemoryImage>());
+    await memory.save(draft('m').copyWith(photoPath: path));
+    final issue = await memory.publish(memory.drafts.single, 'owner', now: DateTime(2026, 10, 15));
+    expect(issue.issueNumber, 1);
+    expect(memory.issuesFor('owner').single.photoPath, path);
   });
 }
