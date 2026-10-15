@@ -1,6 +1,6 @@
 # Esel 서버 — AI 작업 규칙
 
-이 폴더(`server/`)에서 일하는 AI는 이 파일을 먼저 읽는다. 저장소 루트의 `AGENTS.md`와 `docs/ESEL_HARNESS.md`(제품 계약 P01~P18)는 그다음에 읽는다. 이 파일이 서버 작업에서는 우선한다.
+이 폴더(`server/`)에서 일하는 AI는 저장소 루트의 `AGENTS.md`, `docs/ESEL_HARNESS.md`(제품 계약 P01~P18), `harness.json`과 함께 이 파일을 읽는다. 우선순위는 루트 `AGENTS.md`가 정한 순서(최신 사용자 요청 > 제품 계약 > …)를 따르고, 이 파일은 그 아래에서 서버 세부 규칙만 보충한다. 이 파일과 루트 하네스가 다르면 루트를 따르고, 어긋난 곳을 알린다.
 
 ## 함께 일하는 사람
 
@@ -8,31 +8,34 @@
 
 - 한국어로, 어려운 말은 처음 나올 때 한 줄로 풀어서 설명한다(예: "DTO = 주고받는 데이터의 모양을 정한 틀").
 - 한 번에 API 하나, 또는 [배움 순서](docs/LEARN.md#6-배움-순서)의 미션 하나만 한다. 여러 기능을 한꺼번에 만들지 않는다.
-- 작업이 끝나면 반드시 아래 [학습용 보고](#학습용-보고) 형식으로 답한다.
+- 작업이 끝나면 아래 [학습용 보고](#학습용-보고) 형식으로 답한다. 사용자가 다른 형식을 요청하면 그것을 따른다.
 
 ## 무엇을 만들까: 약속(계약)대로만
 
 1. **API는 [api-contract.json](api-contract.json)에 있는 것만 만든다.** 주소, 방법(GET/POST…), 누가 부를 수 있는지(access), 응답 이름, 오류 코드를 그대로 따른다.
+   - 정본 관계: **경로·권한·오류 코드 = `api-contract.json`, 요청·응답 데이터 모양 = Swagger(코드의 DTO)**. 데이터 모양을 바꾸면 DTO와 Swagger가 정본이고, 경로·권한·오류를 바꾸면 이 파일부터 고친다.
+   - `note`가 달린 API는 아직 사용자가 정하지 않은 것이 있다. 구현 전에 사용자에게 묻고, 정해지면 `note`를 지운다.
 2. 약속에 없는 API가 필요하거나 약속을 바꿔야 하면, **코드보다 먼저 `api-contract.json`을 고치고** 팀원에게 "약속을 이렇게 바꾸자고 제안한다"고 분명히 말한다. 몰래 바꾸지 않는다.
 3. 만드는 방식은 [API 규칙](docs/API_RULES.md)을 따른다. 주소 모양, 응답 모양, 오류 모양, 폴더 구조, 테스트 방식이 정해져 있다.
-4. 기능의 합격 기준은 저장소 루트 `docs/dev/FEATURES.md`(DEV-xx)에, 할 일은 `test/contracts/*.e2e-spec.ts`의 `it.todo`에 있다.
+4. 기능의 합격 기준은 저장소 루트 `docs/dev/features.json`(사람이 읽는 표는 `FEATURES.md`, DEV-xx)에, 할 일은 `test/contracts/*.e2e-spec.ts`의 `it.todo`에 있다. todo는 손으로 관리한다. API마다 `'METHOD /api/경로: … → 상태'` todo나 테스트가 있어야 하고 `check:server`가 확인한다.
 
 ## 반드시 지킬 것
 
 - **제품 계약은 서버가 지킨다.** 앱 화면의 잠금은 보안이 아니다. 특히:
-  - P01 같은 색 잠금: 오늘 발행 전, 내 색의 다른 표지는 최신 3장만. 나머지는 이름·사진·ID 없이 개수(`hiddenCount`)만.
+  - P01 같은 색 잠금(2026-10-15 결정): 오늘 발행 전에는 그날 내 **후보 3색 방이 모두** 미리보기다. 방마다 최신 3장만, 나머지는 이름·사진·ID 없이 개수(`hiddenCount`)만. 고른 색·바꾼 색과 무관해서 색을 바꿔도 아무 방도 안 열린다. 후보가 아닌 색과 지난 날짜는 열려 있다. 오늘 발행하면 전부 열리고, 서비스 날짜 자정이 지나면 어제 방은 열린다. 확정·복원·트윈 게시로는 안 열린다. 미성년자는 잠금이 없다. 잠긴 것은 404.
   - P04 하루 한 호: DB 제약과 트랜잭션으로 막는다. 발행할 때만 호수 +1.
   - P18 숫자는 본인에게만: 좋아요·구독자·독자 한 줄·스크랩 수는 `…OwnerDto`와 `/api/me/…`에만.
 - 흐름은 `controller → service → PrismaService`. 컨트롤러는 DB를 직접 부르지 않는다. 규칙(P01·P04…)은 서비스 안의 작은 함수로 두고 단위 테스트를 붙인다.
 - 이미 공유된 migration 파일은 고치지 않는다. DB 구조를 바꾸려면 새 migration을 만든다.
 - `.env`와 비밀번호·키는 커밋하지 않는다. 외부 서비스(BaaS, 유료 배포, 메일·푸시·저장소 서비스)는 팀 승인 없이 넣지 않는다.
-- Swagger(`/api/docs`)는 개발 환경에서만 켠다.
+- Swagger(`/api/docs`)는 개발 환경에서만 켠다(`src/app.setup.ts`의 `configureApp`). 전역 설정은 `configureApp`에만 두어 main과 e2e가 같이 쓴다.
+- 상태 코드: 성공은 GET·PUT·PATCH·DELETE 200, POST 201, 돌려줄 것이 없으면 204. 보이지 않는 것(없음·잠김·숨김, 트윈 참여자가 아님)은 404, 보이지만 남의 것을 바꾸려 하면 403([API 규칙 4·7장](docs/API_RULES.md)).
 - 확인하지 않은 것을 "된다"고 말하지 않는다. 돌리지 못한 테스트는 못 돌렸다고 쓴다.
 
 ## 일하는 순서 (API 하나)
 
-1. `api-contract.json`에서 이번에 만들 API를 찾고, 그 `feature`의 합격 기준을 `docs/dev/FEATURES.md`에서 읽는다.
-2. 그 API의 `it.todo`를 실제 테스트로 바꾼다(아직 실패해도 된다).
+1. `api-contract.json`에서 이번에 만들 API를 찾고, 그 `feature`의 합격 기준을 루트 `docs/dev/FEATURES.md`에서 읽는다.
+2. 그 API의 `it.todo`를 실제 테스트로 바꾼다(아직 실패해도 된다). `it(…)` 블록 안에서 `request(app.getHttpServer()).<method>('/api/…')`로 부르고, 앱은 `test/create-app.ts`의 `createTestApp()`으로 띄운다.
 3. 필요하면 Prisma 스키마를 고치고 새 migration을 만든다.
 4. DTO → 서비스(규칙 함수 + 단위 테스트) → 컨트롤러 순으로 만든다.
 5. 아래 명령을 모두 돌리고, 실패하면 고친다.
@@ -40,7 +43,8 @@
 7. 학습용 보고를 쓴다.
 
 ```bash
-npm run check:server   # 약속·규칙 검사 (설치 없이 동작)
+npm run check:server   # 약속·규칙·루트 하네스 대조 (설치 없이 동작, 실패 0건이어야 한다)
+npm run test:harness   # 검사 스크립트 자체 테스트 (설치 없이 동작)
 npm run lint
 npm test               # 단위 테스트
 npm run test:e2e       # API 테스트 (docker compose up -d postgres 필요)

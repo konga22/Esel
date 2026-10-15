@@ -8,14 +8,15 @@ Esel의 직접 구축 REST API입니다. NestJS, PostgreSQL, Prisma로 구성합
 
 | 문서 | 내용 |
 |---|---|
-| [AGENTS.md](AGENTS.md) | AI가 이 폴더에서 일하는 규칙. AI는 이 파일부터 읽는다 |
+| [AGENTS.md](AGENTS.md) | AI가 이 폴더에서 일하는 규칙. 루트 `AGENTS.md`의 우선순위 아래에서 서버 세부 규칙만 보충한다 |
 | [docs/LEARN.md](docs/LEARN.md) | 서버를 처음 배우는 사람을 위한 설명과 미션 순서(미션마다 AI 지시문) |
 | [docs/API_RULES.md](docs/API_RULES.md) | 주소·응답·오류·폴더 규칙 |
-| [api-contract.json](api-contract.json) | 만들 API 약속 목록. 여기 없는 API는 만들지 않는다 |
+| [api-contract.json](api-contract.json) | 만들 API 약속 목록. 여기 없는 API는 만들지 않는다. 경로·권한·오류 코드의 정본이고, 요청·응답 데이터 모양의 정본은 Swagger(코드의 DTO)다 |
 | [docs/REVIEW.md](docs/REVIEW.md) | PR 리뷰 체크리스트 |
 
 ```bash
-npm run check:server   # 약속·규칙 검사. 설치 없이 동작하고, 실패하면 이유와 고치는 법을 알려 준다
+npm run check:server   # 약속·규칙·루트 하네스 대조. 설치 없이 동작하고, 실패하면 이유와 고치는 법을 알려 준다(실패 0건이어야 한다)
+npm run test:harness   # 검사 스크립트 자체 테스트
 ```
 
 ## 로컬 실행
