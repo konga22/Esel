@@ -1,0 +1,47 @@
+# 저장소 검사: PR과 main에서 하네스·규칙·Flutter 앱을 확인한다.
+# Windows도 돌리는 이유: 작성자 맥에서만 통과하던 문제(절대 경로, 줄바꿈)를 미리 잡기 위해서다.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  harness:
+    name: 하네스·규칙 (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run test:rules
+      - run: npm run check:harness
+
+  flutter:
+    name: Flutter 앱
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flutter_app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.44.0
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test

@@ -96,6 +96,8 @@ cd flutter_app && flutter analyze && flutter test   # 앱 정적 검사·테스�
 # 서버 병합 후: cd server && npm run lint && npm test && npm run test:e2e && npm run build
 ```
 
+PR을 올리면 [CI](../../.github/workflows/ci.yml)가 하네스·규칙 검사를 Ubuntu와 Windows에서, Flutter 검사(Flutter 3.44.0)를 Ubuntu에서 다시 돌린다. 내 PC에서만 통과하는 변경(절대 경로 링크, 줄바꿈 차이, SDK 차이)은 여기서 걸린다.
+
 ## 5. 완료 기준 (모든 기능 공통)
 
 - 기능의 합격 기준이 테스트로 있고 통과한다. `done`인데 테스트 파일이 없으면 `check:harness`가 실패한다.
