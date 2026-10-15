@@ -1,3 +1,4 @@
 {
-  "prisma/migrations/20261011083218_init/migration.sql": "9b838164a1c9b788752ba63ba4e042eb57fff5f43f36c1415cab4a9e279a77b0"
+  "prisma/migrations/20261011083218_init/migration.sql": "9b838164a1c9b788752ba63ba4e042eb57fff5f43f36c1415cab4a9e279a77b0",
+  "prisma/migrations/20261015130000_add_checks_and_colors/migration.sql": "283b57293019f5d592963c094a42bc7ed801aff222d2e322dae8e98f2e9282fe"
 }

@@ -28,6 +28,7 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "check:server": "node scripts/check-server.mjs",
+    "test:harness": "node --test scripts/check-server.test.mjs",
     "migrations:lock": "node scripts/check-server.mjs --lock-migrations",
     "postinstall": "prisma generate"
   },
