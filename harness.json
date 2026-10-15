@@ -158,7 +158,6 @@
     {"path": ".codex/temp/20260905-1803-feat-core-ux-workflow.md", "status": "archived", "was": "2026-09-05 작업 기록", "banner": ".codex/temp/20260905-1803-feat-core-ux-workflow.md"},
     {"path": ".codex/temp/20260906-0210-feat-feed-chrome-ui-workflow.md", "status": "archived", "was": "2026-09-06 작업 기록", "banner": ".codex/temp/20260906-0210-feat-feed-chrome-ui-workflow.md"},
     {"path": "assets/esel-app-icon-*.png", "status": "archived", "was": "이전 아이콘 시안. 사용자 선택본 assets/esel-app-icon-bg-F9F9FB.png만 사용", "keep": "assets/esel-app-icon-bg-F9F9FB.png"},
-    {"path": "app/, src/, tests/", "status": "not-updated", "was": "2026-09 갤러리 디자인 기준 Expo 앱. 표지 SNS 디자인 미반영"},
     {"path": "figma:kNBbhEWIhDASkrYlgegU5b", "status": "not-updated", "was": "팀원 정리 피그마(2026-10-11, 60화면). 이 저장소에서 고치지 않는 참고 자료. 앱 목업에 반영"}
   ],
   "evidence": [
