@@ -22,8 +22,8 @@ class PublicIssue {
   /// 에셋 경로(`assets/...`) 또는 기기 보관함 사진 경로.
   final String photo;
 
-  /// 사진 세로/가로.
-  final double photoRatio;
+  /// 사진 세로/가로. null이면 사진을 읽어 정한다(내가 발행한 호).
+  final double? photoRatio;
   final FaceBox face;
   final FaceLayoutMode faceMode;
   final String caption;
@@ -44,7 +44,7 @@ class PublicIssue {
     required this.timeLabel,
     required this.color,
     required this.photo,
-    required this.photoRatio,
+    this.photoRatio,
     required this.face,
     required this.faceMode,
     required this.caption,

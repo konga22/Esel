@@ -4,6 +4,7 @@ import '../../../core/design/tokens.g.dart';
 import '../../../core/ui/esel_paint_asset.dart';
 import '../domain/models/face_box.dart';
 import '../domain/models/face_layout_mode.dart';
+import 'photo_ratio_builder.dart';
 
 /// 얼굴 연출을 적용한 사진 한 장(P15). 디자인 생성기 `lib.mjs`의 cover·faceStroke·crop·
 /// neckDown을 그대로 옮겨, 어떤 크기의 상자든 채운다.
@@ -16,8 +17,8 @@ import '../domain/models/face_layout_mode.dart';
 class CoverPhoto extends StatelessWidget {
   final ImageProvider image;
 
-  /// 사진 세로/가로.
-  final double photoRatio;
+  /// 사진 세로/가로. null이면 사진을 읽어 정한다(내가 고른 사진).
+  final double? photoRatio;
   final FaceBox face;
   final FaceLayoutMode mode;
   final EselPaint paint;
@@ -29,7 +30,7 @@ class CoverPhoto extends StatelessWidget {
   const CoverPhoto({
     super.key,
     required this.image,
-    required this.photoRatio,
+    this.photoRatio,
     required this.face,
     required this.mode,
     required this.paint,
@@ -103,17 +104,29 @@ class CoverPhoto extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ratio = photoRatio;
+    if (ratio != null) return _build(ratio);
+    return PhotoRatioBuilder(
+      image: image,
+      builder: (context, resolved) => _build(resolved),
+    );
+  }
+
+  Widget _build(double ratio) {
+    final widget = this;
+    final face = widget.face;
+    final mode = widget.mode;
     return LayoutBuilder(
       builder: (context, box) {
         final size = Size(box.maxWidth, box.maxHeight);
-        final rect = photoRect(
+        final rect = CoverPhoto.photoRect(
           box: size,
-          photoRatio: photoRatio,
+          photoRatio: ratio,
           face: face,
           mode: mode,
-          position: position,
+          position: widget.position,
         );
-        final stroke = strokeRect(rect, face);
+        final stroke = CoverPhoto.strokeRect(rect, face);
         return ClipRect(
           child: Stack(
             clipBehavior: Clip.none,
@@ -122,9 +135,9 @@ class CoverPhoto extends StatelessWidget {
               Positioned.fromRect(
                 rect: rect,
                 child: Image(
-                  image: image,
+                  image: widget.image,
                   fit: BoxFit.fill,
-                  semanticLabel: semanticLabel,
+                  semanticLabel: widget.semanticLabel,
                   errorBuilder: (_, _, _) =>
                       const ColoredBox(color: EselColors.photo),
                 ),
@@ -135,7 +148,10 @@ class CoverPhoto extends StatelessWidget {
                   child: Transform.rotate(
                     angle: -10 * math.pi / 180,
                     child: ExcludeSemantics(
-                      child: EselPaintAsset(paint: paint, width: stroke.width),
+                      child: EselPaintAsset(
+                        paint: widget.paint,
+                        width: stroke.width,
+                      ),
                     ),
                   ),
                 ),

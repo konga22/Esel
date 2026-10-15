@@ -33,7 +33,7 @@ void main() {
       draft('a').copyWith(
         faceMode: FaceLayoutMode.paintStroke,
         faceX: .7,
-        maskSize: .6,
+        faceWidth: .2,
         caption: '수정',
       ),
     );

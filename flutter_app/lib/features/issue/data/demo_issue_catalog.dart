@@ -117,7 +117,8 @@ abstract final class DemoIssueCatalog {
       ?issueOf(person, date, today: today ?? date),
   ];
 
-  /// 내가 이 기기에서 발행한 호를 공개 모양으로. 사진 비율·얼굴 폭은 표지에서 정한 값.
+  /// 내가 이 기기에서 발행한 호를 공개 모양으로. 얼굴 위치·폭은 표지에서 정한 값이고,
+  /// 사진 비율은 그릴 때 사진을 읽어 정한다.
   static PublicIssue fromLocal(CoverDraft issue) => PublicIssue(
     id: issue.id,
     ownerId: issue.ownerId,
@@ -128,8 +129,7 @@ abstract final class DemoIssueCatalog {
     timeLabel: seoulTimeLabel(issue.updatedAt),
     color: issue.color,
     photo: issue.photoPath,
-    photoRatio: 4 / 3,
-    face: FaceBox(issue.faceX, issue.faceY, issue.maskSize / 2.15),
+    face: FaceBox(issue.faceX, issue.faceY, issue.faceWidth),
     faceMode: issue.faceMode,
     caption: issue.caption,
     alt: '${issue.masthead}의 오늘 착장',

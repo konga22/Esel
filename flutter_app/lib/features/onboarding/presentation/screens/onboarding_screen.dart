@@ -525,7 +525,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ),
         const SizedBox(height: 10),
         Text(
-          draft.facePlaced
+          draft.faceMode == FaceLayoutMode.belowNeck
+              ? (draft.facePlaced
+                    ? '턱 아래부터 표지를 채웠어요.'
+                    : '얼굴 위치는 다른 연출에서 먼저 정해 주세요.')
+              : draft.facePlaced
               ? '얼굴 위치를 정했어요. 다시 누르면 옮겨져요.'
               : '표지에서 얼굴 가운데를 눌러 위치를 정해 주세요.',
           textAlign: TextAlign.center,
