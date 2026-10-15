@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { SANS, SERIF, MONO, INK, PAPER, MUTED, PAINT, PEOPLE, ME, ROOT, cover, faceStroke, neckDown, crop, paint, icon, masthead, mastSize, page } from './lib.mjs';
+import { SANS, SERIF, MONO, INK, PAPER, MUTED, PAINT, PEOPLE, ME, TODAY_CANDIDATES, ROOT, cover, faceStroke, neckDown, crop, paint, icon, masthead, mastSize, page } from './lib.mjs';
 import { mastLayer, scrollLogic } from './scroll.mjs';
 import { scrollCover, inner } from './gen-cover2.mjs';
 
@@ -65,7 +65,7 @@ ${option('이메일로 계속하기', icon('mail', 20, 1.6))}
 </div>`);
 
 // J3 창간호의 색
-const TODAY = ['camel', 'lilac', 'olive'];
+const TODAY = TODAY_CANDIDATES;
 const colorBtn = (c) => `<button type="button" aria-pressed="{{${c}Pressed}}" onClick="{{pick_${c}}}" style="height: 92px; display: flex; align-items: center; gap: 16px; padding: 0 18px; border-radius: 22px; background: {{${c}Bg}}; box-shadow: {{${c}Ring}}">
 ${paint(c, 120, '', '')}
 <span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 18px; font-weight: 600">${PAINT[c].name}</span><span style="font-family: ${SERIF}; font-style: italic; font-size: 16px; color: ${MUTED}">${PAINT[c].en}</span></span>

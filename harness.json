@@ -4,7 +4,7 @@
   "language": "ko",
   "concept": "cover-sns-personal-magazine",
   "designStatus": "cover-sns-direction-in-review",
-  "updatedAt": "2026-10-05",
+  "updatedAt": "2026-10-15",
   "entrypoints": ["AGENTS.md", "docs/ESEL_HARNESS.md", "CLAUDE.md"],
   "activeDesign": {
     "kind": "claude-design-canvas",
@@ -27,6 +27,29 @@
     "archivePages": ["보관 · 피드 시안", "보관 · 아틀리에", "보관 · 미니멀"],
     "viewport": {"width": 393, "height": 852}
   },
+  "appMockup": {
+    "kind": "tappable-web-mockup",
+    "artifact": "https://claude.ai/artifact/2Ajiz6xSNK8Y45zYA77s9b",
+    "artifactVisibility": "private",
+    "root": ".codex/temp/prototype/20261011-app-mockup",
+    "readme": ".codex/temp/prototype/20261011-app-mockup/README.md",
+    "source": [".codex/temp/prototype/20261011-app-mockup/src/shell.html", ".codex/temp/prototype/20261011-app-mockup/src/app.js"],
+    "build": ".codex/temp/prototype/20261011-app-mockup/build.mjs",
+    "output": ".codex/temp/prototype/20261011-app-mockup/dist (git 제외)",
+    "dataFrom": "activeDesign.library",
+    "covers": ["J1-J7", "C1-C8", "M1", "R1-R5", "F1-F3", "T1-T10", "S1-S6", "A1-A8"],
+    "realBackend": false
+  },
+  "development": {
+    "guide": "docs/dev/README.md",
+    "features": "docs/dev/features.json",
+    "featuresDoc": "docs/dev/FEATURES.md (생성 파일)",
+    "screens": "docs/dev/screens (생성 파일)",
+    "tokens": "flutter_app/lib/core/design/tokens.g.dart (생성 파일)",
+    "client": "Flutter flutter_app/ (2026-10-15 결정, Expo에서 전환)",
+    "server": {"status": "PR konga22/Esel#4 열림·미병합", "stack": "NestJS, Prisma, PostgreSQL, Docker Compose", "guideAfterMerge": "server/ARCHITECTURE.md"},
+    "noBaaS": true
+  },
   "ruleReference": {
     "note": "2026-09-06 HTML 프로토타입. 시각 기준이 아니라 같은 색 공개·트윈·복구 같은 기능 규칙과 그 테스트의 기준이다.",
     "root": ".codex/temp/prototype/20260906-minimal-gallery",
@@ -36,9 +59,16 @@
     "url": "http://localhost:4177/",
     "port": 4177
   },
-  "nativeApp": {"routes": "app", "source": "src", "status": "separate-expo-prototype-not-design-parity", "devPort": 8081, "previewPort": 4173},
+  "nativeApp": {"framework": "flutter", "root": "flutter_app", "routes": "flutter_app/lib/app/routing/app_routes.dart", "source": "flutter_app/lib", "tests": "flutter_app/test", "status": "mock-mode-contracts-p01-p04-p13-p16-tested-design-partial", "demoRun": "flutter run -d <device> --dart-define=ESEL_API_MODE=mock"},
   "designTokens": {"paper": "#F9F9FB", "ink": "#292A27", "muted": "#71736C", "hairline": "#E0E1DC", "gutter": "20px", "touch": "48px"},
   "glass": {"background": "rgba(249,249,251,0.58)", "blur": "22px", "saturate": 1.6, "fallback": "#F9F9FB", "use": ["capsule-menu", "login-bar", "login-sheet", "small-logo"]},
+  "tokenScale": {
+    "colors": {"sub": "#55574F", "line": "#D8D9D3", "photo": "#EDEEEA", "error": "#B3261E", "dot": "#AE8775"},
+    "spacing": [4, 8, 12, 16, 20, 24, 32],
+    "radius": {"photo": 0, "spreadPhoto": 4, "card": 16, "colorPick": 22, "sheet": 28, "pill": 999},
+    "shadow": {"float": "0 10px 28px rgba(0,0,0,0.14)", "miniCover": "0 4px 12px rgba(41,42,39,0.16)", "coverPreview": "0 14px 36px rgba(41,42,39,0.2)"},
+    "size": {"screenWidth": 393, "screenHeight": 852, "touch": 48, "button": 54, "chip": 38, "segment": 36, "capsuleWidth": 196, "capsuleHeight": 60, "loginBar": 66, "gutter": 20, "innerPageText": 18}
+  },
   "typography": {
     "masthead": {"family": "Cormorant Garamond", "size": 200, "lineHeight": 0.9, "tracking": "-0.05em", "fit": "min(200, 0.9 * width / (0.47 * letters))"},
     "name": {"family": "Cormorant Garamond Italic", "size": 76},
@@ -52,6 +82,7 @@
     "burgundy": "#7A2735", "olive": "#6F7445", "cream": "#E9DEC6", "charcoal": "#3F4043", "camel": "#C1945F", "cobalt": "#2648B0"
   },
   "dailyCandidates": 3,
+  "dailyCandidatesMock": {"rule": "date-only-deterministic", "source": "flutter_app/lib/features/today/domain/rules/daily_candidates.dart", "2026-09-06": ["camel", "lilac", "olive"], "realAssignment": "undecided"},
   "demoPeople": {
     "dana": "assets/demo/blue-city.jpg",
     "elin": "assets/models/sage-01.jpg", "mira": "assets/models/sage-02.jpg",
@@ -76,7 +107,7 @@
     "mastheadScroll": {"followsCoverDown": true, "smallLogoShowUpPx": 48, "smallLogoHideDownPx": 18, "meltZonePx": 360, "smallScale": 0.14},
     "status": "mock-thresholds-not-final"
   },
-  "sameColorLock": {"purpose": "publish-to-unlock-chain-activation", "beforePublishVisible": 3, "restShownAs": "blurred-spines", "unlocksOn": ["own-publish", "midnight"], "copy": "발행하면 함께 펼쳐집니다", "bannedCopy": ["놓치면 끝", "countdown"], "minors": "no-lock", "previewPick": "undecided-demo-newest", "decidedAt": "2026-10-05"},
+  "sameColorLock": {"purpose": "publish-to-unlock-chain-activation", "beforePublishVisible": 3, "restShownAs": "blurred-spines", "unlocksOn": ["own-publish", "midnight"], "copy": "발행하면 함께 펼쳐집니다", "bannedCopy": ["놓치면 끝", "countdown"], "minors": "no-lock", "lockedRooms": "all-today-candidates", "colorSwitchUnlocks": false, "nonCandidateRooms": "open", "minorDetection": "undecided", "notUnlockedBy": ["color-switch", "confirm", "restore", "twin-publish"], "strengthenedAt": "2026-10-15", "previewPick": "undecided-demo-newest", "decidedAt": "2026-10-05"},
   "publicCounts": {"ownerOnly": ["likes", "subscribers", "reader-line-count", "scrap-count"], "public": ["same-color-count", "issue-number", "reader-line-text"], "rankByIssueOrCounts": false, "popularMix": "internal-signal-only", "decidedAt": "2026-10-05"},
   "authPolicy": {"loggedOutFirstScreen": "today-cover", "previewInnerPages": 2, "loginBarAtPx": 640, "loginBarReplaces": "capsule-menu", "actionsNeedLogin": ["like", "subscribe", "one-line", "scrap", "make"], "realAuth": false},
   "foundingFlow": {"steps": ["color", "shoot", "masthead", "face", "first-issue"], "mastheadPattern": "^[a-z]{2,10}$", "firstIssue": 1, "uniquenessCheck": false},
@@ -85,35 +116,78 @@
   "twinPublication": {"default": "private", "modes": ["private", "solo", "joint"], "explicitUploadButton": true, "jointRequiresBothConsent": true, "coverSnsDesign": "not-drawn"},
   "motion": {
     "easing": {"out": "cubic-bezier(0.23, 1, 0.32, 1)", "drawer": "cubic-bezier(0.32, 0.72, 0, 1)", "inOut": "cubic-bezier(0.77, 0, 0.175, 1)"},
+    "durations": {"press": 160, "smallLogo": 200, "heart": 200, "issueRoll": 240, "sameColorTile": 300, "loginBar": 360, "sheet": 360, "sameColorChip": 400, "dailySqueeze": 520, "publishTotalMax": 600},
     "applied": ["masthead-melt", "small-logo-show-hide", "press-0.97", "login-bar-rise"],
     "proposed": ["cover-to-spread", "daily-paint-squeeze", "publish-stamp", "stand-zoom", "same-color-unlock", "pull-next-issue", "heart-fill"],
     "never": ["capsule-navigation", "screen-transition", "scroll-reveal", "ken-burns", "parallax", "tab-underline-slide"]
   },
   "commands": {
-    "preview:design": "python3 -m http.server 4177 --bind 127.0.0.1 --directory .codex/temp/prototype/20260906-minimal-gallery/src",
-    "test:design": "node --test .codex/temp/prototype/20260906-minimal-gallery/tests/*.test.cjs",
+    "preview:rules": "python3 -m http.server 4177 --bind 127.0.0.1 --directory .codex/temp/prototype/20260906-minimal-gallery/src",
+    "test:rules": "node --test .codex/temp/prototype/20260906-minimal-gallery/tests/*.test.cjs",
     "design:build": "node .codex/temp/prototype/20261003-cover-sns/generator/gen-join.mjs && node .codex/temp/prototype/20261003-cover-sns/generator/gen-boards.mjs",
+    "design:capture": "node scripts/capture-design.mjs",
+    "mockup:build": "node .codex/temp/prototype/20261011-app-mockup/build.mjs",
+    "mockup:capture": "node scripts/capture-mockup.mjs",
+    "dev:docs": "node scripts/dev-harness.mjs",
     "check:harness": "node scripts/check-harness.mjs"
   },
   "keyAssets": [
     "assets/esel-app-icon-bg-F9F9FB.png",
     "assets/models-sources.md",
     "assets/demo-sources.md",
-    ".codex/temp/prototype/20261003-cover-sns/README.md"
+    ".codex/temp/prototype/20261003-cover-sns/README.md",
+    "docs/design/README.md",
+    "scripts/capture-design.mjs",
+    ".codex/temp/prototype/20261011-app-mockup/README.md",
+    "docs/dev/README.md",
+    "docs/dev/features.json",
+    "scripts/dev-harness.mjs",
+    "scripts/capture-mockup.mjs",
+    "flutter_app/assets/README.md"
   ],
   "productContracts": ["P01", "P02", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P13", "P14", "P15", "P16", "P17", "P18"],
   "manualChecks": ["V01", "V02", "V03", "V04", "V05", "V06", "V07", "V08", "V09", "V10", "V11", "V12"],
   "notDrawnInCoverSns": ["same-color-unlock-motion", "owner-count-screen", "twin", "monthly-record-restore", "settings", "notifications", "dark-mode"],
-  "notImplemented": ["real-auth", "social-login", "server-upload", "persistent-storage", "friend-sync", "daily-rollover", "nickname-uniqueness", "on-device-face-detection", "dedicated-share-card"],
+  "notImplemented": ["real-auth", "social-login", "server-upload", "friend-sync", "nickname-uniqueness", "on-device-face-detection", "dedicated-share-card"],
+  "archive": [
+    {"path": ".codex/temp/prototype/20260905-esel-gallery", "status": "archived", "was": "2026-09-05 갤러리형 Expo 앱 설계 기록과 웹 빌드", "banner": ".codex/temp/prototype/20260905-esel-gallery/prototype.md"},
+    {"path": ".codex/temp/prototype/20260906-art-directions", "status": "archived", "was": "2026-09-06 미술관·아틀리에 방향 탐색", "banner": ".codex/temp/prototype/20260906-art-directions/prototype.md"},
+    {"path": ".codex/temp/prototype/20260906-minimal-gallery", "status": "rules-only", "was": "2026-09-06 미니멀 갤러리 화면. 규칙(src/*.js)과 테스트만 기준", "banner": ".codex/temp/prototype/20260906-minimal-gallery/prototype.md"},
+    {"path": ".codex/temp/prototype/20260906-social-loop", "status": "archived", "was": "2026-09-06 참여·색 기록 데모", "banner": ".codex/temp/prototype/20260906-social-loop/prototype.md"},
+    {"path": ".codex/temp/prototype/20260906-social-loop/remaining-ideas.md", "status": "archived", "was": "2026-09-06 남겨 둔 아이디어", "banner": ".codex/temp/prototype/20260906-social-loop/remaining-ideas.md"},
+    {"path": ".codex/temp/prototype/20260906-paint-feed", "status": "archived", "was": "2026-09-06 닉네임 옆 물감 표식 실험", "banner": ".codex/temp/prototype/20260906-paint-feed/prototype.md"},
+    {"path": ".codex/temp/prototype/20260906-paint-feed/assets.md", "status": "archived", "was": "2026-09-06 물감 에셋 제작 기록", "banner": ".codex/temp/prototype/20260906-paint-feed/assets.md"},
+    {"path": ".codex/temp/20260905-1803-feat-core-ux-workflow.md", "status": "archived", "was": "2026-09-05 작업 기록", "banner": ".codex/temp/20260905-1803-feat-core-ux-workflow.md"},
+    {"path": ".codex/temp/20260906-0210-feat-feed-chrome-ui-workflow.md", "status": "archived", "was": "2026-09-06 작업 기록", "banner": ".codex/temp/20260906-0210-feat-feed-chrome-ui-workflow.md"},
+    {"path": "assets/esel-app-icon-*.png", "status": "archived", "was": "이전 아이콘 시안. 사용자 선택본 assets/esel-app-icon-bg-F9F9FB.png만 사용", "keep": "assets/esel-app-icon-bg-F9F9FB.png"},
+    {"path": "figma:kNBbhEWIhDASkrYlgegU5b", "status": "not-updated", "was": "팀원 정리 피그마(2026-10-11, 60화면). 이 저장소에서 고치지 않는 참고 자료. 앱 목업에 반영"}
+  ],
   "evidence": [
-    ".codex/temp/prototype/20261003-cover-sns/screenshots/board-00-mood.png",
-    ".codex/temp/prototype/20261003-cover-sns/screenshots/board-01-tokens.png",
-    ".codex/temp/prototype/20261003-cover-sns/screenshots/board-02-components.png",
-    ".codex/temp/prototype/20261003-cover-sns/screenshots/board-04-motion.png",
-    ".codex/temp/prototype/20261003-cover-sns/screenshots/cover-c1-c5.png",
-    ".codex/temp/prototype/20261003-cover-sns/screenshots/cover-c6-c7.png",
-    ".codex/temp/prototype/20261003-cover-sns/screenshots/cover-c5-c8-lock.png",
-    ".codex/temp/prototype/20261003-cover-sns/screenshots/join-j1-j4.png",
-    ".codex/temp/prototype/20261003-cover-sns/screenshots/join-j5-j7.png"
+    "docs/design/boards/00-mood.png",
+    "docs/design/boards/01-tokens.png",
+    "docs/design/boards/02-components.png",
+    "docs/design/boards/04-motion.png",
+    "docs/design/screens/c1-feed.jpg",
+    "docs/design/screens/c2-next.jpg",
+    "docs/design/screens/c3-spread.jpg",
+    "docs/design/screens/c4-stand.jpg",
+    "docs/design/screens/c5-shelf-spines.jpg",
+    "docs/design/screens/c5-shelf.jpg",
+    "docs/design/screens/c6-make-behind.jpg",
+    "docs/design/screens/c6-make-neck.jpg",
+    "docs/design/screens/c6-make-paint.jpg",
+    "docs/design/screens/c6-make.jpg",
+    "docs/design/screens/c7-scroll-inner.jpg",
+    "docs/design/screens/c7-scroll-melting.jpg",
+    "docs/design/screens/c7-scroll.jpg",
+    "docs/design/screens/c8-same-color-locked.jpg",
+    "docs/design/screens/j1-logged-out.jpg",
+    "docs/design/screens/j1-login-bar.jpg",
+    "docs/design/screens/j2-login.jpg",
+    "docs/design/screens/j3-color.jpg",
+    "docs/design/screens/j4-shoot.jpg",
+    "docs/design/screens/j5-name.jpg",
+    "docs/design/screens/j6-face.jpg",
+    "docs/design/screens/j7-first-issue.jpg"
   ]
 }

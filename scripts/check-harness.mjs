@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
-import { readFile, access } from 'node:fs/promises';
+import { readFile, access, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { checkDev } from './dev-harness.mjs';
 
 // A portable consistency check, not an aesthetic score or a browser test.
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -22,7 +23,8 @@ const screenFiles = design.pages.flatMap(page => page.files.map(file => `${desig
 const paintFiles = Object.keys(manifest.colors).map(color => `${design.paint}/esel-paint-${color}.png`);
 const files = [...manifest.entrypoints, ...manifest.keyAssets, design.readme, design.library, ...screenFiles, ...paintFiles,
   ...Object.values(manifest.demoPeople), rules.source, rules.stateTests, rules.headerTests,
-  manifest.nativeApp.routes, manifest.nativeApp.source, ...manifest.evidence];
+  manifest.nativeApp.root, manifest.nativeApp.routes, manifest.nativeApp.source, manifest.nativeApp.tests, ...manifest.evidence,
+  ...(manifest.appMockup ? [manifest.appMockup.readme, manifest.appMockup.build, ...manifest.appMockup.source] : [])];
 for (const file of files) await access(resolveLocal(file));
 
 const doc = await readFile(resolveLocal('docs/ESEL_HARNESS.md'), 'utf8');
@@ -45,6 +47,13 @@ assert.equal(lib.ME, manifest.signedInDemoUser, '로그인 예시 사용자 불�
 assert.match('selin', new RegExp(manifest.foundingFlow.mastheadPattern), '제호 규칙이 예시 닉네임을 거부함');
 assert(lib.mastSize('magdalena', 393, 200) < lib.mastSize('Esel', 393, 200), '제호 맞춤 크기 규칙 오류');
 
+// The Flutter app must bundle the design fonts the harness names (Korean body text uses the device font).
+const pubspec = await readFile(resolveLocal(`${manifest.nativeApp.root}/pubspec.yaml`), 'utf8');
+const families = new Set(Object.values(manifest.typography).flatMap((t) => (t.family ?? '').split('+')).map((f) => f.replace(/ Italic$/, '').trim()).filter(Boolean));
+families.delete('Pretendard');
+for (const family of families) assert(pubspec.includes(`- family: ${family}\n`), `Flutter 앱에 디자인 글꼴이 없음: ${family} (${manifest.nativeApp.root}/pubspec.yaml)`);
+for (const match of pubspec.matchAll(/- asset: (assets\/fonts\/\S+)/g)) await access(resolveLocal(`${manifest.nativeApp.root}/${match[1]}`));
+
 const pkg = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
 for (const [name, command] of Object.entries(manifest.commands)) assert.equal(pkg.scripts[name], command, `실행 명령 불일치: ${name}`);
 assert.equal(new URL(rules.url).port, String(rules.port));
@@ -52,13 +61,42 @@ assert.equal(new URL(design.canvas).hostname, 'claude.ai');
 
 const agents = await readFile(resolveLocal('AGENTS.md'), 'utf8');
 assert(agents.includes('docs/ESEL_HARNESS.md') && agents.includes('harness.json'), 'AI 진입점 연결 누락');
-for (const file of [design.readme, 'docs/ESEL_HARNESS.md', 'AGENTS.md', 'assets/models-sources.md']) {
+for (const file of ['README.md', design.readme, 'docs/ESEL_HARNESS.md', 'AGENTS.md', 'assets/models-sources.md', 'docs/design/README.md', manifest.appMockup?.readme, manifest.development?.guide, 'docs/dev/FEATURES.md', 'docs/flutter/MIDTERM_DEMO.md', 'docs/flutter/PROGRESS.md', `${manifest.nativeApp.root}/README.md`, ...manifest.archive.map((a) => a.banner)].filter(Boolean)) {
   const fullPath = resolveLocal(file);
   const markdown = await readFile(fullPath, 'utf8');
-  for (const match of markdown.matchAll(/\]\(([^)]+)\)/g)) {
-    const link = match[1].split('#')[0];
+  for (const match of markdown.matchAll(/\]\(([^)]+)\)|<img src="([^"]+)"/g)) {
+    const link = (match[1] ?? match[2]).split('#')[0];
     if (!link || /^[a-z]+:/i.test(link)) continue;
+    // An absolute path only exists on the author's machine and fails everywhere else.
+    assert(!path.isAbsolute(link) && !/^[A-Za-z]:[\\/]/.test(link), `${file}: 절대 경로 링크(${link})는 다른 PC에서 깨짐. 저장소 상대 경로를 쓰고, 저장소 밖 파일은 링크 대신 글로 적기`);
     await access(path.resolve(path.dirname(fullPath), link));
   }
 }
-console.log(`하네스 정합성 통과: 경로 ${files.length}개, 색 ${Object.keys(manifest.colors).length}개, 예시 인물 ${Object.keys(manifest.demoPeople).length}명, 제품 계약 ${manifest.productContracts.length}개, 수동 검증 ${manifest.manualChecks.length}개. 시각·실기기 검증은 별도입니다.`);
+// No Markdown file may link to an absolute path on someone's machine (archived notes included).
+for (const rel of await readdir(root, { recursive: true })) {
+  if (!rel.endsWith('.md') || /(^|[\\/])(node_modules|\.git|\.dart_tool|build)([\\/]|$)/.test(rel)) continue;
+  const text = await readFile(path.join(root, rel), 'utf8');
+  const bad = text.match(/\]\((\/(?:Users|home)\/[^)]+|[A-Za-z]:[\\/][^)]*)\)/);
+  assert(!bad, `${rel}: 절대 경로 링크(${bad?.[1]})는 다른 PC에서 깨짐. 저장소 상대 경로를 쓰고, 저장소 밖 파일은 링크 대신 글로 적기`);
+}
+// Old material stays in place but must be marked: registered in harness.json.archive, bannered at the top, and listed in README.
+const readme = await readFile(resolveLocal('README.md'), 'utf8');
+for (const item of manifest.archive) {
+  if (item.banner) {
+    const head = (await readFile(resolveLocal(item.banner), 'utf8')).split('\n')[0];
+    assert(head.startsWith('> **') && head.includes('보관'), `보관 표시 누락: ${item.banner}`);
+  }
+  if (!/[*,:]/.test(item.path)) await access(resolveLocal(item.path));
+  const folder = item.path.includes('.md') ? item.path.slice(0, item.path.lastIndexOf('/')) : item.path;
+  assert(readme.includes(item.path) || readme.includes(folder) || /[,:]/.test(item.path), `README 보관 목록에 없음: ${item.path}`);
+}
+// Every prototype folder and loose work note must be either current or registered as archived.
+const known = new Set([design.root, manifest.appMockup?.root, rules.root, ...manifest.archive.map((a) => a.path)]);
+for (const entry of await readdir(resolveLocal('.codex/temp/prototype'), { withFileTypes: true })) {
+  if (entry.isDirectory()) assert(known.has(`.codex/temp/prototype/${entry.name}`), `상태가 등록되지 않은 시안 폴더: ${entry.name} (harness.json.archive 또는 현재 경로에 추가)`);
+}
+for (const entry of await readdir(resolveLocal('.codex/temp'), { withFileTypes: true })) {
+  if (entry.isFile() && entry.name.endsWith('.md')) assert(known.has(`.codex/temp/${entry.name}`), `상태가 등록되지 않은 작업 기록: ${entry.name}`);
+}
+const dev = await checkDev();
+console.log(`하네스 정합성 통과: 경로 ${files.length}개, 색 ${Object.keys(manifest.colors).length}개, 예시 인물 ${Object.keys(manifest.demoPeople).length}명, 제품 계약 ${manifest.productContracts.length}개, 수동 검증 ${manifest.manualChecks.length}개, 보관 자료 ${manifest.archive.length}건, 개발 기능 ${dev.features}개(완료 ${dev.done})·목업 화면 ${dev.screens}장. 시각·실기기 검증은 별도입니다.`);

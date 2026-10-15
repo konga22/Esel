@@ -25,7 +25,6 @@ Esel의 최신 디자인이다. 화면은 Claude Design 캔버스(`harness.json.
 | `generator/faces.swift` | macOS Vision 얼굴 상자 측정: `swift generator/faces.swift assets/models/*.jpg` |
 | `generator/stretch.cjs` · `recolor.cjs` | 기존 물감 3색을 조금 길고 얇게 늘리고, 같은 모양으로 9색을 더 칠함 |
 | `paint/` | 12색 물감 PNG(투명 배경, 1200×600) |
-| `screenshots/` | 로컬 렌더 캡처(보드 4장, 화면 4장) |
 
 ## 다시 만들기
 
@@ -33,9 +32,10 @@ Esel의 최신 디자인이다. 화면은 Claude Design 캔버스(`harness.json.
 
 ```bash
 npm run design:build
+npm run design:capture
 npm run check:harness
 ```
 
-`design:build`는 `generator/project/`만 다시 쓴다. 캔버스에 반영하려면 바뀐 `.dc.html`을 캔버스에 올려야 한다. 캔버스에서 사람이 직접 고친 파일이 있으면 먼저 캔버스에서 읽어 와 합친다. 업로드한 사진·물감은 캔버스 안에서 `/_blob/<id>`로 참조하므로, 새 이미지를 쓰려면 먼저 캔버스에 올리고 받은 id를 `lib.mjs`에 적는다.
+`design:build`는 `generator/project/`만 다시 쓴다. `design:capture`는 그 파일을 찍어 [docs/design](../../../../docs/design/README.md)의 보드·화면 그림을 다시 쓴다. 캔버스에 반영하려면 바뀐 `.dc.html`을 캔버스에 올려야 한다. 캔버스에서 사람이 직접 고친 파일이 있으면 먼저 캔버스에서 읽어 와 합친다. 업로드한 사진·물감은 캔버스 안에서 `/_blob/<id>`로 참조하므로, 새 이미지를 쓰려면 먼저 캔버스에 올리고 받은 id를 `lib.mjs`에 적는다.
 
 예시 사진은 `assets/models/`(출처 [models-sources](../../../../assets/models-sources.md)), dana 표지는 `assets/demo/blue-city.jpg`다.

@@ -1,68 +1,65 @@
 # Esel
 
-세 가지 포인트색 중 하나를 고르고, 오늘의 착장을 하나의 작품처럼 전시하는 앱 프로토타입입니다.
-Expo·React Native·TypeScript로 iOS, Android, 웹에서 사용할 소스를 공유합니다.
+오늘의 색으로 입은 착장을 잡지 표지로 발행하는 패션 SNS를 설계하는 저장소다. 개인 피드는 짧은 잡지, 프로필은 서가, 가입은 창간이다.
 
-## 현재 디자인과 AI 작업 문맥
+이 저장소에는 시기가 다른 자료가 함께 있다. **아래 "지금 기준" 표에 있는 것만 최신**이고, "보관된 자료"는 비교와 기록용이다. 다른 AI와 작업할 때는 [AGENTS.md](AGENTS.md) → [앱 하네스](docs/ESEL_HARNESS.md) → [harness.json](harness.json) 순서로 읽게 한다.
 
-**최신 디자인은 별도 HTML 프로토타입이며 아래 Expo 앱에 자동 반영되지 않습니다.**
-현재 수정안은 [4177 미리보기](http://localhost:4177/)에서 확인합니다. 이전 4176 화면은 비교용으로 보존했습니다.
+## 지금 기준
 
-```bash
-npm run preview:design
-npm run test:design
-npm run check:harness
-```
-
-다른 AI와 작업할 때 [AGENTS.md](AGENTS.md) → [Esel 앱 하네스](docs/ESEL_HARNESS.md) → [기계 판독용 실행 명세](harness.json)를 먼저 읽도록 전달하세요. 컨셉·디자인 규칙·사용자 선택·데모 가정·검증 절차와 미구현 범위를 정리했습니다. [디자인 검토 기록](.codex/temp/prototype/20260906-minimal-gallery/prototype.md)에서 화면과 확인 결과를 볼 수 있습니다.
-
-아래 실행·체험 범위는 **Expo 앱 기준**입니다.
-
-## 실행
+| 보고 싶은 것 | 위치 |
+|---|---|
+| 서버 없이 중간발표 시연 실행 | [Flutter 중간발표 안내](docs/flutter/MIDTERM_DEMO.md): 휴대폰 실행 명령·시연 순서·검증 범위 |
+| 디자인 보드 00~04와 화면 | [docs/design](docs/design/README.md): 캔버스 캡처와 값 표 |
+| 기능 개발 가이드 | [docs/dev](docs/dev/README.md): 목업 → 앱·서버 개발 순서, [기능 목록](docs/dev/FEATURES.md), 목업 화면 그림 |
+| 눌러 보는 앱 목업 | [20261011-app-mockup](.codex/temp/prototype/20261011-app-mockup/README.md): 휴대폰에서 여는 비공개 링크 |
+| 디자인 원본 | [20261003-cover-sns](.codex/temp/prototype/20261003-cover-sns/README.md): 비공개 Claude Design 캔버스와 그 생성기 |
+| 제품 결정·계약·검증 | [앱 하네스](docs/ESEL_HARNESS.md), [harness.json](harness.json) |
+| 같은 색 공개·트윈·복구 규칙과 테스트 | `20260906-minimal-gallery/src/*.js`, `tests/*.test.cjs` (규칙만 기준, 화면은 보관) |
+| 잡지형 SNS 리서치 | [docs/research](docs/research/2026-10-03-magazine-sns/README.md): 근거 자료이며 결정이 아님 |
 
 ```bash
-npm install
-npm run web
+npm run check:harness   # 문서·경로·색·인물·계약 정합성
+npm run test:rules      # 같은 색 공개·트윈·복구 규칙 테스트
+npm run design:build    # 캔버스 화면 파일 다시 만들기
+npm run design:capture  # docs/design 그림 다시 찍기
+npm run mockup:build    # 앱 목업 다시 만들기
+npm run dev:docs        # 기능 목록 표와 앱 디자인 토큰 다시 만들기
 ```
 
-웹 개발 화면: http://localhost:8081
+## 보관된 자료
+
+최신 디자인이 아니다. 지우지 않고 남겨 두되, 결정의 근거나 작업 지시로 쓰지 않는다. 각 문서 맨 위에 보관 표시가 있고, 목록은 `harness.json.archive`에 있다.
+
+| 위치 | 무엇이었나 | 대신 볼 것 |
+|---|---|---|
+| `.codex/temp/prototype/20260905-esel-gallery/` | 9월 5일 갤러리형 Expo 앱의 설계 기록과 웹 빌드 | 디자인 보드, 앱 목업 |
+| `.codex/temp/prototype/20260906-art-directions/` | 9월 6일 미술관·아틀리에 방향 탐색 | 디자인 보드 |
+| `.codex/temp/prototype/20260906-minimal-gallery/` 화면 | 9월 6일 미니멀 갤러리 시안 화면(`npm run preview:rules`). 규칙·테스트는 지금도 기준 | 디자인 보드, 앱 목업 |
+| `.codex/temp/prototype/20260906-social-loop/` | 9월 6일 참여·색 기록 데모 | 앱 목업의 월간 색 기록·트윈 |
+| `.codex/temp/prototype/20260906-paint-feed/` | 9월 6일 닉네임 옆 물감 표식 실험 | 디자인 보드 01의 12색 물감 |
+| `.codex/temp/20260905-1803-feat-core-ux-workflow.md`, `.codex/temp/20260906-0210-feat-feed-chrome-ui-workflow.md` | 9월 작업 기록 | 앱 하네스의 결정 이력 |
+| `assets/esel-app-icon-*.png` 중 `esel-app-icon-bg-F9F9FB.png`가 아닌 것 | 이전 아이콘 시안 | `assets/esel-app-icon-bg-F9F9FB.png`(사용자 선택본) |
+| Claude Design 캔버스의 "보관 · …" 페이지 | 피드 시안 20장, 아틀리에, 미니멀 | 캔버스 00~04 페이지 |
+
+## 갱신하지 않는 자료
+
+| 위치 | 상태 |
+|---|---|
+| 피그마 파일(팀원 정리본, 2026-10-11 기준 60화면) | 이 저장소에서 고치지 않는 참고 자료다. 흐름과 문구는 앱 목업에 반영했고, 규칙이 다를 때는 하네스를 따른다 |
+
+### Flutter 앱 실행
+
+2026-10-15에 클라이언트를 Expo에서 Flutter로 바꿨다([하네스 §2](docs/ESEL_HARNESS.md)). 이전 Expo 앱(`app/`, `src/`, `tests/`)은 지웠고, 마지막 상태는 커밋 `bbdaf2d`에서 볼 수 있다.
 
 ```bash
-npm start
+cd flutter_app
+flutter pub get
+flutter devices
+flutter run -d <기기ID> --dart-define=ESEL_API_MODE=mock   # Android 기기·에뮬레이터
+flutter analyze
+flutter test
 ```
 
-터미널에 표시되는 QR을 호환되는 Expo Go로 열어 기기에서 확인할 수 있습니다. iOS·Android 실제 기기와 카메라 하드웨어 검증은 아직 수행하지 않았습니다. 앱스토어 설치 파일을 만든 상태는 아닙니다.
+`--dart-define=ESEL_API_MODE=mock`을 빼면 서버 모드라서, 서버 없이는 옛 기기 보관함 화면만 보인다. 시연 순서와 검증 범위는 [Flutter 중간발표 안내](docs/flutter/MIDTERM_DEMO.md)에 있다. iOS는 맥(Xcode)에서만 빌드할 수 있다.
 
-## 빌드와 검증
-
-```bash
-npm run typecheck
-npm test
-npm run build:web
-npm run preview
-```
-
-정적 미리보기: http://localhost:4173. Python 3이 필요합니다. 화면 주소로 새로고침해도 열리도록 앱 경로를 처리합니다.
-
-## 체험 범위
-
-- 닉네임으로 데모 입장 → 세 가지 색 중 하나 선택
-- 다른 색 피드 감상 → 같은 색 피드는 게시 후 공개
-- 카메라·앨범·샘플 → 실제 회전·중앙 정사각형 자르기·원본 복원 → 짧은 글 → 모의 게시
-- 작품 상세, 좋아요, 저장, 내 전시와 체험 초기화
-
-실제 인증, 서버 업로드, 데이터베이스, 사용자 간 공유, 일일 색 갱신은 없습니다. 모든 기록은 메모리에만 유지되며 새로고침·종료하면 사라집니다. 권한 요청은 카메라 버튼을 눌렀을 때만 시작하며, 사진과 닉네임을 서버로 전송하지 않습니다.
-
-색 이름·날짜는 자체 예시입니다. 같은 색 잠금과 게시 후 색 고정은 이번 체험을 위한 후보 정책입니다. 실서비스에서는 서버 공개 권한과 시차·색 변경·게시물 삭제 정책을 따로 설계해야 합니다.
-
-## 화면과 출처
-
-- [흐름·설계·검증 기록](.codex/temp/prototype/20260905-esel-gallery/prototype.md)
-- [사진 출처](assets/demo-sources.md)
-- 기존에 확정한 `assets/esel-app-icon-bg-F9F9FB.png`를 아이콘과 시작 화면에 사용했습니다.
-
-스톡 사진에 붙인 이름·도시·반응 수는 가상의 예시이며, 실제 이용자나 사진 속 인물의 계정을 나타내지 않습니다.
-
-## 알려진 출시 전 과제
-
-실기기 카메라·권한·뒤로가기·접근성 검증, 실제 인증과 서버 저장, 업로드 보안, 이미지 최적화와 운영 정책이 필요합니다. `npm audit --omit=dev`에서 Expo 도구 체인과 라우터의 간접 의존성에 중간 등급 경고 13개가 보고되었습니다. 주요 SDK를 과거 버전으로 낮추는 강제 수정은 적용하지 않았으며 출시 전 호환되는 보안 업데이트를 검토해야 합니다.
+실제 인증 서버, 서버 업로드, 데이터베이스는 아직 없다. 시연 모드의 기록은 기기에만 남는다(웹은 메모리). 사진 출처는 [demo-sources](assets/demo-sources.md)와 [models-sources](assets/models-sources.md)에 있고, 사진에 붙인 이름·숫자는 예시다.
