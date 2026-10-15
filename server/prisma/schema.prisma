@@ -58,6 +58,7 @@ model Color {
   nameKo        String              @map("name_ko") @db.VarChar(32)
   nameEn        String              @map("name_en") @db.VarChar(32)
   hex           String              @db.Char(7)
+  sortOrder     Int                 @unique @map("sort_order") @db.SmallInt
   paletteColors DailyPaletteColor[]
   choices       UserDailyChoice[]
   issues        Issue[]
