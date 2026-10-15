@@ -189,7 +189,7 @@
       ],
       "client": [
         "제호 녹아들기와 작은 로고 값은 generator/scroll.mjs와 같게(위 48px, 아래 18px, 맨 위 360px, 크기 0.14)",
-        "React Native에서는 Animated/Reanimated의 네이티브 드라이버로 transform·opacity만 움직인다(새 라이브러리는 승인 후)"
+        "Flutter에서는 Transform·Opacity(AnimatedBuilder)로 transform·opacity만 움직인다(새 패키지는 승인 후)"
       ],
       "server": [
         "GET /api/today/cover: 비로그인용 오늘의 표지 1장과 안쪽 2쪽(숫자 없음)"
@@ -200,7 +200,8 @@
         "작은 로고를 누르면 맨 위로 이동하고 제호로 녹아듦"
       ],
       "tests": [
-        "flutter_app/test/features/intro/intro_test.dart"
+        "flutter_app/test/features/intro/intro_test.dart",
+        "server/test/contracts/today.e2e-spec.ts"
       ],
       "openDecisions": [],
       "status": "todo"
@@ -236,7 +237,7 @@
         "로그인 후 원래 하려던 동작(예: 좋아요)으로 돌아감"
       ],
       "tests": [
-        "server/test/auth.e2e-spec.ts",
+        "server/test/contracts/auth.e2e-spec.ts",
         "flutter_app/test/features/auth/auth_flow_test.dart"
       ],
       "openDecisions": [
@@ -276,7 +277,7 @@
         "발행 후 색 변경은 거절"
       ],
       "tests": [
-        "server/test/today.e2e-spec.ts"
+        "server/test/contracts/today.e2e-spec.ts"
       ],
       "openDecisions": [
         "후보 3색을 고르는 방식과 희귀 팔레트 확률",
@@ -319,7 +320,7 @@
       ],
       "tests": [
         "flutter_app/test/features/media/face_layout_test.dart",
-        "server/test/media.e2e-spec.ts"
+        "server/test/contracts/media.e2e-spec.ts"
       ],
       "openDecisions": [
         "이미지 저장소(S3 호환·로컬 등)",
@@ -359,7 +360,7 @@
         "발행 후 가판대의 내 색 칩 자물쇠가 사라짐"
       ],
       "tests": [
-        "server/test/issues.e2e-spec.ts",
+        "server/test/contracts/issues.e2e-spec.ts",
         "flutter_app/test/features/publishing/make_test.dart"
       ],
       "openDecisions": [],
@@ -405,7 +406,7 @@
       ],
       "tests": [
         "flutter_app/test/features/onboarding/join_test.dart",
-        "server/test/profile.e2e-spec.ts"
+        "server/test/contracts/profile.e2e-spec.ts"
       ],
       "openDecisions": [
         "닉네임 금칙어·예약어 목록",
@@ -447,7 +448,7 @@
         "30초 뒤 인기 혼합이 들어와도 이미 본 지면 순서가 바뀌지 않음"
       ],
       "tests": [
-        "server/test/feed.e2e-spec.ts",
+        "server/test/contracts/feed.e2e-spec.ts",
         "flutter_app/test/features/feed/feed_test.dart"
       ],
       "openDecisions": [
@@ -486,7 +487,7 @@
         "한 줄은 60자 이내, 빈 줄 거절"
       ],
       "tests": [
-        "server/test/reactions.e2e-spec.ts"
+        "server/test/contracts/issues.e2e-spec.ts"
       ],
       "openDecisions": [
         "독자 한 줄 신고·삭제 정책"
@@ -525,7 +526,7 @@
         "다른 색·지난 날짜는 발행 전에도 전체"
       ],
       "tests": [
-        "server/test/stand.e2e-spec.ts",
+        "server/test/contracts/stand.e2e-spec.ts",
         "flutter_app/test/features/stand/stand_test.dart"
       ],
       "openDecisions": [
@@ -562,7 +563,7 @@
         "구독하면 피드 구독 탭에 나타남"
       ],
       "tests": [
-        "server/test/magazines.e2e-spec.ts"
+        "server/test/contracts/magazines.e2e-spec.ts"
       ],
       "openDecisions": [],
       "status": "todo"
@@ -596,7 +597,7 @@
         "소유자 응답에만 숫자가 있음"
       ],
       "tests": [
-        "server/test/me.e2e-spec.ts"
+        "server/test/contracts/me.e2e-spec.ts"
       ],
       "openDecisions": [],
       "status": "todo"
@@ -635,7 +636,7 @@
         "복원으로 issue_count가 바뀌지 않음"
       ],
       "tests": [
-        "server/test/records.e2e-spec.ts"
+        "server/test/contracts/records.e2e-spec.ts"
       ],
       "openDecisions": [
         "복원 후보 색(그날의 후보 3색 가정)"
@@ -673,7 +674,7 @@
         "같은 요청 중복 생성 불가"
       ],
       "tests": [
-        "server/test/friends.e2e-spec.ts"
+        "server/test/contracts/friends.e2e-spec.ts"
       ],
       "openDecisions": [
         "차단한 사람의 검색 노출"
@@ -727,7 +728,7 @@
         "상대 사진을 혼자 공개할 수 없음"
       ],
       "tests": [
-        "server/test/twins.e2e-spec.ts",
+        "server/test/contracts/twins.e2e-spec.ts",
         "flutter_app/test/features/twin/twin_test.dart"
       ],
       "openDecisions": [
@@ -756,7 +757,7 @@
         "DEV-17"
       ],
       "client": [
-        "React Native Share로 기기 공유 메뉴를 연다. 목업의 '메시지·다른 앱' 목록은 옮기지 않음",
+        "share_plus로 기기 공유 메뉴를 연다. 목업의 '메시지·다른 앱' 목록은 옮기지 않음",
         "링크 복사 후 상단 알림 '공유 링크를 복사했어요'"
       ],
       "server": [
@@ -768,7 +769,7 @@
         "링크 응답에 숫자·사용자 내부 ID 없음"
       ],
       "tests": [
-        "server/test/share.e2e-spec.ts"
+        "server/test/contracts/share.e2e-spec.ts"
       ],
       "openDecisions": [
         "링크를 앱 미설치자가 열었을 때의 웹 화면"
@@ -815,7 +816,7 @@
         "알림을 끄면 하위 알림이 비활성"
       ],
       "tests": [
-        "server/test/account.e2e-spec.ts"
+        "server/test/contracts/account.e2e-spec.ts"
       ],
       "openDecisions": [
         "제호 변경 허용 여부와 주기",
@@ -848,7 +849,9 @@
       "acceptance": [
         "차단한 사람의 표지·한 줄이 피드·가판대·서가에 나오지 않음"
       ],
-      "tests": [],
+      "tests": [
+        "server/test/contracts/moderation.e2e-spec.ts"
+      ],
       "openDecisions": [
         "신고 처리 주체와 기준",
         "삭제 후 재발행 허용 여부"

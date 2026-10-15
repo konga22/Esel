@@ -138,7 +138,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 **앱(Flutter)**
 
 - 제호 녹아들기와 작은 로고 값은 generator/scroll.mjs와 같게(위 48px, 아래 18px, 맨 위 360px, 크기 0.14)
-- React Native에서는 Animated/Reanimated의 네이티브 드라이버로 transform·opacity만 움직인다(새 라이브러리는 승인 후)
+- Flutter에서는 Transform·Opacity(AnimatedBuilder)로 transform·opacity만 움직인다(새 패키지는 승인 후)
 
 **서버 (초안)**
 
@@ -153,6 +153,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 **추가할 테스트**
 
 - `flutter_app/test/features/intro/intro_test.dart`
+- `server/test/contracts/today.e2e-spec.ts`
 
 ## DEV-05
 
@@ -187,7 +188,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
-- `server/test/auth.e2e-spec.ts`
+- `server/test/contracts/auth.e2e-spec.ts`
 - `flutter_app/test/features/auth/auth_flow_test.dart`
 
 **사용자 결정이 필요한 것**
@@ -225,7 +226,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
-- `server/test/today.e2e-spec.ts`
+- `server/test/contracts/today.e2e-spec.ts`
 
 **사용자 결정이 필요한 것**
 
@@ -266,7 +267,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 **추가할 테스트**
 
 - `flutter_app/test/features/media/face_layout_test.dart`
-- `server/test/media.e2e-spec.ts`
+- `server/test/contracts/media.e2e-spec.ts`
 
 **사용자 결정이 필요한 것**
 
@@ -304,7 +305,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
-- `server/test/issues.e2e-spec.ts`
+- `server/test/contracts/issues.e2e-spec.ts`
 - `flutter_app/test/features/publishing/make_test.dart`
 
 ## DEV-06
@@ -339,7 +340,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 **추가할 테스트**
 
 - `flutter_app/test/features/onboarding/join_test.dart`
-- `server/test/profile.e2e-spec.ts`
+- `server/test/contracts/profile.e2e-spec.ts`
 
 **사용자 결정이 필요한 것**
 
@@ -377,7 +378,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
-- `server/test/feed.e2e-spec.ts`
+- `server/test/contracts/feed.e2e-spec.ts`
 - `flutter_app/test/features/feed/feed_test.dart`
 
 **사용자 결정이 필요한 것**
@@ -416,7 +417,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
-- `server/test/reactions.e2e-spec.ts`
+- `server/test/contracts/issues.e2e-spec.ts`
 
 **사용자 결정이 필요한 것**
 
@@ -452,7 +453,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
-- `server/test/stand.e2e-spec.ts`
+- `server/test/contracts/stand.e2e-spec.ts`
 - `flutter_app/test/features/stand/stand_test.dart`
 
 **사용자 결정이 필요한 것**
@@ -488,7 +489,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
-- `server/test/magazines.e2e-spec.ts`
+- `server/test/contracts/magazines.e2e-spec.ts`
 
 ## DEV-14
 
@@ -519,7 +520,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
-- `server/test/me.e2e-spec.ts`
+- `server/test/contracts/me.e2e-spec.ts`
 
 ## DEV-15
 
@@ -550,7 +551,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
-- `server/test/records.e2e-spec.ts`
+- `server/test/contracts/records.e2e-spec.ts`
 
 **사용자 결정이 필요한 것**
 
@@ -587,7 +588,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
-- `server/test/friends.e2e-spec.ts`
+- `server/test/contracts/friends.e2e-spec.ts`
 
 **사용자 결정이 필요한 것**
 
@@ -628,7 +629,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
-- `server/test/twins.e2e-spec.ts`
+- `server/test/contracts/twins.e2e-spec.ts`
 - `flutter_app/test/features/twin/twin_test.dart`
 
 **사용자 결정이 필요한 것**
@@ -650,7 +651,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **앱(Flutter)**
 
-- React Native Share로 기기 공유 메뉴를 연다. 목업의 '메시지·다른 앱' 목록은 옮기지 않음
+- share_plus로 기기 공유 메뉴를 연다. 목업의 '메시지·다른 앱' 목록은 옮기지 않음
 - 링크 복사 후 상단 알림 '공유 링크를 복사했어요'
 
 **서버 (초안)**
@@ -665,7 +666,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
-- `server/test/share.e2e-spec.ts`
+- `server/test/contracts/share.e2e-spec.ts`
 
 **사용자 결정이 필요한 것**
 
@@ -703,7 +704,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
-- `server/test/account.e2e-spec.ts`
+- `server/test/contracts/account.e2e-spec.ts`
 
 **사용자 결정이 필요한 것**
 
@@ -734,7 +735,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
-- 없음
+- `server/test/contracts/moderation.e2e-spec.ts`
 
 **사용자 결정이 필요한 것**
 
