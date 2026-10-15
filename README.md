@@ -45,18 +45,21 @@ npm run dev:docs        # 기능 목록 표와 앱 디자인 토큰 다시 만�
 
 | 위치 | 상태 |
 |---|---|
-| Expo 앱 `app/`, `src/`, `tests/` | 9월의 갤러리 디자인 기준 앱이다. 표지 SNS 디자인은 반영되지 않았고, 이식 요청이 있을 때 다시 손본다 |
 | 피그마 파일(팀원 정리본, 2026-10-11 기준 60화면) | 이 저장소에서 고치지 않는 참고 자료다. 흐름과 문구는 앱 목업에 반영했고, 규칙이 다를 때는 하네스를 따른다 |
 
-### Expo 앱 실행
+### Flutter 앱 실행
+
+2026-10-15에 클라이언트를 Expo에서 Flutter로 바꿨다([하네스 §2](docs/ESEL_HARNESS.md)). 이전 Expo 앱(`app/`, `src/`, `tests/`)은 지웠고, 마지막 상태는 커밋 `bbdaf2d`에서 볼 수 있다.
 
 ```bash
-npm install
-npm run web        # http://localhost:8081
-npm run typecheck
-npm test
-npm run build:web  # 정적 빌드를 20260905-esel-gallery/src에 씀
-npm run preview    # http://localhost:4173
+cd flutter_app
+flutter pub get
+flutter devices
+flutter run -d <기기ID> --dart-define=ESEL_API_MODE=mock   # Android 기기·에뮬레이터
+flutter analyze
+flutter test
 ```
 
-실제 인증, 서버 업로드, 데이터베이스는 없고 기록은 메모리에만 남는다. iOS·Android 실기기와 카메라 하드웨어는 검증하지 않았다. 사진 출처는 [demo-sources](assets/demo-sources.md)와 [models-sources](assets/models-sources.md)에 있고, 사진에 붙인 이름·숫자는 예시다.
+`--dart-define=ESEL_API_MODE=mock`을 빼면 서버 모드라서, 서버 없이는 옛 기기 보관함 화면만 보인다. 시연 순서와 검증 범위는 [Flutter 중간발표 안내](docs/flutter/MIDTERM_DEMO.md)에 있다. iOS는 맥(Xcode)에서만 빌드할 수 있다.
+
+실제 인증 서버, 서버 업로드, 데이터베이스는 아직 없다. 시연 모드의 기록은 기기에만 남는다(웹은 메모리). 사진 출처는 [demo-sources](assets/demo-sources.md)와 [models-sources](assets/models-sources.md)에 있고, 사진에 붙인 이름·숫자는 예시다.

@@ -1,6 +1,6 @@
 # Esel 기능 개발 가이드
 
-앱 목업을 실제로 동작하는 앱(Expo)과 서버로 만드는 사람과 AI를 위한 안내다. 무엇을 만들지는 [기능 목록](FEATURES.md)에, 어떻게 만들고 언제 끝났다고 할지는 이 문서에 있다. 먼저 [AGENTS.md](../../AGENTS.md)와 [앱 하네스](../ESEL_HARNESS.md)를 읽는다.
+앱 목업을 실제로 동작하는 앱(Flutter, `flutter_app/`)과 서버로 만드는 사람과 AI를 위한 안내다. 무엇을 만들지는 [기능 목록](FEATURES.md)에, 어떻게 만들고 언제 끝났다고 할지는 이 문서에 있다. 먼저 [AGENTS.md](../../AGENTS.md)와 [앱 하네스](../ESEL_HARNESS.md)를 읽는다.
 
 ## 1. 무엇이 기준인가
 
@@ -11,7 +11,7 @@
 | 1 | 사용자의 최신 요청 | 모든 것 | 대화 |
 | 2 | 제품 계약 P01~P18 | 공개 범위, 발행, 복원, 트윈, 제호, 숫자 공개 | [앱 하네스 §5](../ESEL_HARNESS.md) |
 | 3 | 앱 목업 | 화면 구성, 흐름, 문구, 상태 | [목업 화면 그림](screens/), [목업 원본](../../.codex/temp/prototype/20261011-app-mockup/README.md) |
-| 4 | 디자인 보드 | 색·글꼴·간격·모서리·그림자·움직임 값과 컴포넌트 치수 | [docs/design](../design/README.md), 생성 파일 `src/design/tokens.ts` |
+| 4 | 디자인 보드 | 색·글꼴·간격·모서리·그림자·움직임 값과 컴포넌트 치수 | [docs/design](../design/README.md), 생성 파일 `flutter_app/lib/core/design/tokens.g.dart` |
 | 5 | 팀원 정리 피그마 | 참고 자료. 이 저장소에서 고치지 않는다 | 피그마 파일(링크는 하네스) |
 
 예: 피그마 S2는 이름을 "2–20자"로 적었지만 계약 P14(영문 소문자 2~10자)가 이긴다.
@@ -27,43 +27,47 @@
 | 메모리 상태(새로고침하면 초기화) | 서버 저장. 앱에는 화면 상태만 둔다 |
 | `시연` 표시 버튼(초대 수락, 게시 도착, 공개 동의) | 옮기지 않는다. 상대의 실제 행동을 서버가 확인하고 알림으로 넘긴다 |
 | 공유 시트의 "메시지·다른 앱" 목록, `example.com` 링크 | 기기 공유 메뉴와 서버가 발급한 링크 |
-| 촬영 화면의 예시 사진, "앨범에서 고르기" 안내 문구 | expo-camera·expo-image-picker의 실제 사진 |
+| 촬영 화면의 예시 사진, "앨범에서 고르기" 안내 문구 | `image_picker`(카메라·앨범)의 실제 사진 |
 | "목업이라 실제로 로그인하지 않아요", "미리보기 처음으로", "목업을 처음부터 다시 보기" | 지운다. 로그아웃·탈퇴 뒤에는 로그인 화면으로 |
-| 393×852 고정 화면을 `zoom`으로 키우고 줄이는 방식 | React Native 레이아웃과 safe area. 폭 360~430에서 깨지지 않게 |
+| 393×852 고정 화면을 `zoom`으로 키우고 줄이는 방식 | Flutter 레이아웃과 `SafeArea`. 폭 360~430에서 깨지지 않게. 넓은 창(웹·데스크톱)은 `EselPhoneFrame`이 휴대폰 폭으로 묶는다 |
 | 목업에 없는 로딩·빈 화면·오류 | 새로 만든다. 02 컴포넌트로 그리고, 문구는 "무엇이 잘못됐고 어떻게 하면 되는지"를 한 줄로 |
 
 ## 3. 구조
 
-### 앱 (Expo, `app/`·`src/`)
+### 앱 (Flutter, `flutter_app/`)
+
+2026-10-15에 Expo에서 Flutter로 바꿨다([앱 하네스 §2](../ESEL_HARNESS.md)). 팀원 실행 안내는 Android 기기·에뮬레이터 기준이고, iOS는 맥(Xcode)에서만 빌드한다.
 
 ```text
-app/                      expo-router 경로. 목업 경로와 같은 이름을 쓴다(아래 표)
-src/design/tokens.ts      생성 파일. harness.json에서 `npm run dev:docs`로 만든다. 손으로 고치지 않는다
-src/ui/                   02 컴포넌트: 버튼, 칩, 세그먼트, 입력, 글라스 캡슐, 시트, 알림, 작은 표지, 물감
-src/domain/               화면·네트워크와 무관한 규칙(같은 색 방, 발행, 복원, 트윈, 제호). 순수 함수 + 테스트
-src/api/contract.ts       기능별 요청·응답 타입. 서버 Swagger가 생기면 그 타입에 맞춘다
-src/api/mock.ts           목업 데이터와 src/domain 규칙으로 도는 모의 서버
-src/api/http.ts           실제 서버 호출. mock과 같은 인터페이스. 설정 하나로 바꾼다
-src/features/<기능>/      화면별 상태와 훅
-tests/                    domain·api·screens 테스트 (`npm test`)
+flutter_app/lib/app/                        시작(bootstrap), 의존성(service_locator), 화면 상태(routing/app_routes.dart), 하단 캡슐(app.dart)
+flutter_app/lib/core/design/tokens.g.dart   생성 파일. harness.json에서 `npm run dev:docs`로 만든다. 손으로 고치지 않는다
+flutter_app/lib/core/design/                글꼴(typography.dart)·테마. legacy_tokens.dart는 하네스 밖 값이라 정리 대상
+flutter_app/lib/core/ui/                    02 컴포넌트: 버튼, 칩, 글라스(EselGlass), 작은 표지, 물감, 휴대폰 폭 프레임
+flutter_app/lib/core/network/, storage/     서버 호출(http_client.dart)과 토큰 보안 저장
+flutter_app/lib/features/<기능>/domain/     화면·네트워크와 무관한 규칙(같은 색, 발행, 복원, 트윈, 제호). 순수 함수 + 테스트
+flutter_app/lib/features/<기능>/data/       mock 소스·서버 소스·저장소. `--dart-define=ESEL_API_MODE` 하나로 바꾼다
+flutter_app/lib/features/<기능>/presentation/  화면(screens)과 상태(controllers)
+flutter_app/test/                           domain·data·위젯 테스트 (`flutter test`)
 ```
 
-| 목업 경로 | 앱 경로(제안) | 화면 |
-|---|---|---|
-| `intro` | `app/index.tsx` (비로그인일 때) | J1, J1b, J2 |
-| `join-color` … `join-done` | `app/join/color.tsx` … `app/join/done.tsx` | J3~J7 |
-| `feed` | `app/(main)/index.tsx` | C1, C2, C7 |
-| `stand`, `same` | `app/(main)/stand.tsx` (`?color=`) | C4, C8 |
-| `me`, `reactions` | `app/(main)/me.tsx`, `app/me/reactions.tsx` | M1, A4 |
-| `spread` | `app/issue/[id].tsx` | C3 |
-| `shelf` | `app/magazine/[masthead].tsx` | C5 |
-| `make` | `app/make.tsx` (모달) | C6 |
-| `record`, `day`, `restore`, `restored` | `app/record/...` | R1~R5 |
-| `friends`, `friend`, `friend-added` | `app/friends/...` | F1~F3 |
-| `twin*` | `app/twin/...` | T1~T10 |
-| `settings`, `profile`, `notifications`, `account`, `logout`, `delete*` | `app/settings/...` | S1~S6 |
+지금은 인증(`features/auth/data`)과 기기 보관함(`features/drafts/data`)만 data 계층이 있다. 피드·가판대·서가는 controller 안의 예시 데이터라 DEV-03에서 mock 소스로 옮긴다.
 
-하단 글라스 캡슐(오늘의 색·만들기·내 잡지)은 `app/(main)/_layout.tsx` 한 곳에 둔다. 지금 `src/components`, `src/state`, `src/data`, `app/gallery.tsx` 등은 9월 갤러리 디자인의 이전 코드다. 새 화면이 그 역할을 대체하면 같은 작업에서 정리한다.
+| 목업 경로 | 앱 위치(현재) | 화면 |
+|---|---|---|
+| `intro` | `features/intro/.../intro_screen.dart`, 로그인 `features/auth/.../login_sheet.dart` | J1, J1b, J2 |
+| `join-color` … `join-done` | `features/onboarding/.../onboarding_screen.dart` | J3~J7 |
+| `feed` | `features/feed/.../feed_screen.dart` | C1, C2, C7 |
+| `stand`, `same` | `features/stand/.../stand_screen.dart` | C4, C8 |
+| `me`, `reactions` | `features/magazine/.../my_magazine_screen.dart` | M1, A4 |
+| `spread` | `features/issue/.../issue_bottom_sheet.dart` | C3 |
+| `shelf` | `features/magazine/.../shelf_screen.dart` | C5 |
+| `make` | `features/publishing/.../publish_screen.dart`, 편집 `features/drafts/.../cover_editor_screen.dart` | C6 |
+| `record`, `day`, `restore`, `restored` | `features/records/.../monthly_record_screen.dart` | R1~R5 |
+| `friends`, `friend`, `friend-added` | `features/friends/.../friends_screen.dart` | F1~F3 |
+| `twin*` | `features/twin/.../twin_screen.dart` | T1~T10 |
+| `settings`, `profile`, `notifications`, `account`, `logout`, `delete*` | `features/settings/.../settings_screen.dart` | S1~S6 |
+
+화면 전환은 `app.dart`의 상태(`AppTab`, `ActiveScreen`)로 한다. 라우터 패키지는 승인 없이 추가하지 않는다. 하단 글라스 캡슐(오늘의 색·만들기·내 잡지)은 `app.dart`의 `_buildGlassBottomBar` 한 곳에 둔다. `features/drafts/presentation/device_home_screen.dart`는 서버 모드에서만 보이는 이전 기기 보관함 화면이다. 새 화면이 그 역할을 대체하면 같은 작업에서 정리한다.
 
 ### 서버 (`server/`)
 
@@ -80,7 +84,7 @@ tests/                    domain·api·screens 테스트 (`npm test`)
 1. **고르기**: 선행 기능이 모두 `done`인 `todo` 하나를 고른다. [features.json](features.json)에서 상태를 `doing`으로 바꾸고 `npm run dev:docs`를 실행한다.
 2. **보기**: 그 기능의 목업 화면 그림([screens/](screens/))을 본다. 움직임이나 흐름을 직접 눌러 보려면 `node .codex/temp/prototype/20261011-app-mockup/build.mjs --local`로 만든 `dist/_local.html`을 연다.
 3. **테스트 먼저**: 기능의 "합격 기준"을 기능 목록의 "추가할 테스트" 경로에 테스트로 쓴다.
-4. **만들기**: `src/domain` → `src/api/contract.ts`와 `mock.ts` → 화면 → (서버 병합 후) 서버 엔드포인트와 E2E 테스트 → `http.ts`로 교체 순서로 만든다.
+4. **만들기**: `features/<기능>/domain` → `data`(mock 소스·저장소) → 화면 → (서버 병합 후) 서버 엔드포인트와 E2E 테스트 → 서버 소스로 교체 순서로 만든다.
 5. **비교**: 같은 상태의 목업 그림과 앱 화면을 393×852에서 나란히 보고, 다른 점과 이유를 작업 기록에 적는다.
 6. **검사**: 아래 명령을 모두 돌리고, 실패하면 고친다. 돌리지 못한 것은 못 돌렸다고 적는다.
 7. **마치기**: 상태를 `done`으로 바꾸고 `npm run dev:docs`. 커밋과 푸시는 사용자에게 매번 허락을 받는다.
@@ -88,8 +92,7 @@ tests/                    domain·api·screens 테스트 (`npm test`)
 ```bash
 npm run check:harness   # 하네스·기능 목록·생성 파일 정합성 (done 기능의 테스트 파일이 있는지도 확인)
 npm run test:rules      # 기준 규칙 테스트
-npm test                # 앱 테스트
-npm run typecheck       # 앱 타입 검사
+cd flutter_app && flutter analyze && flutter test   # 앱 정적 검사·테스트
 # 서버 병합 후: cd server && npm run lint && npm test && npm run test:e2e && npm run build
 ```
 
@@ -99,7 +102,7 @@ npm run typecheck       # 앱 타입 검사
 - 남의 표지·서가·피드 응답과 타입에 좋아요·구독자·독자 한 줄·스크랩 수가 없다(P18).
 - 잠긴 같은 색 표지의 이름·사진·ID가 응답에 없다(P01).
 - 누르는 곳은 48×48 이상, 스크린 리더 라벨이 있고, 글자 200%에서 겹치지 않는다.
-- 색·글꼴·간격·움직임 값은 `src/design/tokens.ts`에서만 가져온다. 오늘의 색 hex를 코드에 쓰지 않는다.
+- 색·글꼴·간격·움직임 값은 `tokens.g.dart`(와 `typography.dart`)에서만 가져온다. 오늘의 색 hex를 코드에 쓰지 않는다.
 - 움직임 줄이기 설정에서 움직임 없이 바뀐다. 글라스는 투명도 줄이기·고대비에서 단색이다.
 - 로딩·빈 화면·오류가 있다.
 - `시연` 버튼, 예시 이름, 고정 날짜가 남아 있지 않다.
@@ -110,7 +113,7 @@ npm run typecheck       # 앱 타입 검사
 - 계약 P01~P18을 화면 편의 때문에 약하게 만들지 않는다. 바꿔야 하면 사용자에게 묻는다.
 - 새 라이브러리, BaaS(Supabase·Firebase 등), 외부 서비스를 사용자 승인 없이 추가하지 않는다. 팀은 직접 운영 서버를 택했다(PR #4).
 - 피그마와 Claude Design 캔버스 원본을 고치지 않는다. [README의 보관 자료](../../README.md#보관된-자료)를 근거로 쓰지 않는다.
-- 생성 파일(`docs/dev/FEATURES.md`, `src/design/tokens.ts`, `docs/dev/screens/*`)을 손으로 고치지 않는다.
+- 생성 파일(`docs/dev/FEATURES.md`, `flutter_app/lib/core/design/tokens.g.dart`, `docs/dev/screens/*`)을 손으로 고치지 않는다.
 - `.env`와 비밀값을 커밋하지 않는다. 확인하지 않은 동작을 "완료"라고 쓰지 않는다.
 
 ## 7. 사용자에게 물어야 하는 것
@@ -127,7 +130,7 @@ npm run typecheck       # 앱 타입 검사
 
 | 명령 | 하는 일 |
 |---|---|
-| `npm run dev:docs` | `features.json` → `FEATURES.md`, `harness.json` → `src/design/tokens.ts` |
+| `npm run dev:docs` | `features.json` → `FEATURES.md`, `harness.json`·생성기 물감 → `flutter_app/lib/core/design/tokens.g.dart` |
 | `npm run mockup:capture` | 목업을 상태별로 찍어 `docs/dev/screens/`에 쓴다(화면 54장, Chrome 필요) |
 | `npm run mockup:build` | 목업 다시 만들기 |
 

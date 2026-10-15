@@ -4,7 +4,7 @@
   "language": "ko",
   "concept": "cover-sns-personal-magazine",
   "designStatus": "cover-sns-direction-in-review",
-  "updatedAt": "2026-10-11",
+  "updatedAt": "2026-10-15",
   "entrypoints": ["AGENTS.md", "docs/ESEL_HARNESS.md", "CLAUDE.md"],
   "activeDesign": {
     "kind": "claude-design-canvas",
@@ -45,8 +45,8 @@
     "features": "docs/dev/features.json",
     "featuresDoc": "docs/dev/FEATURES.md (생성 파일)",
     "screens": "docs/dev/screens (생성 파일)",
-    "tokens": "src/design/tokens.ts (생성 파일)",
-    "client": "Expo app/, src/",
+    "tokens": "flutter_app/lib/core/design/tokens.g.dart (생성 파일)",
+    "client": "Flutter flutter_app/ (2026-10-15 결정, Expo에서 전환)",
     "server": {"status": "PR konga22/Esel#4 열림·미병합", "stack": "NestJS, Prisma, PostgreSQL, Docker Compose", "guideAfterMerge": "server/ARCHITECTURE.md"},
     "noBaaS": true
   },
@@ -59,7 +59,7 @@
     "url": "http://localhost:4177/",
     "port": 4177
   },
-  "nativeApp": {"routes": "app", "source": "src", "status": "separate-expo-prototype-not-design-parity", "devPort": 8081, "previewPort": 4173},
+  "nativeApp": {"framework": "flutter", "root": "flutter_app", "routes": "flutter_app/lib/app/routing/app_routes.dart", "source": "flutter_app/lib", "tests": "flutter_app/test", "status": "midterm-demo-not-design-parity", "demoRun": "flutter run -d <device> --dart-define=ESEL_API_MODE=mock"},
   "designTokens": {"paper": "#F9F9FB", "ink": "#292A27", "muted": "#71736C", "hairline": "#E0E1DC", "gutter": "20px", "touch": "48px"},
   "glass": {"background": "rgba(249,249,251,0.58)", "blur": "22px", "saturate": 1.6, "fallback": "#F9F9FB", "use": ["capsule-menu", "login-bar", "login-sheet", "small-logo"]},
   "tokenScale": {
@@ -146,7 +146,7 @@
   "productContracts": ["P01", "P02", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P13", "P14", "P15", "P16", "P17", "P18"],
   "manualChecks": ["V01", "V02", "V03", "V04", "V05", "V06", "V07", "V08", "V09", "V10", "V11", "V12"],
   "notDrawnInCoverSns": ["same-color-unlock-motion", "owner-count-screen", "twin", "monthly-record-restore", "settings", "notifications", "dark-mode"],
-  "notImplemented": ["real-auth", "social-login", "server-upload", "persistent-storage", "friend-sync", "daily-rollover", "nickname-uniqueness", "on-device-face-detection", "dedicated-share-card"],
+  "notImplemented": ["real-auth", "social-login", "server-upload", "friend-sync", "daily-rollover", "nickname-uniqueness", "on-device-face-detection", "dedicated-share-card"],
   "archive": [
     {"path": ".codex/temp/prototype/20260905-esel-gallery", "status": "archived", "was": "2026-09-05 갤러리형 Expo 앱 설계 기록과 웹 빌드", "banner": ".codex/temp/prototype/20260905-esel-gallery/prototype.md"},
     {"path": ".codex/temp/prototype/20260906-art-directions", "status": "archived", "was": "2026-09-06 미술관·아틀리에 방향 탐색", "banner": ".codex/temp/prototype/20260906-art-directions/prototype.md"},
@@ -158,7 +158,6 @@
     {"path": ".codex/temp/20260905-1803-feat-core-ux-workflow.md", "status": "archived", "was": "2026-09-05 작업 기록", "banner": ".codex/temp/20260905-1803-feat-core-ux-workflow.md"},
     {"path": ".codex/temp/20260906-0210-feat-feed-chrome-ui-workflow.md", "status": "archived", "was": "2026-09-06 작업 기록", "banner": ".codex/temp/20260906-0210-feat-feed-chrome-ui-workflow.md"},
     {"path": "assets/esel-app-icon-*.png", "status": "archived", "was": "이전 아이콘 시안. 사용자 선택본 assets/esel-app-icon-bg-F9F9FB.png만 사용", "keep": "assets/esel-app-icon-bg-F9F9FB.png"},
-    {"path": "app/, src/, tests/", "status": "not-updated", "was": "2026-09 갤러리 디자인 기준 Expo 앱. 표지 SNS 디자인 미반영"},
     {"path": "figma:kNBbhEWIhDASkrYlgegU5b", "status": "not-updated", "was": "팀원 정리 피그마(2026-10-11, 60화면). 이 저장소에서 고치지 않는 참고 자료. 앱 목업에 반영"}
   ],
   "evidence": [

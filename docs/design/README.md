@@ -238,7 +238,7 @@ Claude Design 캔버스(비공개)에 있는 디자인 보드 00~04와 화면을
 2. 값은 기계가 읽는 원본에서 가져온다: `harness.json`의 `designTokens`, `glass`, `typography`, `colors`, `motion`, `sameColorLock`, `publicCounts`와 생성기 `lib.mjs`의 `PAINT`, `PEOPLE`, `INK`·`PAPER`·`MUTED`·`HAIR`, `EASE_OUT`·`EASE_DRAWER`, `mastSize`.
 3. 새 요소는 02 컴포넌트에 있는 것부터 쓴다. 없는 것을 만들면 보드에도 추가한다.
 4. 화면 파일(`.dc.html`)은 캔버스 전용 형식이라 레포에서 바로 열면 사진이 보이지 않는다. 눈으로 볼 때는 이 폴더의 그림을 쓴다.
-5. Expo 앱(`app/`, `src/`)에는 이 디자인이 아직 반영되지 않았다.
+5. Flutter 앱(`flutter_app/`)은 이 디자인을 맞춰 가는 중이다. 메뉴 캡슐과 글꼴은 반영했고, 나머지 화면은 아직 다를 수 있다.
 
 ## 다시 만들기
 
