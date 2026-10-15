@@ -91,6 +91,11 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
         isMinor: session?.isMinor ?? false,
       );
     }
+    // 제호 없는 계정은 창간부터(P14). 창간하는 중이면 그 단계를 그대로 둔다.
+    if (_needsProfile && _activeScreen != ActiveScreen.onboarding) {
+      _sl.onboardingController.reset();
+      _activeScreen = ActiveScreen.onboarding;
+    }
     if (mounted) setState(() {});
   }
 
@@ -138,9 +143,11 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
     if (mounted) setState(() => _activeScreen = ActiveScreen.main);
   }
 
-  /// 창간하기. 계정이 없으면 계정부터 만들고, 그 계정에 제호를 정한다.
-  Future<void> _completeFounding(BuildContext context) async {
+  /// 창간하기(P13). 계정이 없으면 계정부터 만들고, 그 계정에 제호를 정한 뒤 창간호(Nº 001)를
+  /// 실제로 발행한다(P04). 이미 창간한 계정으로 들어왔으면 그 잡지를 덮어쓰지 않는다.
+  Future<void> _found(BuildContext context) async {
     final auth = _sl.authController;
+    final onboarding = _sl.onboardingController;
     final messenger = ScaffoldMessenger.of(context);
     if (!auth.isAuthenticated) {
       await LoginSheet.show(
@@ -148,28 +155,49 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
         authController: auth,
         title: '계정을 만들고 창간해요',
         lead: '창간호는 이 계정의 내 잡지에 꽂혀요.',
-        startWithEmailSignUp: true,
+        emailSignUp: true,
         onLoginSuccess: () {},
       );
       if (!auth.isAuthenticated) return;
     }
-    final draft = _sl.onboardingController.draft;
     if (!_needsProfile) {
-      // 이미 창간한 계정으로 들어왔다. 그 잡지를 덮어쓰지 않는다.
       messenger.showSnackBar(
         const SnackBar(content: Text('이미 창간한 잡지가 있는 계정이에요. 그 잡지로 들어가요.')),
       );
-    } else if (!await auth.createProfile(draft.masthead)) {
+      _finishFounding(AppTab.feed);
+      return;
+    }
+    final draft = onboarding.draft;
+    if (!await auth.createProfile(draft.masthead)) {
       messenger.showSnackBar(
         SnackBar(content: Text(auth.errorMessage ?? '제호를 저장하지 못했어요.')),
       );
       return;
     }
+    try {
+      final issue = await _sl.todayController.publish(
+        draft.toCover(id: _sl.localLibrary!.newId(), now: _sl.clock.now()),
+      );
+      onboarding.markFounded(issue);
+    } on FormatException catch (error) {
+      messenger.showSnackBar(SnackBar(content: Text(error.message)));
+      _finishFounding(AppTab.me);
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('창간호를 기기에 저장하지 못했어요. 내 잡지에서 오늘 호를 다시 만들어 주세요.'),
+        ),
+      );
+      _finishFounding(AppTab.me);
+    }
+  }
+
+  void _finishFounding(AppTab tab) {
     _sl.onboardingController.reset();
     if (!mounted) return;
     setState(() {
       _activeScreen = ActiveScreen.main;
-      _currentTab = AppTab.feed;
+      _currentTab = tab;
     });
   }
 
@@ -221,11 +249,18 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
 
     // 1. 창간(J3~J7): "내 잡지 만들기"로 시작했거나, 로그인했지만 제호가 없는 계정(P13·P14)
     if (_isFounding) {
+      final today = _sl.todayController;
       return OnboardingScreen(
         controller: _sl.onboardingController,
-        candidates: _sl.todayController.candidates,
+        candidates: today.candidates,
+        today: today.today,
+        library: _sl.localLibrary!,
+        sameColorCount: (color) =>
+            _sl.standController.countOn(today.today, color) + 1,
         onCancel: _cancelFounding,
-        onComplete: () => _completeFounding(context),
+        onFound: () => _found(context),
+        onOpenFeed: () => _finishFounding(AppTab.feed),
+        onOpenMyMagazine: () => _finishFounding(AppTab.me),
       );
     }
 

@@ -78,7 +78,9 @@ class ServiceLocator {
 
     authController = AuthController(authRepository);
     todayController = TodayController(clock: clock);
-    onboardingController = OnboardingController();
+    onboardingController = OnboardingController(
+      checkMasthead: authController.isMastheadAvailable,
+    );
     publishingController = PublishingController();
     reactionsController = ReactionsController();
     feedController = FeedController();

@@ -66,6 +66,11 @@ class StandController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 그날 그 색으로 발행한 사람 수(같은 색 인원, 공개 숫자 P18).
+  int countOn(ServiceDate date, EselPaint color) => _coversFor(
+    date,
+  ).where((item) => item.date == date && item.color == color).length;
+
   /// 지금 고른 칸을 [viewer]의 권한으로 본다(P01·P02).
   StandShelf shelfFor(SameColorViewer viewer) {
     final covers = _coversFor(viewer.today);
