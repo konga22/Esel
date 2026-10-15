@@ -6,9 +6,21 @@ import 'tokens.g.dart';
 abstract final class EselTypography {
   static const String mastheadFamily = 'Cormorant Garamond';
   static const String serifFamily = 'Cormorant Garamond';
-  static const String bodyFamily = 'Pretendard';
+  static const String bodyFamily = 'Instrument Sans';
   static const String metaFamily = 'DM Mono';
   static const String headingKoFamily = 'Nanum Myeongjo';
+
+  /// 세리프에 없는 한글은 나눔명조로 그린다.
+  static const List<String> serifFallback = [headingKoFamily];
+
+  /// 본문 한글은 디자인 캔버스와 같은 순서로 기기 기본 한글 글꼴을 쓴다.
+  static const List<String> sansFallback = [
+    'Pretendard',
+    'Apple SD Gothic Neo',
+    'Malgun Gothic',
+    'Noto Sans KR',
+    'Noto Sans CJK KR',
+  ];
 
   /// Calculate masthead font size according to contract P14:
   /// min(200, 0.9 * width / (0.47 * letters))
@@ -22,6 +34,7 @@ abstract final class EselTypography {
   static TextStyle masthead({double? fontSize, Color color = EselColors.ink}) {
     return TextStyle(
       fontFamily: mastheadFamily,
+      fontFamilyFallback: serifFallback,
       fontSize: fontSize ?? 200.0,
       height: 0.9,
       letterSpacing: -0.05 * (fontSize ?? 200.0),
@@ -37,6 +50,7 @@ abstract final class EselTypography {
   }) {
     return TextStyle(
       fontFamily: serifFamily,
+      fontFamilyFallback: serifFallback,
       fontSize: fontSize,
       fontStyle: FontStyle.italic,
       fontWeight: FontWeight.w400,
@@ -52,6 +66,7 @@ abstract final class EselTypography {
   }) {
     return TextStyle(
       fontFamily: serifFamily,
+      fontFamilyFallback: serifFallback,
       fontSize: fontSize,
       height: 1.25,
       fontWeight: fontWeight,
@@ -67,6 +82,7 @@ abstract final class EselTypography {
   }) {
     return TextStyle(
       fontFamily: bodyFamily,
+      fontFamilyFallback: sansFallback,
       fontSize: fontSize,
       height: 1.45,
       fontWeight: fontWeight,
@@ -82,6 +98,7 @@ abstract final class EselTypography {
   }) {
     return TextStyle(
       fontFamily: bodyFamily,
+      fontFamilyFallback: sansFallback,
       fontSize: fontSize,
       fontWeight: fontWeight,
       color: color,
@@ -95,6 +112,7 @@ abstract final class EselTypography {
   }) {
     return TextStyle(
       fontFamily: metaFamily,
+      fontFamilyFallback: sansFallback,
       fontSize: fontSize,
       letterSpacing: 0.06 * fontSize,
       fontWeight: FontWeight.w400,
@@ -106,6 +124,7 @@ abstract final class EselTypography {
   static TextStyle spineOwner({Color color = EselColors.ink}) {
     return TextStyle(
       fontFamily: serifFamily,
+      fontFamilyFallback: serifFallback,
       fontSize: 13.0,
       fontStyle: FontStyle.italic,
       color: color,
@@ -115,6 +134,7 @@ abstract final class EselTypography {
   static TextStyle spineIssue({Color color = EselColors.ink}) {
     return TextStyle(
       fontFamily: metaFamily,
+      fontFamilyFallback: sansFallback,
       fontSize: 10.0,
       letterSpacing: 0.04 * 10.0,
       color: color,
