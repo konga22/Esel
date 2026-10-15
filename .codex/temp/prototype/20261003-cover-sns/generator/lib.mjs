@@ -26,6 +26,8 @@ export const PAINT = {
   cobalt: { id: 'df0bc44e7f972fd97b0d90234a638a31', name: '코발트', en: 'Cobalt', hex: '#2648B0' },
 };
 export const COLOR_ORDER = ['sage', 'butter', 'powder', 'coral', 'lilac', 'terracotta', 'burgundy', 'olive', 'cream', 'charcoal', 'camel', 'cobalt'];
+// Today's three candidate colors for the signed-in example (J3). Before publishing, all three rooms stay at the preview (P01).
+export const TODAY_CANDIDATES = ['camel', 'lilac', 'olive'];
 
 // People: photo asset, height/width ratio, face centre and width as fractions of the photo, and their example post.
 export const PEOPLE = {

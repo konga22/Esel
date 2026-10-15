@@ -1,0 +1,87 @@
+# 서버 검사: server/와 그 약속이 바뀌는 PR, 그리고 main에서 돈다.
+# 이 맥에 없는 것(서버가 요구하는 Node 24, Docker)을 여기서 확인한다.
+name: Server
+
+on:
+  pull_request:
+    paths:
+      - 'server/**'
+      - 'compose.yaml'
+      - 'harness.json'
+      - 'docs/dev/features.json'
+      - '.github/workflows/server.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'server/**'
+      - 'compose.yaml'
+      - 'harness.json'
+      - 'docs/dev/features.json'
+      - '.github/workflows/server.yml'
+
+concurrency:
+  group: server-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: 서버 검사와 API 테스트
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: esel
+          POSTGRES_USER: esel
+          POSTGRES_PASSWORD: esel_dev # 개발용
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U esel -d esel"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://esel:esel_dev@localhost:5432/esel?schema=public
+      CORS_ORIGINS: http://localhost:8081
+      SERVICE_TIME_ZONE: Asia/Seoul
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      - run: npm run check:server
+      - run: npm run test:harness
+      - run: npx prisma migrate deploy
+      - run: npm run test:e2e
+
+  docker:
+    name: Docker 구성 실행
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose up --build -d
+      - name: API가 뜨고 DB에 닿는지 확인
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3000/api/health; then echo; break; fi
+            sleep 3
+          done
+          curl -fsS http://127.0.0.1:3000/api/health
+      - name: API가 root가 아닌 사용자로 돌고, 운영에서 Swagger가 꺼졌는지 확인
+        run: |
+          test "$(docker compose exec -T api id -u)" != "0"
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/api/docs)" = "404"
+      - if: failure()
+        run: docker compose logs
+      - if: always()
+        run: docker compose down -v

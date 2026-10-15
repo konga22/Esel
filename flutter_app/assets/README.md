@@ -1,0 +1,37 @@
+# flutter_app 예시 사진 출처
+
+시연(mock) 모드의 예시 인물 사진이다. 저장소 루트 `assets/models/`·`assets/demo/`의 원본을 **같은 이름 그대로** 복사했고(바이트까지 같음, `test/core/assets_test.dart`가 확인), 이름을 바꾼 사본은 두지 않는다. 앱이 쓰는 사진만 넣었다. 어느 인물이 어느 사진인지는 하네스 `harness.json.demoPeople`과 `lib/core/mock/demo_people.dart`가 같다.
+
+모두 Pexels 사진이다. 실제 사용자 업로드가 아니고, 붙은 이름·캡션·시각·숫자는 지어낸 예시다. **Pexels는 모델 초상권 동의를 보장하지 않는다.** 이 사진이 든 빌드(APK·IPA·웹)는 로컬 시연용으로만 쓰고 외부에 배포하지 않는다(하네스 §6). 원본 라이선스: [Pexels 이용 허가](https://www.pexels.com/license/).
+
+| 앱 파일 | 원본(저장소 루트) | 예시 인물 | 색 | 사진 내용 | 사진가 | 원본 페이지 |
+| --- | --- | --- | --- | --- | --- | --- |
+| `assets/models/sage-01.jpg` | `assets/models/sage-01.jpg` ([출처](../../assets/models-sources.md)) | elin | 세이지 | 세이지색 파자마 셋업, 라탄 의자 | KATRIN BOLOVTSOVA | [6976223](https://www.pexels.com/photo/a-woman-wearing-pajamas-6976223/) |
+| `assets/models/sage-02.jpg` | `assets/models/sage-02.jpg` ([출처](../../assets/models-sources.md)) | mira | 세이지 | 연두빛 투피스 드레스, 철제 울타리 앞 | Brian Jiz | [13386480](https://www.pexels.com/photo/a-woman-in-green-dress-sitting-on-the-street-13386480/) |
+| `assets/models/butter-01.jpg` | `assets/models/butter-01.jpg` ([출처](../../assets/models-sources.md)) | ama | 버터 | 노란 셋업과 은색 가방, 야외 계단석 | abubakar mamman | [36571373](https://www.pexels.com/photo/fashionable-woman-in-yellow-outfit-outdoors-36571373/) |
+| `assets/models/butter-02.jpg` | `assets/models/butter-02.jpg` ([출처](../../assets/models-sources.md)) | hana | 버터 | 노란 와이드 셋업, 노란 클래식카 | Benjamin Campbelll | [7798232](https://www.pexels.com/photo/a-woman-in-a-yellow-outfit-leaning-on-a-car-7798232/) |
+| `assets/models/powder-01.jpg` | `assets/models/powder-01.jpg` ([출처](../../assets/models-sources.md)) | sol | 파우더 블루 | 하늘색 셋업, 스튜디오 의자 | Thirdman | [8053904](https://www.pexels.com/photo/a-woman-in-a-blue-outfit-sitting-in-a-chair-8053904/) |
+| `assets/models/powder-02.jpg` | `assets/models/powder-02.jpg` ([출처](../../assets/models-sources.md)) | ines | 파우더 블루 | 하늘색 블라우스와 흰 바지, 곱슬머리 | Alessandra Shalbe | [20378997](https://www.pexels.com/photo/pretty-curly-haired-woman-in-light-blue-blouse-20378997/) |
+| `assets/models/coral-01.jpg` | `assets/models/coral-01.jpg` ([출처](../../assets/models-sources.md)) | zuri | 코랄 | 코랄 원피스, 실내 문 앞 | Stephen Tettey Atsu | [32861934](https://www.pexels.com/photo/elegant-woman-in-coral-dress-posing-indoors-32861934/) |
+| `assets/models/coral-02.jpg` | `assets/models/coral-02.jpg` ([출처](../../assets/models-sources.md)) | rio | 코랄 | 코랄 슬립 원피스, 분홍 벽 | Alejandro Banda | [25559936](https://www.pexels.com/photo/brunette-woman-posing-in-pink-dress-25559936/) |
+| `assets/models/lilac-01.jpg` | `assets/models/lilac-01.jpg` ([출처](../../assets/models-sources.md)) | lua | 라일락 | 라일락 셋업과 바이저, 콘크리트 원형 벽 | Mikhail Nilov | [8220782](https://www.pexels.com/photo/woman-in-purple-top-leaning-on-a-concrete-wall-8220782/) |
+| `assets/models/lilac-02.jpg` | `assets/models/lilac-02.jpg` ([출처](../../assets/models-sources.md)) | theo | 라일락 | 라일락 니트 셋업, 어두운 실내 창가 | cottonbro studio | [7520748](https://www.pexels.com/photo/man-wearing-lilac-long-sleeves-7520748/) |
+| `assets/models/terracotta-01.jpg` | `assets/models/terracotta-01.jpg` ([출처](../../assets/models-sources.md)) | nia | 테라코타 | 테라코타 줄무늬 셔츠·반바지, 대리석 계단 | Sendeq (dagi) | [38877422](https://www.pexels.com/photo/stylish-woman-posing-on-marble-stairs-indoors-38877422/) |
+| `assets/models/terracotta-02.jpg` | `assets/models/terracotta-02.jpg` ([출처](../../assets/models-sources.md)) | vera | 테라코타 | 주황 롱드레스, 가을 공원 | Karina Rymarchuk | [19389017](https://www.pexels.com/photo/a-woman-in-an-orange-dress-posing-in-the-park-19389017/) |
+| `assets/models/burgundy-01.jpg` | `assets/models/burgundy-01.jpg` ([출처](../../assets/models-sources.md)) | cleo | 버건디 | 버건디 수트와 데님 톱, 붉은 벽 | Helin Gezer | [34992474](https://www.pexels.com/photo/stylish-woman-in-burgundy-suit-posing-outdoors-34992474/) |
+| `assets/models/burgundy-02.jpg` | `assets/models/burgundy-02.jpg` ([출처](../../assets/models-sources.md)) | lise | 버건디 | 버건디 랩 코트, 창가 | Travel with Lenses | [35295784](https://www.pexels.com/photo/portrait-of-a-woman-in-burgundy-coat-in-berlin-35295784/) |
+| `assets/models/olive-01.jpg` | `assets/models/olive-01.jpg` ([출처](../../assets/models-sources.md)) | kofi | 올리브 | 올리브 더블 수트와 빨간 타이, 줄무늬 벽 | Ali Drabo | [18351089](https://www.pexels.com/photo/model-in-an-elegant-olive-suit-with-a-red-tie-and-headphones-18351089/) |
+| `assets/models/olive-02.jpg` | `assets/models/olive-02.jpg` ([출처](../../assets/models-sources.md)) | imani | 올리브 | 올리브 튜브 드레스, 벽돌 벽 | K Studios | [34890928](https://www.pexels.com/photo/elegant-woman-posing-in-stylish-evening-dress-34890928/) |
+| `assets/models/cream-01.jpg` | `assets/models/cream-01.jpg` ([출처](../../assets/models-sources.md)) | freya | 크림 | 크림 수트, 파란 타일 스튜디오 | cottonbro studio | [9634536](https://www.pexels.com/photo/woman-wearing-a-white-suit-sitting-on-a-chair-9634536/) |
+| `assets/models/cream-02.jpg` | `assets/models/cream-02.jpg` ([출처](../../assets/models-sources.md)) | maya | 크림 | 크림 셔츠와 바지, 흰 벽 | Ivan S | [8499032](https://www.pexels.com/photo/woman-in-white-button-up-long-sleeves-leaning-on-a-white-wall-8499032/) |
+| `assets/models/charcoal-01.jpg` | `assets/models/charcoal-01.jpg` ([출처](../../assets/models-sources.md)) | omar | 차콜 | 검정 수트, 숲 | Furkan Işık | [18831294](https://www.pexels.com/photo/portrait-of-an-elegant-man-in-a-forest-18831294/) |
+| `assets/models/charcoal-02.jpg` | `assets/models/charcoal-02.jpg` ([출처](../../assets/models-sources.md)) | june | 차콜 | 검정 수트와 흰 셔츠, 회색 스튜디오 | RedWolf | [12234779](https://www.pexels.com/photo/woman-in-black-blazer-posing-12234779/) |
+| `assets/models/camel-01.jpg` | `assets/models/camel-01.jpg` ([출처](../../assets/models-sources.md)) | selin | 카멜 | 카멜 코트와 페도라, 거리 | Lokman Sevim | [16144965](https://www.pexels.com/photo/woman-in-camel-coat-and-fedora-hat-16144965/) |
+| `assets/models/camel-02.jpg` | `assets/models/camel-02.jpg` ([출처](../../assets/models-sources.md)) | leo | 카멜 | 카멜 코트와 선글라스, 거리 | Ali mnttzri | [7904119](https://www.pexels.com/photo/photo-of-a-man-in-a-brown-coat-walking-7904119/) |
+| `assets/models/camel-03.jpg` | `assets/models/camel-03.jpg` ([출처](../../assets/models-sources.md)) | mara | 카멜 | 카멜 더블 코트와 검은 챙모자, 니하이 부츠, 벽돌 건물 앞 길 | Vika Glitter | [31976250](https://www.pexels.com/photo/stylish-woman-in-camel-coat-and-black-hat-outdoors-31976250/) |
+| `assets/models/cobalt-01.jpg` | `assets/models/cobalt-01.jpg` ([출처](../../assets/models-sources.md)) | ayo | 코발트 | 코발트 원피스, 아치 건물 앞 | Wayne Fotografias | [13979919](https://www.pexels.com/photo/elegant-woman-in-blue-dress-13979919/) |
+| `assets/models/cobalt-02.jpg` | `assets/models/cobalt-02.jpg` ([출처](../../assets/models-sources.md)) | riva | 코발트 | 코발트 셔츠 원피스, 바닷가 바위 | Laura Chouette | [38654894](https://www.pexels.com/photo/chic-woman-in-blue-dress-by-french-riviera-38654894/) |
+| `assets/demo/blue-city.jpg` | `assets/demo/blue-city.jpg` ([출처](../../assets/demo-sources.md)) | dana | 파우더 블루 | 파우더 블루 셔츠와 데님, 도심의 다리 | Mert Coşkun | [28223458](https://www.pexels.com/photo/a-woman-in-blue-shirt-and-jeans-standing-on-a-railing-28223458/) |
+| `assets/demo/beige-blazer.jpg` | `assets/demo/beige-blazer.jpg` ([출처](../../assets/demo-sources.md)) | noor | 카멜 | 질감 있는 크림색 재킷과 베이지 바지, 플랫 캡 | Najafi Photos | [6839153](https://www.pexels.com/photo/woman-in-flat-cap-and-beige-blazer-6839153/) |
+
+물감 그림(`assets/paint/`)은 디자인 생성기 `.codex/temp/prototype/20261003-cover-sns/paint/`의 12색이고, 글꼴(`assets/fonts/`)은 SIL OFL 1.1이다(라이선스 파일 같은 폴더).

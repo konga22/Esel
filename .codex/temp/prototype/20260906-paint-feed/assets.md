@@ -1,3 +1,5 @@
+> **보관된 자료 · 최신 아님** — 2026-09-06 물감 에셋 제작 기록이다. 지금 쓰는 12색 물감은 `.codex/temp/prototype/20261003-cover-sns/paint/`와 [디자인 보드 01](../../../../docs/design/README.md#01-디자인-토큰)을 본다. 무엇이 최신인지는 [저장소 안내](../../../../README.md#보관된-자료)에 있다.
+
 # 물감 에셋 제작 기록
 
 기록일: 2026-09-06. 사용자 이름 옆에 표시하는 작은 아크릴 물감 표식용 에셋이다.
@@ -14,23 +16,23 @@
 
 ### Sage
 
-- 최종 에셋: [paint-sage.png](/Users/gimminsang/Desktop/Esel/.codex/temp/prototype/20260906-paint-feed/src/assets/paint-sage.png)
-- 최초 생성 원본: [exec-9d23b00b-ef3a-4ec3-a017-659adfdad167.png](/Users/gimminsang/.codex/generated_images/01a07278-8d45-7041-a261-f375262c2e06/exec-9d23b00b-ef3a-4ec3-a017-659adfdad167.png)
-- 최종 편집 원본: [exec-120247d3-1203-4f18-864d-9eacbc09ed51.png](/Users/gimminsang/.codex/generated_images/01a07278-8d45-7041-a261-f375262c2e06/exec-120247d3-1203-4f18-864d-9eacbc09ed51.png)
+- 최종 에셋: [paint-sage.png](src/assets/paint-sage.png)
+- 최초 생성 원본: `exec-9d23b00b-ef3a-4ec3-a017-659adfdad167.png`(작성자 로컬에만 있음, 저장소에 없음)
+- 최종 편집 원본: `exec-120247d3-1203-4f18-864d-9eacbc09ed51.png`(작성자 로컬에만 있음, 저장소에 없음)
 - 최종 원본 및 복사본 SHA-256: `5d6ff7a73373ff49a27199c035bf98071a3e5398b2047a8cace276892b1a0943`
 
 ### Butter
 
-- 최종 에셋: [paint-butter.png](/Users/gimminsang/Desktop/Esel/.codex/temp/prototype/20260906-paint-feed/src/assets/paint-butter.png)
-- 최초 생성 원본: [exec-71d15295-306c-4e13-a015-09c5bdf66413.png](/Users/gimminsang/.codex/generated_images/01a07278-8d45-7041-a261-f375262c2e06/exec-71d15295-306c-4e13-a015-09c5bdf66413.png)
-- 최종 편집 원본: [exec-ed609b7e-d8cc-4c71-8b96-3c3c0ebc33e6.png](/Users/gimminsang/.codex/generated_images/01a07278-8d45-7041-a261-f375262c2e06/exec-ed609b7e-d8cc-4c71-8b96-3c3c0ebc33e6.png)
+- 최종 에셋: [paint-butter.png](src/assets/paint-butter.png)
+- 최초 생성 원본: `exec-71d15295-306c-4e13-a015-09c5bdf66413.png`(작성자 로컬에만 있음, 저장소에 없음)
+- 최종 편집 원본: `exec-ed609b7e-d8cc-4c71-8b96-3c3c0ebc33e6.png`(작성자 로컬에만 있음, 저장소에 없음)
 - 최종 원본 및 복사본 SHA-256: `6f6ce24b27c24d0d9ebf1294af490a324c1dd451f8476e2f24a952d268c8caf0`
 
 ### Powder blue
 
-- 최종 에셋: [paint-powder-blue.png](/Users/gimminsang/Desktop/Esel/.codex/temp/prototype/20260906-paint-feed/src/assets/paint-powder-blue.png)
-- 최초 생성 원본: [exec-3a4dc410-0ee4-4fb7-91cb-629450b796a3.png](/Users/gimminsang/.codex/generated_images/01a07278-8d45-7041-a261-f375262c2e06/exec-3a4dc410-0ee4-4fb7-91cb-629450b796a3.png)
-- 최종 편집 원본: [exec-478c4855-f8dd-42ef-b1c2-9faf29059263.png](/Users/gimminsang/.codex/generated_images/01a07278-8d45-7041-a261-f375262c2e06/exec-478c4855-f8dd-42ef-b1c2-9faf29059263.png)
+- 최종 에셋: [paint-powder-blue.png](src/assets/paint-powder-blue.png)
+- 최초 생성 원본: `exec-3a4dc410-0ee4-4fb7-91cb-629450b796a3.png`(작성자 로컬에만 있음, 저장소에 없음)
+- 최종 편집 원본: `exec-478c4855-f8dd-42ef-b1c2-9faf29059263.png`(작성자 로컬에만 있음, 저장소에 없음)
 - 최종 원본 및 복사본 SHA-256: `2890e2544e74d31ba4ea4284c57ede24992c4c0eb1e5c217e43f399d548ee737`
 
 ## 실제 최초 생성 프롬프트

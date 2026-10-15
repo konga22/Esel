@@ -1,0 +1,22 @@
+# 텍스트 파일은 어느 PC에서든 LF로 둔다. Windows(core.autocrlf=true)에서도
+# 생성 문서 비교(check:harness)와 migration 해시(check:server)가 같게 나오게 한다.
+* text=auto eol=lf
+
+# 바이너리는 줄바꿈 변환 없이 그대로
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ico binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+*.zip binary
+*.jar binary
+
+# Windows 전용 실행 파일만 CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
