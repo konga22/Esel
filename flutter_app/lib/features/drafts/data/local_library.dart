@@ -135,8 +135,54 @@ class LocalLibrary extends ChangeNotifier {
     });
   }
 
-  Future<void> delete(String id) =>
-      _change(() => _drafts.removeWhere((d) => d.id == id));
+  /// 초안 하나를 지운다. 그 초안만 쓰던 사진 파일도 지운다.
+  Future<void> delete(String id) async {
+    final removed = _drafts.where((d) => d.id == id).toList();
+    await _change(() => _drafts.removeWhere((d) => d.id == id));
+    await _deletePhotos(removed.map((d) => d.photoPath));
+  }
+
+  /// 계정 탈퇴: 그 사람의 초안·발행한 호·사진 파일, 그리고 내보낸 표지 이미지(exports/)와
+  /// 어느 초안도 쓰지 않는 사진(창간·편집하다 그만둔 사진)까지 지운다. 사진첩 원본은 그대로다.
+  Future<void> deleteOwnerData(String ownerId) async {
+    final removed = _drafts.where((d) => d.ownerId == ownerId).toList();
+    await _change(() => _drafts.removeWhere((d) => d.ownerId == ownerId));
+    await _deletePhotos(removed.map((d) => d.photoPath));
+    final directory = this.directory;
+    if (directory == null) {
+      final used = _drafts.map((d) => d.photoPath).toSet();
+      _memoryPhotos.removeWhere((key, _) => !used.contains(key));
+      return;
+    }
+    final exports = Directory('${directory.path}/exports');
+    if (await exports.exists()) await exports.delete(recursive: true);
+    final used = _drafts.map((d) => File(d.photoPath).absolute.path).toSet();
+    await for (final entity in directory.list()) {
+      if (entity is File &&
+          entity.path.endsWith('.png') &&
+          !used.contains(entity.absolute.path)) {
+        await entity.delete();
+      }
+    }
+  }
+
+  /// 보관함이 만든 사진만 지운다. 다른 초안이 아직 쓰는 사진은 남긴다.
+  Future<void> _deletePhotos(Iterable<String> paths) async {
+    final stillUsed = _drafts.map((d) => d.photoPath).toSet();
+    final directory = this.directory;
+    for (final path in paths) {
+      if (path.isEmpty || stillUsed.contains(path)) continue;
+      if (path.startsWith(memoryPhotoPrefix)) {
+        _memoryPhotos.remove(path);
+        continue;
+      }
+      if (directory == null) continue;
+      final file = File(path);
+      if (!file.absolute.path.startsWith(directory.absolute.path)) continue;
+      if (await file.exists()) await file.delete();
+    }
+  }
+
   List<CoverDraft> issuesFor(String ownerId) =>
       _drafts.where((d) => d.ownerId == ownerId && d.issueNumber > 0).toList()
         ..sort((a, b) => b.issueNumber.compareTo(a.issueNumber));

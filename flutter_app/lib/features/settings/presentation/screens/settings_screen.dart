@@ -12,12 +12,16 @@ class SettingsScreen extends StatefulWidget {
   final VoidCallback onLogoutComplete;
   final VoidCallback onDeleteComplete;
 
+  /// 계정과 이 기기의 모든 호·사진·내보낸 이미지를 지운다. 없으면 계정만 지운다.
+  final Future<void> Function()? deleteAccount;
+
   const SettingsScreen({
     super.key,
     required this.authController,
     required this.onBack,
     required this.onLogoutComplete,
     required this.onDeleteComplete,
+    this.deleteAccount,
   });
 
   @override
@@ -116,7 +120,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           TextButton(
             onPressed: () async {
               Navigator.of(ctx).pop();
-              await widget.authController.deleteAccount();
+              await (widget.deleteAccount ??
+                  widget.authController.deleteAccount)();
               widget.onDeleteComplete();
             },
             child: const Text(

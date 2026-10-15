@@ -197,4 +197,68 @@ void main() {
       expect(memory.issuesFor('owner').single.photoPath, path);
     },
   );
+
+  test('탈퇴하면 그 사람의 호·초안·사진, 내보낸 이미지, 쓰지 않는 사진까지 지운다', () async {
+    Future<String> photo(String name) async {
+      final file = File('${directory.path}/$name.png');
+      await file.writeAsBytes([1, 2, 3]);
+      return file.path;
+    }
+
+    final aIssue = await photo('a-issue');
+    final aDraft = await photo('a-draft');
+    final bIssue = await photo('b-issue');
+    final abandoned = await photo('abandoned');
+    final exports = Directory('${directory.path}/exports')..createSync();
+    File('${exports.path}/esel-1.png').writeAsBytesSync([1]);
+    // 사진첩 원본(보관함 밖)은 지우지 않는다.
+    final outside = await Directory.systemTemp.createTemp('esel-album-');
+    final original = File('${outside.path}/original.jpg')
+      ..writeAsBytesSync([9]);
+
+    await library.publish(
+      draft('a1').copyWith(photoPath: aIssue),
+      'owner-a',
+      on: const ServiceDate(2026, 10, 14),
+    );
+    await library.save(
+      draft('a2').copyWith(photoPath: aDraft, ownerId: 'owner-a'),
+    );
+    await library.save(
+      draft('a3').copyWith(photoPath: original.path, ownerId: 'owner-a'),
+    );
+    await library.publish(
+      draft('b1').copyWith(photoPath: bIssue),
+      'owner-b',
+      on: const ServiceDate(2026, 10, 14),
+    );
+
+    await library.deleteOwnerData('owner-a');
+
+    expect(library.drafts.map((d) => d.ownerId), everyElement('owner-b'));
+    expect(File(aIssue).existsSync(), isFalse);
+    expect(File(aDraft).existsSync(), isFalse);
+    expect(File(abandoned).existsSync(), isFalse);
+    expect(exports.existsSync(), isFalse);
+    expect(File(bIssue).existsSync(), isTrue);
+    expect(original.existsSync(), isTrue);
+    final reopened = LocalLibrary(directory);
+    await reopened.load();
+    expect(reopened.issuesFor('owner-a'), isEmpty);
+    expect(reopened.issuesFor('owner-b'), hasLength(1));
+    reopened.dispose();
+    await outside.delete(recursive: true);
+  });
+
+  test('초안을 지우면 그 초안만 쓰던 사진도 지운다', () async {
+    final file = File('${directory.path}/only.png')..writeAsBytesSync([1]);
+    final shared = File('${directory.path}/shared.png')..writeAsBytesSync([1]);
+    await library.save(draft('x').copyWith(photoPath: file.path));
+    await library.save(draft('y').copyWith(photoPath: shared.path));
+    await library.save(draft('z').copyWith(photoPath: shared.path));
+    await library.delete('x');
+    await library.delete('y');
+    expect(file.existsSync(), isFalse);
+    expect(shared.existsSync(), isTrue, reason: 'z가 아직 쓴다');
+  });
 }

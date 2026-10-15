@@ -303,6 +303,7 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
     if (_activeScreen == ActiveScreen.settings) {
       return SettingsScreen(
         authController: _sl.authController,
+        deleteAccount: _deleteAccount,
         onBack: () => setState(() => _activeScreen = ActiveScreen.main),
         onLogoutComplete: () {
           setState(() {
@@ -351,6 +352,14 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
         ],
       ),
     );
+  }
+
+  /// 탈퇴: 계정 기록을 지운 뒤 이 기기의 내 호·사진·내보낸 이미지까지 지운다.
+  /// 화면 문구("모든 호와 데이터가 영구히 삭제")가 사실이 되게 한다.
+  Future<void> _deleteAccount() async {
+    final userId = _sl.authController.currentSession?.userId;
+    await _sl.authController.deleteAccount();
+    if (userId != null) await _sl.localLibrary?.deleteOwnerData(userId);
   }
 
   /// 다른 사람의 서가로. 내 이름을 누르면 내 서가로 간다.
