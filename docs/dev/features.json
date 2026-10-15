@@ -84,10 +84,12 @@
         "투명도 줄이기·고대비에서 글라스가 Paper 단색으로 바뀜"
       ],
       "tests": [
-        "flutter_app/test/core/tokens_test.dart"
+        "flutter_app/test/core/components_test.dart",
+        "flutter_app/test/core/phone_frame_test.dart",
+        "flutter_app/test/app/capsule_test.dart"
       ],
       "openDecisions": [],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-02",
@@ -136,7 +138,7 @@
         "같은 색 미리보기 3장을 고르는 기준(현재 최신순 가정)",
         "미성년자 판별 방법"
       ],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-03",
@@ -169,7 +171,7 @@
         "flutter_app/test/data/mock_contract_test.dart"
       ],
       "openDecisions": [],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-04",
@@ -205,7 +207,7 @@
         "server/test/contracts/today.e2e-spec.ts"
       ],
       "openDecisions": [],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-05",
@@ -238,14 +240,17 @@
         "로그인 후 원래 하려던 동작(예: 좋아요)으로 돌아감"
       ],
       "tests": [
-        "server/test/contracts/auth.e2e-spec.ts",
-        "flutter_app/test/features/auth/auth_flow_test.dart"
+        "flutter_app/test/features/auth/auth_test.dart",
+        "flutter_app/test/features/auth/login_sheet_test.dart",
+        "flutter_app/test/features/auth/real_auth_test.dart",
+        "flutter_app/test/app/profile_route_test.dart",
+        "server/test/contracts/auth.e2e-spec.ts"
       ],
       "openDecisions": [
         "Apple·Google 로그인 도입 시점",
         "이메일 인증 메일 발송 서비스"
       ],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-07",
@@ -278,13 +283,16 @@
         "발행 후 색 변경은 거절"
       ],
       "tests": [
+        "flutter_app/test/features/today/daily_candidates_test.dart",
+        "flutter_app/test/features/today/today_test.dart",
+        "flutter_app/test/app/day_boundary_test.dart",
         "server/test/contracts/today.e2e-spec.ts"
       ],
       "openDecisions": [
         "후보 3색을 고르는 방식과 희귀 팔레트 확률",
         "시간대가 다른 사용자의 날짜 기준"
       ],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-08",
@@ -327,7 +335,7 @@
         "이미지 저장소(S3 호환·로컬 등)",
         "기기 얼굴 감지 방식"
       ],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-09",
@@ -361,11 +369,12 @@
         "발행 후 가판대의 후보 3색 칩 자물쇠가 모두 사라짐"
       ],
       "tests": [
-        "server/test/contracts/issues.e2e-spec.ts",
-        "flutter_app/test/features/publishing/make_test.dart"
+        "flutter_app/test/features/publishing/publishing_test.dart",
+        "flutter_app/test/features/today/today_test.dart",
+        "server/test/contracts/issues.e2e-spec.ts"
       ],
       "openDecisions": [],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-06",
@@ -413,7 +422,7 @@
         "닉네임 금칙어·예약어 목록",
         "한글만 쓰는 사용자의 제호"
       ],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-10",
@@ -455,7 +464,7 @@
       "openDecisions": [
         "인기 혼합에 쓰는 내부 신호"
       ],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-11",
@@ -488,12 +497,13 @@
         "한 줄은 60자 이내, 빈 줄 거절"
       ],
       "tests": [
+        "flutter_app/test/features/issue/owner_numbers_test.dart",
         "server/test/contracts/issues.e2e-spec.ts"
       ],
       "openDecisions": [
         "독자 한 줄 신고·삭제 정책"
       ],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-12",
@@ -533,7 +543,7 @@
       "openDecisions": [
         "미리보기 3장 선정 기준"
       ],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-13",
@@ -564,10 +574,11 @@
         "구독하면 피드 구독 탭에 나타남"
       ],
       "tests": [
+        "flutter_app/test/features/magazine/shelf_test.dart",
         "server/test/contracts/magazines.e2e-spec.ts"
       ],
       "openDecisions": [],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-14",
@@ -601,7 +612,7 @@
         "server/test/contracts/me.e2e-spec.ts"
       ],
       "openDecisions": [],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-15",

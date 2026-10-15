@@ -59,7 +59,7 @@
     "url": "http://localhost:4177/",
     "port": 4177
   },
-  "nativeApp": {"framework": "flutter", "root": "flutter_app", "routes": "flutter_app/lib/app/routing/app_routes.dart", "source": "flutter_app/lib", "tests": "flutter_app/test", "status": "midterm-demo-not-design-parity", "demoRun": "flutter run -d <device> --dart-define=ESEL_API_MODE=mock"},
+  "nativeApp": {"framework": "flutter", "root": "flutter_app", "routes": "flutter_app/lib/app/routing/app_routes.dart", "source": "flutter_app/lib", "tests": "flutter_app/test", "status": "mock-mode-contracts-p01-p04-p13-p16-tested-design-partial", "demoRun": "flutter run -d <device> --dart-define=ESEL_API_MODE=mock"},
   "designTokens": {"paper": "#F9F9FB", "ink": "#292A27", "muted": "#71736C", "hairline": "#E0E1DC", "gutter": "20px", "touch": "48px"},
   "glass": {"background": "rgba(249,249,251,0.58)", "blur": "22px", "saturate": 1.6, "fallback": "#F9F9FB", "use": ["capsule-menu", "login-bar", "login-sheet", "small-logo"]},
   "tokenScale": {
@@ -82,6 +82,7 @@
     "burgundy": "#7A2735", "olive": "#6F7445", "cream": "#E9DEC6", "charcoal": "#3F4043", "camel": "#C1945F", "cobalt": "#2648B0"
   },
   "dailyCandidates": 3,
+  "dailyCandidatesMock": {"rule": "date-only-deterministic", "source": "flutter_app/lib/features/today/domain/rules/daily_candidates.dart", "2026-09-06": ["camel", "lilac", "olive"], "realAssignment": "undecided"},
   "demoPeople": {
     "dana": "assets/demo/blue-city.jpg",
     "elin": "assets/models/sage-01.jpg", "mira": "assets/models/sage-02.jpg",
@@ -106,7 +107,7 @@
     "mastheadScroll": {"followsCoverDown": true, "smallLogoShowUpPx": 48, "smallLogoHideDownPx": 18, "meltZonePx": 360, "smallScale": 0.14},
     "status": "mock-thresholds-not-final"
   },
-  "sameColorLock": {"purpose": "publish-to-unlock-chain-activation", "beforePublishVisible": 3, "restShownAs": "blurred-spines", "unlocksOn": ["own-publish", "midnight"], "copy": "발행하면 함께 펼쳐집니다", "bannedCopy": ["놓치면 끝", "countdown"], "minors": "no-lock", "lockedRooms": "all-today-candidates", "colorSwitchUnlocks": false, "nonCandidateRooms": "open", "notUnlockedBy": ["color-switch", "confirm", "restore", "twin-publish"], "strengthenedAt": "2026-10-15", "previewPick": "undecided-demo-newest", "decidedAt": "2026-10-05"},
+  "sameColorLock": {"purpose": "publish-to-unlock-chain-activation", "beforePublishVisible": 3, "restShownAs": "blurred-spines", "unlocksOn": ["own-publish", "midnight"], "copy": "발행하면 함께 펼쳐집니다", "bannedCopy": ["놓치면 끝", "countdown"], "minors": "no-lock", "lockedRooms": "all-today-candidates", "colorSwitchUnlocks": false, "nonCandidateRooms": "open", "minorDetection": "undecided", "notUnlockedBy": ["color-switch", "confirm", "restore", "twin-publish"], "strengthenedAt": "2026-10-15", "previewPick": "undecided-demo-newest", "decidedAt": "2026-10-05"},
   "publicCounts": {"ownerOnly": ["likes", "subscribers", "reader-line-count", "scrap-count"], "public": ["same-color-count", "issue-number", "reader-line-text"], "rankByIssueOrCounts": false, "popularMix": "internal-signal-only", "decidedAt": "2026-10-05"},
   "authPolicy": {"loggedOutFirstScreen": "today-cover", "previewInnerPages": 2, "loginBarAtPx": 640, "loginBarReplaces": "capsule-menu", "actionsNeedLogin": ["like", "subscribe", "one-line", "scrap", "make"], "realAuth": false},
   "foundingFlow": {"steps": ["color", "shoot", "masthead", "face", "first-issue"], "mastheadPattern": "^[a-z]{2,10}$", "firstIssue": 1, "uniquenessCheck": false},
@@ -141,12 +142,13 @@
     "docs/dev/README.md",
     "docs/dev/features.json",
     "scripts/dev-harness.mjs",
-    "scripts/capture-mockup.mjs"
+    "scripts/capture-mockup.mjs",
+    "flutter_app/assets/README.md"
   ],
   "productContracts": ["P01", "P02", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P13", "P14", "P15", "P16", "P17", "P18"],
   "manualChecks": ["V01", "V02", "V03", "V04", "V05", "V06", "V07", "V08", "V09", "V10", "V11", "V12"],
   "notDrawnInCoverSns": ["same-color-unlock-motion", "owner-count-screen", "twin", "monthly-record-restore", "settings", "notifications", "dark-mode"],
-  "notImplemented": ["real-auth", "social-login", "server-upload", "friend-sync", "daily-rollover", "nickname-uniqueness", "on-device-face-detection", "dedicated-share-card"],
+  "notImplemented": ["real-auth", "social-login", "server-upload", "friend-sync", "nickname-uniqueness", "on-device-face-detection", "dedicated-share-card"],
   "archive": [
     {"path": ".codex/temp/prototype/20260905-esel-gallery", "status": "archived", "was": "2026-09-05 갤러리형 Expo 앱 설계 기록과 웹 빌드", "banner": ".codex/temp/prototype/20260905-esel-gallery/prototype.md"},
     {"path": ".codex/temp/prototype/20260906-art-directions", "status": "archived", "was": "2026-09-06 미술관·아틀리에 방향 탐색", "banner": ".codex/temp/prototype/20260906-art-directions/prototype.md"},

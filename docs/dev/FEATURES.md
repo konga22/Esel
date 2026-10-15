@@ -4,20 +4,20 @@
 
 | ID | 기능 | 단계 | 목업 화면 | 계약 | 먼저 할 것 | 상태 |
 |---|---|---|---|---|---|---|
-| [DEV-01](#dev-01) | 디자인 토큰과 기본 UI | 0 기반 | — | P17 | — | todo |
-| [DEV-02](#dev-02) | 도메인 규칙 이식 | 0 기반 | — | P01 P02 P03 P04 P06 P07 P08 P09 P10 P14 P18 | — | todo |
-| [DEV-03](#dev-03) | API 계약과 모의 어댑터 | 0 기반 | — | P12 P18 | DEV-02 | todo |
-| [DEV-04](#dev-04) | 비로그인 첫 표지와 로그인 바 | 1 계정 | J1 J1b | P12 P16 | DEV-01 DEV-03 | todo |
-| [DEV-05](#dev-05) | 로그인 | 1 계정 | J2 | P12 | DEV-04 | todo |
-| [DEV-07](#dev-07) | 오늘의 색 | 2 창간·발행 | J3 | P03 P05 P17 | DEV-02 DEV-03 | todo |
-| [DEV-08](#dev-08) | 사진과 얼굴 연출 | 2 창간·발행 | J4 J6 C6 | P11 P15 | DEV-01 | todo |
-| [DEV-09](#dev-09) | 오늘 호 발행 | 2 창간·발행 | C6 C8b | P04 P01 | DEV-07 DEV-08 | todo |
-| [DEV-06](#dev-06) | 창간 | 2 창간·발행 | J3 J4 J5 J6 J7 | P13 P14 P15 P04 | DEV-05 DEV-07 DEV-08 DEV-09 | todo |
-| [DEV-10](#dev-10) | 표지 피드 | 3 읽기 | C1 C2 C7 | P01 P02 P16 P18 | DEV-09 | todo |
-| [DEV-11](#dev-11) | 펼침면과 독자 한 줄 | 3 읽기 | C3 | P12 P18 | DEV-10 | todo |
-| [DEV-12](#dev-12) | 가판대와 같은 색 | 3 읽기 | C4 C8 C8b | P01 P02 P18 | DEV-10 | todo |
-| [DEV-13](#dev-13) | 서가와 구독 | 3 읽기 | C5 C5b | P04 P18 | DEV-10 | todo |
-| [DEV-14](#dev-14) | 내 잡지와 반응 | 4 내 잡지 | M1 A4 | P18 | DEV-09 DEV-11 | todo |
+| [DEV-01](#dev-01) | 디자인 토큰과 기본 UI | 0 기반 | — | P17 | — | doing |
+| [DEV-02](#dev-02) | 도메인 규칙 이식 | 0 기반 | — | P01 P02 P03 P04 P06 P07 P08 P09 P10 P14 P18 | — | doing |
+| [DEV-03](#dev-03) | API 계약과 모의 어댑터 | 0 기반 | — | P12 P18 | DEV-02 | doing |
+| [DEV-04](#dev-04) | 비로그인 첫 표지와 로그인 바 | 1 계정 | J1 J1b | P12 P16 | DEV-01 DEV-03 | doing |
+| [DEV-05](#dev-05) | 로그인 | 1 계정 | J2 | P12 | DEV-04 | doing |
+| [DEV-07](#dev-07) | 오늘의 색 | 2 창간·발행 | J3 | P03 P05 P17 | DEV-02 DEV-03 | doing |
+| [DEV-08](#dev-08) | 사진과 얼굴 연출 | 2 창간·발행 | J4 J6 C6 | P11 P15 | DEV-01 | doing |
+| [DEV-09](#dev-09) | 오늘 호 발행 | 2 창간·발행 | C6 C8b | P04 P01 | DEV-07 DEV-08 | doing |
+| [DEV-06](#dev-06) | 창간 | 2 창간·발행 | J3 J4 J5 J6 J7 | P13 P14 P15 P04 | DEV-05 DEV-07 DEV-08 DEV-09 | doing |
+| [DEV-10](#dev-10) | 표지 피드 | 3 읽기 | C1 C2 C7 | P01 P02 P16 P18 | DEV-09 | doing |
+| [DEV-11](#dev-11) | 펼침면과 독자 한 줄 | 3 읽기 | C3 | P12 P18 | DEV-10 | doing |
+| [DEV-12](#dev-12) | 가판대와 같은 색 | 3 읽기 | C4 C8 C8b | P01 P02 P18 | DEV-10 | doing |
+| [DEV-13](#dev-13) | 서가와 구독 | 3 읽기 | C5 C5b | P04 P18 | DEV-10 | doing |
+| [DEV-14](#dev-14) | 내 잡지와 반응 | 4 내 잡지 | M1 A4 | P18 | DEV-09 DEV-11 | doing |
 | [DEV-15](#dev-15) | 월간 색 기록과 복원 | 4 내 잡지 | R1 R2 R3 R4 R5 | P06 P07 P03 | DEV-02 DEV-09 | todo |
 | [DEV-16](#dev-16) | 친구 | 5 관계 | F1 F2 F3 | P12 | DEV-06 | todo |
 | [DEV-17](#dev-17) | 트윈 | 5 관계 | T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T8private T8solo | P08 P09 P10 | DEV-16 DEV-08 | todo |
@@ -27,7 +27,7 @@
 
 ## DEV-01
 
-**디자인 토큰과 기본 UI** · 0단계 기반 · 상태 `todo`
+**디자인 토큰과 기본 UI** · 0단계 기반 · 상태 `doing`
 
 Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성 파일 flutter_app/lib/core/design/tokens.g.dart에서만 가져오고, 02 컴포넌트 보드의 버튼·칩·세그먼트·입력·글라스 캡슐·시트·알림을 공용 컴포넌트로 만든다.
 
@@ -53,11 +53,13 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
-- `flutter_app/test/core/tokens_test.dart`
+- `flutter_app/test/core/components_test.dart`
+- `flutter_app/test/core/phone_frame_test.dart`
+- `flutter_app/test/app/capsule_test.dart`
 
 ## DEV-02
 
-**도메인 규칙 이식** · 0단계 기반 · 상태 `todo`
+**도메인 규칙 이식** · 0단계 기반 · 상태 `doing`
 
 같은 색 방(P01), 하루 한 호(P04), 색 복원(P06·P07), 트윈(P08~P10), 제호 규칙(P14), 숫자 공개 범위(P18)를 Flutter 앱의 순수 Dart 함수로 옮긴다. 기준 구현은 20260906-minimal-gallery/src/social-state.js와 앱 목업 app.js다.
 
@@ -97,7 +99,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 ## DEV-03
 
-**API 계약과 모의 어댑터** · 0단계 기반 · 상태 `todo`
+**API 계약과 모의 어댑터** · 0단계 기반 · 상태 `doing`
 
 화면이 서버 완성을 기다리지 않도록, 앱이 쓰는 API를 하나의 인터페이스로 정의하고 메모리 모의 구현과 HTTP 구현을 바꿔 끼울 수 있게 한다.
 
@@ -126,7 +128,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 ## DEV-04
 
-**비로그인 첫 표지와 로그인 바** · 1단계 계정 · 상태 `todo`
+**비로그인 첫 표지와 로그인 바** · 1단계 계정 · 상태 `doing`
 
 앱을 처음 열면 오늘의 표지와 안쪽 2쪽까지 읽을 수 있고, 640px 지나면 캡슐 자리에서 로그인 바가 올라온다.
 
@@ -158,7 +160,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 ## DEV-05
 
-**로그인** · 1단계 계정 · 상태 `todo`
+**로그인** · 1단계 계정 · 상태 `doing`
 
 로그인 시트에서 계정으로 들어간다. 서버 계획상 이메일 가입·로그인과 refresh token 회전이 먼저이고, Apple·Google은 그 뒤다.
 
@@ -189,8 +191,11 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
+- `flutter_app/test/features/auth/auth_test.dart`
+- `flutter_app/test/features/auth/login_sheet_test.dart`
+- `flutter_app/test/features/auth/real_auth_test.dart`
+- `flutter_app/test/app/profile_route_test.dart`
 - `server/test/contracts/auth.e2e-spec.ts`
-- `flutter_app/test/features/auth/auth_flow_test.dart`
 
 **사용자 결정이 필요한 것**
 
@@ -199,7 +204,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 ## DEV-07
 
-**오늘의 색** · 2단계 창간·발행 · 상태 `todo`
+**오늘의 색** · 2단계 창간·발행 · 상태 `doing`
 
 서버가 서비스 날짜마다 12색 중 후보 3개를 정하고, 사용자는 하나를 고른다. 발행하면 그날 색은 바꿀 수 없다.
 
@@ -227,6 +232,9 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
+- `flutter_app/test/features/today/daily_candidates_test.dart`
+- `flutter_app/test/features/today/today_test.dart`
+- `flutter_app/test/app/day_boundary_test.dart`
 - `server/test/contracts/today.e2e-spec.ts`
 
 **사용자 결정이 필요한 것**
@@ -236,7 +244,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 ## DEV-08
 
-**사진과 얼굴 연출** · 2단계 창간·발행 · 상태 `todo`
+**사진과 얼굴 연출** · 2단계 창간·발행 · 상태 `doing`
 
 사진을 찍거나 고르고, 얼굴 연출(그대로·물감 한 획·제호 뒤로·목 아래)을 기기 안에서 합성한 뒤 올린다.
 
@@ -277,7 +285,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 ## DEV-09
 
-**오늘 호 발행** · 2단계 창간·발행 · 상태 `todo`
+**오늘 호 발행** · 2단계 창간·발행 · 상태 `doing`
 
 오늘 호 만들기에서 표지 문구와 제호 색을 정해 발행한다. 발행은 하루 한 번이고, 성공하면 호수가 1 오르고 같은 색 방이 열린다.
 
@@ -306,12 +314,13 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
+- `flutter_app/test/features/publishing/publishing_test.dart`
+- `flutter_app/test/features/today/today_test.dart`
 - `server/test/contracts/issues.e2e-spec.ts`
-- `flutter_app/test/features/publishing/make_test.dart`
 
 ## DEV-06
 
-**창간** · 2단계 창간·발행 · 상태 `todo`
+**창간** · 2단계 창간·발행 · 상태 `doing`
 
 처음 쓰는 사람은 색 → 촬영 → 제호 → 얼굴 연출 → 창간호 순서로 내 잡지를 만든다. 창간호 발행은 DEV-09의 발행과 같은 규칙이다.
 
@@ -350,7 +359,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 ## DEV-10
 
-**표지 피드** · 3단계 읽기 · 상태 `todo`
+**표지 피드** · 3단계 읽기 · 상태 `doing`
 
 피드의 첫 장만 표지이고 나머지는 안쪽 지면이다. 전체/구독 탭, 최신순에 가끔 인기 혼합, 반응 숫자는 보이지 않는다.
 
@@ -388,7 +397,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 ## DEV-11
 
-**펼침면과 독자 한 줄** · 3단계 읽기 · 상태 `todo`
+**펼침면과 독자 한 줄** · 3단계 읽기 · 상태 `doing`
 
 표지를 펼치면 큰 제목, 사진 2장, 반응, 독자 한 줄이 나온다. 한 줄을 남길 수 있다.
 
@@ -418,6 +427,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
+- `flutter_app/test/features/issue/owner_numbers_test.dart`
 - `server/test/contracts/issues.e2e-spec.ts`
 
 **사용자 결정이 필요한 것**
@@ -426,7 +436,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 ## DEV-12
 
-**가판대와 같은 색** · 3단계 읽기 · 상태 `todo`
+**가판대와 같은 색** · 3단계 읽기 · 상태 `doing`
 
 가판대에서 12색 칩으로 오늘의 표지를 거른다. 오늘 후보 3색은 발행 전 자물쇠이고, 누르면 최신 3장과 흐린 책등만 보인다.
 
@@ -463,7 +473,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 ## DEV-13
 
-**서가와 구독** · 3단계 읽기 · 상태 `todo`
+**서가와 구독** · 3단계 읽기 · 상태 `doing`
 
 남의 이름을 누르면 그 사람의 잡지(서가)가 열린다. 지난 호를 표지/책등으로 보고 구독할 수 있다.
 
@@ -490,11 +500,12 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **추가할 테스트**
 
+- `flutter_app/test/features/magazine/shelf_test.dart`
 - `server/test/contracts/magazines.e2e-spec.ts`
 
 ## DEV-14
 
-**내 잡지와 반응** · 4단계 내 잡지 · 상태 `todo`
+**내 잡지와 반응** · 4단계 내 잡지 · 상태 `doing`
 
 내 잡지에서 오늘 호, 지난 호, 메뉴(월간 색 기록·트윈·친구·설정)를 보고, 내 표지의 반응 수와 목록은 나만 본다.
 

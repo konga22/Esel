@@ -44,13 +44,15 @@ flutter_app/lib/core/design/tokens.g.dart   생성 파일. harness.json에서 `n
 flutter_app/lib/core/design/                글꼴(typography.dart)·테마. legacy_tokens.dart는 하네스 밖 값이라 정리 대상
 flutter_app/lib/core/ui/                    02 컴포넌트: 버튼, 칩, 글라스(EselGlass), 작은 표지, 물감, 휴대폰 폭 프레임
 flutter_app/lib/core/network/, storage/     서버 호출(http_client.dart)과 토큰 보안 저장
+flutter_app/lib/core/time/                  서비스 날짜(Asia/Seoul)와 시계. 테스트에서 시간을 주입한다
+flutter_app/lib/core/mock/                  mock 모드 예시 인물 데이터
 flutter_app/lib/features/<기능>/domain/     화면·네트워크와 무관한 규칙(같은 색, 발행, 복원, 트윈, 제호). 순수 함수 + 테스트
 flutter_app/lib/features/<기능>/data/       mock 소스·서버 소스·저장소. `--dart-define=ESEL_API_MODE` 하나로 바꾼다
 flutter_app/lib/features/<기능>/presentation/  화면(screens)과 상태(controllers)
 flutter_app/test/                           domain·data·위젯 테스트 (`flutter test`)
 ```
 
-지금은 인증(`features/auth/data`)과 기기 보관함(`features/drafts/data`)만 data 계층이 있다. 피드·가판대·서가는 controller 안의 예시 데이터라 DEV-03에서 mock 소스로 옮긴다.
+data 계층은 인증(`features/auth/data`), 기기 보관함(`features/drafts/data`), 피드·가판대·서가 소스(`features/{feed,stand,magazine}/data/sources`), 예시 표지(`features/issue/data`)에 있다. 피드·가판대·서가는 소스 인터페이스의 mock 구현을 읽고, 서버 구현은 아직 `NotImplementedFailure`다. 오늘의 색 후보(`features/today/domain/rules/daily_candidates.dart`)는 날짜만으로 정해지는 mock 규칙이다.
 
 | 목업 경로 | 앱 위치(현재) | 화면 |
 |---|---|---|
