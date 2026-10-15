@@ -89,7 +89,7 @@ test('confirmation alone never unlocks today same-palette feed', () => {
   const confirmed = state.confirm(state.create());
   assert.equal(confirmed.post, null);
   assert.equal(state.canView(confirmed, { date: state.TODAY, paletteId: 'sage' }), false);
-  assert.equal(state.canView(confirmed, { date: state.TODAY, paletteId: 'blue' }), true);
+  assert.equal(state.canView(confirmed, { date: state.TODAY, paletteId: 'blue' }), false);
   const restored = state.restore(confirmed, '2026-09-03', 'blue');
   assert.equal(state.canView(restored, { date: state.TODAY, paletteId: 'sage' }), false);
   assert.equal(state.canChoose(restored), false);
@@ -102,15 +102,31 @@ test('rare draw rejects out of range or nonnumeric values', () => {
   }
 });
 
-test('today same-palette feed is locked while other palettes stay public', () => {
+test('before publishing every candidate room is locked and non-candidate rooms stay public', () => {
   const initial = state.create();
-  assert.equal(state.canView(initial, { date: state.TODAY, paletteId: 'sage' }), false);
-  for (const paletteId of ['butter', 'blue', 'rare']) {
-    assert.equal(state.canView(initial, { date: state.TODAY, paletteId }), true);
+  assert.deepEqual(state.candidates(initial), ['sage', 'butter', 'blue']);
+  for (const paletteId of ['sage', 'butter', 'blue']) {
+    assert.equal(state.canView(initial, { date: state.TODAY, paletteId }), false);
   }
-  const selected = state.choose(initial, 'blue');
-  assert.equal(state.canView(selected, { date: state.TODAY, paletteId: 'blue' }), false);
-  assert.equal(state.canView(selected, { date: state.TODAY, paletteId: 'sage' }), true);
+  assert.equal(state.canView(initial, { date: state.TODAY, paletteId: 'rare' }), true);
+  const rare = state.create({ rare: true });
+  assert.deepEqual(state.candidates(rare), ['sage', 'butter', 'blue', 'rare']);
+  assert.equal(state.canView(rare, { date: state.TODAY, paletteId: 'rare' }), false);
+});
+
+test('switching palettes before publishing never opens a room (review H2)', () => {
+  let viewer = state.create();
+  for (const paletteId of ['butter', 'blue', 'sage', 'butter']) {
+    viewer = state.choose(viewer, paletteId);
+    for (const room of ['sage', 'butter', 'blue']) {
+      assert.equal(state.canView(viewer, { date: state.TODAY, paletteId: room }), false);
+    }
+  }
+  const published = state.publish(viewer, photo);
+  assert.equal(published.post.paletteId, 'butter');
+  for (const room of ['sage', 'butter', 'blue', 'rare']) {
+    assert.equal(state.canView(published, { date: state.TODAY, paletteId: room }), true);
+  }
 });
 
 test('past feed is public, future feed is closed, and malformed dates never open a feed', () => {
@@ -136,14 +152,11 @@ test('publishing opens today same-palette feed and records the photo and color',
   assert.equal(initial.history.length, 4);
 });
 
-test('a mismatched or old post never unlocks today same-palette feed', () => {
+test('an old post never unlocks today rooms, and today own post opens every room', () => {
   const initial = state.create();
-  for (const post of [
-    { date: '2026-09-05', paletteId: 'sage', photo },
-    { date: state.TODAY, paletteId: 'butter', photo },
-  ]) {
-    assert.equal(state.canView({ ...initial, post }, { date: state.TODAY, paletteId: 'sage' }), false);
-  }
+  assert.equal(state.canView({ ...initial, post: { date: '2026-09-05', paletteId: 'sage', photo } }, { date: state.TODAY, paletteId: 'sage' }), false);
+  const todayPost = { ...initial, post: { date: state.TODAY, paletteId: 'butter', photo } };
+  for (const paletteId of ['sage', 'butter', 'blue']) assert.equal(state.canView(todayPost, { date: state.TODAY, paletteId }), true);
 });
 
 test('a missing photo and duplicate publishing are rejected', () => {
@@ -220,10 +233,14 @@ test('after midnight the room is fully open, future rooms and bad dates stay clo
   }
 });
 
-test('other palettes today are fully open before publishing', () => {
-  const result = state.sameColorRoom(state.create(), room, today('butter'));
-  assert.equal(result.access, 'open');
-  assert.deepEqual(ids(result), ['fo']);
+test('other candidate rooms are also at the preview, non-candidate rooms are open', () => {
+  const butter = state.sameColorRoom(state.choose(state.create(), 'blue'), room, today('butter'));
+  assert.equal(butter.access, 'preview');
+  assert.deepEqual(ids(butter), ['fo']);
+  const rareRoom = [{ id: 'ra', date: state.TODAY, paletteId: 'rare', minute: 1 }, { id: 'rb', date: state.TODAY, paletteId: 'rare', minute: 2 }, { id: 'rc', date: state.TODAY, paletteId: 'rare', minute: 3 }, { id: 'rd', date: state.TODAY, paletteId: 'rare', minute: 4 }];
+  const rare = state.sameColorRoom(state.create(), rareRoom, today('rare'));
+  assert.equal(rare.access, 'open');
+  assert.equal(rare.hiddenCount, 0);
 });
 
 test('minors see the whole room without the publishing lock', () => {
