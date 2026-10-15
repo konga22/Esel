@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { mastSize, B, SANS, SERIF, MONO, INK, PAPER, MUTED, PAINT, PEOPLE, ME, COLOR_ORDER, ROOT, cover, faceStroke, neckDown, crop, avatar, paint, icon, stat, LIKE_ATTRS, pill, masthead, capsule, page } from './lib.mjs';
+import { mastSize, B, SANS, SERIF, MONO, INK, PAPER, MUTED, PAINT, PEOPLE, ME, COLOR_ORDER, TODAY_CANDIDATES, ROOT, cover, faceStroke, neckDown, crop, avatar, paint, icon, stat, LIKE_ATTRS, pill, masthead, capsule, page } from './lib.mjs';
 import { mastLayer, scrollLogic } from './scroll.mjs';
 
 const OUT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'project');
@@ -113,9 +113,10 @@ ${name ? `<span style="position: absolute; left: ${Math.round(w * 0.06)}px; bott
 
 // C4 가판대
 const chip = (label, color, active = false) => `<button type="button" aria-pressed="${active}" style="height: 44px; flex-shrink: 0; display: flex; align-items: center"><span style="height: 38px; padding: 0 ${color ? '14px 0 8px' : '16px'}; border-radius: 19px; display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 500; white-space: nowrap; ${active ? `background: ${INK}; color: ${PAPER}` : 'background: #FFFFFF; box-shadow: inset 0 0 0 1px #E0E1DC'}">${color ? paint(color, 40, '', '') : ''}<span>${label}</span></span></button>`;
-// My own color before I publish today: the chip opens the half-open same-color room (C8).
+// Today's candidate colors before I publish: each chip opens the half-open same-color room (C8), so switching color opens nothing (P01).
 const lockedChip = (c, active = false) => `<a href="CoverStandLocked.dc.html" aria-label="${PAINT[c].name} · 오늘 발행 전이라 세 장만 먼저 보여요"${active ? ' aria-current="true"' : ''} style="height: 44px; flex-shrink: 0; display: flex; align-items: center"><span style="height: 38px; padding: 0 12px 0 8px; border-radius: 19px; display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 500; white-space: nowrap; ${active ? `background: ${INK}; color: ${PAPER}` : 'background: #FFFFFF; box-shadow: inset 0 0 0 1.5px #292A27'}">${paint(c, 40, '', '')}<span>${PAINT[c].name}</span>${icon('lock', 15, 1.8)}</span></a>`;
-const colorChips = (activeLocked = false) => [lockedChip(PEOPLE[ME].color, activeLocked), ...COLOR_ORDER.filter((c) => c !== PEOPLE[ME].color).map((c) => chip(PAINT[c].name, c))].join('\n');
+const todayChips = [PEOPLE[ME].color, ...TODAY_CANDIDATES.filter((c) => c !== PEOPLE[ME].color)];
+const colorChips = (activeLocked = false) => [...todayChips.map((c, i) => lockedChip(c, activeLocked && i === 0)), ...COLOR_ORDER.filter((c) => !todayChips.includes(c)).map((c) => chip(PAINT[c].name, c))].join('\n');
 const shelfRow = (a, b) => `<div style="flex-shrink: 0; display: flex; justify-content: space-between; padding: 0 16px">${miniCover({ ...a, w: 174, h: 250 })}${miniCover({ ...b, w: 174, h: 250 })}</div>
 <span aria-hidden="true" style="flex-shrink: 0; height: 2px; margin-bottom: 16px; background: ${INK}"></span>`;
 files.CoverStand = page('표지 SNS 4 가판대', `<div style="${ROOT(`padding-top: 54px; display: flex; flex-direction: column; background: ${PAPER}; color: ${INK}`)}">
@@ -128,8 +129,8 @@ ${chip('전체', null, true)}
 ${colorChips()}
 </div>
 ${shelfRow({ key: 'ama', py: 0.3 }, { key: 'lise', style: 'paint', py: 0.3 })}
-${shelfRow({ key: 'kofi', mastColor: INK, px: 0.7, py: 0.2 }, { key: 'riva', py: 0.3 })}
-${shelfRow({ key: 'maya', style: 'neck', mastColor: INK }, { key: 'imani', py: 0.3 })}
+${shelfRow({ key: 'rio', py: 0.3 }, { key: 'riva', py: 0.3 })}
+${shelfRow({ key: 'maya', style: 'neck', mastColor: INK }, { key: 'nia', py: 0.3 })}
 ${capsule({ color: PEOPLE[ME].color })}
 </div>`);
 
