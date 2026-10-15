@@ -30,6 +30,9 @@ class RecordsController extends ChangeNotifier {
   int _usedRestores = 0;
 
   int get usedRestores => _usedRestores;
+
+  /// 화면 머리의 달(`2026. 9`). 기록 화면은 아직 시연 범위 밖이라 예시 달을 쓴다.
+  String get monthLabel => '${_today.year}. ${_today.month}';
   int get remainingRestores =>
       (RestoreRule.maxMonthlyRestores - _usedRestores).clamp(0, 2);
 

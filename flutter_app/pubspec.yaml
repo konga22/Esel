@@ -1,5 +1,5 @@
 name: esel
-description: "A new Flutter project."
+description: "Esel — 오늘의 색으로 입은 착장을 잡지 표지로 발행하는 패션 SNS (Flutter 앱)"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev

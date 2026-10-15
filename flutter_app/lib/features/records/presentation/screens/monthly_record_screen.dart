@@ -182,7 +182,7 @@ class MonthlyRecordScreen extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Text(
-            '월간 색 기록 · 2026. 9',
+            '월간 색 기록 · ${controller.monthLabel}',
             style: EselTypography.headlineSmall.copyWith(
               fontWeight: FontWeight.w700,
             ),

@@ -119,7 +119,7 @@ class StandardHttpClient implements AppHttpClient {
       );
     } on io.SocketException {
       throw const NetworkFailure(
-        '서버에 연결할 수 없어요. Docker 서버 실행 상태를 확인해 주세요.',
+        '서버에 연결할 수 없어요. 인터넷 연결을 확인하고 잠시 뒤 다시 시도해 주세요.',
         code: 'OFFLINE',
       );
     } on FormatException {

@@ -1,11 +1,11 @@
 {
-    "name": "esel",
-    "short_name": "esel",
+    "name": "Esel",
+    "short_name": "Esel",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "오늘의 색으로 입은 착장을 한 권의 잡지 표지로 발행하는 패션 SNS",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -75,9 +75,10 @@ class FriendsController extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool sendRequest(String targetMasthead) {
+  /// [selfMasthead]는 내 제호(나에게는 요청을 보낼 수 없다).
+  bool sendRequest(String targetMasthead, {String? selfMasthead}) {
     final trimmed = targetMasthead.trim().toLowerCase();
-    if (trimmed.isEmpty || trimmed == 'dana') return false;
+    if (trimmed.isEmpty || trimmed == selfMasthead) return false;
     if (_friends.any((f) => f.masthead == trimmed)) return false;
 
     // 모의 친구 요청 발송
