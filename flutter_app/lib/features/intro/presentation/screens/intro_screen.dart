@@ -1,13 +1,17 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../../../../core/design/tokens.g.dart';
 import '../../../../core/design/typography.dart';
 import '../../../../core/ui/esel_glass.dart';
+import '../../../../core/text/korean_count.dart';
 import '../../../../core/time/service_date.dart';
 import '../../../../core/ui/esel_pressable.dart';
 import '../../../feed/presentation/controllers/feed_controller.dart';
 import '../../../feed/presentation/widgets/feed_pages.dart';
 import '../../../feed/presentation/widgets/melting_masthead.dart';
+import '../../../issue/domain/models/public_issue.dart';
+import '../../../issue/presentation/issue_photo.dart';
 import '../../../stand/domain/rules/same_color_rule.dart';
 
 class IntroScreen extends StatefulWidget {
@@ -110,23 +114,17 @@ class _IntroScreenState extends State<IntroScreen> {
                   controller: _scrollController,
                   padding: EdgeInsets.zero,
                   children: [
-                    Stack(
-                      children: [
-                        TodayCover(
-                          issue: cover,
-                          sameColorCount: page.sameColorCount(cover.color),
-                          height: math.max(600.0, media.size.height - 52),
-                          chromeTop: chromeTop,
-                          leading: const Padding(
-                            padding: EdgeInsets.only(left: 6),
-                            child: Text('오늘의 표지'),
-                          ),
-                          meta:
-                              'Nº ${page.appIssueNumber} · ${page.date.label}',
-                          actions: _loginFirst,
-                        ),
-                        _buildLoginChip(chromeTop),
-                      ],
+                    TodayCover(
+                      issue: cover,
+                      sameColorCount: page.sameColorCount(cover.color),
+                      height: math.max(600.0, media.size.height - 52),
+                      chromeTop: chromeTop,
+                      leading: const Padding(
+                        padding: EdgeInsets.only(left: 6),
+                        child: Text('오늘의 표지'),
+                      ),
+                      meta: 'Nº ${page.appIssueNumber} · ${page.date.label}',
+                      actions: _loginFirst,
                     ),
                     for (final (i, issue) in page.innerPages.indexed)
                       InnerPage(
@@ -134,7 +132,12 @@ class _IntroScreenState extends State<IntroScreen> {
                         pageNumber: i + 2,
                         actions: _loginFirst,
                       ),
-                    _buildTeaserEndSection(),
+                    _TeaserEnd(
+                      remainingPages: page.pagesForMembers,
+                      backdrop: page.innerPages.isEmpty
+                          ? cover
+                          : page.innerPages.last,
+                    ),
                     const SizedBox(height: 120),
                   ],
                 ),
@@ -156,108 +159,6 @@ class _IntroScreenState extends State<IntroScreen> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildLoginChip(double chromeTop) {
-    return Positioned(
-      top: chromeTop + 6,
-      right: 20,
-      child: EselPressable(
-        onTap: widget.onOpenLogin,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.4),
-            borderRadius: BorderRadius.circular(EselTokens.radiusPill),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
-          ),
-          child: Text(
-            '로그인',
-            style: EselTypography.labelMedium.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTeaserEndSection() {
-    return Container(
-      margin: const EdgeInsets.all(EselTokens.space24),
-      padding: const EdgeInsets.all(EselTokens.space24),
-      decoration: BoxDecoration(
-        color: EselTokens.paperWarm,
-        borderRadius: BorderRadius.circular(EselTokens.radius20),
-        border: Border.all(color: EselTokens.borderDefault),
-      ),
-      child: Column(
-        children: [
-          const Icon(
-            Icons.auto_stories_outlined,
-            size: 40,
-            color: EselTokens.ink,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            '오늘의 맛보기가 끝났습니다',
-            style: EselTypography.headlineSmall.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '로그인하면 전체 피드와 12색 가판대,\n나만의 잡지를 매일 발행할 수 있습니다.',
-            textAlign: TextAlign.center,
-            style: EselTypography.bodySmall.copyWith(
-              color: EselTokens.inkMuted,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: widget.onOpenLogin,
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(0, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        EselTokens.radiusPill,
-                      ),
-                    ),
-                  ),
-                  child: const Text(
-                    '로그인',
-                    style: TextStyle(color: EselTokens.ink),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: widget.onStartJoin,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: EselTokens.ink,
-                    minimumSize: const Size(0, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        EselTokens.radiusPill,
-                      ),
-                    ),
-                  ),
-                  child: const Text(
-                    '내 잡지 만들기',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 
@@ -336,6 +237,79 @@ class _IntroScreenState extends State<IntroScreen> {
             color: filled ? EselColors.paper : EselColors.ink,
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// J1 맛보기 끝(디자인 teaser). 흐린 사진 위에 안내 글만 둔다. 로그인·만들기 버튼은
+/// 아래 로그인 바 하나뿐이다. 남은 쪽 수는 받지 않은 지면 수(P12)로 센다.
+class _TeaserEnd extends StatelessWidget {
+  final int remainingPages;
+  final PublicIssue backdrop;
+
+  const _TeaserEnd({required this.remainingPages, required this.backdrop});
+
+  @override
+  Widget build(BuildContext context) {
+    final title = remainingPages > 0
+        ? '오늘 호는 아직\n${koreanCount(remainingPages)} 쪽이 더 남았어요.'
+        : '오늘 호는\n여기까지 읽었어요.';
+    return SizedBox(
+      height: 430,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ExcludeSemantics(
+            child: Opacity(
+              opacity: 0.85,
+              child: ImageFiltered(
+                imageFilter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                child: Image(
+                  image: issuePhotoProvider(backdrop.photo),
+                  fit: BoxFit.cover,
+                  alignment: const Alignment(0.3, -0.7),
+                  errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                ),
+              ),
+            ),
+          ),
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0x26F9F9FB), EselColors.paper],
+                stops: [0, 0.78],
+              ),
+            ),
+          ),
+          Positioned(
+            left: 28,
+            right: 28,
+            top: 170,
+            child: Column(
+              children: [
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: EselTypography.heading(
+                    fontSize: 27,
+                  ).copyWith(height: 1.3),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  '로그인하면 끝까지 읽고, 내 잡지도 만들 수 있어요.',
+                  textAlign: TextAlign.center,
+                  style: EselTypography.body(
+                    fontSize: 14,
+                    color: EselColors.muted,
+                  ).copyWith(height: 1.55),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

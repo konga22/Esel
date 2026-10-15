@@ -41,6 +41,9 @@ void main() {
 
       expect(find.text('Esel'), findsOneWidget);
       expect(find.text('dana'), findsOneWidget);
+      // 표지 오른쪽 위 "로그인" 칩은 디자인에 없다. 로그인은 아래 로그인 바에서만.
+      expect(find.text('로그인'), findsOneWidget);
+      expect(inBar('로그인'), findsOneWidget);
 
       // 640px 전에는 로그인 바가 눌리지 않는다.
       await tester.tap(inBar('로그인'), warnIfMissed: false);
@@ -104,6 +107,30 @@ void main() {
         tester.getRect(find.byKey(const Key('login-bar'))).top,
         greaterThan(852 - 34 - 66),
       );
+    });
+
+    testWidgets('맛보기 끝은 안내 글만(중복 버튼 없음), 남은 쪽 수는 데이터에서', (tester) async {
+      usePhone(tester);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: IntroScreen(
+            feedController: FeedController(FeedMockSource()),
+            today: DailyCandidates.demoDate,
+            onOpenLogin: () {},
+            onStartJoin: () {},
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.drag(find.byType(ListView), const Offset(0, -2400));
+      await tester.pumpAndSettle();
+
+      // 예시 인물 27명 중 표지 + 안쪽 2쪽을 뺀 24쪽.
+      expect(find.text('오늘 호는 아직\n스물네 쪽이 더 남았어요.'), findsOneWidget);
+      expect(find.text('로그인하면 끝까지 읽고, 내 잡지도 만들 수 있어요.'), findsOneWidget);
+      expect(find.byType(OutlinedButton), findsNothing);
+      expect(find.byType(ElevatedButton), findsNothing);
+      expect(find.text('내 잡지 만들기'), findsOneWidget, reason: '로그인 바의 것 하나');
     });
   });
 }
