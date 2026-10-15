@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../../../core/design/tokens.g.dart';
 import '../../../core/design/typography.dart';
 import '../../../core/ui/esel_paint_asset.dart';
+import '../../../core/time/service_date.dart';
 import '../../drafts/data/local_library.dart';
+import '../../publishing/domain/rules/publish_rule.dart';
 import '../../drafts/domain/cover_draft.dart';
 import '../domain/models/face_box.dart';
 import '../domain/models/face_layout_mode.dart';
@@ -185,7 +187,7 @@ class CoverPreview extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'Nº ${draft.issueNumber.toString().padLeft(3, '0')} · ${draft.publishedOn ?? ''}',
+                      '${PublishRule.formatIssueNumber(draft.issueNumber)} · ${ServiceDate.tryParse(draft.publishedOn)?.shortLabel ?? ''}',
                       style: EselTypography.meta(
                         fontSize: 9,
                         color: Colors.white,

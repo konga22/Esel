@@ -25,6 +25,9 @@ class EselCoverMini extends StatelessWidget {
   /// 스크린 리더가 읽는 이름. 기본은 "{이름}의 표지 보기".
   final String? semanticsLabel;
 
+  /// 사진 대신 그릴 위젯(얼굴 연출을 적용한 사진). 없으면 [photo]를 그대로.
+  final Widget? photoChild;
+
   /// 사진 위치(BoxFit.cover의 정렬). 디자인의 object-position.
   final Alignment photoAlignment;
 
@@ -41,6 +44,7 @@ class EselCoverMini extends StatelessWidget {
     this.showAuthor = true,
     this.photoAlignment = Alignment.center,
     this.semanticsLabel,
+    this.photoChild,
   });
 
   @override
@@ -71,14 +75,15 @@ class EselCoverMini extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Image(
-              image: photo,
-              fit: BoxFit.cover,
-              alignment: photoAlignment,
-              semanticLabel: alt,
-              errorBuilder: (_, _, _) =>
-                  const ColoredBox(color: EselColors.photo),
-            ),
+            photoChild ??
+                Image(
+                  image: photo,
+                  fit: BoxFit.cover,
+                  alignment: photoAlignment,
+                  semanticLabel: alt,
+                  errorBuilder: (_, _, _) =>
+                      const ColoredBox(color: EselColors.photo),
+                ),
             if (mastheadColor == const Color(0xFFFFFFFF))
               Positioned(
                 top: 0,

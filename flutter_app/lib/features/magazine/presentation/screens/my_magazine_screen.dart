@@ -4,6 +4,7 @@ import '../../../../core/design/typography.dart';
 import '../../../../core/ui/esel_button.dart';
 import '../../../../core/ui/esel_paint_asset.dart';
 import '../../../../core/ui/esel_pressable.dart';
+import '../../../../core/time/service_date.dart';
 import '../../../drafts/domain/cover_draft.dart';
 import '../../../reactions/presentation/controllers/reactions_controller.dart';
 import '../../../media/presentation/cover_preview.dart';
@@ -197,7 +198,7 @@ class MyMagazineScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  todayIssue?.publishedOn?.replaceAll('-', '. ') ?? '',
+                  ServiceDate.tryParse(todayIssue?.publishedOn)?.label ?? '',
                   style: EselTypography.caption.copyWith(
                     color: EselTokens.inkMuted,
                   ),

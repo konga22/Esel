@@ -874,6 +874,7 @@ class _FaceCard extends StatelessWidget {
         onTap: onTap,
         child: Container(
           height: 64,
+          width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 14),
           decoration: BoxDecoration(
             color: selected ? EselColors.ink : Colors.transparent,

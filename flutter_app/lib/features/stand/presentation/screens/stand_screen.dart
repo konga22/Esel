@@ -7,6 +7,7 @@ import '../../../../core/ui/esel_paint_asset.dart';
 import '../../../../core/ui/esel_pressable.dart';
 import '../../../issue/domain/models/public_issue.dart';
 import '../../../issue/presentation/issue_photo.dart';
+import '../../../media/presentation/cover_photo.dart';
 import '../../domain/rules/same_color_rule.dart';
 import '../controllers/stand_controller.dart';
 
@@ -382,6 +383,16 @@ class _StandScreenState extends State<StandScreen> {
       width: w,
       height: h,
       photoAlignment: const Alignment(0, -0.4),
+      // 그 사람이 고른 얼굴 연출 그대로(디자인 C4·C8: lise 물감, leo 목 아래, noor 제호 뒤로).
+      photoChild: CoverPhoto(
+        image: issuePhotoProvider(item.photo),
+        photoRatio: item.photoRatio,
+        face: item.face,
+        mode: item.faceMode,
+        paint: item.color,
+        position: const Offset(0.5, 0.3),
+        semanticLabel: item.alt,
+      ),
       onTap: () => widget.onSelectCover(item),
     );
   }
@@ -473,12 +484,16 @@ class _LockedSpines extends StatelessWidget {
                         color: EselColors.ink,
                       ),
                       const SizedBox(height: 6),
-                      Text(
-                        SameColorRule.bannerMessage,
-                        textAlign: TextAlign.center,
-                        style: EselTypography.heading(
-                          fontSize: 22,
-                        ).copyWith(height: 1.2),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          SameColorRule.bannerMessage,
+                          maxLines: 1,
+                          textAlign: TextAlign.center,
+                          style: EselTypography.heading(
+                            fontSize: 22,
+                          ).copyWith(height: 1.2),
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(

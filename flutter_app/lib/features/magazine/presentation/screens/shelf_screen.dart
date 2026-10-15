@@ -7,6 +7,7 @@ import '../../../../core/ui/esel_pressable.dart';
 import '../../../drafts/domain/cover_draft.dart';
 import '../../../issue/domain/models/public_issue.dart';
 import '../../../issue/presentation/issue_photo.dart';
+import '../../../media/presentation/cover_photo.dart';
 import '../../../media/presentation/cover_preview.dart';
 import '../../../reactions/presentation/controllers/reactions_controller.dart';
 import '../../../stand/domain/rules/same_color_rule.dart';
@@ -375,6 +376,14 @@ class _ShelfScreenState extends State<ShelfScreen> {
       height: h,
       showAuthor: false,
       semanticsLabel: label,
+      photoChild: CoverPhoto(
+        image: issuePhotoProvider(issue.photo),
+        photoRatio: issue.photoRatio,
+        face: issue.face,
+        mode: issue.faceMode,
+        paint: issue.color,
+        semanticLabel: issue.alt,
+      ),
       onTap: () => widget.onSelectIssue(issue, null),
     );
   }
