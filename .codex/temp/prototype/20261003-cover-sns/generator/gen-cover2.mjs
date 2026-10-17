@@ -136,18 +136,35 @@ ${name ? `<span style="position: absolute; left: ${Math.round(w * 0.06)}px; bott
 }
 
 // ───────── 팔레트 (탐색). 작은 3열 격자: 2px 간격, 3:4 칸, 두 줄마다 세로로 긴 칸 하나를 좌우 번갈아.
-// Cells carry no name and no number. Each keeps the face choice its owner made (plain, paint stroke, neck down).
+// Cells carry no number. Each is the owner's cover scaled down, keeping the face choice they made.
 const GRID = { cols: [130, 129, 130], gap: 2, cell: 173 };
 GRID.x = [0, GRID.cols[0] + GRID.gap, GRID.cols[0] + GRID.cols[1] + GRID.gap * 2];
 GRID.tall = GRID.cell * 2 + GRID.gap;
 GRID.block = GRID.tall + GRID.gap;
 // Horizontal crop that keeps the face in the cell.
 const faceX = (key, w, h) => { const f = fit(key, w, h, 0, 0); return f.dw > w ? Math.max(0, Math.min(1, (f.fx - w / 2) / (f.dw - w))) : 0.5; };
-// A small cell is too small for the sign to cover a face, so "behind the sign" covers show neck-down in the grid (10-18).
-function tileImg({ key, w, h, style = 'plain', py = 0.3 }) {
-  if (style === 'neck' || style === 'behind') return neckDown(key, w, h);
-  const px = faceX(key, w, h);
-  return `<span style="position: relative; display: block; width: ${w}px; height: ${h}px; overflow: hidden">${cover(key, w, h, px, py)}${style === 'paint' ? faceStroke(key, w, h, px, py) : ''}</span>`;
+// A palette cell is the owner's cover, only smaller: the photo with the face choice they made and their sign on top,
+// scaled to the cell (10-18). "Behind the sign" still hides the face because the sign shrinks with the cell.
+// For "as is" the sign shrinks further so it never touches the face, the same rule as the big cover.
+function tileImg({ key, w, h, style = 'plain', py = 0.3, mastColor = '#FFFFFF' }) {
+  const p = PEOPLE[key];
+  const full = mastSize(key, w, Math.round(w * 0.44));
+  const top = Math.round(h * 0.025);
+  let img;
+  let size = full;
+  if (style === 'neck') img = neckDown(key, w, h);
+  else if (style === 'behind') img = crop(key, w, h, 1.7, p.fx, p.fy, w / 2, top + full * 0.55);
+  else {
+    const px = faceX(key, w, h);
+    img = `<span style="position: relative; display: block; width: ${w}px; height: ${h}px; overflow: hidden">${cover(key, w, h, px, py)}${style === 'paint' ? faceStroke(key, w, h, px, py) : ''}</span>`;
+    if (style === 'plain') {
+      const f = fit(key, w, h, px, py);
+      size = Math.max(Math.round(full * 0.62), Math.min(full, Math.floor((f.fy - f.fwPx * 0.6 - top) / 0.9)));
+    }
+  }
+  return `<span style="position: relative; display: block; width: ${w}px; height: ${h}px; overflow: hidden">${img}
+<span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 0; height: 38%; background: linear-gradient(rgba(0, 0, 0, 0.26), rgba(0, 0, 0, 0))"></span>
+<span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: ${top}px; text-align: center; font-family: ${SERIF}; font-size: ${size}px; line-height: 0.9; letter-spacing: -0.05em; padding-right: ${Math.round(size * 0.05)}px; color: ${mastColor}; white-space: nowrap">${key}</span></span>`;
 }
 const tile = (it, x, y, w, h) => `<a href="${it.href ?? 'CoverShelf.dc.html'}" aria-label="${it.key}의 스케치북" style="position: absolute; left: ${x}px; top: ${y}px; width: ${w}px; height: ${h}px; overflow: hidden; background: #EDEEEA">${tileImg({ ...it, w, h })}</a>`;
 // One block = two rows with one tall cell (right or left) and four small cells.
@@ -163,7 +180,7 @@ const RECOMMENDED = [
   [{ key: 'dana' }, { key: 'ama' }, { key: 'riva', py: 0.5 }, { key: 'lise', style: 'paint' }, { key: 'omar', style: 'neck' }],
   [{ key: 'vera', py: 0.5 }, { key: 'zuri' }, { key: 'elin', py: 0.2 }, { key: 'freya', style: 'behind' }, { key: 'hana', py: 0.35 }],
   [{ key: 'sol', py: 0.35 }, { key: 'nia', py: 0.4 }, { key: 'june', style: 'neck' }, { key: 'cleo', py: 0.25 }, { key: 'maya', py: 0.35 }],
-  [{ key: 'ines', style: 'paint', py: 0.2 }, { key: 'rio', py: 0.4 }, { key: 'mira', py: 0.25 }, { key: 'ayo', py: 0.3 }, { key: 'elin', style: 'neck' }],
+  [{ key: 'ines', style: 'paint', py: 0.2 }, { key: 'rio', py: 0.4 }, { key: 'mira', py: 0.25 }, { key: 'ayo', py: 0.3 }, { key: 'elin', style: 'behind' }],
 ];
 const paletteHead = `<header style="flex-shrink: 0; height: 48px; display: flex; align-items: baseline; justify-content: space-between; padding: 8px 18px 0; box-sizing: border-box">
 <h1 style="margin: 0; font-family: ${SERIF}; font-size: 32px; font-weight: 400; line-height: 1">팔레트</h1>
@@ -194,7 +211,7 @@ ${capsule({ color: PEOPLE[ME].color, active: 'palette' })}
 // C8 팔레트 · 색상, 오늘 올리기 전. 고른 색(카멜)의 방은 먼저 3장만 선명하고 나머지는 흐린 칸. 올리거나 자정이 지나면 모두 펼쳐진다.
 const LOCK = { color: PEOPLE[ME].color, total: 64, open: Object.keys(PEOPLE).filter((k) => k !== ME && PEOPLE[k].color === PEOPLE[ME].color).slice(0, 3) };
 // Each person picked their own face presentation.
-const LOCK_FACE = { leo: { style: 'neck' }, noor: { style: 'paint', py: 0.2 }, mara: { py: 0.3 } };
+const LOCK_FACE = { leo: { style: 'neck' }, noor: { style: 'behind' }, mara: { py: 0.3 } };
 // Color list: my three candidates (locked before I post, mine first), then the rest in an assumed "picked most today" order. No numbers.
 const PICK_ORDER = ['powder', 'butter', 'cobalt', 'coral', 'sage', 'cream', 'charcoal', 'terracotta', 'burgundy'];
 const myCandidates = [PEOPLE[ME].color, ...TODAY_CANDIDATES.filter((c) => c !== PEOPLE[ME].color)];
