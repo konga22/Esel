@@ -327,10 +327,12 @@
       "acceptance": [
         "얼굴 위치를 정하지 않으면 발행 버튼 비활성(P11)",
         "\"그대로\"에서 제호가 얼굴을 덮지 않음(P15)",
+        "P15: 자르기는 그대로·제호 뒤로·목 아래 중 하나. 물감은 별도 토글, 목 아래 선택 시 자동 해제·비활성화. 제호 뒤로+물감 허용, 제호·얼굴 크기 유지",
         "15MB 초과·이미지 아닌 파일은 이유와 함께 거절"
       ],
       "tests": [
         "flutter_app/test/features/media/face_layout_test.dart",
+        "flutter_app/test/features/media/combined_effects_test.dart",
         "server/test/contracts/media.e2e-spec.ts"
       ],
       "openDecisions": [

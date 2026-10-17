@@ -447,13 +447,12 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
                   .toList(),
             ),
             const SizedBox(height: 16),
-            const Text('얼굴 연출 · 여러 개를 함께 선택할 수 있어요'),
+            const Text('얼굴 자르기 · 하나만 선택해 주세요'),
             Wrap(
               spacing: 6,
               children:
                   [
                         ('그대로', FaceLayoutMode.original),
-                        ('물감 한 획', FaceLayoutMode.paintStroke),
                         ('제호 뒤로', FaceLayoutMode.behindLogo),
                         ('목 아래', FaceLayoutMode.belowNeck),
                       ]
@@ -461,7 +460,8 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
                         (item) => ChoiceChip(
                           label: Text(item.$1),
                           selected: item.$2 == FaceLayoutMode.original
-                              ? _draft.effectiveFaceEffects.isEmpty
+                              ? faceCropMode(_draft.effectiveFaceEffects) ==
+                                    FaceLayoutMode.original
                               : _draft.effectiveFaceEffects.contains(item.$2),
                           onSelected: (_) {
                             setState(() => _locatingFace = false);
@@ -480,9 +480,32 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
                       )
                       .toList(),
             ),
+            const SizedBox(height: 8),
+            ChoiceChip(
+              label: const Text('물감 한 획'),
+              selected: _draft.effectiveFaceEffects.contains(
+                FaceLayoutMode.paintStroke,
+              ),
+              onSelected:
+                  faceCropMode(_draft.effectiveFaceEffects) ==
+                      FaceLayoutMode.belowNeck
+                  ? null
+                  : (_) {
+                      setState(() => _locatingFace = false);
+                      _edit(
+                        _draft.copyWith(
+                          faceEffects: toggleFaceEffect(
+                            _draft.effectiveFaceEffects,
+                            FaceLayoutMode.paintStroke,
+                          ),
+                          faceConfirmed: false,
+                        ),
+                      );
+                    },
+            ),
             Text(
               _draft.effectiveFaceEffects.contains(FaceLayoutMode.belowNeck)
-                  ? '목 아래는 얼굴을 잘라요. 함께 켠 물감·제호 가림은 화면 밖에 있을 수 있어요.'
+                  ? '목 아래에서는 물감이 꺼지고 선택할 수 없어요. 그대로 또는 제호 뒤로를 고르면 다시 켤 수 있어요.'
                   : '표지에서 얼굴 가운데를 누르거나 움직여 위치를 정해 주세요.',
             ),
             TextButton(

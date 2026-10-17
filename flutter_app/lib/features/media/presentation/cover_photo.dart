@@ -112,7 +112,7 @@ class CoverPhoto extends StatelessWidget {
   Widget _build(double ratio) {
     final widget = this;
     final face = widget.face;
-    final effects = widget.effects ?? {widget.mode};
+    final effects = normalizeFaceEffects(widget.effects ?? {widget.mode});
     final mode = faceCropMode(effects);
     return LayoutBuilder(
       builder: (context, box) {

@@ -44,6 +44,11 @@ void main() {
     );
     Future<void> reach(String text) async {
       if (find.text(text).evaluate().isEmpty) {
+        tester
+            .state<ScrollableState>(find.byType(Scrollable).first)
+            .position
+            .jumpTo(0);
+        await tester.pumpAndSettle();
         await tester.scrollUntilVisible(
           find.text(text),
           250,
@@ -52,6 +57,7 @@ void main() {
       } else {
         await tester.ensureVisible(find.text(text));
       }
+      await tester.ensureVisible(find.text(text));
       await tester.pumpAndSettle();
     }
 
@@ -80,11 +86,19 @@ void main() {
       isFalse,
     );
     expect(tester.widget<CoverPhoto>(find.byType(CoverPhoto)).effects, {
-      FaceLayoutMode.paintStroke,
       FaceLayoutMode.belowNeck,
     });
-    await reach('목 아래');
-    await tester.tap(find.text('목 아래'));
+    await reach('물감 한 획');
+    final paintChip = tester.widget<ChoiceChip>(
+      find.ancestor(of: find.text('물감 한 획'), matching: find.byType(ChoiceChip)),
+    );
+    expect(paintChip.onSelected, isNull);
+    expect(paintChip.selected, isFalse);
+    await reach('그대로');
+    await tester.tap(find.text('그대로'));
+    await tester.pumpAndSettle();
+    await reach('물감 한 획');
+    await tester.tap(find.text('물감 한 획'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.byType(CoverPreview),
@@ -139,11 +153,18 @@ void main() {
         ('목 아래', FaceLayoutMode.belowNeck),
         ('그대로', FaceLayoutMode.original),
       ]) {
+        tester
+            .state<ScrollableState>(find.byType(Scrollable).first)
+            .position
+            .jumpTo(0);
+        await tester.pumpAndSettle();
         await tester.scrollUntilVisible(
           find.text(mode.$1),
           200,
           scrollable: find.byType(Scrollable).first,
         );
+        await tester.ensureVisible(find.text(mode.$1));
+        await tester.pumpAndSettle();
         await tester.tap(find.text(mode.$1));
         await tester.pump();
         expect(
@@ -178,6 +199,8 @@ void main() {
         300,
         scrollable: find.byType(Scrollable).first,
       );
+      await tester.ensureVisible(find.text('초안 저장'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('초안 저장'));
       await tester.pumpAndSettle();
       expect(find.text('사진을 먼저 골라 주세요.'), findsOneWidget);

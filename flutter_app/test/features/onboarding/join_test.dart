@@ -155,7 +155,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('창간 4 / 4'), findsOneWidget);
 
-      // 선택 즉시 2개/3개를 적용하고, 원본 위치 지정은 명시적으로 연다.
+      // 제호 뒤로 + 물감은 가능하지만 목 아래를 선택하면 물감은 꺼진다.
       for (final label in [
         '물감 한 획 · 오늘의 색으로 가려요',
         '제호 뒤로 · 이름 뒤에 숨겨요',
@@ -167,7 +167,7 @@ void main() {
       }
       var preview = tester.widget<CoverPreview>(find.byType(CoverPreview));
       expect(preview.locatingFace, isFalse);
-      expect(preview.draft.effectiveFaceEffects, hasLength(3));
+      expect(preview.draft.effectiveFaceEffects, {FaceLayoutMode.belowNeck});
       await tester.ensureVisible(find.text('얼굴 위치 맞추기'));
       await tester.tap(find.text('얼굴 위치 맞추기'));
       await tester.pump();
@@ -180,16 +180,26 @@ void main() {
       await tester.pump();
       preview = tester.widget<CoverPreview>(find.byType(CoverPreview));
       expect(preview.locatingFace, isFalse);
-      expect(preview.draft.effectiveFaceEffects, hasLength(3));
+      expect(preview.draft.effectiveFaceEffects, {FaceLayoutMode.belowNeck});
       await tester.ensureVisible(find.text('얼굴 위치 다시 정하기'));
       await tester.tap(find.text('얼굴 위치 다시 정하기'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('위치 조정 취소'));
       await tester.pumpAndSettle();
       expect(sl.onboardingController.draft.facePlaced, isTrue);
-      // 목 아래만 다시 누르면 나머지 2개는 그대로 남는다.
-      await tester.ensureVisible(find.bySemanticsLabel('목 아래 · 옷만 보여요'));
-      await tester.tap(find.bySemanticsLabel('목 아래 · 옷만 보여요'));
+      // 목 아래에서는 물감 버튼이 비활성화된다. 자르기를 바꾼 뒤 직접 켠다.
+      final paint = find.bySemanticsLabel('물감 한 획 · 오늘의 색으로 가려요');
+      await tester.ensureVisible(paint);
+      await tester.tap(paint);
+      await tester.pump();
+      expect(sl.onboardingController.draft.effectiveFaceEffects, {
+        FaceLayoutMode.belowNeck,
+      });
+      await tester.ensureVisible(find.bySemanticsLabel('제호 뒤로 · 이름 뒤에 숨겨요'));
+      await tester.tap(find.bySemanticsLabel('제호 뒤로 · 이름 뒤에 숨겨요'));
+      await tester.pump();
+      await tester.ensureVisible(paint);
+      await tester.tap(paint);
       await tester.pump();
       expect(
         tester

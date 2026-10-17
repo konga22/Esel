@@ -530,7 +530,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ? '원본 사진에서 얼굴 가운데를 눌러 주세요.'
               : !draft.facePlaced
               ? '효과는 바로 적용돼요. 얼굴 위치 맞추기로 기준을 정해 주세요.'
-              : '여러 효과를 함께 선택할 수 있어요. 다시 누르면 해제돼요.',
+              : '자르기는 하나만, 물감은 따로 켜고 끌 수 있어요.',
           textAlign: TextAlign.center,
           style: EselTypography.body(fontSize: 13, color: EselColors.muted),
         ),
@@ -544,8 +544,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           childAspectRatio: 172 / 64,
           children: [
             for (final (mode, title, sub) in const [
-              (FaceLayoutMode.original, '그대로', '모든 효과를 해제해요'),
-              (FaceLayoutMode.paintStroke, '물감 한 획', '오늘의 색으로 가려요'),
+              (FaceLayoutMode.original, '그대로', '얼굴을 보여요'),
               (FaceLayoutMode.behindLogo, '제호 뒤로', '이름 뒤에 숨겨요'),
               (FaceLayoutMode.belowNeck, '목 아래', '옷만 보여요'),
             ])
@@ -553,7 +552,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 title: title,
                 sub: sub,
                 selected: mode == FaceLayoutMode.original
-                    ? draft.effectiveFaceEffects.isEmpty
+                    ? faceCropMode(draft.effectiveFaceEffects) ==
+                          FaceLayoutMode.original
                     : draft.effectiveFaceEffects.contains(mode),
                 onTap: () {
                   setState(() => _locatingFace = false);
@@ -561,6 +561,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 },
               ),
           ],
+        ),
+        const SizedBox(height: 8),
+        _FaceCard(
+          title: '물감 한 획',
+          sub: '오늘의 색으로 가려요',
+          selected: draft.effectiveFaceEffects.contains(
+            FaceLayoutMode.paintStroke,
+          ),
+          onTap:
+              faceCropMode(draft.effectiveFaceEffects) ==
+                  FaceLayoutMode.belowNeck
+              ? null
+              : () {
+                  setState(() => _locatingFace = false);
+                  _c.selectFaceMode(FaceLayoutMode.paintStroke);
+                },
         ),
         TextButton(
           onPressed: () {
@@ -587,7 +603,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ),
         if (draft.effectiveFaceEffects.contains(FaceLayoutMode.belowNeck))
           const Text(
-            '목 아래는 얼굴을 화면 밖으로 잘라요. 함께 켠 물감·제호 가림은 보이지 않을 수 있어요. 옷이 부족하면 다른 사진을 골라 주세요.',
+            '목 아래에서는 물감이 꺼지고 선택할 수 없어요. 물감을 쓰려면 그대로 또는 제호 뒤로를 골라 주세요. 옷이 부족하면 다른 사진을 골라 주세요.',
           ),
         const Text('얼굴 연출이 익명화를 보장하지는 않아요.'),
       ],
@@ -894,7 +910,7 @@ class _FaceCard extends StatelessWidget {
   final String title;
   final String sub;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   const _FaceCard({
     required this.title,
@@ -905,11 +921,16 @@ class _FaceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fg = selected ? EselColors.paper : EselColors.ink;
+    final fg = onTap == null
+        ? EselColors.muted
+        : selected
+        ? EselColors.paper
+        : EselColors.ink;
     return Semantics(
       selected: selected,
       child: EselPressable(
         semanticsLabel: '$title · $sub',
+        enabled: onTap != null,
         onTap: onTap,
         child: Container(
           height: 64,

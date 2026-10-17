@@ -20,11 +20,8 @@ class CoverDraft {
   /// null인 이전 저장본은 faceMode 하나를 적용한다.
   final Set<FaceLayoutMode>? faceEffects;
   final double mastheadScale;
-  Set<FaceLayoutMode> get effectiveFaceEffects => Set.unmodifiable(
-    (faceEffects ?? {faceMode}).where(
-      (mode) => mode != FaceLayoutMode.original,
-    ),
-  );
+  Set<FaceLayoutMode> get effectiveFaceEffects =>
+      normalizeFaceEffects(faceEffects ?? {faceMode});
   final double faceX, faceY, faceWidth;
   final bool faceConfirmed, whiteTitle;
   final DateTime updatedAt;

@@ -30,11 +30,8 @@ class OnboardingDraft {
   final FaceLayoutMode faceMode;
   final Set<FaceLayoutMode>? faceEffects;
   final double mastheadScale;
-  Set<FaceLayoutMode> get effectiveFaceEffects => Set.unmodifiable(
-    (faceEffects ?? {faceMode}).where(
-      (mode) => mode != FaceLayoutMode.original,
-    ),
-  );
+  Set<FaceLayoutMode> get effectiveFaceEffects =>
+      normalizeFaceEffects(faceEffects ?? {faceMode});
 
   /// 얼굴 가운데(원본 사진에 대한 비율). 지정 전에는 [facePlaced]가 false.
   final double faceX;

@@ -123,6 +123,8 @@ void main() {
       300,
       scrollable: find.byType(Scrollable).first,
     );
+    await tester.ensureVisible(find.text('오늘 호 발행'));
+    await tester.pumpAndSettle();
     await tester.runAsync(() async {
       await tester.tap(find.text('오늘 호 발행'));
       await Future<void>.delayed(const Duration(milliseconds: 30));

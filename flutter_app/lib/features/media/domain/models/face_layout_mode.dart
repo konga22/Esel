@@ -5,18 +5,36 @@ enum FaceLayoutMode {
   belowNeck, // 목 아래
 }
 
-/// 그대로는 효과 없음. 나머지는 독립적으로 켜고 끈다.
+/// 이전 중복 선택 저장본도 P15의 단일 자르기 + 선택적 물감으로 읽는다.
+/// 목 아래를 우선하며 이 경우 물감을 제거한다. 저장 파일 자체는 지우지 않는다.
+Set<FaceLayoutMode> normalizeFaceEffects(Set<FaceLayoutMode> effects) {
+  if (effects.contains(FaceLayoutMode.belowNeck)) {
+    return const {FaceLayoutMode.belowNeck};
+  }
+  return Set.unmodifiable({
+    if (effects.contains(FaceLayoutMode.behindLogo)) FaceLayoutMode.behindLogo,
+    if (effects.contains(FaceLayoutMode.paintStroke))
+      FaceLayoutMode.paintStroke,
+  });
+}
+
+/// 자르기는 하나를 선택하고, 물감만 독립적으로 켜고 끈다.
 Set<FaceLayoutMode> toggleFaceEffect(
   Set<FaceLayoutMode> current,
   FaceLayoutMode mode,
 ) {
-  if (mode == FaceLayoutMode.original) return const {};
-  final next = {...current}..remove(FaceLayoutMode.original);
-  if (!next.remove(mode)) next.add(mode);
-  return Set.unmodifiable(next);
+  final next = {...normalizeFaceEffects(current)};
+  if (mode == FaceLayoutMode.paintStroke) {
+    if (next.contains(FaceLayoutMode.belowNeck)) return Set.unmodifiable(next);
+    if (!next.remove(mode)) next.add(mode);
+  } else {
+    next.removeAll({FaceLayoutMode.behindLogo, FaceLayoutMode.belowNeck});
+    if (mode != FaceLayoutMode.original) next.add(mode);
+  }
+  return normalizeFaceEffects(next);
 }
 
-/// 두 자르기 효과를 겹치면 목 아래 영역을 우선한다. 물감은 별도 레이어다.
+/// 이전 저장본에 두 자르기가 있으면 목 아래 영역을 우선한다.
 FaceLayoutMode faceCropMode(Set<FaceLayoutMode> effects) =>
     effects.contains(FaceLayoutMode.belowNeck)
     ? FaceLayoutMode.belowNeck
