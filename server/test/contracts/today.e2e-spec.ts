@@ -5,6 +5,7 @@ import { App } from 'supertest/types.js';
 import { serviceDate } from '../../src/common/service-date.js';
 import { PrismaService } from '../../src/prisma/prisma.service.js';
 import { createTestApp } from '../create-app.js';
+import { createLockedIssuePerCandidate } from '../p01-fixtures.js';
 
 // 계약 테스트: today 모듈. api-contract.json의 API와 루트 docs/dev/features.json의 서버 합격 기준을 할 일(it.todo)로 적어 두었다.
 // 이 파일은 손으로 관리한다. API마다 'METHOD /api/경로: … → 상태' 형식의 todo나 테스트가 있어야 하고, 상태 코드는 api-contract.json과 같아야 한다(npm run check:server가 확인).
@@ -42,6 +43,9 @@ describe('DEV-07 오늘의 색', () => {
   });
 
   async function cleanupFixtures() {
+    await prisma.issue.deleteMany({
+      where: { author: { email: { endsWith: '@today.e2e.test' } } },
+    });
     await prisma.user.deleteMany({
       where: { email: { endsWith: '@today.e2e.test' } },
     });
@@ -229,23 +233,46 @@ describe('DEV-07 오늘의 색', () => {
     const today = await request(app.getHttpServer())
       .get('/api/today')
       .set(auth(user.token));
-    const [first, second] = today.body.candidates as { id: string }[];
-    for (const colorId of [first?.id, second?.id]) {
+    const candidateIds = (today.body.candidates as { id: string }[]).map(
+      ({ id }) => id,
+    );
+    const lockedIssueIds = await createLockedIssuePerCandidate(
+      prisma,
+      candidateIds,
+      today.body.serviceDate as string,
+      'today.e2e.test',
+      'today-p01',
+    );
+
+    const expectAllCandidateRoomsLocked = async () => {
+      for (const issueId of lockedIssueIds) {
+        const response = await request(app.getHttpServer())
+          .get(`/api/issues/${issueId}`)
+          .set(auth(user.token))
+          .expect(404);
+        expect(response.body.error.code).toBe('NOT_FOUND');
+      }
+    };
+
+    for (const colorId of candidateIds) {
       await request(app.getHttpServer())
         .put('/api/today/choice')
         .set(auth(user.token))
         .send({ colorId })
         .expect(200);
+      await expectAllCandidateRoomsLocked();
     }
 
     const choice = await prisma.userDailyChoice.findFirstOrThrow({
       where: { userId: user.userId },
     });
-    expect(choice.colorId).toBe(second?.id);
+    expect(choice.colorId).toBe(candidateIds.at(-1));
     expect(choice.lockedAt).toBeNull();
-    expect(await prisma.issue.count({ where: { authorId: user.userId } })).toBe(
-      0,
-    );
+    await prisma.userDailyChoice.update({
+      where: { id: choice.id },
+      data: { lockedAt: new Date() },
+    });
+    await expectAllCandidateRoomsLocked();
   });
 
   it('합격 기준: 발행 후 색 변경은 거절', async () => {

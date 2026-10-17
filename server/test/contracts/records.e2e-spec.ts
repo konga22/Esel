@@ -3,10 +3,12 @@ import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
+import { vi } from 'vitest';
 import { serviceDate } from '../../src/common/service-date.js';
 import { PrismaService } from '../../src/prisma/prisma.service.js';
 import { dailyCandidateIds } from '../../src/today/today.rules.js';
 import { createTestApp } from '../create-app.js';
+import { createLockedIssuePerCandidate } from '../p01-fixtures.js';
 
 describe('DEV-15 월간 색 기록과 복원', () => {
   let app: INestApplication<App>;
@@ -15,13 +17,17 @@ describe('DEV-15 월간 색 기록과 복원', () => {
   let sequence = 0;
 
   beforeAll(async () => {
+    vi.setSystemTime(new Date('2026-10-18T12:00:00.000Z'));
     app = await createTestApp();
     prisma = app.get(PrismaService);
     timeZone = app.get(ConfigService).getOrThrow<string>('SERVICE_TIME_ZONE');
     await cleanup();
   });
   afterEach(cleanup);
-  afterAll(async () => app.close());
+  afterAll(async () => {
+    await app.close();
+    vi.useRealTimers();
+  });
 
   async function cleanup() {
     await prisma.issue.deleteMany({
@@ -161,6 +167,31 @@ describe('DEV-15 월간 색 기록과 복원', () => {
     });
   });
 
+  it('동시에 5개 날짜를 복원해도 201 또는 409만 응답하고 두 번만 저장', async () => {
+    const user = await signup('concurrent');
+    const dateKeys = [-1, -2, -3, -4, -5].map(keyAt);
+    const colorIds = await Promise.all(dateKeys.map(candidate));
+    const responses = await Promise.all(
+      dateKeys.map((dateKey, index) =>
+        request(app.getHttpServer())
+          .post(`/api/me/records/${dateKey}/restore`)
+          .set(auth(user.token))
+          .send({ colorId: colorIds[index] }),
+      ),
+    );
+
+    expect(
+      responses.every(({ status }) => status === 201 || status === 409),
+    ).toBe(true);
+    expect(responses.filter(({ status }) => status === 201)).toHaveLength(2);
+    for (const response of responses.filter(({ status }) => status === 409)) {
+      expect(response.body.error.code).toBe('RESTORE_LIMIT');
+    }
+    expect(
+      await prisma.restoredColor.count({ where: { userId: user.userId } }),
+    ).toBe(2);
+  });
+
   it('POST /api/me/records/:date/restore: 로그인 없이 부르면 → 401 AUTH_REQUIRED', async () => {
     const dateKey = keyAt(-1);
     const response = await request(app.getHttpServer())
@@ -257,12 +288,30 @@ describe('DEV-15 월간 색 기록과 복원', () => {
 
   it('합격 기준(P01·P03): 복원해도 같은 색 방이 열리지 않음', async () => {
     const user = await signup('p01-p03');
-    await restore(user.token, keyAt(-1));
-    expect(
-      await prisma.userDailyChoice.count({ where: { userId: user.userId } }),
-    ).toBe(0);
-    expect(await prisma.issue.count({ where: { authorId: user.userId } })).toBe(
-      0,
+    const todayKey = keyAt(0);
+    const colors = await prisma.color.findMany({
+      orderBy: { sortOrder: 'asc' },
+      select: { id: true },
+    });
+    const candidateIds = dailyCandidateIds(
+      todayKey,
+      colors.map(({ id }) => id),
     );
+    const lockedIssueIds = await createLockedIssuePerCandidate(
+      prisma,
+      candidateIds,
+      todayKey,
+      'records.e2e.test',
+      'records-p01',
+    );
+
+    await restore(user.token, keyAt(-1));
+    for (const issueId of lockedIssueIds) {
+      const response = await request(app.getHttpServer())
+        .get(`/api/issues/${issueId}`)
+        .set(auth(user.token))
+        .expect(404);
+      expect(response.body.error.code).toBe('NOT_FOUND');
+    }
   });
 });

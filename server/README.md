@@ -44,7 +44,7 @@ npm run start:dev
 
 ## 현재 구현된 API
 
-`api-contract.json` 기준 55개 중 28개(50.9%)가 구현되어 있습니다.
+`api-contract.json` 기준 라우트 28개가 구현되어 있습니다. 이 중 운영 저장소가 미정인 미디어 2개는 `doing`이고, 계약 완료는 26/55개(47.3%)입니다.
 
 | 방법 | 주소 | 하는 일 |
 |---|---|---|
@@ -87,7 +87,7 @@ Invoke-RestMethod -Method Post `
   -Body $body
 ```
 
-같은 `$body`를 `/api/auth/email/login`으로 보내면 로그인할 수 있습니다. 틀린 비밀번호와 가입하지 않은 이메일은 모두 `401 WRONG_CREDENTIALS`로 답해 계정 존재 여부를 드러내지 않습니다.
+같은 `$body`를 `/api/auth/email/login`으로 보내면 로그인할 수 있습니다. 로그인은 틀린 비밀번호와 가입하지 않은 이메일을 모두 `401 WRONG_CREDENTIALS`로 답합니다. 다만 가입 API의 `409 EMAIL_TAKEN`으로는 이미 가입한 이메일인지 알 수 있고, 아직 이메일 소유 확인 절차도 없으므로 운영 인증을 완성하기 전에 보완해야 합니다.
 
 토큰 갱신은 `{ "refreshToken": "로그인에서 받은 값" }`을 `/api/auth/refresh`로 보냅니다. 성공하면 이전 세션을 폐기하고 새 access/refresh token을 반환합니다. 사용한 refresh token이 다시 들어오면 탈취 가능성으로 보고 그 사용자의 활성 세션을 모두 폐기합니다.
 
@@ -115,9 +115,9 @@ Invoke-RestMethod -Method Get `
 
 프로필 생성은 `{ "masthead": "selin" }`처럼 영문 소문자 2~10자를 받습니다. 한 계정은 프로필을 하나만 만들 수 있고, 제호 unique 제약으로 동시에 같은 이름을 요청해도 한 명만 성공합니다.
 
-미디어는 준비와 완료를 분리합니다. 준비 요청은 `{ "mimeType": "image/png", "sizeBytes": 12345 }`를 받고 `id`, `storageKey`, 개발용 `uploadPath`를 반환합니다. 파일을 저장한 뒤 완료 API를 호출하면 서버가 선언값을 믿지 않고 실제 파일 시그니처와 15MB 제한을 다시 검사하며 PNG·JPEG는 가로·세로도 기록합니다. PostgreSQL에는 파일 바이트가 아니라 저장 키와 메타데이터만 둡니다.
+미디어는 준비와 완료를 분리합니다. 준비 요청은 `{ "mimeType": "image/png", "sizeBytes": 12345 }`를 받고 `id`, `storageKey`, 허용 형식과 크기만 반환하며 서버 컴퓨터의 실제 경로는 노출하지 않습니다. 개발 환경에서 파일을 저장한 뒤 완료 API를 호출하면 서버가 선언값을 믿지 않고 실제 파일 시그니처와 15MB 제한을 다시 검사하며 PNG·JPEG는 가로·세로도 기록합니다. 완료는 `PENDING` 자산에만 허용됩니다. PostgreSQL에는 파일 바이트가 아니라 저장 키와 메타데이터만 둡니다.
 
-현재 `MEDIA_STORAGE_ROOT`와 Docker named volume `esel-media-data`를 쓰는 **로컬 개발용 저장 방식**입니다. 반환되는 `uploadPath`는 서버 컨테이너 내부 경로라 Flutter 기기가 직접 업로드할 수 없습니다. 실제 앱 연결 전에는 자체 호스팅 S3 호환 스토리지 같은 운영 저장소와 업로드 URL 방식을 결정해야 하며, 이를 정하지 않은 상태에서 별도 업로드 API를 임의로 추가하지 않았습니다.
+현재 `MEDIA_STORAGE_ROOT`와 Docker named volume `esel-media-data`를 쓰는 **로컬 개발용 저장 방식**입니다. Flutter 기기가 파일을 보낼 업로드 URL은 아직 없으므로 두 미디어 API의 계약 상태는 `doing`입니다. 실제 앱 연결 전에는 자체 호스팅 S3 호환 스토리지 같은 운영 저장소와 업로드 URL 방식을 결정해야 하며, 이를 정하지 않은 상태에서 별도 업로드 API를 임의로 추가하지 않았습니다.
 
 알림 설정은 `enabled`, `newIssue`, `reactions` 세 boolean을 모두 보냅니다. 아직 저장한 적이 없는 계정의 GET은 모두 `true`를 반환하지만 조회만으로 DB 행을 만들지는 않습니다.
 
@@ -143,7 +143,7 @@ Invoke-RestMethod -Method Get `
 docker compose up -d --build api
 ```
 
-Android 에뮬레이터는 호스트 PC를 `10.0.2.2`로 부릅니다. Flutter 앱을 mock이 아닌 서버 모드로 실행하면 인증 API와 제호 중복 확인 API를 호출합니다. 오늘·프로필 생성·미디어·알림·호 조회·반응·독자 한 줄·서가·구독·내 잡지·월간 기록·사용자 조회 API는 서버에 구현됐지만 해당 Flutter 화면은 아직 로컬 상태를 사용합니다. 특히 현재 미디어의 컨테이너 내부 `uploadPath`는 모바일에서 쓸 수 없고 호 응답도 파일 URL을 제공하지 않으므로, 운영 저장소 결정 뒤 앱 업로드와 이미지 표시를 연결해야 합니다.
+Android 에뮬레이터는 호스트 PC를 `10.0.2.2`로 부릅니다. Flutter 앱을 mock이 아닌 서버 모드로 실행하면 인증 API와 제호 중복 확인 API를 호출합니다. 오늘·프로필 생성·미디어·알림·호 조회·반응·독자 한 줄·서가·구독·내 잡지·월간 기록·사용자 조회 API는 서버에 구현됐지만 해당 Flutter 화면은 아직 로컬 상태를 사용합니다. 특히 현재 미디어 API는 서버 내부 경로를 노출하지 않고 업로드 URL도 제공하지 않으며 호 응답도 파일 URL을 제공하지 않으므로, 운영 저장소 결정 뒤 앱 업로드와 이미지 표시를 연결해야 합니다.
 
 ```powershell
 cd flutter_app

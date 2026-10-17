@@ -224,15 +224,43 @@ describe('DEV-05 로그인', () => {
     for (let attempt = 0; attempt < 5; attempt += 1) {
       await request(app.getHttpServer())
         .post('/api/auth/email/login')
-        .send(credentials)
-        .expect(201);
+        .send({ ...credentials, password: 'definitely wrong password' })
+        .expect(401);
     }
     const response = await request(app.getHttpServer())
       .post('/api/auth/email/login')
-      .send(credentials)
+      .send({ ...credentials, password: 'definitely wrong password' })
       .expect(429);
 
     expect(response.body.error.code).toBe('RATE_LIMITED');
+  });
+
+  it('POST /api/auth/email/login: 성공은 실패 횟수를 초기화하고 정상 사용자를 막지 않음', async () => {
+    const credentials = {
+      email: 'login-reset@signup.e2e.test',
+      password: 'correct horse battery staple',
+    };
+    await request(app.getHttpServer())
+      .post('/api/auth/email/signup')
+      .send(credentials)
+      .expect(201);
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      await request(app.getHttpServer())
+        .post('/api/auth/email/login')
+        .send({ ...credentials, password: 'definitely wrong password' })
+        .expect(401);
+    }
+    await request(app.getHttpServer())
+      .post('/api/auth/email/login')
+      .send(credentials)
+      .expect(201);
+
+    const afterReset = await request(app.getHttpServer())
+      .post('/api/auth/email/login')
+      .send({ ...credentials, password: 'definitely wrong password' })
+      .expect(401);
+    expect(afterReset.body.error.code).toBe('WRONG_CREDENTIALS');
   });
   // auth.refresh · 접근: public · 응답: SessionDto · 계약: P12
   it('POST /api/auth/refresh: refresh token을 회전해 새 토큰 받기 → 201', async () => {

@@ -71,6 +71,10 @@ describe('DEV-08 사진과 얼굴 연출', () => {
     return bytes;
   }
 
+  function uploadPath(storageKey: string): string {
+    return path.join(mediaRoot, storageKey);
+  }
+
   // media.prepare · 접근: user · 응답: MediaUploadDto · 계약: P11
   it('POST /api/media: 사진 올리기 준비(저장 위치 받기) → 201', async () => {
     const user = await signup('prepare');
@@ -79,10 +83,10 @@ describe('DEV-08 사진과 얼굴 연출', () => {
     expect(response.body).toMatchObject({
       id: expect.any(String),
       storageKey: expect.stringMatching(/^pending\/.+\.upload$/),
-      uploadPath: expect.any(String),
       maxSizeBytes: MAX_MEDIA_SIZE_BYTES,
       allowedMimeTypes: ['image/jpeg', 'image/png', 'image/heic'],
     });
+    expect(response.body).not.toHaveProperty('uploadPath');
     expect(
       await prisma.mediaAsset.findUnique({ where: { id: response.body.id } }),
     ).toMatchObject({
@@ -135,8 +139,9 @@ describe('DEV-08 사진과 얼굴 연출', () => {
   it('POST /api/media/:id/complete: 사진 올리기 완료 확인과 검증 → 201', async () => {
     const user = await signup('complete');
     const prepared = await prepare(user.token);
-    await mkdir(path.dirname(prepared.body.uploadPath), { recursive: true });
-    await writeFile(prepared.body.uploadPath, png());
+    const target = uploadPath(prepared.body.storageKey as string);
+    await mkdir(path.dirname(target), { recursive: true });
+    await writeFile(target, png());
 
     const response = await request(app.getHttpServer())
       .post(`/api/media/${prepared.body.id}/complete`)
@@ -152,6 +157,24 @@ describe('DEV-08 사진과 얼굴 연출', () => {
       height: 1440,
       storageKey: prepared.body.storageKey,
     });
+  });
+
+  it('POST /api/media/:id/complete: PENDING이 아닌 사진은 다시 완료할 수 없음 → 409 MEDIA_NOT_PENDING', async () => {
+    const user = await signup('complete-twice');
+    const prepared = await prepare(user.token);
+    const target = uploadPath(prepared.body.storageKey as string);
+    await mkdir(path.dirname(target), { recursive: true });
+    await writeFile(target, png());
+    await request(app.getHttpServer())
+      .post(`/api/media/${prepared.body.id}/complete`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .expect(201);
+
+    const response = await request(app.getHttpServer())
+      .post(`/api/media/${prepared.body.id}/complete`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .expect(409);
+    expect(response.body.error.code).toBe('MEDIA_NOT_PENDING');
   });
 
   it('POST /api/media/:id/complete: 로그인 없이 부르면 → 401 AUTH_REQUIRED', async () => {
@@ -185,7 +208,7 @@ describe('DEV-08 사진과 얼굴 연출', () => {
     const user = await signup('complete-large');
     const prepared = await prepare(user.token);
     await writeFile(
-      prepared.body.uploadPath,
+      uploadPath(prepared.body.storageKey as string),
       Buffer.alloc(MAX_MEDIA_SIZE_BYTES + 1),
     );
     const response = await request(app.getHttpServer())
@@ -198,7 +221,10 @@ describe('DEV-08 사진과 얼굴 연출', () => {
   it('POST /api/media/:id/complete: 사진 파일만 올릴 수 있어요 → 415 MEDIA_TYPE', async () => {
     const user = await signup('complete-type');
     const prepared = await prepare(user.token);
-    await writeFile(prepared.body.uploadPath, 'not an image');
+    await writeFile(
+      uploadPath(prepared.body.storageKey as string),
+      'not an image',
+    );
     const response = await request(app.getHttpServer())
       .post(`/api/media/${prepared.body.id}/complete`)
       .set('Authorization', `Bearer ${user.token}`)

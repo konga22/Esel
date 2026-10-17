@@ -55,7 +55,6 @@ export class MediaService {
     return {
       id,
       storageKey,
-      uploadPath,
       maxSizeBytes: MAX_MEDIA_SIZE_BYTES,
       allowedMimeTypes: [...ALLOWED_MEDIA_TYPES],
     };
@@ -72,6 +71,9 @@ export class MediaService {
     const media = await this.prisma.mediaAsset.findUnique({ where: { id } });
     if (!media) throw new AppException('NOT_FOUND');
     if (media.ownerId !== userId) throw new AppException('FORBIDDEN');
+    if (media.status !== 'PENDING') {
+      throw new AppException('MEDIA_NOT_PENDING');
+    }
 
     const uploadPath = this.pathFor(media.storageKey);
     let fileSize: number;

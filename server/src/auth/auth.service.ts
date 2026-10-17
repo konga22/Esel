@@ -85,7 +85,6 @@ export class AuthService {
 
   async login(input: EmailLoginDto): Promise<SessionDto> {
     const email = input.email.trim().toLowerCase();
-    this.loginRateLimiter.consume(email);
 
     const user = await this.prisma.user.findUnique({
       where: { email },
@@ -96,8 +95,10 @@ export class AuthService {
     const passwordMatches = await verifyPassword(input.password, passwordHash);
 
     if (!user || user.status !== 'ACTIVE' || !passwordMatches) {
+      this.loginRateLimiter.recordFailure(email);
       throw new AppException('WRONG_CREDENTIALS');
     }
+    this.loginRateLimiter.reset(email);
 
     const hasPublishedToday = await this.hasPublishedToday(user.id);
     const tokens = newSessionTokens();

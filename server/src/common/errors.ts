@@ -61,6 +61,11 @@ export const APP_ERRORS = {
     message: '사진 올리기가 아직 끝나지 않았어요.',
     hint: '업로드를 마친 뒤 다시 시도해 주세요.',
   },
+  MEDIA_NOT_PENDING: {
+    status: HttpStatus.CONFLICT,
+    message: '이미 완료됐거나 더는 완료할 수 없는 사진이에요.',
+    hint: '새 사진 올리기를 준비해 다시 시도해 주세요.',
+  },
   ALREADY_FRIENDS: {
     status: HttpStatus.CONFLICT,
     message: '이미 친구예요.',

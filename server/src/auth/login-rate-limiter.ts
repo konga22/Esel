@@ -14,7 +14,7 @@ interface AttemptWindow {
 export class LoginRateLimiter {
   private readonly attempts = new Map<string, AttemptWindow>();
 
-  consume(key: string, now = Date.now()): void {
+  recordFailure(key: string, now = Date.now()): void {
     const current = this.attempts.get(key);
     if (!current || now - current.startedAt >= WINDOW_MS) {
       this.attempts.set(key, { count: 1, startedAt: now });
@@ -24,5 +24,9 @@ export class LoginRateLimiter {
       throw new AppException('RATE_LIMITED');
     }
     current.count += 1;
+  }
+
+  reset(key: string): void {
+    this.attempts.delete(key);
   }
 }

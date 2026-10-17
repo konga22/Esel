@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Prisma } from '../generated/prisma/client.js';
 import { AppException } from '../common/app-exception.js';
 import { serviceDate } from '../common/service-date.js';
+import { isWriteConflict } from '../prisma/is-write-conflict.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { dailyCandidateIds } from '../today/today.rules.js';
 import { DayRecordDto } from './dto/day-record.dto.js';
@@ -75,7 +76,8 @@ export class RecordsService {
     }
     const { start, end } = this.monthRange(dateKey.slice(0, 7));
 
-    for (let attempt = 0; attempt < 3; attempt += 1) {
+    const maxAttempts = 5;
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
       try {
         const record = await this.prisma.$transaction(
           async (tx) => {
@@ -110,12 +112,9 @@ export class RecordsService {
           media: null,
         };
       } catch (error) {
-        if (
-          error instanceof Prisma.PrismaClientKnownRequestError &&
-          error.code === 'P2034' &&
-          attempt < 2
-        ) {
-          continue;
+        if (isWriteConflict(error)) {
+          if (attempt < maxAttempts - 1) continue;
+          throw new AppException('RESTORE_LIMIT');
         }
         if (
           error instanceof Prisma.PrismaClientKnownRequestError &&

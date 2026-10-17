@@ -3,6 +3,7 @@ import {
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiCreatedResponse,
+  ApiConflictResponse,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
   ApiOperation,
@@ -44,6 +45,7 @@ export class MediaController {
   @ApiUnauthorizedResponse({ description: 'AUTH_REQUIRED 또는 TOKEN_EXPIRED' })
   @ApiForbiddenResponse({ description: 'FORBIDDEN' })
   @ApiNotFoundResponse({ description: 'NOT_FOUND' })
+  @ApiConflictResponse({ description: 'MEDIA_NOT_PENDING' })
   @ApiPayloadTooLargeResponse({ description: 'MEDIA_TOO_LARGE' })
   @ApiUnsupportedMediaTypeResponse({ description: 'MEDIA_TYPE' })
   complete(

@@ -9,9 +9,6 @@ export class MediaUploadDto {
   })
   storageKey: string;
 
-  @ApiProperty({ description: '개발용 로컬 저장소의 임시 파일 경로' })
-  uploadPath: string;
-
   @ApiProperty({ example: 15_728_640 })
   maxSizeBytes: number;
 

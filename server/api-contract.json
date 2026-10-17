@@ -34,6 +34,7 @@
     "CHOICE_LOCKED": { "status": 409, "message": "오늘 호를 발행해서 색을 바꿀 수 없어요.", "hint": "내일 새 색을 골라 주세요." },
     "ISSUE_ALREADY_PUBLISHED": { "status": 409, "message": "오늘 호는 이미 발행했어요.", "hint": "하루에 한 호만 발행할 수 있어요." },
     "MEDIA_NOT_READY": { "status": 409, "message": "사진 올리기가 아직 끝나지 않았어요.", "hint": "업로드를 마친 뒤 다시 시도해 주세요." },
+    "MEDIA_NOT_PENDING": { "status": 409, "message": "이미 완료됐거나 더는 완료할 수 없는 사진이에요.", "hint": "새 사진 올리기를 준비해 다시 시도해 주세요." },
     "ALREADY_FRIENDS": { "status": 409, "message": "이미 친구예요.", "hint": "친구 목록에서 확인해 주세요." },
     "REQUEST_EXISTS": { "status": 409, "message": "이미 보낸 요청이 있어요.", "hint": "상대가 답할 때까지 기다려 주세요." },
     "TWIN_STATE": { "status": 409, "message": "지금 단계에서는 할 수 없는 작업이에요.", "hint": "트윈의 현재 단계를 확인해 주세요." },
@@ -63,8 +64,8 @@
     { "id": "today.get", "method": "GET", "path": "/today", "access": "user", "feature": "DEV-07", "module": "today", "summary": "오늘의 날짜, 후보 3색, 내 선택, 발행 여부", "response": "TodayDto", "errors": [], "contracts": ["P05", "P17"], "test": "test/contracts/today.e2e-spec.ts", "status": "done" },
     { "id": "today.choose", "method": "PUT", "path": "/today/choice", "access": "user", "feature": "DEV-07", "module": "today", "summary": "오늘의 색 고르기(발행 전까지 바꿀 수 있음)", "request": "ChooseColorDto", "response": "TodayDto", "errors": ["VALIDATION", "CHOICE_LOCKED", "COLOR_NOT_CANDIDATE"], "contracts": ["P01", "P03", "P05"], "test": "test/contracts/today.e2e-spec.ts", "status": "done" },
 
-    { "id": "media.prepare", "method": "POST", "path": "/media", "access": "user", "feature": "DEV-08", "module": "media", "summary": "사진 올리기 준비(저장 위치 받기)", "request": "PrepareMediaDto", "response": "MediaUploadDto", "errors": ["VALIDATION", "MEDIA_TOO_LARGE", "MEDIA_TYPE"], "contracts": ["P11"], "test": "test/contracts/media.e2e-spec.ts", "status": "done" },
-    { "id": "media.complete", "method": "POST", "path": "/media/:id/complete", "access": "owner", "feature": "DEV-08", "module": "media", "summary": "사진 올리기 완료 확인과 검증", "response": "MediaOwnerDto", "errors": ["FORBIDDEN", "NOT_FOUND", "MEDIA_TOO_LARGE", "MEDIA_TYPE"], "contracts": ["P11"], "test": "test/contracts/media.e2e-spec.ts", "status": "done" },
+    { "id": "media.prepare", "method": "POST", "path": "/media", "access": "user", "feature": "DEV-08", "module": "media", "summary": "사진 올리기 준비(저장 위치 받기)", "request": "PrepareMediaDto", "response": "MediaUploadDto", "errors": ["VALIDATION", "MEDIA_TOO_LARGE", "MEDIA_TYPE"], "contracts": ["P11"], "test": "test/contracts/media.e2e-spec.ts", "status": "doing", "note": "운영 미디어 저장소와 앱이 사용할 업로드 URL 방식이 정해지지 않아 로컬 검증만 구현한 상태다. 서버 내부 파일 경로는 응답하지 않는다." },
+    { "id": "media.complete", "method": "POST", "path": "/media/:id/complete", "access": "owner", "feature": "DEV-08", "module": "media", "summary": "사진 올리기 완료 확인과 검증", "response": "MediaOwnerDto", "errors": ["FORBIDDEN", "NOT_FOUND", "MEDIA_NOT_PENDING", "MEDIA_TOO_LARGE", "MEDIA_TYPE"], "contracts": ["P11"], "test": "test/contracts/media.e2e-spec.ts", "status": "doing", "note": "운영 미디어 저장소가 정해질 때까지 개발용 로컬 파일만 검증하며 PENDING 자산만 완료할 수 있다." },
 
     { "id": "issues.publish", "method": "POST", "path": "/issues", "access": "user", "feature": "DEV-09", "module": "issues", "summary": "오늘 호 발행(하루 한 번, 호수 +1)", "request": "PublishIssueDto", "response": "IssueOwnerDto", "errors": ["VALIDATION", "ISSUE_ALREADY_PUBLISHED", "MEDIA_NOT_READY"], "contracts": ["P04", "P01"], "test": "test/contracts/issues.e2e-spec.ts", "status": "todo" },
 

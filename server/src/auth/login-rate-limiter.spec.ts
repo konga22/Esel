@@ -6,9 +6,11 @@ describe('LoginRateLimiter', () => {
     const limiter = new LoginRateLimiter();
 
     for (let attempt = 0; attempt < 5; attempt += 1) {
-      expect(() => limiter.consume('me@example.com', 1_000)).not.toThrow();
+      expect(() =>
+        limiter.recordFailure('me@example.com', 1_000),
+      ).not.toThrow();
     }
-    expect(() => limiter.consume('me@example.com', 1_000)).toThrow(
+    expect(() => limiter.recordFailure('me@example.com', 1_000)).toThrow(
       AppException,
     );
   });
@@ -16,9 +18,20 @@ describe('LoginRateLimiter', () => {
   it('1분이 지나면 다시 시도할 수 있다', () => {
     const limiter = new LoginRateLimiter();
     for (let attempt = 0; attempt < 5; attempt += 1) {
-      limiter.consume('me@example.com', 1_000);
+      limiter.recordFailure('me@example.com', 1_000);
     }
 
-    expect(() => limiter.consume('me@example.com', 61_000)).not.toThrow();
+    expect(() => limiter.recordFailure('me@example.com', 61_000)).not.toThrow();
+  });
+
+  it('성공한 로그인은 실패 횟수를 초기화한다', () => {
+    const limiter = new LoginRateLimiter();
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      limiter.recordFailure('me@example.com', 1_000);
+    }
+
+    limiter.reset('me@example.com');
+
+    expect(() => limiter.recordFailure('me@example.com', 1_000)).not.toThrow();
   });
 });
