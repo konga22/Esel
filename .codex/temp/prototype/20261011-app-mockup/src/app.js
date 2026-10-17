@@ -474,6 +474,7 @@ SCREENS.stand = (c) => {
 <header style="flex-shrink:0;height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 18px 0 6px">
 <span style="display:flex;align-items:center">${stack.length > 1 ? backBtn() : '<span style="width:12px"></span>'}<h1 class="serif" style="margin:0;font-size:32px;font-weight:400;line-height:1">가판대</h1></span>
 <span class="serif it" style="font-size:17px">9. 6. 일요일</span></header>
+<button type="button" class="btn text" data-go="challenges">이번 주의 착장 →</button><button type="button" class="btn text" data-go="collections">일·주·월 표지 특집 →</button>
 ${chips(c)}
 ${c ? `<div style="flex-shrink:0;height:40px;display:flex;align-items:center;gap:6px;padding:0 20px">${paintImg(c, 48)}<span style="font-size:15px;font-weight:600">오늘의 ${cname(c)} · ${sameCount(c)}명</span></div>` : ''}
 <div class="scroll" id="scroller">${shelfGrid(keys)}<div style="height:100px"></div></div>
@@ -571,6 +572,20 @@ ${issueShelf(k, k, items, view, k)}
     capsule: 'feed',
   };
 };
+SCREENS.challenges = () => ({
+  html: `<div class="scr"><div class="top-gap"></div><header style="display:flex;align-items:center">${backBtn()}<h1 class="serif" style="font-size:24px">이번 주의 착장</h1></header><div class="scroll" style="padding:20px">
+<h2 class="serif">옷을 입는 작은 이유</h2><p class="note">오늘 후보 3색과 함께 내 잡지에 이야기를 남겨요.<br>목업 · 저장하지 않는 예시 화면</p>
+<h2 class="serif">주간 드레스코드</h2><p>가방으로 포인트 · 서울 월요일~일요일</p><p class="note">오늘 후보 색과 주제를 함께 표현해요. 새 옷을 살 필요는 없어요.</p><button type="button" class="btn" data-act="content-weekly">이번 주 주제에 참여하기</button>
+<h2 class="serif">같은 옷, 다른 코디</h2><p class="note">내 지난 날짜 발행 표지를 골라 같은 옷인지 직접 확인해요. 앱에서 실제 내 기록을 선택할 수 있어요.</p><button type="button" class="btn line" data-act="content-restyle">지난 표지 골라 참여하기</button><h2 class="serif">내 참여 표지</h2><p class="note">${S.contentAttached ? '오늘 발행한 호를 연결했어요. 호수는 늘지 않아요.' : '첫 참여를 기다리고 있어요. 오늘 호도 연결할 수 있어요.'}</p><div style="height:40px"></div></div></div>`, capsule: null
+});
+SCREENS.collections = () => ({
+  html: `<div class="scr"><div class="top-gap"></div><header style="display:flex;align-items:center">${backBtn()}<h1 class="serif" style="font-size:24px">표지 특집</h1></header><div class="scroll" style="padding:20px">
+  <h2 class="serif">일·주·월의 표지를 엮어요</h2><p class="note">내가 고른 공개 표지와 선정 이유를 기록해요.<br>목업 · 로컬 직접 선정 화면의 예시</p>
+  <p>일간 · 주간 · 월간</p><p class="note">서울 시간 기준 · 이전 기간도 확인할 수 있어요.</p>
+  <h2 class="serif">선정 이유가 있는 특집</h2><p>주제에 맞는 착장 · 색 활용 · 다양한 스타일</p><p class="note">공개 규칙을 먼저 적용해요. 좋아요 순위나 자동 점수는 사용하지 않아요.</p>
+  <h2 class="serif">아직 엮은 표지가 없어요</h2><p class="note">Flutter 앱에서는 기간별 공개 표지 고르기, 선정 이유 저장·수정, 해제와 재조회가 가능해요. 이 목업은 저장하지 않는 구성 견본이에요.</p>
+  <button type="button" class="btn line" data-go="stand">공개 표지 살펴보기</button><div style="height:40px"></div></div></div>`, capsule: null
+});
 SCREENS.me = () => {
   const m = S.me;
   const n = myIssue();
@@ -590,6 +605,8 @@ SCREENS.me = () => {
 <button type="button" data-go="reactions" style="margin-top:6px;height:44px;display:flex;align-items:center;gap:6px;font-size:14px"><span>${m.issues}개의 표지</span><span class="muted">·</span><span style="text-decoration:underline;text-underline-offset:4px">내 표지의 좋아요 보기</span>${icon('arrow', 16, 1.8)}</button>
 ${today}
 <div class="rows" style="margin-top:14px">
+${row({ go: 'collections', title: '일·주·월 표지 특집', sub: '선정 이유로 소개하는 공개 표지' })}
+${row({ go: 'challenges', title: '이번 주의 착장', sub: '주간 드레스코드 · 같은 옷, 다른 코디' })}
 ${row({ go: 'record', title: '월간 색 기록', sub: '9월, 내가 입은 색의 흐름' })}
 ${row({ go: 'twin', title: '친구와 트윈', sub: S.twin.step === 'none' ? '같은 날, 서로 다른 표지' : `${S.twin.with}와의 트윈 · ${twinStatus()}` })}
 ${row({ go: 'friends', title: '나의 친구', sub: `친구 ${S.friends.length}명${S.requests.length ? ` · 받은 요청 ${S.requests.length}개` : ''}` })}
@@ -1253,6 +1270,8 @@ const ACT = {
   shelfview: (key, v) => { const [k, view] = [key, v]; S.shelfView[k] = view; render({ keepScroll: true }); },
   face: (k) => { S.me.face = k; render({ keepScroll: true }); },
   mast: (k) => { S.me.mast = k; render({ keepScroll: true }); },
+  'content-weekly': () => { if (S.published) { S.contentAttached=true; render(); toast('오늘 호를 연결했어요. 호수는 늘지 않아요.'); } else { go('make'); } },
+  'content-restyle': () => toast('실제 앱에서 내 지난 날짜 발행 표지를 골라요. 목업은 선택 안내만 보여요.'),
   publish: () => {
     const cover = $('#mk-cover');
     const roll = $('#roll');

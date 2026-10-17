@@ -70,6 +70,16 @@ void main() {
       // 창간호는 실제로 발행한 뒤에만 열린다.
       c.nextStep();
       expect(c.currentStep, OnboardingStep.face);
+      c.selectFaceMode(FaceLayoutMode.belowNeck);
+      c.setFaceWidth(.27);
+      c.beginFacePlacement();
+      expect(c.canProceed(), isFalse);
+      expect(c.draft.faceMode, FaceLayoutMode.belowNeck);
+      c.placeFace(const Offset(.5, .4));
+      final cover = c.draft.toCover(id: 'test', now: DateTime(2026));
+      expect(cover.faceWidth, .27);
+      expect(cover.faceY, .4);
+      expect(c.canProceed(), isTrue);
       // 사진을 바꾸면 얼굴 위치를 다시 정한다.
       c.setPhoto('other.png');
       expect(c.canProceed(), isFalse);
@@ -137,14 +147,67 @@ void main() {
       await tester.pump(const Duration(milliseconds: 10));
       expect(tester.widget<TextField>(field).controller!.text, 'minakim');
       expect(find.text('minakim — 쓸 수 있는 이름이에요.'), findsOneWidget);
+      final scale = find.byKey(const Key('founding-masthead-scale'));
+      await tester.ensureVisible(scale);
+      tester.widget<Slider>(scale).onChanged!(1.2);
+      await tester.pump();
       await tester.tap(find.text('다음'));
       await tester.pumpAndSettle();
       expect(find.text('창간 4 / 4'), findsOneWidget);
 
-      // J6: 얼굴 위치를 정해야 창간할 수 있다.
-      await tester.tap(find.bySemanticsLabel('제호 뒤로 · 이름 뒤에 숨겨요'));
+      // 제호 뒤로 + 물감은 가능하지만 목 아래를 선택하면 물감은 꺼진다.
+      for (final label in [
+        '물감 한 획 · 오늘의 색으로 가려요',
+        '제호 뒤로 · 이름 뒤에 숨겨요',
+        '목 아래 · 옷만 보여요',
+      ]) {
+        await tester.ensureVisible(find.bySemanticsLabel(label));
+        await tester.tap(find.bySemanticsLabel(label));
+        await tester.pump();
+      }
+      var preview = tester.widget<CoverPreview>(find.byType(CoverPreview));
+      expect(preview.locatingFace, isFalse);
+      expect(preview.draft.effectiveFaceEffects, {FaceLayoutMode.belowNeck});
+      await tester.ensureVisible(find.text('얼굴 위치 맞추기'));
+      await tester.tap(find.text('얼굴 위치 맞추기'));
+      await tester.pump();
+      expect(
+        tester.widget<CoverPreview>(find.byType(CoverPreview)).locatingFace,
+        isTrue,
+      );
+      await tester.ensureVisible(find.byType(CoverPreview));
       await tester.tap(find.byType(CoverPreview));
       await tester.pump();
+      preview = tester.widget<CoverPreview>(find.byType(CoverPreview));
+      expect(preview.locatingFace, isFalse);
+      expect(preview.draft.effectiveFaceEffects, {FaceLayoutMode.belowNeck});
+      await tester.ensureVisible(find.text('얼굴 위치 다시 정하기'));
+      await tester.tap(find.text('얼굴 위치 다시 정하기'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('위치 조정 취소'));
+      await tester.pumpAndSettle();
+      expect(sl.onboardingController.draft.facePlaced, isTrue);
+      // 목 아래에서는 물감 버튼이 비활성화된다. 자르기를 바꾼 뒤 직접 켠다.
+      final paint = find.bySemanticsLabel('물감 한 획 · 오늘의 색으로 가려요');
+      await tester.ensureVisible(paint);
+      await tester.tap(paint);
+      await tester.pump();
+      expect(sl.onboardingController.draft.effectiveFaceEffects, {
+        FaceLayoutMode.belowNeck,
+      });
+      await tester.ensureVisible(find.bySemanticsLabel('제호 뒤로 · 이름 뒤에 숨겨요'));
+      await tester.tap(find.bySemanticsLabel('제호 뒤로 · 이름 뒤에 숨겨요'));
+      await tester.pump();
+      await tester.ensureVisible(paint);
+      await tester.tap(paint);
+      await tester.pump();
+      expect(
+        tester
+            .widget<CoverPreview>(find.byType(CoverPreview))
+            .draft
+            .effectiveFaceEffects,
+        {FaceLayoutMode.paintStroke, FaceLayoutMode.behindLogo},
+      );
       await tester.tap(find.text('창간하기'));
       await tester.pumpAndSettle();
 
@@ -182,7 +245,11 @@ void main() {
       expect(issues.single.issueNumber, 1);
       expect(issues.single.masthead, 'minakim');
       expect(issues.single.color, color);
-      expect(issues.single.faceMode, FaceLayoutMode.behindLogo);
+      expect(issues.single.effectiveFaceEffects, {
+        FaceLayoutMode.paintStroke,
+        FaceLayoutMode.behindLogo,
+      });
+      expect(issues.single.mastheadScale, closeTo(1.2, .01));
       expect(issues.single.publishedOn, today.today.key);
       expect(today.hasPublishedToday, isTrue);
 

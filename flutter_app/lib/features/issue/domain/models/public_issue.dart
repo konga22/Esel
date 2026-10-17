@@ -27,6 +27,8 @@ class PublicIssue {
   final double? photoRatio;
   final FaceBox face;
   final FaceLayoutMode faceMode;
+  final Set<FaceLayoutMode>? faceEffects;
+  final double mastheadScale;
   final String caption;
 
   /// 사진 대체 텍스트(착장 설명).
@@ -48,6 +50,8 @@ class PublicIssue {
     this.photoRatio,
     required this.face,
     required this.faceMode,
+    this.faceEffects,
+    this.mastheadScale = 1,
     required this.caption,
     required this.alt,
     this.inkMasthead = false,

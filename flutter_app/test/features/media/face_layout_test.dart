@@ -56,6 +56,37 @@ void main() {
       expect(neck.bottom, greaterThanOrEqualTo(box.height));
     });
 
+    test('목 아래: 하단 여백이 적어 4배 이상 확대되어도 얼굴이 돌아오지 않는다', () {
+      const lowFace = FaceBox(.5, .8, .16);
+      final neck = CoverPhoto.photoRect(
+        box: box,
+        photoRatio: 1,
+        face: lowFace,
+        mode: FaceLayoutMode.belowNeck,
+      );
+      expect(neck.width, greaterThan(box.width * 4));
+      expect(
+        neck.top + lowFace.y * neck.height + lowFace.width * neck.width * .78,
+        closeTo(0, 1e-8),
+      );
+      expect(neck.bottom, greaterThanOrEqualTo(box.height));
+    });
+
+    test('목 아래: 턱 아래 사진이 없을 때도 얼굴을 다시 내리지 않는다', () {
+      const lowFace = FaceBox(.5, .98, .16);
+      final neck = CoverPhoto.photoRect(
+        box: box,
+        photoRatio: 1,
+        face: lowFace,
+        mode: FaceLayoutMode.belowNeck,
+      );
+      expect(
+        neck.top + lowFace.y * neck.height + lowFace.width * neck.width * .78,
+        closeTo(0, 1e-8),
+      );
+      expect(neck.bottom, lessThanOrEqualTo(0));
+    });
+
     test('그대로: 얼굴이 위에 있으면 제호를 줄이고, 그래도 닿으면 알린다', () {
       CoverDraft draft(double faceY) => CoverDraft(
         id: 'd',
@@ -126,4 +157,41 @@ void main() {
     expect(placed!.dx, closeTo(0.5, 0.01));
     expect(placed!.dy, closeTo(0.25, 0.01));
   });
+
+  for (final mode in FaceLayoutMode.values) {
+    testWidgets('$mode 선택 상태에서도 원본에서 얼굴 위치를 정할 수 있다', (tester) async {
+      Offset? placed;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Center(
+            child: SizedBox(
+              width: 300,
+              height: 400,
+              child: CoverPreview(
+                draft: CoverDraft(
+                  id: 'd',
+                  photoPath: 'missing.png',
+                  masthead: 'ab',
+                  faceMode: mode,
+                  updatedAt: DateTime(2026),
+                ),
+                editing: true,
+                locatingFace: true,
+                onFacePosition: (point) => placed = point,
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(
+        tester.widget<CoverPhoto>(find.byType(CoverPhoto)).mode,
+        FaceLayoutMode.original,
+      );
+      await tester.tapAt(
+        tester.getTopLeft(find.byType(CoverPreview)) + const Offset(150, 100),
+      );
+      expect(placed!.dx, closeTo(.5, .01));
+      expect(placed!.dy, closeTo(.25, .01));
+    });
+  }
 }

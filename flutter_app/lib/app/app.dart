@@ -1,4 +1,7 @@
 import 'dart:math' as math;
+import '../features/challenges/domain/challenge.dart';
+import '../features/challenges/presentation/challenge_screen.dart';
+import '../features/collections/presentation/collection_screen.dart';
 import 'package:flutter/material.dart';
 import '../core/design/theme.dart';
 import '../core/design/tokens.g.dart';
@@ -47,6 +50,9 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
   AppTab _currentTab = AppTab.feed;
   ActiveScreen _activeScreen = ActiveScreen.main;
   String? _authorShelfOwnerId;
+  StyleChallenge? _pendingChallenge;
+  String? _previousIssueId;
+  String? _contentOwnerId;
 
   // 사용자의 오늘 상태는 TodayController 한 곳에서 계산한다(P01·P04).
   bool get _hasPublishedToday => _sl.todayController.hasPublishedToday;
@@ -86,6 +92,16 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
 
   void _onAuthChanged() {
     final session = _sl.authController.currentSession;
+    _sl.reactionsController.bindUser(session?.userId, _sl.localLibrary);
+    if (_contentOwnerId != session?.userId) {
+      _contentOwnerId = session?.userId;
+      _pendingChallenge = null;
+      _previousIssueId = null;
+      if (_activeScreen == ActiveScreen.challenges ||
+          _activeScreen == ActiveScreen.collections) {
+        _activeScreen = ActiveScreen.main;
+      }
+    }
     if (_sl.config.isMock) {
       _sl.todayController.bindUser(
         ownerId: session?.userId,
@@ -212,7 +228,30 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
       title: 'Esel',
       debugShowCheckedModeBanner: false,
       theme: EselTheme.lightTheme,
-      builder: (context, child) => EselPhoneFrame(child: child!),
+      builder: (context, child) => EselPhoneFrame(
+        child: AnimatedBuilder(
+          animation: _sl.reactionsController,
+          builder: (context, _) => Column(
+            children: [
+              if (_sl.reactionsController.saveError case final error?)
+                Material(
+                  color: EselColors.paper,
+                  child: SafeArea(
+                    bottom: false,
+                    child: ListTile(
+                      title: Text(error),
+                      trailing: TextButton(
+                        onPressed: _sl.reactionsController.retrySave,
+                        child: const Text('재시도'),
+                      ),
+                    ),
+                  ),
+                ),
+              Expanded(child: child!),
+            ],
+          ),
+        ),
+      ),
       home: PopScope(
         canPop:
             !_isFounding &&
@@ -273,6 +312,54 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
         today: _sl.todayController.today,
         onOpenLogin: () => _openLoginSheet(ctx: context),
         onStartJoin: _startFounding,
+      );
+    }
+
+    if (_activeScreen == ActiveScreen.collections) {
+      return CollectionScreen(
+        key: ValueKey(auth.currentSession!.userId),
+        ownerId: auth.currentSession!.userId,
+        source: _sl.collectionSource,
+        library: _sl.localLibrary!,
+        viewer: _sl.todayController.viewer,
+        clock: _sl.clock,
+        onBack: () => setState(() => _activeScreen = ActiveScreen.main),
+      );
+    }
+    if (_activeScreen == ActiveScreen.challenges) {
+      return ChallengeScreen(
+        key: ValueKey(auth.currentSession!.userId),
+        ownerId: auth.currentSession!.userId,
+        library: _sl.localLibrary!,
+        source: _sl.challengeSource,
+        clock: _sl.clock,
+        viewer: _sl.todayController.viewer,
+        onBack: () => setState(() => _activeScreen = ActiveScreen.main),
+        onBegin: (challenge, previousId) async {
+          _sl.todayController.refresh();
+          final issue = _sl.todayController.todayIssue;
+          if (issue != null) {
+            await _sl.challengeSource.attach(
+              auth.currentSession!.userId,
+              issue.id,
+              challenge,
+              _sl.clock.today,
+              previousId: previousId,
+            );
+          } else {
+            if (_sl.todayController.hasPublishedToday) {
+              throw const FormatException(
+                '오늘 호가 삭제되어 참여에 연결할 수 없어요. 다음 발행일에 참여해 주세요.',
+              );
+            }
+            setState(() {
+              _pendingChallenge = challenge;
+              _previousIssueId = previousId;
+              _activeScreen = ActiveScreen.main;
+              _currentTab = AppTab.publish;
+            });
+          }
+        },
       );
     }
 
@@ -360,7 +447,10 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
   Future<void> _deleteAccount() async {
     final userId = _sl.authController.currentSession?.userId;
     await _sl.authController.deleteAccount();
-    if (userId != null) await _sl.localLibrary?.deleteOwnerData(userId);
+    if (userId != null) {
+      await _sl.localLibrary?.deleteOwnerData(userId);
+      _sl.reactionsController.forgetOwner(userId);
+    }
   }
 
   /// 다른 사람의 서가로. 내 이름을 누르면 내 서가로 간다.
@@ -425,6 +515,10 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
 
       case AppTab.stand:
         return StandScreen(
+          onOpenCollections: () =>
+              setState(() => _activeScreen = ActiveScreen.collections),
+          onOpenChallenges: () =>
+              setState(() => _activeScreen = ActiveScreen.challenges),
           controller: _sl.standController,
           viewer: today.viewer,
           viewerId: session.userId,
@@ -434,6 +528,8 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
 
       case AppTab.publish:
         return PublishScreen(
+          challengeId: _pendingChallenge?.id,
+          previousIssueId: _previousIssueId,
           library: _sl.localLibrary!,
           ownerId: session.userId,
           masthead: session.masthead,
@@ -441,8 +537,8 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
           hasPublishedToday: _hasPublishedToday,
           candidates: today.candidates,
           publish: today.publish,
-          onPublishSuccess: (_) => setState(() => _currentTab = AppTab.me),
-          onClose: () => setState(() => _currentTab = AppTab.feed),
+          onPublishSuccess: (_) => _closeContentEditor(published: true),
+          onClose: _closeContentEditor,
         );
 
       case AppTab.shelf:
@@ -474,6 +570,10 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
 
       case AppTab.me:
         return MyMagazineScreen(
+          onOpenCollections: () =>
+              setState(() => _activeScreen = ActiveScreen.collections),
+          onOpenChallenges: () =>
+              setState(() => _activeScreen = ActiveScreen.challenges),
           showExtendedFeatures: !_sl.config.isMock,
           masthead: session.masthead,
           issueCount: _issueCount,
@@ -492,6 +592,19 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
               setState(() => _activeScreen = ActiveScreen.settings),
         );
     }
+  }
+
+  void _closeContentEditor({bool published = false}) {
+    setState(() {
+      _activeScreen = _pendingChallenge == null
+          ? ActiveScreen.main
+          : ActiveScreen.challenges;
+      _currentTab = _pendingChallenge != null || published
+          ? AppTab.me
+          : AppTab.feed;
+      _pendingChallenge = null;
+      _previousIssueId = null;
+    });
   }
 
   /// 디자인 "메뉴 캡슐": 내 오늘의 색 물감(52) · Ink 원 48 안의 + · 내 아바타(34).

@@ -17,6 +17,12 @@ class ReaderLine {
     'text': text,
     'createdAt': createdAt.toIso8601String(),
   };
+  factory ReaderLine.fromJson(Map<String, dynamic> json) => ReaderLine(
+    id: json['id'] as String,
+    authorMasthead: json['authorMasthead'] as String,
+    text: json['text'] as String,
+    createdAt: DateTime.parse(json['createdAt'] as String),
+  );
 }
 
 /// P18 소유자 전용 반응 통계 (타인 비공개)

@@ -1,7 +1,74 @@
 import 'package:flutter/foundation.dart';
+import '../../../drafts/data/local_library.dart';
 import '../../domain/models/reaction_state.dart';
 
 class ReactionsController extends ChangeNotifier {
+  LocalLibrary? _library;
+  String? _owner;
+  String? saveError;
+  Future<void> _pending = Future.value();
+  final Map<String, Map<String, dynamic>> _cache = {};
+  Future<void> get whenSaved => _pending;
+  void bindUser(String? owner, LocalLibrary? library) {
+    if (_owner == owner && identical(_library, library)) return;
+    _owner = owner;
+    _library = library;
+    _likedIssueIds.clear();
+    _scrappedIssueIds.clear();
+    _subscribedOwners.clear();
+    _readerLinesMap.clear();
+    saveError = null;
+    final data = owner == null
+        ? <String, dynamic>{}
+        : _cache[owner] ?? library?.reactionsFor(owner) ?? {};
+    _likedIssueIds.addAll((data['likes'] as List? ?? []).cast<String>());
+    _scrappedIssueIds.addAll((data['scraps'] as List? ?? []).cast<String>());
+    _subscribedOwners.addAll(
+      (data['subscriptions'] as List? ?? []).cast<String>(),
+    );
+    for (final entry in (data['lines'] as Map? ?? {}).entries) {
+      _readerLinesMap[entry.key as String] = (entry.value as List)
+          .map((e) => ReaderLine.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList();
+    }
+    notifyListeners();
+  }
+
+  void _persist() {
+    final owner = _owner, library = _library;
+    if (owner == null || library == null) return;
+    final data = {
+      'likes': _likedIssueIds.toList(),
+      'scraps': _scrappedIssueIds.toList(),
+      'subscriptions': _subscribedOwners.toList(),
+      'lines': {
+        for (final e in _readerLinesMap.entries)
+          e.key: e.value.map((v) => v.toJson()).toList(),
+      },
+    };
+    _cache[owner] = data;
+    _pending = library
+        .saveReactions(owner, data)
+        .then((_) {
+          if (_owner == owner) {
+            saveError = null;
+            notifyListeners();
+          }
+        })
+        .catchError((Object _) {
+          if (_owner == owner) {
+            saveError = '반응을 저장하지 못했어요. 다시 저장해 주세요.';
+            notifyListeners();
+          }
+        });
+  }
+
+  void retrySave() => _persist();
+  void forgetOwner(String owner) {
+    _cache.remove(owner);
+    if (_owner == owner) bindUser(null, _library);
+  }
+
   final Set<String> _likedIssueIds = {};
   final Set<String> _scrappedIssueIds = {};
 
@@ -21,6 +88,7 @@ class ReactionsController extends ChangeNotifier {
     } else {
       _likedIssueIds.add(issueId);
     }
+    _persist();
     notifyListeners();
   }
 
@@ -30,6 +98,7 @@ class ReactionsController extends ChangeNotifier {
     } else {
       _scrappedIssueIds.add(issueId);
     }
+    _persist();
     notifyListeners();
   }
 
@@ -39,6 +108,7 @@ class ReactionsController extends ChangeNotifier {
     } else {
       _subscribedOwners.add(ownerId);
     }
+    _persist();
     notifyListeners();
   }
 
@@ -65,6 +135,7 @@ class ReactionsController extends ChangeNotifier {
 
     final list = _readerLinesMap.putIfAbsent(issueId, () => []);
     list.insert(0, newLine);
+    _persist();
     notifyListeners();
     return true;
   }

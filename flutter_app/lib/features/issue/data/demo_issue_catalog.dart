@@ -131,6 +131,8 @@ abstract final class DemoIssueCatalog {
     photo: issue.photoPath,
     face: FaceBox(issue.faceX, issue.faceY, issue.faceWidth),
     faceMode: issue.faceMode,
+    faceEffects: issue.effectiveFaceEffects,
+    mastheadScale: issue.mastheadScale,
     caption: issue.caption,
     alt: '${issue.masthead}의 오늘 착장',
     inkMasthead: !issue.whiteTitle,

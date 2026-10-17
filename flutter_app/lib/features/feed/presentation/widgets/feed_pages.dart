@@ -75,6 +75,7 @@ class TodayCover extends StatelessWidget {
               photoRatio: issue.photoRatio,
               face: issue.face,
               mode: issue.faceMode,
+              effects: issue.faceEffects,
               paint: issue.color,
               position: const Offset(0.58, 0.5),
               semanticLabel: issue.alt,
@@ -102,9 +103,16 @@ class TodayCover extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   leading,
-                  Text(
-                    meta,
-                    style: EselTypography.label(fontSize: 12, color: topColor),
+                  Flexible(
+                    child: Text(
+                      meta,
+                      textAlign: TextAlign.end,
+                      maxLines: 2,
+                      style: EselTypography.label(
+                        fontSize: 12,
+                        color: topColor,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -273,6 +281,7 @@ class InnerPage extends StatelessWidget {
                 photoRatio: issue.photoRatio,
                 face: issue.face,
                 mode: issue.faceMode,
+                effects: issue.faceEffects,
                 paint: issue.color,
                 position: const Offset(0.5, 0.3),
                 semanticLabel: issue.alt,

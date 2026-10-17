@@ -21,6 +21,8 @@ const at = (...names) => `stack=[${['feed', ...names].map((n) => { const [name, 
 const scroll = (from, to, step) => `(()=>{const sc=document.querySelector('#scroller');const go=(y)=>{sc.scrollTop=y;sc.dispatchEvent(new Event('scroll'));};const st=${step}*Math.sign(${to}-${from});for(let y=${from};${step}>0&&(st>0?y<=${to}:y>=${to});y+=st)go(y);})();`;
 const twin = (step) => `${IN}S.twin.step='${step}';`;
 const SETUP = {
+  CH1: IN + at('challenges'),
+  CL1: IN + at('collections'),
   J1: '',
   J1b: scroll(0, 1300, 20),
   J2: 'openLogin();',
@@ -83,11 +85,13 @@ const out = path.join(root, 'docs/dev/screens');
 fs.mkdirSync(out, { recursive: true });
 const missing = dev.screens.filter((s) => !(s.id in SETUP)).map((s) => s.id);
 if (missing.length) throw new Error(`캡처 방법이 없는 화면: ${missing.join(', ')}`);
-for (const s of dev.screens) {
+const selected = process.env.ESEL_CAPTURE_SCREENS?.split(',');
+const screens = selected ? dev.screens.filter((s) => selected.includes(s.id)) : dev.screens;
+for (const s of screens) {
   const file = path.join(mockup, 'dist', `_cap-${s.id}.html`);
   fs.writeFileSync(file, page.replace('</head>', `${SAFE}</head>`).replace('</body></html>', `<script>${SETUP[s.id]}</script></body></html>`));
   execFileSync(chrome, ['--headless=new', '--disable-gpu', '--allow-file-access-from-files', '--hide-scrollbars', '--force-device-scale-factor=2',
     '--window-size=393,852', '--virtual-time-budget=5000', `--screenshot=${path.join(root, s.image)}`, pathToFileURL(file).href], { stdio: 'ignore' });
   fs.rmSync(file);
 }
-console.log(`목업 화면 캡처 ${dev.screens.length}장: docs/dev/screens`);
+console.log(`목업 화면 캡처 ${screens.length}장: docs/dev/screens`);
