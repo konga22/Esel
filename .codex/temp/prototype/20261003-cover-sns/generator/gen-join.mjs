@@ -29,7 +29,7 @@ const teaser = `<section aria-label="맛보기 끝" style="position: relative; h
 const sc = scrollLogic({ loginAt: 640 });
 files.JoinScroll = page('첫 캔버스 1 비로그인 표지', `<div style="${ROOT(`background: ${PAPER}; color: ${INK}`)}">
 <div class="esel-scroll" ref="{{setScroller}}" onScroll="{{onScroll}}" style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none">
-${scrollCover({ withTabs: false })}
+${scrollCover({ home: false })}
 ${inner({ key: 'ama', no: '02', py: 0.3 })}
 ${inner({ key: 'lise', no: '03', style: 'paint', py: 0.25 })}
 ${teaser}

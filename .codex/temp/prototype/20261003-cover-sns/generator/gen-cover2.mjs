@@ -8,12 +8,9 @@ import { mastLayer, scrollLogic } from './scroll.mjs';
 
 const OUT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'project');
 const files = {};
-const tabs = (fg) => `<div style="display: flex">
-<button type="button" aria-pressed="true" style="height: 44px; padding: 0 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px"><span>전체</span><span style="width: 100%; height: 1.5px; background: ${fg}"></span></button>
-<button type="button" aria-pressed="false" style="height: 44px; padding: 0 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; opacity: 0.78"><span>구독</span><span style="width: 100%; height: 1.5px"></span></button>
-</div>`;
-const topBar = (fg, { issue = 249, withTabs = true } = {}) => `<div style="position: absolute; left: 14px; right: 20px; top: 48px; height: 44px; display: flex; align-items: center; justify-content: space-between; color: ${fg}; font-size: 13px; font-weight: 600; letter-spacing: 0.04em">
-${withTabs ? tabs(fg) : '<span style="padding-left: 6px">오늘의 표지</span>'}
+// Home is one feed mixing subscriptions and recommendations, so it has no 전체/구독 tabs (10-18; subscriptions live in the palette).
+const topBar = (fg, { issue = 249, home = true } = {}) => `<div style="position: absolute; left: 14px; right: 20px; top: 48px; height: 44px; display: flex; align-items: center; justify-content: space-between; color: ${fg}; font-size: 13px; font-weight: 600; letter-spacing: 0.04em">
+${home ? '<span></span>' : '<span style="padding-left: 6px">오늘의 표지</span>'}
 <span style="font-size: 12px">Nº ${issue} · 2026. 9. 6.</span>
 </div>`;
 // How many garments each example post tagged (garment info is optional, P19 draft).
@@ -146,8 +143,9 @@ GRID.tall = GRID.cell * 2 + GRID.gap;
 GRID.block = GRID.tall + GRID.gap;
 // Horizontal crop that keeps the face in the cell.
 const faceX = (key, w, h) => { const f = fit(key, w, h, 0, 0); return f.dw > w ? Math.max(0, Math.min(1, (f.fx - w / 2) / (f.dw - w))) : 0.5; };
+// A small cell is too small for the sign to cover a face, so "behind the sign" covers show neck-down in the grid (10-18).
 function tileImg({ key, w, h, style = 'plain', py = 0.3 }) {
-  if (style === 'neck') return neckDown(key, w, h);
+  if (style === 'neck' || style === 'behind') return neckDown(key, w, h);
   const px = faceX(key, w, h);
   return `<span style="position: relative; display: block; width: ${w}px; height: ${h}px; overflow: hidden">${cover(key, w, h, px, py)}${style === 'paint' ? faceStroke(key, w, h, px, py) : ''}</span>`;
 }
@@ -163,7 +161,9 @@ function gridBlock(items, top, tallLeft, draw = tile) {
 // 추천: recently posted, same color as me, not yet subscribed. Before I post, my three candidate colors stay out (P01).
 const RECOMMENDED = [
   [{ key: 'dana' }, { key: 'ama' }, { key: 'riva', py: 0.5 }, { key: 'lise', style: 'paint' }, { key: 'omar', style: 'neck' }],
-  [{ key: 'vera', py: 0.5 }, { key: 'zuri' }, { key: 'elin', py: 0.2 }, { key: 'freya' }, { key: 'hana', py: 0.35 }],
+  [{ key: 'vera', py: 0.5 }, { key: 'zuri' }, { key: 'elin', py: 0.2 }, { key: 'freya', style: 'behind' }, { key: 'hana', py: 0.35 }],
+  [{ key: 'sol', py: 0.35 }, { key: 'nia', py: 0.4 }, { key: 'june', style: 'neck' }, { key: 'cleo', py: 0.25 }, { key: 'maya', py: 0.35 }],
+  [{ key: 'ines', style: 'paint', py: 0.2 }, { key: 'rio', py: 0.4 }, { key: 'mira', py: 0.25 }, { key: 'ayo', py: 0.3 }, { key: 'elin', style: 'neck' }],
 ];
 const paletteHead = `<header style="flex-shrink: 0; height: 48px; display: flex; align-items: baseline; justify-content: space-between; padding: 8px 18px 0; box-sizing: border-box">
 <h1 style="margin: 0; font-family: ${SERIF}; font-size: 32px; font-weight: 400; line-height: 1">팔레트</h1>
@@ -182,9 +182,12 @@ const gridTop = 8;
 files.CoverStand = page('표지 SNS 4 팔레트', `<div style="${ROOT(`padding-top: 54px; display: flex; flex-direction: column; background: ${PAPER}; color: ${INK}`)}">
 ${paletteHead}
 ${paletteTabs('pick')}
-<section aria-label="추천" style="flex-shrink: 0; position: relative; height: ${GRID.block * RECOMMENDED.length}px; margin-top: ${gridTop}px">
+<div class="esel-scroll" style="flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none">
+<section aria-label="추천" style="position: relative; height: ${GRID.block * RECOMMENDED.length}px; margin-top: ${gridTop}px">
 ${RECOMMENDED.map((items, i) => gridBlock(items, i * GRID.block, i % 2 === 1)).join('\n')}
 </section>
+<div style="height: 110px"></div>
+</div>
 ${capsule({ color: PEOPLE[ME].color, active: 'palette' })}
 </div>`);
 
@@ -408,10 +411,10 @@ const innerPages = [
   inner({ key: 'omar', no: '06', style: 'neck' }),
   inner({ key: 'riva', no: '07', py: 0.25 }),
 ].join('\n');
-const scrollCover = ({ withTabs = true } = {}) => `<section aria-label="오늘의 표지" style="position: relative; height: 800px; overflow: hidden; background: #C9D3DC">
+const scrollCover = ({ home = true } = {}) => `<section aria-label="오늘의 표지" style="position: relative; height: 800px; overflow: hidden; background: #C9D3DC">
 ${cover('dana', 393, 800, 0.58, 0.5, '; position: absolute; left: 0; top: 0')}
 ${shade(460)}
-${topBar(INK, { withTabs })}
+${topBar(INK, { home })}
 <h1 style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); margin: 0">Esel 오늘의 표지</h1>
 ${coverText('dana', { same: 187, bottom: 52 })}
 </section>`;
