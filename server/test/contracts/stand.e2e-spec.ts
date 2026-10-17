@@ -16,4 +16,18 @@ describe('DEV-12 가판대와 같은 색', () => {
   it.todo('합격 기준(P01): 미성년자는 잠금 없이 전부 열림(판별 방법은 미정, DEV-02)');
   it.todo('합격 기준(P01·P03·P09): 색 확정·색 복원·트윈 게시로는 어느 방도 열리지 않음');
   it.todo('합격 기준(P18): 같은 색 인원 수는 보여도 반응 숫자는 없음');
+
+  // 10-18 사용자 결정: 화면 이름은 팔레트(인스타 돋보기 탭 구조). 탭은 추천·색상·구독.
+  it.todo('GET /api/palette/recommended: 팔레트 추천 탭: 추천하는 사람마다 최신 사진 한 장 → 200');
+  it.todo('GET /api/palette/recommended: 로그인 없이 부르면 → 401 AUTH_REQUIRED');
+  it.todo('GET /api/palette/recommended: 보낸 값의 형식이 맞지 않아요 → 400 VALIDATION');
+  it.todo('합격 기준(P01): 추천 탭에도 같은 색 잠금이 그대로 적용됨(발행 전 후보 3색 사진은 잠금 규칙대로)');
+  it.todo('합격 기준(P18): 추천 칸에 좋아요·구독자 숫자와 순위가 없음');
+  it.todo('GET /api/palette/colors: 팔레트 색상 목록 순서 → 200');
+  it.todo('GET /api/palette/colors: 로그인 없이 부르면 → 401 AUTH_REQUIRED');
+  it.todo('합격 기준(P01): 발행 전에는 내 후보 3색이 맨 앞에 잠김 표시로, 발행 뒤에는 잠김 없이');
+  it.todo('합격 기준(P18): 색별 고른 사람 수는 순서에만 쓰고 응답에 숫자가 없음');
+  it.todo('GET /api/palette/subscriptions: 팔레트 구독 탭: 구독한 사람마다 최신 사진 한 장 → 200');
+  it.todo('GET /api/palette/subscriptions: 로그인 없이 부르면 → 401 AUTH_REQUIRED');
+  it.todo('GET /api/palette/subscriptions: 보낸 값의 형식이 맞지 않아요 → 400 VALIDATION');
 });
