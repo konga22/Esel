@@ -44,7 +44,7 @@ npm run start:dev
 
 ## 현재 구현된 API
 
-`api-contract.json` 기준 라우트 28개가 구현되어 있습니다. 이 중 운영 저장소가 미정인 미디어 2개는 `doing`이고, 계약 완료는 26/55개(47.3%)입니다.
+`api-contract.json` 기준 라우트 38개가 구현되어 있습니다. 이 중 운영 저장소가 미정인 미디어 2개는 `doing`이고, 계약 완료는 36/55개(65.5%)입니다.
 
 | 방법 | 주소 | 하는 일 |
 |---|---|---|
@@ -76,6 +76,16 @@ npm run start:dev
 | `GET` | `/api/me/records?month=YYYY-MM` | 사진 기록과 색 복원을 구분한 월간 기록 조회 |
 | `POST` | `/api/me/records/:date/restore` | 이번 달 지난 빈 날의 후보 색 복원(월 2회) |
 | `GET` | `/api/users/:masthead` | 제호로 공개 사용자 정보 조회 |
+| `GET` | `/api/friends` | 내 친구 목록을 cursor로 조회 |
+| `GET` | `/api/friends/requests` | 받은 친구 요청을 cursor로 조회 |
+| `POST` | `/api/friends/requests` | 제호로 친구 요청 전송(양방향 중복 방지) |
+| `POST` | `/api/friends/requests/:id/accept` | 받은 친구 요청 수락 |
+| `POST` | `/api/friends/requests/:id/decline` | 받은 친구 요청 거절 |
+| `POST` | `/api/twins` | 친구를 오늘 트윈에 초대 |
+| `GET` | `/api/twins/:id` | 참여자에게 트윈 현재 단계 조회 |
+| `POST` | `/api/twins/:id/accept` | 트윈 초대 수락 |
+| `PUT` | `/api/twins/:id/choice` | 내 트윈 후보 3색 중 하나 선택 |
+| `POST` | `/api/twins/:id/posts` | 업로드 완료된 미디어로 내 트윈 표지 게시 |
 
 이메일 가입 요청 예시:
 
@@ -135,6 +145,10 @@ Invoke-RestMethod -Method Get `
 
 사용자 조회는 제호와 발행 호수만 반환합니다. 내부 사용자 ID, 구독자 수, 반응 수는 공개하지 않습니다.
 
+친구 요청은 두 사용자 ID를 항상 같은 순서로 정규화한 `pairKey`에 unique 제약을 둡니다. 그래서 같은 방향뿐 아니라 서로 엇갈려 동시에 요청해도 한 건만 남습니다. 요청을 수락하면 하나의 `Friendship`으로 바꾸며, 친구 목록의 `friendId`는 다음 트윈 초대에 사용합니다.
+
+트윈은 개인 오늘 색·개인 호·월간 기록과 분리된 `TwinParticipation`, `TwinCandidate`, `TwinPost`에 저장합니다. 한 사용자는 하루에 한 트윈에만 참여하고, 두 사람은 각자 후보 3색을 받되 교집합은 정확히 한 색입니다. 서로 다른 후보를 골라도 되며, 한 사람만 표지를 게시한 동안 상대의 미디어는 응답하지 않습니다. 둘 다 게시해도 개인 발행이나 같은 색 방 잠금 해제로 계산하지 않습니다. 공개 범위·공동 공개 동의·공동 발행 API는 다음 구현 묶음입니다.
+
 ## Flutter 앱과 연결
 
 저장소 루트에서 실제 서버를 먼저 띄웁니다.
@@ -143,7 +157,7 @@ Invoke-RestMethod -Method Get `
 docker compose up -d --build api
 ```
 
-Android 에뮬레이터는 호스트 PC를 `10.0.2.2`로 부릅니다. Flutter 앱을 mock이 아닌 서버 모드로 실행하면 인증 API와 제호 중복 확인 API를 호출합니다. 오늘·프로필 생성·미디어·알림·호 조회·반응·독자 한 줄·서가·구독·내 잡지·월간 기록·사용자 조회 API는 서버에 구현됐지만 해당 Flutter 화면은 아직 로컬 상태를 사용합니다. 특히 현재 미디어 API는 서버 내부 경로를 노출하지 않고 업로드 URL도 제공하지 않으며 호 응답도 파일 URL을 제공하지 않으므로, 운영 저장소 결정 뒤 앱 업로드와 이미지 표시를 연결해야 합니다.
+Android 에뮬레이터는 호스트 PC를 `10.0.2.2`로 부릅니다. Flutter 앱을 mock이 아닌 서버 모드로 실행하면 인증 API와 제호 중복 확인 API를 호출합니다. 오늘·프로필 생성·미디어·알림·호 조회·반응·독자 한 줄·서가·구독·내 잡지·월간 기록·사용자 조회·친구·트윈 1차 API는 서버에 구현됐지만 해당 Flutter 화면은 아직 로컬 상태를 사용합니다. 특히 현재 미디어 API는 서버 내부 경로를 노출하지 않고 업로드 URL도 제공하지 않으며 호 응답도 파일 URL을 제공하지 않으므로, 운영 저장소 결정 뒤 앱 업로드와 이미지 표시를 연결해야 합니다.
 
 ```powershell
 cd flutter_app

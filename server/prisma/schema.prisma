@@ -27,6 +27,16 @@ enum FaceMode {
   NECK_DOWN
 }
 
+enum TwinStatus {
+  INVITED
+  ACCEPTED
+}
+
+enum TwinRole {
+  INVITER
+  INVITEE
+}
+
 model User {
   id                     String                @id @default(uuid()) @db.Uuid
   email                  String?               @unique
@@ -50,6 +60,7 @@ model User {
   friendshipsAsB         Friendship[]          @relation("FriendshipUserB")
   friendRequestsSent     FriendRequest[]       @relation("FriendRequestSender")
   friendRequestsReceived FriendRequest[]       @relation("FriendRequestReceiver")
+  twinParticipations     TwinParticipation[]
 
   @@map("users")
 }
@@ -113,6 +124,9 @@ model Color {
   choices        UserDailyChoice[]
   issues         Issue[]
   restoredColors RestoredColor[]
+  twinChoices    TwinParticipation[] @relation("TwinChoiceColor")
+  twinCandidates TwinCandidate[]
+  twinPosts      TwinPost[]
 
   @@map("colors")
 }
@@ -167,6 +181,7 @@ model MediaAsset {
   updatedAt  DateTime    @updatedAt @map("updated_at")
   owner      User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   issue      Issue?
+  twinPost   TwinPost?
 
   @@index([ownerId, status])
   @@map("media_assets")
@@ -283,4 +298,62 @@ model FriendRequest {
 
   @@index([receiverId, createdAt, id])
   @@map("friend_requests")
+}
+
+model Twin {
+  id             String              @id @default(uuid()) @db.Uuid
+  serviceDate    DateTime            @map("service_date") @db.Date
+  status         TwinStatus          @default(INVITED)
+  acceptedAt     DateTime?           @map("accepted_at")
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+  participations TwinParticipation[]
+
+  @@index([serviceDate, status])
+  @@map("twins")
+}
+
+model TwinParticipation {
+  twinId        String          @map("twin_id") @db.Uuid
+  userId        String          @map("user_id") @db.Uuid
+  serviceDate   DateTime        @map("service_date") @db.Date
+  role          TwinRole
+  choiceColorId String?         @map("choice_color_id") @db.VarChar(32)
+  twin          Twin            @relation(fields: [twinId], references: [id], onDelete: Cascade)
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  choiceColor   Color?          @relation("TwinChoiceColor", fields: [choiceColorId], references: [id], onDelete: Restrict)
+  candidates    TwinCandidate[]
+  post          TwinPost?
+
+  @@id([twinId, userId])
+  @@unique([userId, serviceDate])
+  @@unique([twinId, role])
+  @@map("twin_participations")
+}
+
+model TwinCandidate {
+  twinId      String            @map("twin_id") @db.Uuid
+  userId      String            @map("user_id") @db.Uuid
+  colorId     String            @map("color_id") @db.VarChar(32)
+  position    Int               @db.SmallInt
+  participant TwinParticipation @relation(fields: [twinId, userId], references: [twinId, userId], onDelete: Cascade)
+  color       Color             @relation(fields: [colorId], references: [id], onDelete: Restrict)
+
+  @@id([twinId, userId, colorId])
+  @@unique([twinId, userId, position])
+  @@map("twin_candidates")
+}
+
+model TwinPost {
+  twinId      String            @map("twin_id") @db.Uuid
+  userId      String            @map("user_id") @db.Uuid
+  mediaId     String            @unique @map("media_id") @db.Uuid
+  colorId     String            @map("color_id") @db.VarChar(32)
+  createdAt   DateTime          @default(now()) @map("created_at")
+  participant TwinParticipation @relation(fields: [twinId, userId], references: [twinId, userId], onDelete: Cascade)
+  media       MediaAsset        @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+  color       Color             @relation(fields: [colorId], references: [id], onDelete: Restrict)
+
+  @@id([twinId, userId])
+  @@map("twin_posts")
 }

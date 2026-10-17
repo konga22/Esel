@@ -7,6 +7,7 @@ import { PrismaModule } from './prisma/prisma.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { ProfileModule } from './profile/profile.module.js';
 import { TodayModule } from './today/today.module.js';
+import { TwinsModule } from './twins/twins.module.js';
 import { AccountModule } from './account/account.module.js';
 import { MediaModule } from './media/media.module.js';
 import { IssuesModule } from './issues/issues.module.js';
@@ -34,6 +35,7 @@ import { UsersModule } from './users/users.module.js';
     RecordsModule,
     UsersModule,
     FriendsModule,
+    TwinsModule,
   ],
 })
 export class AppModule {}

@@ -6,5 +6,6 @@
   "prisma/migrations/20261018001500_add_issue_reactions/migration.sql": "e766205d318ddbd71a6b1b45a0392589563e9a9ccce633c6d89d1713d73c54c5",
   "prisma/migrations/20261018010000_add_reader_lines_and_subscriptions/migration.sql": "90da3ebfde48c3b30c778f65912b742f4ae5bd225b4d3036c2b4e3a0502a09e6",
   "prisma/migrations/20261018014500_add_restored_colors/migration.sql": "cf953b83a7db778b447c7600f9240e77abb2daacbf92bc32a09ce7d55859ae36",
-  "prisma/migrations/20261018030000_add_friendships/migration.sql": "20bf4a2fd201c2dc61c2ac602913fbc362aeac9ef8f7d19bba5d8ebde7315f68"
+  "prisma/migrations/20261018030000_add_friendships/migration.sql": "20bf4a2fd201c2dc61c2ac602913fbc362aeac9ef8f7d19bba5d8ebde7315f68",
+  "prisma/migrations/20261018043000_add_twins/migration.sql": "66708cf7c5b9149741301aeb6c24570736a7879d5514ac89a886075b810e0097"
 }
