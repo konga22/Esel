@@ -28,24 +28,28 @@ enum FaceMode {
 }
 
 model User {
-  id                   String                @id @default(uuid()) @db.Uuid
-  email                String?               @unique
-  status               UserStatus            @default(ACTIVE)
-  createdAt            DateTime              @default(now()) @map("created_at")
-  updatedAt            DateTime              @updatedAt @map("updated_at")
-  profile              Profile?
-  emailCredential      EmailCredential?
-  authSessions         AuthSession[]
-  notificationSettings NotificationSettings?
-  choices              UserDailyChoice[]
-  mediaAssets          MediaAsset[]
-  issues               Issue[]
-  likes                Like[]
-  scraps               Scrap[]
-  readerLines          ReaderLine[]
-  subscriptionsMade    Subscription[]        @relation("SubscriptionsMade")
-  magazineSubscribers  Subscription[]        @relation("MagazineSubscribers")
-  restoredColors       RestoredColor[]
+  id                     String                @id @default(uuid()) @db.Uuid
+  email                  String?               @unique
+  status                 UserStatus            @default(ACTIVE)
+  createdAt              DateTime              @default(now()) @map("created_at")
+  updatedAt              DateTime              @updatedAt @map("updated_at")
+  profile                Profile?
+  emailCredential        EmailCredential?
+  authSessions           AuthSession[]
+  notificationSettings   NotificationSettings?
+  choices                UserDailyChoice[]
+  mediaAssets            MediaAsset[]
+  issues                 Issue[]
+  likes                  Like[]
+  scraps                 Scrap[]
+  readerLines            ReaderLine[]
+  subscriptionsMade      Subscription[]        @relation("SubscriptionsMade")
+  magazineSubscribers    Subscription[]        @relation("MagazineSubscribers")
+  restoredColors         RestoredColor[]
+  friendshipsAsA         Friendship[]          @relation("FriendshipUserA")
+  friendshipsAsB         Friendship[]          @relation("FriendshipUserB")
+  friendRequestsSent     FriendRequest[]       @relation("FriendRequestSender")
+  friendRequestsReceived FriendRequest[]       @relation("FriendRequestReceiver")
 
   @@map("users")
 }
@@ -100,14 +104,14 @@ model Profile {
 }
 
 model Color {
-  id            String              @id @db.VarChar(32)
-  nameKo        String              @map("name_ko") @db.VarChar(32)
-  nameEn        String              @map("name_en") @db.VarChar(32)
-  hex           String              @db.Char(7)
-  sortOrder     Int                 @unique @map("sort_order") @db.SmallInt
-  paletteColors DailyPaletteColor[]
-  choices       UserDailyChoice[]
-  issues        Issue[]
+  id             String              @id @db.VarChar(32)
+  nameKo         String              @map("name_ko") @db.VarChar(32)
+  nameEn         String              @map("name_en") @db.VarChar(32)
+  hex            String              @db.Char(7)
+  sortOrder      Int                 @unique @map("sort_order") @db.SmallInt
+  paletteColors  DailyPaletteColor[]
+  choices        UserDailyChoice[]
+  issues         Issue[]
   restoredColors RestoredColor[]
 
   @@map("colors")
@@ -252,4 +256,31 @@ model RestoredColor {
   @@unique([userId, serviceDate])
   @@index([userId, serviceDate])
   @@map("restored_colors")
+}
+
+model Friendship {
+  id        String   @id @default(uuid()) @db.Uuid
+  userAId   String   @map("user_a_id") @db.Uuid
+  userBId   String   @map("user_b_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  userA     User     @relation("FriendshipUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB     User     @relation("FriendshipUserB", fields: [userBId], references: [id], onDelete: Cascade)
+
+  @@unique([userAId, userBId])
+  @@index([userAId, createdAt, id])
+  @@index([userBId, createdAt, id])
+  @@map("friendships")
+}
+
+model FriendRequest {
+  id         String   @id @default(uuid()) @db.Uuid
+  pairKey    String   @unique @map("pair_key") @db.VarChar(73)
+  senderId   String   @map("sender_id") @db.Uuid
+  receiverId String   @map("receiver_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at")
+  sender     User     @relation("FriendRequestSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver   User     @relation("FriendRequestReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([receiverId, createdAt, id])
+  @@map("friend_requests")
 }
