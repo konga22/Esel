@@ -42,6 +42,56 @@ npm run start:dev
 
 `.env.example`과 `compose.yaml`의 비밀번호(`esel_dev`)는 개발용입니다. 운영에서는 `CORS_ORIGINS`를 실제 앱 주소로 꼭 정해야 서버가 시작합니다.
 
+## 현재 구현된 API
+
+| 방법 | 주소 | 하는 일 |
+|---|---|---|
+| `GET` | `/api/health` | API 프로세스와 PostgreSQL 연결 상태 확인 |
+| `POST` | `/api/auth/email/signup` | 이메일 가입, 비밀번호 해시와 새 세션 생성 |
+
+이메일 가입 요청 예시:
+
+```powershell
+$body = @{ email = 'me@example.com'; password = '8자 이상 비밀번호' } | ConvertTo-Json
+Invoke-RestMethod -Method Post `
+  -Uri 'http://127.0.0.1:3000/api/auth/email/signup' `
+  -ContentType 'application/json' `
+  -Body $body
+```
+
+비밀번호는 Node 내장 `scrypt`로 해시하고, access/refresh token은 SHA-256 해시만 DB에 저장합니다. 이메일은 공백을 지우고 소문자로 통일하며 PostgreSQL의 소문자 unique index가 동시 가입도 막습니다. 로그인·토큰 갱신·로그아웃은 아직 구현 전이므로 가입 뒤 앱을 재시작한 세션 복원은 다음 작업에서 완성합니다.
+
+## Flutter 앱과 연결
+
+저장소 루트에서 실제 서버를 먼저 띄웁니다.
+
+```powershell
+docker compose up -d --build api
+```
+
+Android 에뮬레이터는 호스트 PC를 `10.0.2.2`로 부릅니다. Flutter 앱을 mock이 아닌 서버 모드로 실행하면 이메일 회원가입 화면이 위 API를 호출합니다.
+
+```powershell
+cd flutter_app
+flutter run -d <장치ID> `
+  --dart-define=ESEL_API_MODE=server `
+  --dart-define=API_BASE_URL=http://10.0.2.2:3000/api
+```
+
+USB로 연결한 Android 실기기에서는 `adb reverse tcp:3000 tcp:3000`을 먼저 실행하고 `API_BASE_URL=http://127.0.0.1:3000/api`를 사용합니다. Compose 포트를 외부 네트워크에 열지 않고도 USB 터널로 연결할 수 있습니다.
+
+연결 흐름은 다음과 같습니다.
+
+```text
+EmailLoginView
+  → AuthController
+  → AuthRepositoryImpl
+  → AuthRemoteSource
+  → StandardHttpClient
+  → POST /api/auth/email/signup
+  → NestJS AuthController → AuthService → PrismaService → PostgreSQL
+```
+
 ## 검증
 
 ```bash

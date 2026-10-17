@@ -4,7 +4,7 @@
 
 ## 1. 현재 구현 범위
 
-현재 단계는 실제 기능 개발 전의 서버 기반 구축이다.
+현재 단계는 서버 기반 위에 실제 기능을 API 하나씩 연결하는 중이다.
 
 - NestJS 기반 REST API 서버
 - PostgreSQL 개발 데이터베이스
@@ -14,9 +14,12 @@
 - CORS, Helmet, 전역 DTO 검증
 - Swagger 문서(운영이 아닐 때만)
 - API와 DB 연결 상태를 확인하는 헬스체크
+- 이메일 회원가입 API(`/api/auth/email/signup`)
+- 비밀번호 `scrypt` 해시, 불투명 access/refresh token 발급과 해시 저장
+- Flutter 서버 모드의 회원가입 호출 경로
 - 단위 테스트와 DB 연결 E2E 테스트
 
-아직 인증, 사진 업로드, 오늘의 색 배정, 발행, 피드, 반응 기능은 구현하지 않았다.
+인증 중 로그인·토큰 갱신·로그아웃과 전역 인증 가드는 아직 구현하지 않았다. 사진 업로드, 오늘의 색 배정, 발행, 피드, 반응 기능도 아직 구현 전이다.
 
 ## 2. 기술 선택
 
@@ -24,7 +27,7 @@
 |---|---|---|
 | 런타임 | Node.js 24 LTS | NestJS·Prisma 요구사항을 충족한다. Docker 이미지도 Node 24다. `package.json`의 `engines`는 의존성 요구(`^22.22.3 \|\| ^24.15.0 \|\| >=26`)를 따른다. |
 | 서버 | NestJS 12 | 기능별 모듈 분리, 의존성 주입, 요청 검증과 테스트 구성이 명확하다. |
-| API | REST + OpenAPI | Expo 앱에서 호출하기 쉽고 Swagger로 계약을 확인할 수 있다. |
+| API | REST + OpenAPI | Flutter 앱에서 호출하기 쉽고 Swagger로 계약을 확인할 수 있다. |
 | 데이터베이스 | PostgreSQL 17 | 발행·개인 호수·공개 권한에 필요한 트랜잭션과 제약조건을 지원한다. |
 | DB 접근 | Prisma 7.10 | 타입 안전한 쿼리, 스키마, 마이그레이션을 함께 관리한다. |
 | 로컬 실행 | Docker Compose | 팀원이 같은 PostgreSQL과 API 환경을 재현할 수 있다. |
@@ -36,7 +39,7 @@ Supabase나 Firebase 같은 BaaS는 사용하지 않는다. 인증, 권한, 발�
 
 ```mermaid
 flowchart LR
-    Expo[Expo 앱] -->|REST / JSON| API[NestJS API]
+    Flutter[Flutter 앱] -->|REST / JSON| API[NestJS API]
     API -->|Prisma adapter-pg| DB[(PostgreSQL)]
     Migrate[Prisma migrate 서비스] --> DB
     API -. 이후 구현 .-> Storage[이미지 스토리지]
@@ -57,7 +60,8 @@ Esel/
     │   ├── main.ts
     │   ├── app.setup.ts      # configureApp: main과 e2e가 같이 쓰는 전역 설정
     │   ├── app.module.ts
-    │   ├── common/           # service-date.ts(서비스 날짜) 등 공통 도우미
+    │   ├── auth/             # 이메일 가입, 비밀번호·세션 토큰 처리, DTO
+    │   ├── common/           # 오류 형식, @Public, 페이지, 서비스 날짜
     │   ├── config/
     │   ├── health/
     │   └── prisma/
@@ -133,6 +137,8 @@ Esel/
 ```mermaid
 erDiagram
     User ||--o| Profile : has
+    User ||--o| EmailCredential : authenticates_with
+    User ||--o{ AuthSession : owns
     User ||--o{ UserDailyChoice : chooses
     User ||--o{ MediaAsset : owns
     User ||--o{ Issue : publishes
@@ -145,7 +151,9 @@ erDiagram
 
 ### 주요 모델
 
-- `User`: 계정의 기본 상태. 인증 방식은 이후 별도 모델로 확장한다.
+- `User`: 계정의 기본 상태와 정규화된 이메일.
+- `EmailCredential`: 이메일 계정의 `scrypt` 비밀번호 해시. 원문은 저장하지 않는다.
+- `AuthSession`: 기기별 access/refresh token 해시, 만료 시각, 폐기 시각. 원문 토큰은 API 응답 시 한 번만 앱으로 간다.
 - `Profile`: 개인 잡지 제호와 누적 발행 호수.
 - `Color`: Esel의 12색 기준 데이터.
 - `DailyPalette`: 특정 서비스 날짜의 후보 색 묶음.
@@ -157,6 +165,8 @@ erDiagram
 ### DB가 직접 보장하는 규칙
 
 - 제호 `masthead`는 전체에서 고유하다.
+- 대소문자만 다른 이메일은 같은 이메일로 보고 DB unique index로 막는다.
+- 한 사용자는 이메일 비밀번호 레코드를 하나만 가지며, 세션의 두 토큰 해시는 각각 고유하다.
 - 한 사용자는 한 서비스 날짜에 하나의 색 선택만 가진다.
 - 한 사용자는 하루에 한 호만 발행한다.
 - 같은 사용자의 개인 호수는 중복될 수 없다.
@@ -190,7 +200,43 @@ npm test
 
 `PrismaService`는 `@prisma/adapter-pg`를 사용해 PostgreSQL에 연결한다. 모듈을 global로 등록했기 때문에 이후 기능 모듈에서 별도 모듈 재등록 없이 주입할 수 있다.
 
-## 9. 헬스체크
+## 9. 이메일 회원가입과 Flutter 연결
+
+```http
+POST /api/auth/email/signup
+Content-Type: application/json
+
+{
+  "email": "me@example.com",
+  "password": "8자 이상 비밀번호"
+}
+```
+
+처리 흐름:
+
+1. `EmailSignupDto`가 이메일 형식과 비밀번호 길이(8~128자)를 검사한다.
+2. 이메일 앞뒤 공백을 지우고 소문자로 바꾼다.
+3. 같은 이메일의 짧은 시간 반복 요청은 `SignupRateLimiter`가 429로 막는다.
+4. 비밀번호를 Node 내장 `crypto.scrypt`와 무작위 salt로 해시한다.
+5. access/refresh token을 `randomBytes(32)`로 만들고, DB에는 SHA-256 해시만 저장한다.
+6. `User`, `EmailCredential`, `AuthSession` 생성을 하나의 Prisma 트랜잭션으로 처리한다.
+7. 이메일 중복은 서비스 처리뿐 아니라 PostgreSQL unique index가 동시 요청까지 막는다.
+8. Flutter가 읽는 `SessionDto`를 201로 반환한다. 창간 전이므로 `masthead`는 빈 문자열, `issueCount`는 0이다.
+
+Flutter 쪽 실제 호출 흐름:
+
+```text
+EmailLoginView
+  → AuthController
+  → AuthRepositoryImpl (ESEL_API_MODE=server)
+  → AuthRemoteSource
+  → StandardHttpClient
+  → POST /api/auth/email/signup
+```
+
+Android 에뮬레이터는 `API_BASE_URL=http://10.0.2.2:3000/api`를 사용한다. USB Android 실기기는 `adb reverse tcp:3000 tcp:3000` 후 `http://127.0.0.1:3000/api`를 사용한다. 가입 API만 완료된 상태라 로그인과 앱 재시작 후 refresh 복원은 아직 동작하지 않는다.
+
+## 10. 헬스체크
 
 ```http
 GET /api/health
@@ -208,7 +254,7 @@ GET /api/health
 
 이 API는 단순히 NestJS 프로세스만 확인하지 않고 `SELECT 1`을 실행해 PostgreSQL 연결까지 확인한다. DB에 연결할 수 없으면 HTTP 503을 반환한다.
 
-## 10. 실행과 검증
+## 11. 실행과 검증
 
 저장소 루트에서 전체 환경을 실행한다.
 
@@ -243,10 +289,10 @@ npm run build
 ```
 
 - 단위 테스트는 DB 실패 처리 같은 개별 로직을 검증한다.
-- E2E 테스트는 실행 중인 PostgreSQL과 실제 HTTP `/api/health` 요청을 검증한다.
+- E2E 테스트는 실행 중인 PostgreSQL과 실제 HTTP `/api/health`, `/api/auth/email/signup` 요청을 검증한다.
 - Docker 이미지 빌드 성공 여부도 별도로 확인한다.
 
-## 11. 보안 기준
+## 12. 보안 기준
 
 - `.env`와 실제 비밀값은 Git에 올리지 않는다.
 - DTO에 정의되지 않은 요청 필드는 전역에서 거절한다.
@@ -259,11 +305,12 @@ npm run build
 - 이미지 파일 자체를 PostgreSQL에 저장하지 않는다.
 - 잠긴 게시물의 실제 이미지 URL이나 사용자 식별자를 클라이언트에 전달하지 않는다.
 - 좋아요·구독자·독자 한 줄 수·스크랩 수는 소유자용 응답에만 포함한다.
-- 인증 구현 시 비밀번호와 refresh token 원문을 저장하지 않는다.
+- 비밀번호는 `scrypt` 해시만 저장하고, access/refresh token도 SHA-256 해시만 저장한다.
+- 현재 요청 제한은 한 서버 프로세스의 메모리 기준이다. 서버를 여러 대 운영할 때는 공유 저장소 기반 제한으로 교체해야 한다.
 
 현재 npm 감사 결과에는 해결되지 않은 의존성 취약점이 있다(2026-10-15 기준 high 4건, 모두 Prisma 7 도구 체인의 `deepmerge-ts`·`mysql2` 경유). `npm audit fix --force`는 Prisma 6으로 내리는 호환성 파괴 변경이므로 검토 없이 실행하지 않는다.
 
-## 12. 제품 계약과 서버 책임
+## 13. 제품 계약과 서버 책임
 
 서버 기능을 구현할 때 특히 다음 제품 계약을 서버에서 강제해야 한다.
 
@@ -283,9 +330,9 @@ npm run build
 
 클라이언트의 잠금 UI는 보안 경계가 아니다. 피드 API, 프로필 API, 공유 링크, 이미지 접근 단계에서 모두 서버가 같은 권한을 검사해야 한다.
 
-## 13. 다음 구현 순서
+## 14. 다음 구현 순서
 
-1. 이메일 회원가입·로그인과 refresh token 회전
+1. 이메일 로그인·refresh token 회전·로그아웃과 전역 인증 가드
 2. 제호 생성과 중복 검사
 3. 날짜별 후보 색 3개 생성(12색 기준 데이터는 마이그레이션에 있음)
 4. 사용자의 오늘 색 선택·변경·발행 후 잠금
@@ -294,11 +341,11 @@ npm run build
 7. P01/P02가 적용된 피드
 8. 좋아요·스크랩·구독·독자 한 줄
 9. 차단·신고·삭제
-10. Expo 메모리 상태를 실제 API 호출로 교체
+10. Flutter의 나머지 mock 데이터 소스를 실제 API 호출로 교체
 
 다음 기능을 구현할 때는 컨트롤러에 모든 로직을 넣지 않는다. `controller → service → PrismaService` 흐름을 유지하고, 공개 권한과 발행 규칙은 테스트 가능한 서비스 함수로 분리한다.
 
-## 14. AI 작업 체크리스트
+## 15. AI 작업 체크리스트
 
 다른 AI가 서버를 수정할 때 다음을 확인한다.
 
@@ -312,7 +359,17 @@ npm run build
 8. `lint`, 단위 테스트, E2E 테스트, build를 실행했는가.
 9. 확인하지 않은 운영 안정성이나 보안 수준을 완료했다고 주장하지 않았는가.
 
-## 15. 현재 검증 상태
+## 16. 현재 검증 상태
+
+2026-10-17 이메일 회원가입 연결 시 다음을 실제로 확인했다(Windows 11, Docker Desktop).
+
+- `POST /api/auth/email/signup` 실제 요청 201
+- Flutter의 `AuthRemoteSource`·`StandardHttpClient`에서 실제 컨테이너 API 호출 성공, `SessionDto` 역직렬화 확인
+- PostgreSQL에 비밀번호 원문 없음, access/refresh token은 64자 SHA-256 해시만 저장
+- 대소문자 이메일 중복 409, 잘못된 입력 400, 여섯 번째 반복 요청 429
+- 가입 테스트 계정 삭제 시 credential·session cascade 정리
+- migration 3개 적용, PostgreSQL·API 컨테이너 healthy, migrate 종료 코드 0
+- `check:server`, 하네스 테스트, lint, 단위 테스트 17개, DB E2E 13개, production build, Docker API 이미지 빌드 통과
 
 2026-10-15 고친 뒤 다음을 실제로 확인했다(맥, Homebrew PostgreSQL 17, Docker 없음).
 

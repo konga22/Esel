@@ -28,17 +28,44 @@ enum FaceMode {
 }
 
 model User {
-  id          String            @id @default(uuid()) @db.Uuid
-  email       String?           @unique
-  status      UserStatus        @default(ACTIVE)
-  createdAt   DateTime          @default(now()) @map("created_at")
-  updatedAt   DateTime          @updatedAt @map("updated_at")
-  profile     Profile?
-  choices     UserDailyChoice[]
-  mediaAssets MediaAsset[]
-  issues      Issue[]
+  id              String            @id @default(uuid()) @db.Uuid
+  email           String?           @unique
+  status          UserStatus        @default(ACTIVE)
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+  profile         Profile?
+  emailCredential EmailCredential?
+  authSessions    AuthSession[]
+  choices         UserDailyChoice[]
+  mediaAssets     MediaAsset[]
+  issues          Issue[]
 
   @@map("users")
+}
+
+model EmailCredential {
+  userId       String   @id @map("user_id") @db.Uuid
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("email_credentials")
+}
+
+model AuthSession {
+  id               String    @id @default(uuid()) @db.Uuid
+  userId           String    @map("user_id") @db.Uuid
+  accessTokenHash  String    @unique @map("access_token_hash") @db.Char(64)
+  refreshTokenHash String    @unique @map("refresh_token_hash") @db.Char(64)
+  accessExpiresAt  DateTime  @map("access_expires_at")
+  refreshExpiresAt DateTime  @map("refresh_expires_at")
+  revokedAt        DateTime? @map("revoked_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt])
+  @@map("auth_sessions")
 }
 
 model Profile {

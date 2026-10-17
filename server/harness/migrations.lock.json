@@ -1,4 +1,5 @@
 {
   "prisma/migrations/20261011083218_init/migration.sql": "9b838164a1c9b788752ba63ba4e042eb57fff5f43f36c1415cab4a9e279a77b0",
-  "prisma/migrations/20261015130000_add_checks_and_colors/migration.sql": "283b57293019f5d592963c094a42bc7ed801aff222d2e322dae8e98f2e9282fe"
+  "prisma/migrations/20261015130000_add_checks_and_colors/migration.sql": "283b57293019f5d592963c094a42bc7ed801aff222d2e322dae8e98f2e9282fe",
+  "prisma/migrations/20261017133500_add_email_auth/migration.sql": "28a5341be28b8938bba50e28385d92212cbb3e16a0f6783d40fb3de89587b056"
 }
