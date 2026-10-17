@@ -84,6 +84,8 @@ data 계층은 인증(`features/auth/data`), 기기 보관함(`features/drafts/d
 
 ## 4. 기능 하나를 만드는 순서
 
+2026-10-17 사용자 요청의 DEV-21·22는 [로컬 콘텐츠 안내](../flutter/LOCAL_CONTENTS.md)를 함께 따른다. 서버 연결 전 앱 단계까지만 검증하며 선행 기능 및 서버 전체를 done으로 올리지 않는다. 기존 domain/data/presentation·모드 선택·발행 경로를 재사용한다.
+
 [기능 목록](FEATURES.md)은 단계 0(기반)부터 7(운영)까지 나뉘어 있다. 단계를 건너뛰지 않는다.
 
 1. **고르기**: 선행 기능이 모두 `done`인 `todo` 하나를 고른다. [features.json](features.json)에서 상태를 `doing`으로 바꾸고 `npm run dev:docs`를 실행한다.

@@ -12,6 +12,7 @@ import '../../media/domain/models/face_layout_mode.dart';
 import '../../media/presentation/cover_preview.dart';
 import '../data/local_library.dart';
 import '../domain/cover_draft.dart';
+import '../../challenges/domain/challenge.dart';
 import '../../settings/presentation/device_preferences.dart';
 
 class CoverEditorScreen extends StatefulWidget {
@@ -158,6 +159,9 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
     }
     setState(() => _busy = true);
     try {
+      if (!await widget.library.photoExists(_draft.photoPath)) {
+        throw const FormatException('사진 파일을 찾을 수 없어요. 앨범에서 다시 골라 주세요.');
+      }
       await widget.onPublish!(_draft);
       if (mounted) setState(() => _dirty = false);
     } on FormatException catch (error) {
@@ -314,6 +318,16 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
           controller: _scroll,
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           children: [
+            if (_draft.challengeId != null) ...[
+              Text(
+                '${StyleChallenge.resolve(_draft.challengeId)?.title ?? '지난 참여'}에 연결할 오늘 호',
+              ),
+              const Text('마감되었거나 다른 주제로 바꾸려면 참여만 해제하고 편집을 계속하세요.'),
+              TextButton(
+                onPressed: () => _edit(_draft.copyWith(clearChallenge: true)),
+                child: const Text('콘텐츠 참여만 해제'),
+              ),
+            ],
             Text(
               widget.onPublish == null
                   ? '초안은 이 기기에만 보관돼요. 발행 전까지 공개되지 않아요.'

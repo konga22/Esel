@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../../challenges/domain/challenge.dart';
 import 'dart:io';
 import 'dart:math';
 import 'dart:ui' as ui;
@@ -189,7 +190,14 @@ class LocalLibrary extends ChangeNotifier {
   /// 초안 하나를 지운다. 그 초안만 쓰던 사진 파일도 지운다.
   Future<void> delete(String id) async {
     final removed = _drafts.where((d) => d.id == id).toList();
-    await _change(() => _drafts.removeWhere((d) => d.id == id));
+    await _change(() {
+      _drafts.removeWhere((d) => d.id == id);
+      for (var i = 0; i < _drafts.length; i++) {
+        if (_drafts[i].previousIssueId == id) {
+          _drafts[i] = _drafts[i].copyWith(clearChallenge: true);
+        }
+      }
+    });
     await _deletePhotos(removed.map((d) => d.photoPath));
   }
 
@@ -197,7 +205,15 @@ class LocalLibrary extends ChangeNotifier {
   /// 어느 초안도 쓰지 않는 사진(창간·편집하다 그만둔 사진)까지 지운다. 사진첩 원본은 그대로다.
   Future<void> deleteOwnerData(String ownerId) async {
     final removed = _drafts.where((d) => d.ownerId == ownerId).toList();
-    await _change(() => _drafts.removeWhere((d) => d.ownerId == ownerId));
+    final removedIds = removed.map((d) => d.id).toSet();
+    await _change(() {
+      _drafts.removeWhere((d) => d.ownerId == ownerId);
+      for (var i = 0; i < _drafts.length; i++) {
+        if (removedIds.contains(_drafts[i].previousIssueId)) {
+          _drafts[i] = _drafts[i].copyWith(clearChallenge: true);
+        }
+      }
+    });
     await _deletePhotos(removed.map((d) => d.photoPath));
     final directory = this.directory;
     if (directory == null) {
@@ -207,11 +223,13 @@ class LocalLibrary extends ChangeNotifier {
     }
     final exports = Directory('${directory.path}/exports');
     if (await exports.exists()) await exports.delete(recursive: true);
-    final used = _drafts.map((d) => File(d.photoPath).absolute.path).toSet();
+    final used = _drafts
+        .map((d) => File(d.photoPath).absolute.path.replaceAll('\\', '/'))
+        .toSet();
     await for (final entity in directory.list()) {
       if (entity is File &&
           entity.path.endsWith('.png') &&
-          !used.contains(entity.absolute.path)) {
+          !used.contains(entity.absolute.path.replaceAll('\\', '/'))) {
         await entity.delete();
       }
     }
@@ -229,7 +247,10 @@ class LocalLibrary extends ChangeNotifier {
       }
       if (directory == null) continue;
       final file = File(path);
-      if (!file.absolute.path.startsWith(directory.absolute.path)) continue;
+      if (file.parent.absolute.path.replaceAll('\\', '/') !=
+          directory.absolute.path.replaceAll('\\', '/')) {
+        continue;
+      }
       if (await file.exists()) await file.delete();
     }
   }
@@ -253,10 +274,29 @@ class LocalLibrary extends ChangeNotifier {
     late CoverDraft issue;
     await _change(() {
       final existing = issuesFor(ownerId);
+      final stored = _drafts.where((d) => d.id == draft.id).firstOrNull;
+      if (stored != null &&
+          (stored.issueNumber > 0 ||
+              (stored.ownerId.isNotEmpty && stored.ownerId != ownerId))) {
+        throw const FormatException('이미 발행했거나 다른 계정의 표지는 발행할 수 없어요.');
+      }
       if (!PublishRule.canPublishToday(
         hasPublishedToday: existing.any((d) => d.publishedOn == day),
       )) {
         throw const FormatException('오늘은 이미 한 호를 발행했어요.');
+      }
+      if (draft.challengeId != null) {
+        final challenge = StyleChallenge.resolve(draft.challengeId);
+        if (challenge == null) {
+          throw const FormatException('주제를 찾지 못했어요. 참여를 해제하고 다시 골라 주세요.');
+        }
+        challenge.validate(
+          today: on,
+          ownerId: ownerId,
+          issue: draft,
+          publications: existing,
+          previousId: draft.previousIssueId,
+        );
       }
       issue = draft.copyWith(
         ownerId: ownerId,
@@ -269,6 +309,45 @@ class LocalLibrary extends ChangeNotifier {
     });
     return issue;
   }
+
+  /// Attach today's existing publication without publishing a second issue.
+  Future<void> attachChallenge(
+    String issueId,
+    String ownerId,
+    StyleChallenge challenge,
+    ServiceDate today, {
+    String? previousId,
+  }) => _change(() {
+    final index = _drafts.indexWhere(
+      (d) => d.id == issueId && d.ownerId == ownerId && d.issueNumber > 0,
+    );
+    if (index < 0) throw const FormatException('내 발행 표지를 찾지 못했어요.');
+    final issue = _drafts[index];
+    challenge.validate(
+      today: today,
+      ownerId: ownerId,
+      issue: issue,
+      publications: issuesFor(ownerId),
+      previousId: previousId,
+    );
+    if (issue.challengeId != null &&
+        (issue.challengeId != challenge.id ||
+            issue.previousIssueId != previousId)) {
+      throw const FormatException('이미 다른 참여가 연결돼 있어요. 내 참여에서 해제한 뒤 다시 골라 주세요.');
+    }
+    _drafts[index] = issue.copyWith(
+      challengeId: challenge.id,
+      previousIssueId: previousId,
+    );
+  });
+
+  Future<void> detachChallenge(String issueId, String ownerId) => _change(() {
+    final index = _drafts.indexWhere(
+      (d) => d.id == issueId && d.ownerId == ownerId,
+    );
+    if (index < 0) throw const FormatException('내 표지를 찾지 못했어요.');
+    _drafts[index] = _drafts[index].copyWith(clearChallenge: true);
+  });
 
   Future<void> settings({
     bool? motion,
@@ -284,6 +363,11 @@ class LocalLibrary extends ChangeNotifier {
   String newId() =>
       '${DateTime.now().microsecondsSinceEpoch}-${Random.secure().nextInt(1 << 30)}';
   static const int maxPhotoBytes = 15 * 1024 * 1024;
+
+  Future<bool> photoExists(String path) async =>
+      path.startsWith(memoryPhotoPrefix)
+      ? _memoryPhotos.containsKey(path)
+      : File(path).exists();
 
   Future<String> importPhoto(String path) async {
     final source = File(path);

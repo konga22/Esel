@@ -22,6 +22,7 @@ class MyMagazineScreen extends StatelessWidget {
   final ReactionsController reactionsController;
   final VoidCallback onMakeTodayIssue;
   final VoidCallback onOpenShelf;
+  final VoidCallback? onOpenChallenges;
   final VoidCallback onOpenRecords;
   final VoidCallback onOpenFriends;
   final VoidCallback onOpenTwin;
@@ -35,6 +36,7 @@ class MyMagazineScreen extends StatelessWidget {
     required this.hasPublishedToday,
     required this.todayColor,
     this.todayIssue,
+    this.onOpenChallenges,
     required this.reactionsController,
     required this.onMakeTodayIssue,
     required this.onOpenShelf,
@@ -287,6 +289,12 @@ class MyMagazineScreen extends StatelessWidget {
     return Column(
       children: [
         _buildMenuItem(Icons.menu_book_outlined, '서가 전체 보기', onOpenShelf),
+        if (onOpenChallenges != null)
+          _buildMenuItem(
+            Icons.checkroom_outlined,
+            '이번 주의 착장 · 내 참여 표지',
+            onOpenChallenges!,
+          ),
         if (showExtendedFeatures) ...[
           _buildMenuItem(
             Icons.calendar_month_outlined,

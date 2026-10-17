@@ -189,5 +189,21 @@
     "docs/design/screens/j5-name.jpg",
     "docs/design/screens/j6-face.jpg",
     "docs/design/screens/j7-first-issue.jpg"
-  ]
+  ],
+  "localContents": {
+    "decisionDate": "2026-10-17",
+    "guide": "docs/flutter/LOCAL_CONTENTS.md",
+    "validation": "docs/flutter/CONTENT_VALIDATION.md",
+    "included": [
+      "weekly-dresscode",
+      "same-garment-restyle"
+    ],
+    "excluded": [
+      "monthly-yearly-best",
+      "public-rankings",
+      "monthly-style-recap"
+    ],
+    "mode": "explicit-existing-mock-mode",
+    "serverConnected": false
+  }
 }

@@ -1,6 +1,6 @@
 # 기능 개발 목록
 
-> 자동 생성 파일이다. [features.json](features.json)을 고치고 `npm run dev:docs`로 다시 만든다. 개발 방법은 [개발 가이드](README.md)에 있다. (기준일 2026-10-11)
+> 자동 생성 파일이다. [features.json](features.json)을 고치고 `npm run dev:docs`로 다시 만든다. 개발 방법은 [개발 가이드](README.md)에 있다. (기준일 2026-10-17)
 
 | ID | 기능 | 단계 | 목업 화면 | 계약 | 먼저 할 것 | 상태 |
 |---|---|---|---|---|---|---|
@@ -24,6 +24,8 @@
 | [DEV-18](#dev-18) | 공유 | 5 관계 | A1 A3 A5 A7 | P01 P18 | DEV-11 DEV-17 | todo |
 | [DEV-19](#dev-19) | 설정과 계정 | 6 계정 관리 | S1 S2 S3 S3off S4 S5 S5done S6 S6confirm S6done | P14 | DEV-05 DEV-06 | todo |
 | [DEV-20](#dev-20) | 신고·차단·삭제 | 7 운영 | — | P01 P02 | DEV-11 DEV-16 | todo |
+| [DEV-21](#dev-21) | 주간 드레스코드 | 4 내 잡지 | CH1 C4 C6 M1 | P01 P04 P17 P18 | DEV-09 DEV-12 | doing |
+| [DEV-22](#dev-22) | 같은 옷, 다른 코디 | 4 내 잡지 | CH1 C4 C6 M1 | P01 P04 P17 P18 | DEV-21 | doing |
 
 ## DEV-01
 
@@ -757,6 +759,78 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 - 신고 처리 주체와 기준
 - 삭제 후 재발행 허용 여부
 
+## DEV-21
+
+**주간 드레스코드** · 4단계 내 잡지 · 상태 `doing`
+
+2026-10-17 요청: 서버 연결 전 로컬 동작. 기존 발행 흐름 재사용. 서버까지 전체 완료 아님.
+
+**목업 화면**
+
+[CH1 이번 주의 착장 · 두 참여 유형](screens/ch1-challenges.jpg) · [C4 가판대](screens/c4-stand.jpg) · [C6 오늘 호 만들기](screens/c6-make.jpg) · [M1 내 잡지](screens/m1-me.jpg)
+
+**지킬 계약** P01, P04, P17, P18 · **먼저 할 것** DEV-09, DEV-12
+
+**앱(Flutter)**
+
+- features/challenges/domain·data·presentation, 기존 모드 선택과 LocalLibrary 사용
+- 본인 참여만 조회, 오늘 호 연결, 서울 기간 재검증, 저장 데이터 하위 호환
+
+**서버 (초안)**
+
+- 미합의 검토안: docs/flutter/LOCAL_CONTENTS.md. 확정 API·migration 구현 안 함
+
+**합격 기준**
+
+- 하루 한 호를 유지하며 오늘 호에 참여 연결
+- 마감·중복·오류·재시도·계정 분리·재시작 보존
+
+**추가할 테스트**
+
+- `flutter_app/test/features/challenges/challenge_test.dart`
+- `flutter_app/test/features/challenges/challenge_screen_test.dart`
+- `flutter_app/test/features/challenges/content_flow_test.dart`
+
+**사용자 결정이 필요한 것**
+
+- 서버 계약·공개 참여 목록·실제 동기화는 후속
+
+## DEV-22
+
+**같은 옷, 다른 코디** · 4단계 내 잡지 · 상태 `doing`
+
+2026-10-17 요청: 서버 연결 전 로컬 동작. 기존 발행 흐름 재사용. 서버까지 전체 완료 아님.
+
+**목업 화면**
+
+[CH1 이번 주의 착장 · 두 참여 유형](screens/ch1-challenges.jpg) · [C4 가판대](screens/c4-stand.jpg) · [C6 오늘 호 만들기](screens/c6-make.jpg) · [M1 내 잡지](screens/m1-me.jpg)
+
+**지킬 계약** P01, P04, P17, P18 · **먼저 할 것** DEV-21
+
+**앱(Flutter)**
+
+- features/challenges/domain·data·presentation, 기존 모드 선택과 LocalLibrary 사용
+- 본인 참여만 조회, 오늘 호 연결, 서울 기간 재검증, 저장 데이터 하위 호환
+
+**서버 (초안)**
+
+- 미합의 검토안: docs/flutter/LOCAL_CONTENTS.md. 확정 API·migration 구현 안 함
+
+**합격 기준**
+
+- 본인 과거 발행본만 선택, 사진 복제 없음
+- 기준 표지 삭제 시 연결 해제하고 현재 호 보존
+
+**추가할 테스트**
+
+- `flutter_app/test/features/challenges/challenge_test.dart`
+- `flutter_app/test/features/challenges/challenge_screen_test.dart`
+- `flutter_app/test/features/challenges/content_flow_test.dart`
+
+**사용자 결정이 필요한 것**
+
+- 서버 계약·공개 참여 목록·실제 동기화는 후속
+
 ## 화면 등록부
 
 | 화면 | 이름 | 목업 경로 | 참고 그림 | 피그마 노드 |
@@ -815,3 +889,4 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 | A3 | 공유 앱 선택 | `me` | [그림](screens/a3-share-apps.jpg) | 144:370 |
 | A5 | 남의 표지 공유 | `spread` | [그림](screens/a5-share-other.jpg) | 147:245 |
 | A7 | 트윈 공유 | `twin-done` | [그림](screens/a7-share-twin.jpg) | 147:272 |
+| CH1 | 이번 주의 착장 · 두 참여 유형 | `challenges` | [그림](screens/ch1-challenges.jpg) | — |

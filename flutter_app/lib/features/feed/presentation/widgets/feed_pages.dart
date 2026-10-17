@@ -102,9 +102,16 @@ class TodayCover extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   leading,
-                  Text(
-                    meta,
-                    style: EselTypography.label(fontSize: 12, color: topColor),
+                  Flexible(
+                    child: Text(
+                      meta,
+                      textAlign: TextAlign.end,
+                      maxLines: 2,
+                      style: EselTypography.label(
+                        fontSize: 12,
+                        color: topColor,
+                      ),
+                    ),
                   ),
                 ],
               ),

@@ -22,6 +22,7 @@ class CoverDraft {
   final int issueNumber;
   final String ownerId;
   final String? publishedOn;
+  final String? challengeId, previousIssueId;
   const CoverDraft({
     required this.id,
     required this.photoPath,
@@ -38,6 +39,8 @@ class CoverDraft {
     this.issueNumber = 0,
     this.ownerId = '',
     this.publishedOn,
+    this.challengeId,
+    this.previousIssueId,
   });
   CoverDraft copyWith({
     String? photoPath,
@@ -54,6 +57,9 @@ class CoverDraft {
     int? issueNumber,
     String? ownerId,
     String? publishedOn,
+    String? challengeId,
+    String? previousIssueId,
+    bool clearChallenge = false,
   }) => CoverDraft(
     id: id,
     photoPath: photoPath ?? this.photoPath,
@@ -70,6 +76,10 @@ class CoverDraft {
     issueNumber: issueNumber ?? this.issueNumber,
     ownerId: ownerId ?? this.ownerId,
     publishedOn: publishedOn ?? this.publishedOn,
+    challengeId: clearChallenge ? null : challengeId ?? this.challengeId,
+    previousIssueId: clearChallenge
+        ? null
+        : previousIssueId ?? this.previousIssueId,
   );
   String? get validationError {
     if (photoPath.isEmpty) return '사진을 먼저 골라 주세요.';
@@ -97,6 +107,8 @@ class CoverDraft {
     'issueNumber': issueNumber,
     'ownerId': ownerId,
     'publishedOn': publishedOn,
+    'challengeId': challengeId,
+    'previousIssueId': previousIssueId,
   };
   factory CoverDraft.fromJson(Map<String, dynamic> json) => CoverDraft(
     id: json['id'] as String,
@@ -120,5 +132,7 @@ class CoverDraft {
     issueNumber: json['issueNumber'] as int? ?? 0,
     ownerId: json['ownerId'] as String? ?? '',
     publishedOn: json['publishedOn'] as String?,
+    challengeId: json['challengeId'] as String?,
+    previousIssueId: json['previousIssueId'] as String?,
   );
 }

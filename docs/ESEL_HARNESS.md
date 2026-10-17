@@ -71,6 +71,7 @@ Esel은 오늘의 색으로 옷을 입고, 그 착장을 한 권의 잡지 표�
 | 10-15 | 사용자 위임 | 저장소 CI(GitHub Actions): PR과 main에서 하네스·규칙 검사(Ubuntu·Windows)와 Flutter 검사(3.44.0)를 돌림. 서버 병합 뒤 서버 검사(PostgreSQL 포함)를 더함 | `.github/workflows/`. 비공개 저장소라 Actions 사용 시간이 든다. 새 검사는 이 파일들에 더함 |
 | 10-15 | 사용자 위임 | 팀원의 서버 기반(PR konga22/Esel#4: NestJS·Prisma·PostgreSQL·Docker Compose)을 서버 하네스(#7)와 점검 수정을 더해 main에 합침. 직접 운영 서버, BaaS 없음 | 서버 작업은 `server/AGENTS.md`. 정본: 경로·권한·오류 = `server/api-contract.json`, 데이터 모양 = Swagger |
 | 10-15 | 사용자 결정 | 클라이언트를 Expo(`app/`·`src/`)에서 Flutter(`flutter_app/`)로 바꿈. 팀원 PR konga22/Esel#8의 Flutter 시연 앱을 출발점으로 삼음 | Expo 앱은 지움(마지막 상태는 커밋 `bbdaf2d`). 디자인 토큰은 `npm run dev:docs`가 `tokens.g.dart`로 만든다. 팀원 실행 안내는 Android 기기·에뮬레이터 기준, iOS 확인은 맥에서. 새 Flutter 패키지는 PR에서 승인받고 추가 |
+| 10-17 | 사용자 결정 | 콘텐츠는 주간 드레스코드·같은 옷, 다른 코디만 로컬 동작까지 개발. 교수님 예시인 월·연간 베스트·공개 순위·월간 스타일 결산 제외. 기존 월간 기록·친구·트윈·서버 보존 | [로컬 콘텐츠 계약·서버 검토안](flutter/LOCAL_CONTENTS.md). DEV-21·22는 서버 연동 전 doing |
 | — | 보류 | 해석 반응, 컬러 정체성 분석, 전용 외부 SNS 공유 카드, Generative UI | 별도 승인 없이 구현하지 않음 |
 | — | 미확정 | 색 공급처, 실제 확률·일일 배정·시차, 닉네임 중복·금칙어, 실제 얼굴 감지, 삭제·차단 정책, 같은 색 미리보기 3장을 고르는 기준, 미성년자 판별 방법 | 데모 값과 실서비스 결정을 구분 |
 
