@@ -90,7 +90,7 @@ class StandardHttpClient implements AppHttpClient {
       if (response.statusCode == 401 &&
           code == 'TOKEN_EXPIRED' &&
           retry &&
-          !path.startsWith('/auth/')) {
+          (path == '/auth/logout' || !path.startsWith('/auth/'))) {
         _refreshing ??= _refresh();
         try {
           await _refreshing;

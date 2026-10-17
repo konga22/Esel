@@ -653,7 +653,7 @@
       "openDecisions": [
         "복원 후보 색(그날의 후보 3색 가정)"
       ],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-16",
@@ -691,7 +691,7 @@
       "openDecisions": [
         "차단한 사람의 검색 노출"
       ],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-17",
@@ -835,7 +835,7 @@
         "탈퇴 시 공동 트윈의 상대 기록 처리",
         "푸시 알림 서비스"
       ],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-20",

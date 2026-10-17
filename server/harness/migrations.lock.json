@@ -1,4 +1,9 @@
 {
   "prisma/migrations/20261011083218_init/migration.sql": "9b838164a1c9b788752ba63ba4e042eb57fff5f43f36c1415cab4a9e279a77b0",
-  "prisma/migrations/20261015130000_add_checks_and_colors/migration.sql": "283b57293019f5d592963c094a42bc7ed801aff222d2e322dae8e98f2e9282fe"
+  "prisma/migrations/20261015130000_add_checks_and_colors/migration.sql": "283b57293019f5d592963c094a42bc7ed801aff222d2e322dae8e98f2e9282fe",
+  "prisma/migrations/20261017133500_add_email_auth/migration.sql": "28a5341be28b8938bba50e28385d92212cbb3e16a0f6783d40fb3de89587b056",
+  "prisma/migrations/20261017233500_add_notification_settings/migration.sql": "84f35bfe671129a105f00f26399caca48a7e40de17b2fd457615d5eae7a86756",
+  "prisma/migrations/20261018001500_add_issue_reactions/migration.sql": "e766205d318ddbd71a6b1b45a0392589563e9a9ccce633c6d89d1713d73c54c5",
+  "prisma/migrations/20261018010000_add_reader_lines_and_subscriptions/migration.sql": "90da3ebfde48c3b30c778f65912b742f4ae5bd225b4d3036c2b4e3a0502a09e6",
+  "prisma/migrations/20261018014500_add_restored_colors/migration.sql": "cf953b83a7db778b447c7600f9240e77abb2daacbf92bc32a09ce7d55859ae36"
 }

@@ -2,6 +2,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
+import { AppExceptionFilter } from './common/app-exception.filter.js';
 
 /**
  * main.ts와 e2e 테스트가 똑같이 쓰는 앱 설정.
@@ -23,7 +24,7 @@ export function configureApp(app: INestApplication): void {
       forbidNonWhitelisted: true,
     }),
   );
-  // 전역 예외 필터(배움 미션 2)를 만들면 여기에 app.useGlobalFilters(...)로 건다.
+  app.useGlobalFilters(new AppExceptionFilter());
 
   // Swagger(/api/docs)는 모든 API 주소와 모양을 보여 준다. 운영에서는 끈다.
   if (config.getOrThrow<string>('NODE_ENV') !== 'production') {

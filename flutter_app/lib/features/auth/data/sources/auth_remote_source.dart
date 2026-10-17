@@ -51,7 +51,7 @@ class AuthRemoteSource {
     return AuthSession.fromJson(res);
   }
 
-  /// DEV-06 초안 API. 서버 계약(Swagger)이 생기면 맞춘다.
+  /// DEV-06 서버 계약: `{ masthead, available }`을 받는다.
   Future<bool> isMastheadAvailable(String masthead) async {
     final res = await httpClient.get('/mastheads/$masthead/availability');
     return res['available'] == true;

@@ -124,6 +124,57 @@ void main() {
       expect(refreshCount, 1);
     },
   );
+  test('masthead availability calls the protected server contract', () async {
+    await storage.saveTokens(accessToken: 'access', refreshToken: 'refresh');
+    server.listen((req) async {
+      expect(req.method, 'GET');
+      expect(req.uri.path, '/api/mastheads/taken/availability');
+      expect(
+        req.headers.value(HttpHeaders.authorizationHeader),
+        'Bearer access',
+      );
+      req.response.write(
+        jsonEncode({'masthead': 'taken', 'available': false}),
+      );
+      await req.response.close();
+    });
+
+    expect(await repository().isMastheadAvailable('taken'), isFalse);
+  });
+  test('logout refreshes an expired access token, then clears local tokens', () async {
+    await storage.saveTokens(accessToken: 'expired', refreshToken: 'refresh');
+    final paths = <String>[];
+    server.listen((req) async {
+      paths.add(req.uri.path);
+      if (req.uri.path.endsWith('/auth/refresh')) {
+        req.response.write(jsonEncode(session('renewed', 'rotated')));
+      } else if (req.headers.value(HttpHeaders.authorizationHeader) ==
+          'Bearer expired') {
+        req.response.statusCode = 401;
+        req.response.write(
+          jsonEncode({
+            'error': {'code': 'TOKEN_EXPIRED', 'message': 'expired'},
+          }),
+        );
+      } else {
+        expect(
+          req.headers.value(HttpHeaders.authorizationHeader),
+          'Bearer renewed',
+        );
+        req.response.statusCode = 204;
+      }
+      await req.response.close();
+    });
+
+    await repository().logout();
+
+    expect(paths, [
+      '/api/auth/logout',
+      '/api/auth/refresh',
+      '/api/auth/logout',
+    ]);
+    expect(await storage.getTokens(), isNull);
+  });
   test(
     'unconfigured social auth never calls an API with a placeholder token',
     () async {

@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Public } from '../common/public.decorator.js';
 import { HealthService } from './health.service.js';
 
 @ApiTags('system')
@@ -8,6 +9,7 @@ export class HealthController {
   constructor(private readonly healthService: HealthService) {}
 
   @Get()
+  @Public()
   @ApiOperation({ summary: 'API와 데이터베이스 상태 확인' })
   check() {
     return this.healthService.check();
