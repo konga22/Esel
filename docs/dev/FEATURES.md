@@ -179,6 +179,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 - 토큰은 flutter_secure_storage 같은 보안 저장소에 둔다(SharedPreferences 금지). 패키지 추가는 승인 후
 - 목업의 "목업이라 실제로 로그인하지 않아요" 문구는 옮기지 않는다
+- 서버 모드 이메일 인증·토큰 갱신·로그아웃을 실제 Docker API로 재검증. 소셜 로그인은 기존 미설정 안내 유지
 
 **서버 (초안)**
 
@@ -201,6 +202,9 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 - `flutter_app/test/features/auth/real_auth_test.dart`
 - `flutter_app/test/app/profile_route_test.dart`
 - `server/test/contracts/auth.e2e-spec.ts`
+- `flutter_app/test/features/server/core_api_test.dart`
+- `flutter_app/test/features/server/core_api_widgets_test.dart`
+- `flutter_app/test/features/server/core_api_live_test.dart`
 
 **사용자 결정이 필요한 것**
 
@@ -222,6 +226,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 **앱(Flutter)**
 
 - 색은 물감·스와치·띠·칩에만. 버튼이나 화면 바탕을 오늘의 색으로 칠하지 않음
+- 서버 모드 ServerTodayScreen → TodayRemoteSource로 날짜·후보 3색·선택·발행 여부 조회와 색 선택 저장. 실패 시 로컬 후보로 전환하지 않음
 
 **서버 (초안)**
 
@@ -241,6 +246,9 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 - `flutter_app/test/features/today/today_test.dart`
 - `flutter_app/test/app/day_boundary_test.dart`
 - `server/test/contracts/today.e2e-spec.ts`
+- `flutter_app/test/features/server/core_api_test.dart`
+- `flutter_app/test/features/server/core_api_widgets_test.dart`
+- `flutter_app/test/features/server/core_api_live_test.dart`
 
 **사용자 결정이 필요한 것**
 
@@ -342,6 +350,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 - 한 화면에 결정 하나, 각 단계에 뒤로가기
 - 제호 입력은 소문자 a–z만 남기고 10자에서 멈춤, 글자 수에 맞춰 제호 크기를 줄임
 - "쓸 수 있는 이름이에요"는 서버 중복 검사가 성공했을 때만 보여 줌
+- 서버 계정 화면에서 사인 중복 확인·프로필 생성·세션 재조회. 새 API나 임의 닉네임 생성 없음
 
 **서버 (초안)**
 
@@ -358,6 +367,9 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 - `flutter_app/test/features/onboarding/join_test.dart`
 - `server/test/contracts/profile.e2e-spec.ts`
+- `flutter_app/test/features/server/core_api_test.dart`
+- `flutter_app/test/features/server/core_api_widgets_test.dart`
+- `flutter_app/test/features/server/core_api_live_test.dart`
 
 **사용자 결정이 필요한 것**
 
@@ -418,6 +430,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 - 하트는 채울 때만 scale 0.85→1 200ms, 해제는 즉시
 - 내 표지에서만 숫자와 '오늘 n명이 읽었어요 · 나에게만 보여요'
+- 서버 모드 표지 상세·좋아요/스크랩·cursor 한 줄 연결. 사진 URL은 계약에 없어 준비 중 표시. 공개 숫자는 숨김
 
 **서버 (초안)**
 
@@ -436,6 +449,9 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 - `flutter_app/test/features/issue/owner_numbers_test.dart`
 - `server/test/contracts/issues.e2e-spec.ts`
+- `flutter_app/test/features/server/core_api_test.dart`
+- `flutter_app/test/features/server/core_api_widgets_test.dart`
+- `flutter_app/test/features/server/core_api_live_test.dart`
 
 **사용자 결정이 필요한 것**
 
@@ -499,6 +515,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 - 호수는 결호 없이 내려감
 - 구독자 수는 보여 주지 않음
+- 서버 모드 사인 기반 스케치북·cursor 페이지·구독 연결. 서버 공개 필터 응답만 표시
 
 **서버 (초안)**
 
@@ -514,6 +531,9 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 - `flutter_app/test/features/magazine/shelf_test.dart`
 - `server/test/contracts/magazines.e2e-spec.ts`
+- `flutter_app/test/features/server/core_api_test.dart`
+- `flutter_app/test/features/server/core_api_widgets_test.dart`
+- `flutter_app/test/features/server/core_api_live_test.dart`
 
 ## DEV-14
 
@@ -531,6 +551,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 - 오늘 발행 전이면 '오늘 호 만들기' 카드
 - 반응 목록 화면에 '다른 사람에게는 좋아요 수가 표시되지 않아요'
+- 서버 모드 내 스케치북과 소유자 전용 반응 수·최근 목록 연결. 공개 DTO에 숫자를 옮기지 않음
 
 **서버 (초안)**
 
@@ -545,6 +566,9 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 **추가할 테스트**
 
 - `server/test/contracts/me.e2e-spec.ts`
+- `flutter_app/test/features/server/core_api_test.dart`
+- `flutter_app/test/features/server/core_api_widgets_test.dart`
+- `flutter_app/test/features/server/core_api_live_test.dart`
 
 ## DEV-15
 
@@ -561,6 +585,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 **앱(Flutter)**
 
 - 복원한 날은 나만 보고, 게시·호수·같은 색 방에 영향이 없음을 화면에 적음
+- 서버 모드 월별 색 기록·복원과 남은 횟수 재조회. 과거 후보 조회 API 미정이라 색 선택 후 서버 후보 검증, 업로드/호수/잠금과 분리
 
 **서버 (초안)**
 
@@ -576,6 +601,9 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 **추가할 테스트**
 
 - `server/test/contracts/records.e2e-spec.ts`
+- `flutter_app/test/features/server/core_api_test.dart`
+- `flutter_app/test/features/server/core_api_widgets_test.dart`
+- `flutter_app/test/features/server/core_api_live_test.dart`
 
 **사용자 결정이 필요한 것**
 

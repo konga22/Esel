@@ -18,6 +18,10 @@ import '../../settings/presentation/screens/device_settings_screen.dart';
 import '../../settings/presentation/device_preferences.dart';
 import '../../media/presentation/cover_preview.dart';
 
+import '../../today/presentation/screens/server_today_screen.dart';
+import '../../magazine/presentation/screens/server_magazine_screen.dart';
+import '../../records/presentation/screens/server_records_screen.dart';
+
 class DeviceHomeScreen extends StatefulWidget {
   final AuthController auth;
   final AppHttpClient http;
@@ -40,11 +44,26 @@ class _DeviceHomeScreenState extends State<DeviceHomeScreen> {
   @override
   void initState() {
     super.initState();
+    widget.auth.addListener(_accountChanged);
+    _accountId = widget.auth.currentSession?.userId;
     _load();
+  }
+
+  String? _accountId;
+  void _accountChanged() {
+    final id = widget.auth.currentSession?.userId;
+    if (id != _accountId) {
+      _accountId = id;
+      if (mounted) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        setState(() => _tab = 0);
+      }
+    }
   }
 
   @override
   void dispose() {
+    widget.auth.removeListener(_accountChanged);
     _search.dispose();
     _scroll.dispose();
     _library?.dispose();
@@ -259,7 +278,15 @@ class _DeviceHomeScreenState extends State<DeviceHomeScreen> {
                   ),
                 ],
               ),
-              body: _tab == 2 ? _libraryView(library) : _palette(),
+              body: _tab == 2
+                  ? _libraryView(library)
+                  : widget.auth.isAuthenticated
+                  ? ServerTodayScreen(
+                      key: ValueKey(widget.auth.currentSession!.userId),
+                      http: widget.http,
+                      onColor: (color) => _color = color,
+                    )
+                  : _palette(),
               bottomNavigationBar: SafeArea(
                 top: false,
                 child: Padding(
@@ -328,7 +355,7 @@ class _DeviceHomeScreenState extends State<DeviceHomeScreen> {
       Text('평범한 하루의 착장이\n한 권의 잡지가 되는 곳.', style: EselTypography.headlineSmall),
       const SizedBox(height: 24),
       const Text(
-        '오늘의 추천 세 가지 색은 서비스 연결 후 확인할 수 있어요. 지금은 초안에 사용할 색을 자유롭게 골라보세요.',
+        '오늘 후보 3색은 로그인 후 서버에서 확인해요. 아래는 기기 초안에 자유롭게 사용할 수 있는 팔레트예요.',
       ),
       const SizedBox(height: 24),
       Text('초안 팔레트', style: EselTypography.headlineSmall),
@@ -390,6 +417,27 @@ class _DeviceHomeScreenState extends State<DeviceHomeScreen> {
       controller: _scroll,
       padding: const EdgeInsets.all(20),
       children: [
+        if (widget.auth.currentSession case final session?) ...[
+          Text(
+            session.masthead.isEmpty ? '사인을 먼저 정해 주세요.' : session.masthead,
+            style: EselTypography.headlineLarge,
+          ),
+          TextButton(
+            onPressed: () => Navigator.push<void>(
+              context,
+              _page<void>(ServerMagazineScreen(http: widget.http, mine: true)),
+            ),
+            child: const Text('서버에 올린 내 스케치북'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.push<void>(
+              context,
+              _page<void>(ServerRecordsScreen(http: widget.http)),
+            ),
+            child: const Text('서버 색 기록 · 복원'),
+          ),
+          const Divider(),
+        ],
         Text('기기에 보관한 초안', style: EselTypography.headlineSmall),
         const SizedBox(height: 8),
         const Text('아직 발행되지 않은 나만의 표지예요.'),
