@@ -10,14 +10,14 @@
 | [DEV-04](#dev-04) | 비로그인 첫 표지와 로그인 바 | 1 계정 | J1 J1b | P12 P16 | DEV-01 DEV-03 | doing |
 | [DEV-05](#dev-05) | 로그인 | 1 계정 | J2 | P12 | DEV-04 | doing |
 | [DEV-07](#dev-07) | 오늘의 색 | 2 창간·발행 | J3 | P03 P05 P17 | DEV-02 DEV-03 | doing |
-| [DEV-08](#dev-08) | 사진과 얼굴 연출 | 2 창간·발행 | J4 J6 C6 | P11 P15 | DEV-01 | doing |
+| [DEV-08](#dev-08) | 사진과 얼굴 연출 | 2 창간·발행 | J4 J6 C6 C6neck | P11 P15 | DEV-01 | doing |
 | [DEV-09](#dev-09) | 오늘 호 발행 | 2 창간·발행 | C6 C8b | P04 P01 | DEV-07 DEV-08 | doing |
 | [DEV-06](#dev-06) | 창간 | 2 창간·발행 | J3 J4 J5 J6 J7 | P13 P14 P15 P04 | DEV-05 DEV-07 DEV-08 DEV-09 | doing |
 | [DEV-10](#dev-10) | 홈 피드 | 3 읽기 | C1 C2 C7 | P01 P02 P16 P18 | DEV-09 | doing |
-| [DEV-11](#dev-11) | 펼침면과 독자 한 줄 | 3 읽기 | C3 | P12 P18 | DEV-10 | doing |
-| [DEV-12](#dev-12) | 팔레트(탐색)와 같은 색 | 3 읽기 | C4 C8 C8b | P01 P02 P18 | DEV-10 | doing |
+| [DEV-11](#dev-11) | 자세히 보기와 한 줄 | 3 읽기 | C3 | P12 P18 | DEV-10 | doing |
+| [DEV-12](#dev-12) | 팔레트(탐색)와 같은 색 | 3 읽기 | C4 C8 C8b C4subs C8list | P01 P02 P18 | DEV-10 | doing |
 | [DEV-13](#dev-13) | 스케치북과 구독 | 3 읽기 | C5 C5b | P04 P18 | DEV-10 | doing |
-| [DEV-14](#dev-14) | 내 잡지와 반응 | 4 내 잡지 | M1 A4 | P18 | DEV-09 DEV-11 | doing |
+| [DEV-14](#dev-14) | 내 스케치북과 반응 | 4 내 잡지 | M1 A4 | P18 | DEV-09 DEV-11 | doing |
 | [DEV-15](#dev-15) | 월간 색 기록과 복원 | 4 내 잡지 | R1 R2 R3 R4 R5 | P06 P07 P03 | DEV-02 DEV-09 | doing |
 | [DEV-16](#dev-16) | 친구 | 5 관계 | F1 F2 F3 | P12 | DEV-06 | doing |
 | [DEV-17](#dev-17) | 트윈 | 5 관계 | T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T8private T8solo | P08 P09 P10 | DEV-16 DEV-08 | todo |
@@ -27,7 +27,7 @@
 | [DEV-21](#dev-21) | 주간 드레스코드 | 4 내 잡지 | CH1 C4 C6 M1 | P01 P04 P17 P18 | DEV-09 DEV-12 | doing |
 | [DEV-22](#dev-22) | 같은 옷, 다른 코디 | 4 내 잡지 | CH1 C4 C6 M1 | P01 P04 P17 P18 | DEV-21 | doing |
 | [DEV-23](#dev-23) | 일·주·월 표지 특집 | 4 내 잡지 | CL1 C4 M1 | P01 P02 P04 P18 | DEV-09 DEV-12 | doing |
-| [DEV-24](#dev-24) | 착용 정보 | 2 창간·발행 | C3 C6 | P19 P18 | DEV-08 DEV-09 | todo |
+| [DEV-24](#dev-24) | 착용 정보 | 2 창간·발행 | C3 C6 C6wear | P19 P18 | DEV-08 DEV-09 | todo |
 | [DEV-25](#dev-25) | 화면 단어와 하단 캡슐 4칸 | 0 기반 | C1 C4 C5 C6 | P12 P16 | DEV-01 | todo |
 
 ## DEV-01
@@ -219,7 +219,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **목업 화면**
 
-[J3 창간호의 색](screens/j3-color.jpg)
+[J3 첫 캔버스의 색](screens/j3-color.jpg)
 
 **지킬 계약** P03, P05, P17 · **먼저 할 것** DEV-02, DEV-03
 
@@ -263,7 +263,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **목업 화면**
 
-[J4 촬영](screens/j4-shoot.jpg) · [J6 얼굴 연출](screens/j6-face.jpg) · [C6 오늘 호 만들기](screens/c6-make.jpg)
+[J4 촬영](screens/j4-shoot.jpg) · [J6 얼굴 연출 · 자르기와 물감](screens/j6-face.jpg) · [C6 오늘의 캔버스 만들기](screens/c6-make.jpg) · [C6neck 만들기 · 목 아래(물감 꺼짐)](screens/c6neck-make-neck.jpg)
 
 **지킬 계약** P11, P15 · **먼저 할 것** DEV-01
 
@@ -306,7 +306,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **목업 화면**
 
-[C6 오늘 호 만들기](screens/c6-make.jpg) · [C8b 같은 색 · 발행 후](screens/c8b-same-open.jpg)
+[C6 오늘의 캔버스 만들기](screens/c6-make.jpg) · [C8b 팔레트 · 색상(올린 뒤)](screens/c8b-same-open.jpg)
 
 **지킬 계약** P04, P01 · **먼저 할 것** DEV-07, DEV-08
 
@@ -341,7 +341,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **목업 화면**
 
-[J3 창간호의 색](screens/j3-color.jpg) · [J4 촬영](screens/j4-shoot.jpg) · [J5 제호 정하기](screens/j5-name.jpg) · [J6 얼굴 연출](screens/j6-face.jpg) · [J7 창간호](screens/j7-first-issue.jpg)
+[J3 첫 캔버스의 색](screens/j3-color.jpg) · [J4 촬영](screens/j4-shoot.jpg) · [J5 사인 정하기](screens/j5-name.jpg) · [J6 얼굴 연출 · 자르기와 물감](screens/j6-face.jpg) · [J7 첫 캔버스](screens/j7-first-issue.jpg)
 
 **지킬 계약** P13, P14, P15, P04 · **먼저 할 것** DEV-05, DEV-07, DEV-08, DEV-09
 
@@ -380,11 +380,11 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **홈 피드** · 3단계 읽기 · 상태 `doing`
 
-피드의 첫 장만 표지이고 나머지는 안쪽 지면이다. 전체/구독 탭, 최신순에 가끔 인기 혼합, 반응 숫자는 보이지 않는다.
+홈은 구독한 사람과 추천을 섞은 한 피드다(탭 없음, 10-18). 첫 장만 표지이고 나머지는 안쪽 지면, 최신순에 가끔 인기 혼합, 반응 숫자는 보이지 않는다.
 
 **목업 화면**
 
-[C1 표지 피드](screens/c1-feed.jpg) · [C2 구독 탭 · 어두운 사진 표지](screens/c2-feed-subs.jpg) · [C7 피드 안쪽 지면 · 작은 로고](screens/c7-feed-inner.jpg)
+[C1 홈](screens/c1-feed.jpg) · [C2 홈 · 어두운 사진 표지](screens/c2-feed-dark.jpg) · [C7 홈 안쪽 지면 · 작은 로고](screens/c7-feed-inner.jpg)
 
 **지킬 계약** P01, P02, P16, P18 · **먼저 할 것** DEV-09
 
@@ -396,7 +396,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **서버 (초안)**
 
-- GET /api/feed?tab=all|subs&cursor=: 공개 권한 필터를 먼저 적용한 뒤 인기 혼합
+- GET /api/feed?cursor=: 구독 + 추천을 섞고, 공개 권한 필터를 먼저 적용한 뒤 인기 혼합
 - 응답에 좋아요 수 등 숫자 없음
 
 **합격 기준**
@@ -416,13 +416,13 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 ## DEV-11
 
-**펼침면과 독자 한 줄** · 3단계 읽기 · 상태 `doing`
+**자세히 보기와 한 줄** · 3단계 읽기 · 상태 `doing`
 
-표지를 펼치면 큰 제목, 사진 2장, 반응, 독자 한 줄이 나온다. 한 줄을 남길 수 있다.
+자세히 보기에서 큰 제목, 사진(착용 태그 점), 착용 정보, 반응, 한 줄이 나온다. 한 줄을 남길 수 있다.
 
 **목업 화면**
 
-[C3 펼침면](screens/c3-spread.jpg)
+[C3 자세히 보기 · 착용 정보](screens/c3-spread.jpg)
 
 **지킬 계약** P12, P18 · **먼저 할 것** DEV-10
 
@@ -461,11 +461,11 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **팔레트(탐색)와 같은 색** · 3단계 읽기 · 상태 `doing`
 
-가판대에서 12색 칩으로 오늘의 표지를 거른다. 오늘 후보 3색은 발행 전 자물쇠이고, 누르면 최신 3장과 흐린 책등만 보인다.
+팔레트(인스타 돋보기 탭 구조)에서 추천·색상·구독 탭으로 작은 표지 격자를 둘러본다. 오늘 후보 3색은 올리기 전 자물쇠이고, 색상에서 고르면 최신 3장과 흐린 칸만 보인다.
 
 **목업 화면**
 
-[C4 가판대](screens/c4-stand.jpg) · [C8 같은 색 · 발행 전](screens/c8-same-locked.jpg) · [C8b 같은 색 · 발행 후](screens/c8b-same-open.jpg)
+[C4 팔레트 · 추천](screens/c4-stand.jpg) · [C8 팔레트 · 색상(올리기 전)](screens/c8-same-locked.jpg) · [C8b 팔레트 · 색상(올린 뒤)](screens/c8b-same-open.jpg) · [C4subs 팔레트 · 구독](screens/c4subs-stand-subs.jpg) · [C8list 팔레트 · 색 목록 펼침](screens/c8list-color-list.jpg)
 
 **지킬 계약** P01, P02, P18 · **먼저 할 것** DEV-10
 
@@ -503,11 +503,11 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **스케치북과 구독** · 3단계 읽기 · 상태 `doing`
 
-남의 이름을 누르면 그 사람의 잡지(서가)가 열린다. 지난 호를 표지/책등으로 보고 구독할 수 있다.
+팔레트 칸이나 사인을 누르면 그 사람의 스케치북이 열린다. 사진이 최신부터 세로로 이어지고 구독할 수 있다.
 
 **목업 화면**
 
-[C5 서가 · 표지](screens/c5-shelf.jpg) · [C5b 서가 · 책등](screens/c5b-shelf-spines.jpg)
+[C5 스케치북](screens/c5-shelf.jpg) · [C5b 스케치북 · 지난 캔버스](screens/c5b-shelf-past.jpg)
 
 **지킬 계약** P04, P18 · **먼저 할 것** DEV-10
 
@@ -524,8 +524,8 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **합격 기준**
 
-- 서가 응답에 구독자 수가 없음
-- 구독하면 피드 구독 탭에 나타남
+- 스케치북 응답에 구독자 수가 없음
+- 구독하면 팔레트 구독 탭과 홈 피드에 나타남
 
 **추가할 테스트**
 
@@ -537,13 +537,13 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 ## DEV-14
 
-**내 잡지와 반응** · 4단계 내 잡지 · 상태 `doing`
+**내 스케치북과 반응** · 4단계 내 잡지 · 상태 `doing`
 
-내 잡지에서 오늘 호, 지난 호, 메뉴(월간 색 기록·트윈·친구·설정)를 보고, 내 표지의 반응 수와 목록은 나만 본다.
+내 스케치북에서 오늘의 캔버스, 지난 캔버스, 진입(색 달력·트윈·친구·이번 주 주제·전시·설정)을 보고, 내 캔버스의 반응 수와 목록은 나만 본다.
 
 **목업 화면**
 
-[M1 내 잡지](screens/m1-me.jpg) · [A4 내 표지의 반응](screens/a4-reactions.jpg)
+[M1 내 스케치북](screens/m1-me.jpg) · [A4 내 캔버스의 반응](screens/a4-reactions.jpg)
 
 **지킬 계약** P18 · **먼저 할 것** DEV-09, DEV-11
 
@@ -578,7 +578,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **목업 화면**
 
-[R1 월간 색 기록](screens/r1-record.jpg) · [R2 날짜 기록](screens/r2-day.jpg) · [R3 놓친 날의 색](screens/r3-restore.jpg) · [R4 한 칸을 채웠어요](screens/r4-restored.jpg) · [R5 복원 후 달력](screens/r5-record-restored.jpg)
+[R1 색 달력](screens/r1-record.jpg) · [R2 날짜 기록](screens/r2-day.jpg) · [R3 놓친 날의 색](screens/r3-restore.jpg) · [R4 한 칸을 채웠어요](screens/r4-restored.jpg) · [R5 복원 후 색 달력](screens/r5-record-restored.jpg)
 
 **지킬 계약** P06, P07, P03 · **먼저 할 것** DEV-02, DEV-09
 
@@ -654,7 +654,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **목업 화면**
 
-[T1 트윈 시작](screens/t1-twin.jpg) · [T2 트윈 초대](screens/t2-invite.jpg) · [T3 나의 색 고르기](screens/t3-color.jpg) · [T4 나의 표지 준비](screens/t4-ready.jpg) · [T5 상대 게시 기다림](screens/t5-wait.jpg) · [T6 두 표지 공개](screens/t6-reveal.jpg) · [T7 공개 범위](screens/t7-visibility.jpg) · [T8 공동 공개 동의 대기](screens/t8-consent.jpg) · [T9 우리의 한 호](screens/t9-joint.jpg) · [T10 공동 발행 완료](screens/t10-published.jpg) · [T8private 둘만의 기록으로](screens/t8private.jpg) · [T8solo 내 표지만 공개](screens/t8solo.jpg)
+[T1 트윈 시작](screens/t1-twin.jpg) · [T2 트윈 초대](screens/t2-invite.jpg) · [T3 나의 색 고르기](screens/t3-color.jpg) · [T4 나의 표지 준비](screens/t4-ready.jpg) · [T5 상대 게시 기다림](screens/t5-wait.jpg) · [T6 두 표지 공개](screens/t6-reveal.jpg) · [T7 공개 범위](screens/t7-visibility.jpg) · [T8 공동 공개 동의 대기](screens/t8-consent.jpg) · [T9 우리의 한 장](screens/t9-joint.jpg) · [T10 함께 올리기 완료](screens/t10-published.jpg) · [T8private 둘만의 기록으로](screens/t8private.jpg) · [T8solo 내 표지만 공개](screens/t8solo.jpg)
 
 **지킬 계약** P08, P09, P10 · **먼저 할 것** DEV-16, DEV-08
 
@@ -697,7 +697,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **목업 화면**
 
-[A1 내 표지 공유 시트](screens/a1-share-sheet.jpg) · [A3 공유 앱 선택](screens/a3-share-apps.jpg) · [A5 남의 표지 공유](screens/a5-share-other.jpg) · [A7 트윈 공유](screens/a7-share-twin.jpg)
+[A1 내 캔버스 공유 시트](screens/a1-share-sheet.jpg) · [A3 공유 앱 선택](screens/a3-share-apps.jpg) · [A5 남의 캔버스 공유](screens/a5-share-other.jpg) · [A7 트윈 공유](screens/a7-share-twin.jpg)
 
 **지킬 계약** P01, P18 · **먼저 할 것** DEV-11, DEV-17
 
@@ -805,7 +805,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **목업 화면**
 
-[CH1 이번 주의 착장 · 두 참여 유형](screens/ch1-challenges.jpg) · [C4 가판대](screens/c4-stand.jpg) · [C6 오늘 호 만들기](screens/c6-make.jpg) · [M1 내 잡지](screens/m1-me.jpg)
+[CH1 이번 주 주제 · 두 참여 유형](screens/ch1-challenges.jpg) · [C4 팔레트 · 추천](screens/c4-stand.jpg) · [C6 오늘의 캔버스 만들기](screens/c6-make.jpg) · [M1 내 스케치북](screens/m1-me.jpg)
 
 **지킬 계약** P01, P04, P17, P18 · **먼저 할 것** DEV-09, DEV-12
 
@@ -841,7 +841,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **목업 화면**
 
-[CH1 이번 주의 착장 · 두 참여 유형](screens/ch1-challenges.jpg) · [C4 가판대](screens/c4-stand.jpg) · [C6 오늘 호 만들기](screens/c6-make.jpg) · [M1 내 잡지](screens/m1-me.jpg)
+[CH1 이번 주 주제 · 두 참여 유형](screens/ch1-challenges.jpg) · [C4 팔레트 · 추천](screens/c4-stand.jpg) · [C6 오늘의 캔버스 만들기](screens/c6-make.jpg) · [M1 내 스케치북](screens/m1-me.jpg)
 
 **지킬 계약** P01, P04, P17, P18 · **먼저 할 것** DEV-21
 
@@ -877,7 +877,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **목업 화면**
 
-[CL1 일·주·월 표지 특집](screens/cl1-collections.jpg) · [C4 가판대](screens/c4-stand.jpg) · [M1 내 잡지](screens/m1-me.jpg)
+[CL1 전시(오늘 · 이번 주 · 이달)](screens/cl1-collections.jpg) · [C4 팔레트 · 추천](screens/c4-stand.jpg) · [M1 내 스케치북](screens/m1-me.jpg)
 
 **지킬 계약** P01, P02, P04, P18 · **먼저 할 것** DEV-09, DEV-12
 
@@ -912,7 +912,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **목업 화면**
 
-[C3 펼침면](screens/c3-spread.jpg) · [C6 오늘 호 만들기](screens/c6-make.jpg)
+[C3 자세히 보기 · 착용 정보](screens/c3-spread.jpg) · [C6 오늘의 캔버스 만들기](screens/c6-make.jpg) · [C6wear 만들기 · 착용 정보 더하기](screens/c6wear-make-garment.jpg)
 
 **지킬 계약** P19, P18 · **먼저 할 것** DEV-08, DEV-09
 
@@ -955,7 +955,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **목업 화면**
 
-[C1 표지 피드](screens/c1-feed.jpg) · [C4 가판대](screens/c4-stand.jpg) · [C5 서가 · 표지](screens/c5-shelf.jpg) · [C6 오늘 호 만들기](screens/c6-make.jpg)
+[C1 홈](screens/c1-feed.jpg) · [C4 팔레트 · 추천](screens/c4-stand.jpg) · [C5 스케치북](screens/c5-shelf.jpg) · [C6 오늘의 캔버스 만들기](screens/c6-make.jpg)
 
 **지킬 계약** P12, P16 · **먼저 할 것** DEV-01
 
@@ -986,28 +986,32 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 | J1 | 비로그인 첫 표지 | `intro` | [그림](screens/j1-intro.jpg) | 122:1180 |
 | J1b | 스크롤 후 로그인 바 | `intro` | [그림](screens/j1b-login-bar.jpg) | 126:36 |
 | J2 | 로그인 시트 | `intro` | [그림](screens/j2-login-sheet.jpg) | 122:1279 |
-| J3 | 창간호의 색 | `join-color` | [그림](screens/j3-color.jpg) | 122:1323 |
+| J3 | 첫 캔버스의 색 | `join-color` | [그림](screens/j3-color.jpg) | 122:1323 |
 | J4 | 촬영 | `join-shoot` | [그림](screens/j4-shoot.jpg) | 122:1378 |
-| J5 | 제호 정하기 | `join-name` | [그림](screens/j5-name.jpg) | 122:1407 |
-| J6 | 얼굴 연출 | `join-face` | [그림](screens/j6-face.jpg) | 122:1440 |
-| J7 | 창간호 | `join-done` | [그림](screens/j7-first-issue.jpg) | 122:1481 |
-| C1 | 표지 피드 | `feed` | [그림](screens/c1-feed.jpg) | 122:89 |
-| C2 | 구독 탭 · 어두운 사진 표지 | `feed` | [그림](screens/c2-feed-subs.jpg) | 122:158 |
-| C3 | 펼침면 | `spread` | [그림](screens/c3-spread.jpg) | 122:228 |
-| C4 | 가판대 | `stand` | [그림](screens/c4-stand.jpg) | 122:309 |
-| C5 | 서가 · 표지 | `shelf` | [그림](screens/c5-shelf.jpg) | 122:461 |
-| C5b | 서가 · 책등 | `shelf` | [그림](screens/c5b-shelf-spines.jpg) | 122:1016 |
-| C6 | 오늘 호 만들기 | `make` | [그림](screens/c6-make.jpg) | 122:753 |
-| C7 | 피드 안쪽 지면 · 작은 로고 | `feed` | [그림](screens/c7-feed-inner.jpg) | 122:811 |
-| C8 | 같은 색 · 발행 전 | `same` | [그림](screens/c8-same-locked.jpg) | 122:581 |
-| C8b | 같은 색 · 발행 후 | `same` | [그림](screens/c8b-same-open.jpg) | — |
-| M1 | 내 잡지 | `me` | [그림](screens/m1-me.jpg) | 142:72 |
-| A4 | 내 표지의 반응 | `reactions` | [그림](screens/a4-reactions.jpg) | 144:395 |
-| R1 | 월간 색 기록 | `record` | [그림](screens/r1-record.jpg) | 142:104 |
+| J5 | 사인 정하기 | `join-name` | [그림](screens/j5-name.jpg) | 122:1407 |
+| J6 | 얼굴 연출 · 자르기와 물감 | `join-face` | [그림](screens/j6-face.jpg) | 122:1440 |
+| J7 | 첫 캔버스 | `join-done` | [그림](screens/j7-first-issue.jpg) | 122:1481 |
+| C1 | 홈 | `feed` | [그림](screens/c1-feed.jpg) | 122:89 |
+| C2 | 홈 · 어두운 사진 표지 | `feed` | [그림](screens/c2-feed-dark.jpg) | 122:158 |
+| C3 | 자세히 보기 · 착용 정보 | `spread` | [그림](screens/c3-spread.jpg) | 122:228 |
+| C4 | 팔레트 · 추천 | `stand` | [그림](screens/c4-stand.jpg) | 122:309 |
+| C4subs | 팔레트 · 구독 | `stand` | [그림](screens/c4subs-stand-subs.jpg) | — |
+| C5 | 스케치북 | `shelf` | [그림](screens/c5-shelf.jpg) | 122:461 |
+| C5b | 스케치북 · 지난 캔버스 | `shelf` | [그림](screens/c5b-shelf-past.jpg) | — |
+| C6 | 오늘의 캔버스 만들기 | `make` | [그림](screens/c6-make.jpg) | 122:753 |
+| C6neck | 만들기 · 목 아래(물감 꺼짐) | `make` | [그림](screens/c6neck-make-neck.jpg) | — |
+| C6wear | 만들기 · 착용 정보 더하기 | `make` | [그림](screens/c6wear-make-garment.jpg) | — |
+| C7 | 홈 안쪽 지면 · 작은 로고 | `feed` | [그림](screens/c7-feed-inner.jpg) | 122:811 |
+| C8 | 팔레트 · 색상(올리기 전) | `same` | [그림](screens/c8-same-locked.jpg) | 122:581 |
+| C8list | 팔레트 · 색 목록 펼침 | `same` | [그림](screens/c8list-color-list.jpg) | — |
+| C8b | 팔레트 · 색상(올린 뒤) | `same` | [그림](screens/c8b-same-open.jpg) | — |
+| M1 | 내 스케치북 | `me` | [그림](screens/m1-me.jpg) | 142:72 |
+| A4 | 내 캔버스의 반응 | `reactions` | [그림](screens/a4-reactions.jpg) | 144:395 |
+| R1 | 색 달력 | `record` | [그림](screens/r1-record.jpg) | 142:104 |
 | R2 | 날짜 기록 | `day` | [그림](screens/r2-day.jpg) | 142:228 |
 | R3 | 놓친 날의 색 | `restore` | [그림](screens/r3-restore.jpg) | 142:245 |
 | R4 | 한 칸을 채웠어요 | `restored` | [그림](screens/r4-restored.jpg) | 142:270 |
-| R5 | 복원 후 달력 | `record` | [그림](screens/r5-record-restored.jpg) | 148:291 |
+| R5 | 복원 후 색 달력 | `record` | [그림](screens/r5-record-restored.jpg) | 148:291 |
 | F1 | 나의 친구 | `friends` | [그림](screens/f1-friends.jpg) | 148:227 |
 | F2 | 친구 요청 | `friend` | [그림](screens/f2-friend-request.jpg) | 148:261 |
 | F3 | 친구가 되었어요 | `friend-added` | [그림](screens/f3-friend-added.jpg) | 148:277 |
@@ -1019,8 +1023,8 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 | T6 | 두 표지 공개 | `twin-reveal` | [그림](screens/t6-reveal.jpg) | 143:190 |
 | T7 | 공개 범위 | `twin-vis` | [그림](screens/t7-visibility.jpg) | 143:208 |
 | T8 | 공동 공개 동의 대기 | `twin-consent` | [그림](screens/t8-consent.jpg) | 143:238 |
-| T9 | 우리의 한 호 | `twin-joint` | [그림](screens/t9-joint.jpg) | 143:256 |
-| T10 | 공동 발행 완료 | `twin-done` | [그림](screens/t10-published.jpg) | 143:272 |
+| T9 | 우리의 한 장 | `twin-joint` | [그림](screens/t9-joint.jpg) | 143:256 |
+| T10 | 함께 올리기 완료 | `twin-done` | [그림](screens/t10-published.jpg) | 143:272 |
 | T8private | 둘만의 기록으로 | `twin-done` | [그림](screens/t8private.jpg) | 143:288 |
 | T8solo | 내 표지만 공개 | `twin-done` | [그림](screens/t8solo.jpg) | 143:301 |
 | S1 | 나의 설정 | `settings` | [그림](screens/s1-settings.jpg) | 144:128 |
@@ -1033,9 +1037,9 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 | S6 | 탈퇴 전 확인 | `delete` | [그림](screens/s6-delete.jpg) | 144:272 |
 | S6confirm | 탈퇴 마지막 확인 | `delete-final` | [그림](screens/s6confirm.jpg) | 144:293 |
 | S6done | 탈퇴 완료 | `goodbye` | [그림](screens/s6done.jpg) | 144:322 |
-| A1 | 내 표지 공유 시트 | `me` | [그림](screens/a1-share-sheet.jpg) | 144:336 |
+| A1 | 내 캔버스 공유 시트 | `me` | [그림](screens/a1-share-sheet.jpg) | 144:336 |
 | A3 | 공유 앱 선택 | `me` | [그림](screens/a3-share-apps.jpg) | 144:370 |
-| A5 | 남의 표지 공유 | `spread` | [그림](screens/a5-share-other.jpg) | 147:245 |
+| A5 | 남의 캔버스 공유 | `spread` | [그림](screens/a5-share-other.jpg) | 147:245 |
 | A7 | 트윈 공유 | `twin-done` | [그림](screens/a7-share-twin.jpg) | 147:272 |
-| CH1 | 이번 주의 착장 · 두 참여 유형 | `challenges` | [그림](screens/ch1-challenges.jpg) | — |
-| CL1 | 일·주·월 표지 특집 | `collections` | [그림](screens/cl1-collections.jpg) | — |
+| CH1 | 이번 주 주제 · 두 참여 유형 | `challenges` | [그림](screens/ch1-challenges.jpg) | — |
+| CL1 | 전시(오늘 · 이번 주 · 이달) | `collections` | [그림](screens/cl1-collections.jpg) | — |
