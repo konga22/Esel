@@ -431,7 +431,7 @@
     {
       "id": "DEV-10",
       "phase": 3,
-      "title": "표지 피드",
+      "title": "홈 피드",
       "summary": "피드의 첫 장만 표지이고 나머지는 안쪽 지면이다. 전체/구독 탭, 최신순에 가끔 인기 혼합, 반응 숫자는 보이지 않는다.",
       "screens": [
         "C1",
@@ -512,7 +512,7 @@
     {
       "id": "DEV-12",
       "phase": 3,
-      "title": "가판대와 같은 색",
+      "title": "팔레트(탐색)와 같은 색",
       "summary": "가판대에서 12색 칩으로 오늘의 표지를 거른다. 오늘 후보 3색은 발행 전 자물쇠이고, 누르면 최신 3장과 흐린 책등만 보인다.",
       "screens": [
         "C4",
@@ -528,10 +528,15 @@
         "DEV-10"
       ],
       "client": [
+        "10-18: 화면 이름은 팔레트. 탭은 추천 · 색상 · 구독(\"전체\" 없음), 인스타 돋보기 탭 크기의 작은 3열 격자(두 줄마다 세로로 긴 칸 하나)",
+        "색상 탭은 색 선택 버튼을 누르면 목록이 아래로 펼쳐짐. 내 후보 3색(발행 전 자물쇠)이 먼저, 나머지는 서버가 준 순서(오늘 많이 고른 순). 숫자는 그리지 않음",
+        "격자 칸을 누르면 그 사람의 스케치북(DEV-13)으로",
         "흐린 책등은 서버가 준 개수로만 그린다(이름·사진을 받지 않음)",
         "안내는 '발행하면 함께 펼쳐집니다'와 자정 안내만. 손실 문구·카운트다운 금지"
       ],
       "server": [
+        "GET /api/palette/recommended, GET /api/palette/subscriptions: 사람마다 최신 공개 사진 한 칸(Page<PaletteTileDto>)",
+        "GET /api/palette/colors: 색 순서(내 후보 3색 + 잠김 먼저, 나머지는 오늘 많이 고른 순). 고른 사람 수는 응답에 넣지 않음",
         "GET /api/stand?date=&color=: {access: open|preview|closed, covers, hiddenCount}",
         "preview일 때 4번째 이후 표지의 id·이름·이미지 URL을 응답에 넣지 않음"
       ],
@@ -552,7 +557,7 @@
     {
       "id": "DEV-13",
       "phase": 3,
-      "title": "서가와 구독",
+      "title": "스케치북과 구독",
       "summary": "남의 이름을 누르면 그 사람의 잡지(서가)가 열린다. 지난 호를 표지/책등으로 보고 구독할 수 있다.",
       "screens": [
         "C5",
@@ -863,7 +868,8 @@
         "POST·DELETE /api/users/:masthead/block, GET /api/me/blocks: 차단과 차단 목록(개수 없이 cursor)",
         "DELETE /api/issues/:id(owner): 내 호 삭제",
         "삭제한 호는 공개 응답·공유 링크·이미지 URL에서 모두 사라짐",
-        "삭제 후 같은 색 방의 잠금 상태 재계산"
+        "삭제 후 같은 색 방의 잠금 상태 재계산",
+        "삭제는 행을 지우지 않고 삭제됨 표시. 그날은 다시 올릴 수 없음(10-18 사용자 결정, P04)"
       ],
       "acceptance": [
         "차단한 사람의 표지·한 줄이 피드·가판대·서가에 나오지 않음"
@@ -872,8 +878,7 @@
         "server/test/contracts/moderation.e2e-spec.ts"
       ],
       "openDecisions": [
-        "신고 처리 주체와 기준",
-        "삭제 후 재발행 허용 여부"
+        "신고 처리 주체와 기준"
       ],
       "status": "todo"
     },
@@ -996,9 +1001,91 @@
         "flutter_app/test/features/collections/collection_screen_test.dart"
       ],
       "openDecisions": [
-        "서버 운영자의 최종 선정 권한·운영 기준·발행 절차, 공유 정책"
+        "10-18 방향: 좋아요·댓글 많은 표지를 후보로 투표해 일·주·월 전시 선정(서버 후). 투표 기간·자격, 후보 수, 한 사람 한 달 한 번 규칙의 세부"
       ],
       "status": "doing"
+    },
+    {
+      "id": "DEV-24",
+      "phase": 2,
+      "title": "착용 정보",
+      "summary": "올릴 때 입은 옷을 목록과 사진 위 태그 점으로 남기고, 보는 사람은 자세히 보기에서 확인한다. 오늘의 색을 담은 옷에는 물감 칩. 한 번 태그한 옷은 내 옷 목록에 쌓여 '같은 옷, 다른 코디'(DEV-22)에서 고를 수 있다.",
+      "screens": [
+        "C3",
+        "C6"
+      ],
+      "contracts": [
+        "P19",
+        "P18"
+      ],
+      "dependsOn": [
+        "DEV-08",
+        "DEV-09"
+      ],
+      "client": [
+        "오늘의 캔버스 만들기에 '착용 정보 더하기': 옷 종류 칩(코트·니트·셔츠·바지·치마·원피스·신발·가방·액세서리), 이름이나 브랜드(선택), 메모 칩(빈티지·물려받음·직접 만듦·오래 입음), 오늘의 색 옷 표시",
+        "사진을 눌러 태그 점 위치를 정함(선택). 한 장에 최대 8개",
+        "자세히 보기에서 태그 점을 누르면 그 옷 줄로, 사진 오른쪽 아래 '착용 n' 알약",
+        "가격·쇼핑 링크·상품 추천을 그리지 않음(P19)"
+      ],
+      "server": [
+        "POST /api/issues 요청에 garments[] (kind, name?, note?, todayColor, x?, y?, garmentId?). URL 필드는 받지 않음",
+        "IssuePublicDto에 garments[] (가격·링크 없음)",
+        "GET /api/me/garments: 내 옷 목록(cursor)",
+        "DB: garments(주인·종류·이름·메모), issue_garments(호·옷·위치·오늘의 색) 새 migration"
+      ],
+      "acceptance": [
+        "착용 정보 없이도 올릴 수 있음",
+        "오늘의 색 표시는 그날 고른 색의 옷에만",
+        "응답과 화면 어디에도 가격·링크 필드가 없음",
+        "전에 태그한 옷을 고르면 같은 garmentId로 이어져 같은 옷, 다른 코디에서 보임"
+      ],
+      "tests": [
+        "flutter_app/test/features/media/garments_test.dart",
+        "server/test/contracts/issues.e2e-spec.ts"
+      ],
+      "openDecisions": [
+        "옷 종류 목록 확정",
+        "브랜드 이름 자동완성 여부(외부 데이터 없이)"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "DEV-25",
+      "phase": 0,
+      "title": "화면 단어와 하단 캡슐 4칸",
+      "summary": "10-18 사용자 결정대로 화면 단어를 잡지 용어에서 미술 도구 이름으로 바꾸고(하네스 §1 표), 하단 글라스 캡슐을 홈 · 팔레트 · 만들기 · 스케치북 4칸으로 바꾼다. 코드·API 이름은 그대로.",
+      "screens": [
+        "C1",
+        "C4",
+        "C5",
+        "C6"
+      ],
+      "contracts": [
+        "P12",
+        "P16"
+      ],
+      "dependsOn": [
+        "DEV-01"
+      ],
+      "client": [
+        "화면에 보이는 문구만 바꾼다: 가판대→팔레트, 내 잡지·서가→스케치북, 오늘 호→오늘의 캔버스, 발행→올리기, 창간→첫 캔버스, 제호→사인, 펼쳐 보기→자세히 보기, 독자 한 줄→한 줄, 특집→전시, 주간 드레스코드→이번 주 주제, 월간 색 기록→색 달력",
+        "하단 캡슐 4칸(홈·팔레트·만들기·스케치북), 높이 60·터치 48 유지, 지금 화면 표시 하나",
+        "비로그인 로그인 바 문구도 같은 단어로"
+      ],
+      "server": [
+        "없음. 오류 메시지 문구(errors.ts)에 예전 단어가 있으면 같은 대응표로 바꾼다"
+      ],
+      "acceptance": [
+        "앱 화면 어디에도 가판대·서가·제호·창간·발행·펼침면이 보이지 않음(테스트로 문구 검사)",
+        "캡슐 4칸이 모두 48px 이상"
+      ],
+      "tests": [
+        "flutter_app/test/core/user_text_test.dart",
+        "flutter_app/test/app/capsule_test.dart"
+      ],
+      "openDecisions": [],
+      "status": "todo"
     }
   ]
 }
