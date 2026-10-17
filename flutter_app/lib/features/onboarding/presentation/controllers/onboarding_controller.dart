@@ -61,11 +61,29 @@ class OnboardingController extends ChangeNotifier {
   }
 
   void selectFaceMode(FaceLayoutMode mode) {
-    _draft = _draft.copyWith(faceMode: mode);
+    _draft = _draft.copyWith(
+      faceMode: mode,
+      faceEffects: toggleFaceEffect(_draft.effectiveFaceEffects, mode),
+    );
     notifyListeners();
   }
 
-  /// 표지에서 얼굴 가운데를 누른 자리(표지에 대한 비율).
+  void setMastheadScale(double scale) {
+    _draft = _draft.copyWith(mastheadScale: scale.clamp(.5, 1.4));
+    notifyListeners();
+  }
+
+  void beginFacePlacement() {
+    _draft = _draft.copyWith(facePlaced: false);
+    notifyListeners();
+  }
+
+  void setFaceWidth(double width) {
+    _draft = _draft.copyWith(faceWidth: width.clamp(.05, .45));
+    notifyListeners();
+  }
+
+  /// 원본 사진에서 얼굴 가운데를 누른 자리(사진에 대한 비율).
   void placeFace(Offset point) {
     _draft = _draft.copyWith(
       faceX: point.dx.clamp(0.0, 1.0),

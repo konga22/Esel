@@ -1,6 +1,6 @@
 # 기능 개발 목록
 
-> 자동 생성 파일이다. [features.json](features.json)을 고치고 `npm run dev:docs`로 다시 만든다. 개발 방법은 [개발 가이드](README.md)에 있다. (기준일 2026-10-11)
+> 자동 생성 파일이다. [features.json](features.json)을 고치고 `npm run dev:docs`로 다시 만든다. 개발 방법은 [개발 가이드](README.md)에 있다. (기준일 2026-10-18)
 
 | ID | 기능 | 단계 | 목업 화면 | 계약 | 먼저 할 것 | 상태 |
 |---|---|---|---|---|---|---|
@@ -13,10 +13,10 @@
 | [DEV-08](#dev-08) | 사진과 얼굴 연출 | 2 창간·발행 | J4 J6 C6 | P11 P15 | DEV-01 | doing |
 | [DEV-09](#dev-09) | 오늘 호 발행 | 2 창간·발행 | C6 C8b | P04 P01 | DEV-07 DEV-08 | doing |
 | [DEV-06](#dev-06) | 창간 | 2 창간·발행 | J3 J4 J5 J6 J7 | P13 P14 P15 P04 | DEV-05 DEV-07 DEV-08 DEV-09 | doing |
-| [DEV-10](#dev-10) | 표지 피드 | 3 읽기 | C1 C2 C7 | P01 P02 P16 P18 | DEV-09 | doing |
+| [DEV-10](#dev-10) | 홈 피드 | 3 읽기 | C1 C2 C7 | P01 P02 P16 P18 | DEV-09 | doing |
 | [DEV-11](#dev-11) | 펼침면과 독자 한 줄 | 3 읽기 | C3 | P12 P18 | DEV-10 | doing |
-| [DEV-12](#dev-12) | 가판대와 같은 색 | 3 읽기 | C4 C8 C8b | P01 P02 P18 | DEV-10 | doing |
-| [DEV-13](#dev-13) | 서가와 구독 | 3 읽기 | C5 C5b | P04 P18 | DEV-10 | doing |
+| [DEV-12](#dev-12) | 팔레트(탐색)와 같은 색 | 3 읽기 | C4 C8 C8b | P01 P02 P18 | DEV-10 | doing |
+| [DEV-13](#dev-13) | 스케치북과 구독 | 3 읽기 | C5 C5b | P04 P18 | DEV-10 | doing |
 | [DEV-14](#dev-14) | 내 잡지와 반응 | 4 내 잡지 | M1 A4 | P18 | DEV-09 DEV-11 | doing |
 | [DEV-15](#dev-15) | 월간 색 기록과 복원 | 4 내 잡지 | R1 R2 R3 R4 R5 | P06 P07 P03 | DEV-02 DEV-09 | doing |
 | [DEV-16](#dev-16) | 친구 | 5 관계 | F1 F2 F3 | P12 | DEV-06 | doing |
@@ -24,6 +24,11 @@
 | [DEV-18](#dev-18) | 공유 | 5 관계 | A1 A3 A5 A7 | P01 P18 | DEV-11 DEV-17 | todo |
 | [DEV-19](#dev-19) | 설정과 계정 | 6 계정 관리 | S1 S2 S3 S3off S4 S5 S5done S6 S6confirm S6done | P14 | DEV-05 DEV-06 | doing |
 | [DEV-20](#dev-20) | 신고·차단·삭제 | 7 운영 | — | P01 P02 | DEV-11 DEV-16 | todo |
+| [DEV-21](#dev-21) | 주간 드레스코드 | 4 내 잡지 | CH1 C4 C6 M1 | P01 P04 P17 P18 | DEV-09 DEV-12 | doing |
+| [DEV-22](#dev-22) | 같은 옷, 다른 코디 | 4 내 잡지 | CH1 C4 C6 M1 | P01 P04 P17 P18 | DEV-21 | doing |
+| [DEV-23](#dev-23) | 일·주·월 표지 특집 | 4 내 잡지 | CL1 C4 M1 | P01 P02 P04 P18 | DEV-09 DEV-12 | doing |
+| [DEV-24](#dev-24) | 착용 정보 | 2 창간·발행 | C3 C6 | P19 P18 | DEV-08 DEV-09 | todo |
+| [DEV-25](#dev-25) | 화면 단어와 하단 캡슐 4칸 | 0 기반 | C1 C4 C5 C6 | P12 P16 | DEV-01 | todo |
 
 ## DEV-01
 
@@ -271,11 +276,13 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 - 얼굴 위치를 정하지 않으면 발행 버튼 비활성(P11)
 - "그대로"에서 제호가 얼굴을 덮지 않음(P15)
+- P15: 자르기는 그대로·제호 뒤로·목 아래 중 하나. 물감은 별도 토글, 목 아래 선택 시 자동 해제·비활성화. 제호 뒤로+물감 허용, 제호·얼굴 크기 유지
 - 15MB 초과·이미지 아닌 파일은 이유와 함께 거절
 
 **추가할 테스트**
 
 - `flutter_app/test/features/media/face_layout_test.dart`
+- `flutter_app/test/features/media/combined_effects_test.dart`
 - `server/test/contracts/media.e2e-spec.ts`
 
 **사용자 결정이 필요한 것**
@@ -359,7 +366,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 ## DEV-10
 
-**표지 피드** · 3단계 읽기 · 상태 `doing`
+**홈 피드** · 3단계 읽기 · 상태 `doing`
 
 피드의 첫 장만 표지이고 나머지는 안쪽 지면이다. 전체/구독 탭, 최신순에 가끔 인기 혼합, 반응 숫자는 보이지 않는다.
 
@@ -436,7 +443,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 ## DEV-12
 
-**가판대와 같은 색** · 3단계 읽기 · 상태 `doing`
+**팔레트(탐색)와 같은 색** · 3단계 읽기 · 상태 `doing`
 
 가판대에서 12색 칩으로 오늘의 표지를 거른다. 오늘 후보 3색은 발행 전 자물쇠이고, 누르면 최신 3장과 흐린 책등만 보인다.
 
@@ -448,11 +455,16 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **앱(Flutter)**
 
+- 10-18: 화면 이름은 팔레트. 탭은 추천 · 색상 · 구독("전체" 없음), 인스타 돋보기 탭 크기의 작은 3열 격자(두 줄마다 세로로 긴 칸 하나)
+- 색상 탭은 색 선택 버튼을 누르면 목록이 아래로 펼쳐짐. 내 후보 3색(발행 전 자물쇠)이 먼저, 나머지는 서버가 준 순서(오늘 많이 고른 순). 숫자는 그리지 않음
+- 격자 칸을 누르면 그 사람의 스케치북(DEV-13)으로
 - 흐린 책등은 서버가 준 개수로만 그린다(이름·사진을 받지 않음)
 - 안내는 '발행하면 함께 펼쳐집니다'와 자정 안내만. 손실 문구·카운트다운 금지
 
 **서버 (초안)**
 
+- GET /api/palette/recommended, GET /api/palette/subscriptions: 사람마다 최신 공개 사진 한 칸(Page<PaletteTileDto>)
+- GET /api/palette/colors: 색 순서(내 후보 3색 + 잠김 먼저, 나머지는 오늘 많이 고른 순). 고른 사람 수는 응답에 넣지 않음
 - GET /api/stand?date=&color=: {access: open|preview|closed, covers, hiddenCount}
 - preview일 때 4번째 이후 표지의 id·이름·이미지 URL을 응답에 넣지 않음
 
@@ -473,7 +485,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 ## DEV-13
 
-**서가와 구독** · 3단계 읽기 · 상태 `doing`
+**스케치북과 구독** · 3단계 읽기 · 상태 `doing`
 
 남의 이름을 누르면 그 사람의 잡지(서가)가 열린다. 지난 호를 표지/책등으로 보고 구독할 수 있다.
 
@@ -743,6 +755,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 - DELETE /api/issues/:id(owner): 내 호 삭제
 - 삭제한 호는 공개 응답·공유 링크·이미지 URL에서 모두 사라짐
 - 삭제 후 같은 색 방의 잠금 상태 재계산
+- 삭제는 행을 지우지 않고 삭제됨 표시. 그날은 다시 올릴 수 없음(10-18 사용자 결정, P04)
 
 **합격 기준**
 
@@ -755,7 +768,188 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 **사용자 결정이 필요한 것**
 
 - 신고 처리 주체와 기준
-- 삭제 후 재발행 허용 여부
+
+## DEV-21
+
+**주간 드레스코드** · 4단계 내 잡지 · 상태 `doing`
+
+2026-10-18: 주간 주제 참여·다른 기기 내 계정의 공개 표지 조회까지. 실제 서버 사용자 목록/동기화 제외.
+
+**목업 화면**
+
+[CH1 이번 주의 착장 · 두 참여 유형](screens/ch1-challenges.jpg) · [C4 가판대](screens/c4-stand.jpg) · [C6 오늘 호 만들기](screens/c6-make.jpg) · [M1 내 잡지](screens/m1-me.jpg)
+
+**지킬 계약** P01, P04, P17, P18 · **먼저 할 것** DEV-09, DEV-12
+
+**앱(Flutter)**
+
+- 가방·겹쳐 입기·데님·비 오는 날 주간 주제, 기존 발행/참여 재사용
+- 계정별 내 기록과 기기 내 공개 참여 목록, 공개 필터 후 그룹화, 잠긴 색은 숨김
+
+**서버 (초안)**
+
+- 미합의 검토안: docs/flutter/LOCAL_CONTENTS.md. 확정 API·migration 구현 안 함
+
+**합격 기준**
+
+- 하루 한 호를 유지하며 오늘 호에 참여 연결
+- 마감·중복·오류·재시도·계정 분리·재시작 보존
+
+**추가할 테스트**
+
+- `flutter_app/test/features/challenges/challenge_test.dart`
+- `flutter_app/test/features/challenges/challenge_screen_test.dart`
+- `flutter_app/test/features/challenges/content_flow_test.dart`
+
+**사용자 결정이 필요한 것**
+
+- 실제 서버 운영 주제·공개 참여 API·동기화는 후속. 로컬 공개 참여와 구분
+
+## DEV-22
+
+**같은 옷, 다른 코디** · 4단계 내 잡지 · 상태 `doing`
+
+2026-10-17 요청: 서버 연결 전 로컬 동작. 기존 발행 흐름 재사용. 서버까지 전체 완료 아님.
+
+**목업 화면**
+
+[CH1 이번 주의 착장 · 두 참여 유형](screens/ch1-challenges.jpg) · [C4 가판대](screens/c4-stand.jpg) · [C6 오늘 호 만들기](screens/c6-make.jpg) · [M1 내 잡지](screens/m1-me.jpg)
+
+**지킬 계약** P01, P04, P17, P18 · **먼저 할 것** DEV-21
+
+**앱(Flutter)**
+
+- features/challenges/domain·data·presentation, 기존 모드 선택과 LocalLibrary 사용
+- 본인 참여만 조회, 오늘 호 연결, 서울 기간 재검증, 저장 데이터 하위 호환
+
+**서버 (초안)**
+
+- 미합의 검토안: docs/flutter/LOCAL_CONTENTS.md. 확정 API·migration 구현 안 함
+
+**합격 기준**
+
+- 본인 과거 발행본만 선택, 사진 복제 없음
+- 기준 표지 삭제 시 연결 해제하고 현재 호 보존
+
+**추가할 테스트**
+
+- `flutter_app/test/features/challenges/challenge_test.dart`
+- `flutter_app/test/features/challenges/challenge_screen_test.dart`
+- `flutter_app/test/features/challenges/content_flow_test.dart`
+
+**사용자 결정이 필요한 것**
+
+- 실제 서버 운영 주제·공개 참여 API·동기화는 후속. 로컬 공개 참여와 구분
+
+## DEV-23
+
+**일·주·월 표지 특집** · 4단계 내 잡지 · 상태 `doing`
+
+2026-10-18 사용자 확정: 공개 표지를 직접 선정하고 이유를 적는 로컬 편집. 베스트/공개 순위/연간 특집 제외. 서버 전체 완료 아님.
+
+**목업 화면**
+
+[CL1 일·주·월 표지 특집](screens/cl1-collections.jpg) · [C4 가판대](screens/c4-stand.jpg) · [M1 내 잡지](screens/m1-me.jpg)
+
+**지킬 계약** P01, P02, P04, P18 · **먼저 할 것** DEV-09, DEV-12
+
+**앱(Flutter)**
+
+- features/collections domain/data/presentation, 서울 기간·이유 검증·계정별 선정 저장
+- 공개 필터 후 기간 모음, 이전 JSON 호환, 기존 호 유지·다음 호수 불변
+
+**서버 (초안)**
+
+- 미합의 검토안: docs/flutter/PERIOD_COLLECTIONS.md. 운영자 권한·선정 기준·공개·미디어·동기화 후속
+
+**합격 기준**
+
+- 일·주·월 이동, 미래 기간 차단, 선정 이유 수정·해제·재시작 유지
+- 잠긴/삭제/미발행/타 계정의 비공개 표지 정보 누출 없음, 서버 실패 자동 전환 없음
+
+**추가할 테스트**
+
+- `flutter_app/test/features/collections/collections_test.dart`
+- `flutter_app/test/features/collections/collection_screen_test.dart`
+
+**사용자 결정이 필요한 것**
+
+- 10-18 방향: 좋아요·댓글 많은 표지를 후보로 투표해 일·주·월 전시 선정(서버 후). 투표 기간·자격, 후보 수, 한 사람 한 달 한 번 규칙의 세부
+
+## DEV-24
+
+**착용 정보** · 2단계 창간·발행 · 상태 `todo`
+
+올릴 때 입은 옷을 목록과 사진 위 태그 점으로 남기고, 보는 사람은 자세히 보기에서 확인한다. 오늘의 색을 담은 옷에는 물감 칩. 한 번 태그한 옷은 내 옷 목록에 쌓여 '같은 옷, 다른 코디'(DEV-22)에서 고를 수 있다.
+
+**목업 화면**
+
+[C3 펼침면](screens/c3-spread.jpg) · [C6 오늘 호 만들기](screens/c6-make.jpg)
+
+**지킬 계약** P19, P18 · **먼저 할 것** DEV-08, DEV-09
+
+**앱(Flutter)**
+
+- 오늘의 캔버스 만들기에 '착용 정보 더하기': 옷 종류 칩(코트·니트·셔츠·바지·치마·원피스·신발·가방·액세서리), 이름이나 브랜드(선택), 메모 칩(빈티지·물려받음·직접 만듦·오래 입음), 오늘의 색 옷 표시
+- 사진을 눌러 태그 점 위치를 정함(선택). 한 장에 최대 8개
+- 자세히 보기에서 태그 점을 누르면 그 옷 줄로, 사진 오른쪽 아래 '착용 n' 알약
+- 가격·쇼핑 링크·상품 추천을 그리지 않음(P19)
+
+**서버 (초안)**
+
+- POST /api/issues 요청에 garments[] (kind, name?, note?, todayColor, x?, y?, garmentId?). URL 필드는 받지 않음
+- IssuePublicDto에 garments[] (가격·링크 없음)
+- GET /api/me/garments: 내 옷 목록(cursor)
+- DB: garments(주인·종류·이름·메모), issue_garments(호·옷·위치·오늘의 색) 새 migration
+
+**합격 기준**
+
+- 착용 정보 없이도 올릴 수 있음
+- 오늘의 색 표시는 그날 고른 색의 옷에만
+- 응답과 화면 어디에도 가격·링크 필드가 없음
+- 전에 태그한 옷을 고르면 같은 garmentId로 이어져 같은 옷, 다른 코디에서 보임
+
+**추가할 테스트**
+
+- `flutter_app/test/features/media/garments_test.dart`
+- `server/test/contracts/issues.e2e-spec.ts`
+
+**사용자 결정이 필요한 것**
+
+- 옷 종류 목록 확정
+- 브랜드 이름 자동완성 여부(외부 데이터 없이)
+
+## DEV-25
+
+**화면 단어와 하단 캡슐 4칸** · 0단계 기반 · 상태 `todo`
+
+10-18 사용자 결정대로 화면 단어를 잡지 용어에서 미술 도구 이름으로 바꾸고(하네스 §1 표), 하단 글라스 캡슐을 홈 · 팔레트 · 만들기 · 스케치북 4칸으로 바꾼다. 코드·API 이름은 그대로.
+
+**목업 화면**
+
+[C1 표지 피드](screens/c1-feed.jpg) · [C4 가판대](screens/c4-stand.jpg) · [C5 서가 · 표지](screens/c5-shelf.jpg) · [C6 오늘 호 만들기](screens/c6-make.jpg)
+
+**지킬 계약** P12, P16 · **먼저 할 것** DEV-01
+
+**앱(Flutter)**
+
+- 화면에 보이는 문구만 바꾼다: 가판대→팔레트, 내 잡지·서가→스케치북, 오늘 호→오늘의 캔버스, 발행→올리기, 창간→첫 캔버스, 제호→사인, 펼쳐 보기→자세히 보기, 독자 한 줄→한 줄, 특집→전시, 주간 드레스코드→이번 주 주제, 월간 색 기록→색 달력
+- 하단 캡슐 4칸(홈·팔레트·만들기·스케치북), 높이 60·터치 48 유지, 지금 화면 표시 하나
+- 비로그인 로그인 바 문구도 같은 단어로
+
+**서버 (초안)**
+
+- 없음. 오류 메시지 문구(errors.ts)에 예전 단어가 있으면 같은 대응표로 바꾼다
+
+**합격 기준**
+
+- 앱 화면 어디에도 가판대·서가·제호·창간·발행·펼침면이 보이지 않음(테스트로 문구 검사)
+- 캡슐 4칸이 모두 48px 이상
+
+**추가할 테스트**
+
+- `flutter_app/test/core/user_text_test.dart`
+- `flutter_app/test/app/capsule_test.dart`
 
 ## 화면 등록부
 
@@ -815,3 +1009,5 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 | A3 | 공유 앱 선택 | `me` | [그림](screens/a3-share-apps.jpg) | 144:370 |
 | A5 | 남의 표지 공유 | `spread` | [그림](screens/a5-share-other.jpg) | 147:245 |
 | A7 | 트윈 공유 | `twin-done` | [그림](screens/a7-share-twin.jpg) | 147:272 |
+| CH1 | 이번 주의 착장 · 두 참여 유형 | `challenges` | [그림](screens/ch1-challenges.jpg) | — |
+| CL1 | 일·주·월 표지 특집 | `collections` | [그림](screens/cl1-collections.jpg) | — |

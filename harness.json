@@ -4,7 +4,7 @@
   "language": "ko",
   "concept": "cover-sns-personal-magazine",
   "designStatus": "cover-sns-direction-in-review",
-  "updatedAt": "2026-10-15",
+  "updatedAt": "2026-10-18",
   "entrypoints": ["AGENTS.md", "docs/ESEL_HARNESS.md", "CLAUDE.md"],
   "activeDesign": {
     "kind": "claude-design-canvas",
@@ -37,7 +37,7 @@
     "build": ".codex/temp/prototype/20261011-app-mockup/build.mjs",
     "output": ".codex/temp/prototype/20261011-app-mockup/dist (git 제외)",
     "dataFrom": "activeDesign.library",
-    "covers": ["J1-J7", "C1-C8", "M1", "R1-R5", "F1-F3", "T1-T10", "S1-S6", "A1-A8"],
+    "covers": ["J1-J7", "C1-C8", "M1", "R1-R5", "F1-F3", "T1-T10", "S1-S6", "A1-A8", "CH1", "CL1"],
     "realBackend": false
   },
   "development": {
@@ -145,7 +145,7 @@
     "scripts/capture-mockup.mjs",
     "flutter_app/assets/README.md"
   ],
-  "productContracts": ["P01", "P02", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P13", "P14", "P15", "P16", "P17", "P18"],
+  "productContracts": ["P01", "P02", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P13", "P14", "P15", "P16", "P17", "P18", "P19"],
   "manualChecks": ["V01", "V02", "V03", "V04", "V05", "V06", "V07", "V08", "V09", "V10", "V11", "V12"],
   "notDrawnInCoverSns": ["same-color-unlock-motion", "owner-count-screen", "twin", "monthly-record-restore", "settings", "notifications", "dark-mode"],
   "notImplemented": ["real-auth", "social-login", "server-upload", "friend-sync", "nickname-uniqueness", "on-device-face-detection", "dedicated-share-card"],
@@ -189,5 +189,22 @@
     "docs/design/screens/j5-name.jpg",
     "docs/design/screens/j6-face.jpg",
     "docs/design/screens/j7-first-issue.jpg"
-  ]
+  ],
+  "localContents": {
+    "decisionDate": "2026-10-18",
+    "guide": "docs/flutter/PERIOD_COLLECTIONS.md",
+    "validation": "docs/flutter/CONTENT_VALIDATION.md",
+    "included": [
+      "weekly-dresscode",
+      "same-garment-restyle",
+      "day-week-month-cover-collections"
+    ],
+    "excluded": [
+      "monthly-yearly-best",
+      "public-rankings",
+      "monthly-style-recap"
+    ],
+    "mode": "explicit-existing-mock-mode",
+    "serverConnected": false
+  }
 }

@@ -7,6 +7,7 @@ import '../../../drafts/presentation/cover_editor_screen.dart';
 /// DEV-03 local adapter. The real server entry point is kept separately.
 class PublishScreen extends StatefulWidget {
   final String masthead, ownerId;
+  final String? challengeId, previousIssueId;
   final int currentIssueCount;
   final bool hasPublishedToday;
   final ValueChanged<int> onPublishSuccess;
@@ -20,6 +21,8 @@ class PublishScreen extends StatefulWidget {
   final Future<CoverDraft> Function(CoverDraft draft) publish;
   const PublishScreen({
     super.key,
+    this.challengeId,
+    this.previousIssueId,
     required this.masthead,
     required this.ownerId,
     required this.currentIssueCount,
@@ -35,7 +38,7 @@ class PublishScreen extends StatefulWidget {
 }
 
 class _PublishScreenState extends State<PublishScreen> {
-  late final CoverDraft _initial;
+  late CoverDraft _initial;
   @override
   void initState() {
     super.initState();
@@ -55,6 +58,14 @@ class _PublishScreenState extends State<PublishScreen> {
             color: widget.candidates.first,
             updatedAt: DateTime.now(),
           );
+    if (widget.challengeId != null) {
+      _initial = _initial
+          .copyWith(clearChallenge: true)
+          .copyWith(
+            challengeId: widget.challengeId,
+            previousIssueId: widget.previousIssueId,
+          );
+    }
   }
 
   @override

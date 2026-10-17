@@ -57,6 +57,8 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   late final TextEditingController _name;
   bool _busy = false;
+  bool _locatingFace = false;
+  final _facePreviewKey = GlobalKey();
 
   OnboardingController get _c => widget.controller;
 
@@ -417,13 +419,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   left: 0,
                   right: 0,
                   top: 20,
-                  child: _Masthead(text: shown, width: 260, max: 140),
+                  child: _Masthead(
+                    text: shown,
+                    width: 260,
+                    max: 140,
+                    scale: draft.mastheadScale,
+                  ),
                 ),
               ],
             ),
           ),
         ),
         const SizedBox(height: 18),
+        Text('잡지 이름 크기 · ${(draft.mastheadScale * 100).round()}%'),
+        Slider(
+          key: const Key('founding-masthead-scale'),
+          value: draft.mastheadScale,
+          min: .5,
+          max: 1.4,
+          semanticFormatterCallback: (v) => '잡지 이름 크기 ${(v * 100).round()}퍼센트',
+          onChanged: _c.setMastheadScale,
+        ),
         Text(
           '영문 닉네임 · 표지 제호가 돼요',
           style: EselTypography.body(fontSize: 12, color: EselColors.muted),
@@ -494,44 +510,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           child: _CoverFrame(
             width: 210,
             height: 310,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                CoverPreview(
-                  draft: cover,
-                  editing: true,
-                  aspectRatio: null,
-                  chrome: false,
-                  onFacePosition: _c.placeFace,
-                ),
-                const IgnorePointer(
-                  child: _Shade(top: true, fraction: 0.45, opacity: 0.4),
-                ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  top: 14,
-                  child: IgnorePointer(
-                    child: _Masthead(
-                      text: draft.masthead,
-                      width: 210,
-                      max: 110,
-                    ),
-                  ),
-                ),
-              ],
+            child: CoverPreview(
+              key: _facePreviewKey,
+              draft: cover,
+              editing: _locatingFace,
+              locatingFace: _locatingFace,
+              aspectRatio: null,
+              chrome: !_locatingFace,
+              onFacePosition: (point) {
+                _c.placeFace(point);
+                setState(() => _locatingFace = false);
+              },
             ),
           ),
         ),
         const SizedBox(height: 10),
         Text(
-          draft.faceMode == FaceLayoutMode.belowNeck
-              ? (draft.facePlaced
-                    ? '턱 아래부터 표지를 채웠어요.'
-                    : '얼굴 위치는 다른 연출에서 먼저 정해 주세요.')
-              : draft.facePlaced
-              ? '얼굴 위치를 정했어요. 다시 누르면 옮겨져요.'
-              : '표지에서 얼굴 가운데를 눌러 위치를 정해 주세요.',
+          _locatingFace
+              ? '원본 사진에서 얼굴 가운데를 눌러 주세요.'
+              : !draft.facePlaced
+              ? '효과는 바로 적용돼요. 얼굴 위치 맞추기로 기준을 정해 주세요.'
+              : '자르기는 하나만, 물감은 따로 켜고 끌 수 있어요.',
           textAlign: TextAlign.center,
           style: EselTypography.body(fontSize: 13, color: EselColors.muted),
         ),
@@ -546,23 +545,78 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           children: [
             for (final (mode, title, sub) in const [
               (FaceLayoutMode.original, '그대로', '얼굴을 보여요'),
-              (FaceLayoutMode.paintStroke, '물감 한 획', '오늘의 색으로 가려요'),
               (FaceLayoutMode.behindLogo, '제호 뒤로', '이름 뒤에 숨겨요'),
               (FaceLayoutMode.belowNeck, '목 아래', '옷만 보여요'),
             ])
               _FaceCard(
                 title: title,
                 sub: sub,
-                selected: draft.faceMode == mode,
-                onTap: () => _c.selectFaceMode(mode),
+                selected: mode == FaceLayoutMode.original
+                    ? faceCropMode(draft.effectiveFaceEffects) ==
+                          FaceLayoutMode.original
+                    : draft.effectiveFaceEffects.contains(mode),
+                onTap: () {
+                  setState(() => _locatingFace = false);
+                  _c.selectFaceMode(mode);
+                },
               ),
           ],
         ),
+        const SizedBox(height: 8),
+        _FaceCard(
+          title: '물감 한 획',
+          sub: '오늘의 색으로 가려요',
+          selected: draft.effectiveFaceEffects.contains(
+            FaceLayoutMode.paintStroke,
+          ),
+          onTap:
+              faceCropMode(draft.effectiveFaceEffects) ==
+                  FaceLayoutMode.belowNeck
+              ? null
+              : () {
+                  setState(() => _locatingFace = false);
+                  _c.selectFaceMode(FaceLayoutMode.paintStroke);
+                },
+        ),
+        TextButton(
+          onPressed: () {
+            setState(() => _locatingFace = true);
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              final preview = _facePreviewKey.currentContext;
+              if (mounted && preview != null) {
+                Scrollable.ensureVisible(
+                  preview,
+                  duration: const Duration(milliseconds: 180),
+                );
+              }
+            });
+          },
+          child: Text(draft.facePlaced ? '얼굴 위치 다시 정하기' : '얼굴 위치 맞추기'),
+        ),
+        const Text('얼굴 크기'),
+        Slider(
+          value: draft.faceWidth,
+          min: .05,
+          max: .45,
+          semanticFormatterCallback: (v) => '얼굴 폭 사진의 ${(v * 100).round()}퍼센트',
+          onChanged: _c.setFaceWidth,
+        ),
+        if (draft.effectiveFaceEffects.contains(FaceLayoutMode.belowNeck))
+          const Text(
+            '목 아래에서는 물감이 꺼지고 선택할 수 없어요. 물감을 쓰려면 그대로 또는 제호 뒤로를 골라 주세요. 옷이 부족하면 다른 사진을 골라 주세요.',
+          ),
+        const Text('얼굴 연출이 익명화를 보장하지는 않아요.'),
       ],
       bottom: _primary(
-        _busy ? '창간하는 중…' : '창간하기',
-        enabled: _c.canProceed(),
-        onTap: _found,
+        _locatingFace
+            ? '위치 조정 취소'
+            : _busy
+            ? '창간하는 중…'
+            : '창간하기',
+        enabled: _locatingFace || _c.canProceed(),
+        onTap: _locatingFace
+            ? () => setState(() => _locatingFace = false)
+            : _found,
       ),
     );
   }
@@ -601,6 +655,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   text: issue.masthead,
                   width: box.maxWidth,
                   max: 200,
+                  scale: issue.mastheadScale,
                 ),
               ),
               Positioned(
@@ -855,7 +910,7 @@ class _FaceCard extends StatelessWidget {
   final String title;
   final String sub;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   const _FaceCard({
     required this.title,
@@ -866,11 +921,16 @@ class _FaceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fg = selected ? EselColors.paper : EselColors.ink;
+    final fg = onTap == null
+        ? EselColors.muted
+        : selected
+        ? EselColors.paper
+        : EselColors.ink;
     return Semantics(
       selected: selected,
       child: EselPressable(
         semanticsLabel: '$title · $sub',
+        enabled: onTap != null,
         onTap: onTap,
         child: Container(
           height: 64,
@@ -941,24 +1001,35 @@ class _Masthead extends StatelessWidget {
   final String text;
   final double width;
   final double max;
+  final double scale;
 
-  const _Masthead({required this.text, required this.width, required this.max});
+  const _Masthead({
+    required this.text,
+    required this.width,
+    required this.max,
+    this.scale = 1,
+  });
 
   @override
   Widget build(BuildContext context) => ExcludeSemantics(
-    child: Text(
-      text,
-      textAlign: TextAlign.center,
-      maxLines: 1,
-      softWrap: false,
-      overflow: TextOverflow.visible,
-      style: EselTypography.masthead(
-        fontSize: EselTypography.mastheadSize(
-          text,
-          width,
-          max: max,
-        ).floorToDouble(),
-        color: Colors.white,
+    child: FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.visible,
+        style: EselTypography.masthead(
+          fontSize:
+              EselTypography.mastheadSize(
+                text,
+                width,
+                max: max,
+              ).floorToDouble() *
+              scale,
+          color: Colors.white,
+        ),
       ),
     ),
   );

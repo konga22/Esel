@@ -21,6 +21,9 @@ class CoverPreview extends StatelessWidget {
   final CoverDraft draft;
   final bool editing;
 
+  /// 얼굴을 찾는 동안에는 변형 전 사진을 보여 준다. 선택한 연출은 유지한다.
+  final bool locatingFace;
+
   /// 표지에서 얼굴 가운데를 누른 자리(사진에 대한 비율).
   final ValueChanged<Offset>? onFacePosition;
 
@@ -34,6 +37,7 @@ class CoverPreview extends StatelessWidget {
     super.key,
     required this.draft,
     this.editing = false,
+    this.locatingFace = false,
     this.onFacePosition,
     this.aspectRatio = 3 / 4,
     this.chrome = true,
@@ -49,12 +53,10 @@ class CoverPreview extends StatelessWidget {
   /// 그대로 연출에서 제호 글자 크기. 얼굴 윗부분(얼굴 폭의 0.7 위)에 닿지 않게 줄인다.
   static double plainMastheadSize(CoverDraft draft, Size box, {double? ratio}) {
     final title = draft.masthead.isEmpty ? 'Esel' : draft.masthead;
-    final full = EselTypography.mastheadSize(
-      title,
-      box.width,
-      max: box.width * .54,
-    );
-    if (draft.faceMode != FaceLayoutMode.original) return full;
+    final full =
+        EselTypography.mastheadSize(title, box.width, max: box.width * .54) *
+        draft.mastheadScale;
+    if (draft.effectiveFaceEffects.isNotEmpty) return full;
     final rect = CoverPhoto.photoRect(
       box: box,
       photoRatio: ratio ?? 4 / 3,
@@ -76,7 +78,7 @@ class CoverPreview extends StatelessWidget {
     Size box, {
     double? ratio,
   }) {
-    if (draft.faceMode != FaceLayoutMode.original) return false;
+    if (draft.effectiveFaceEffects.isNotEmpty) return false;
     final rect = CoverPhoto.photoRect(
       box: box,
       photoRatio: ratio ?? 4 / 3,
@@ -109,7 +111,10 @@ class CoverPreview extends StatelessWidget {
 
   Widget _buildCover(BoxConstraints c, double photoRatio) {
     final box = Size(c.maxWidth, c.maxHeight);
-    final mode = draft.faceMode;
+    final effects = locatingFace
+        ? <FaceLayoutMode>{}
+        : draft.effectiveFaceEffects;
+    final mode = faceCropMode(effects);
     final title = draft.masthead.isEmpty ? 'Esel' : draft.masthead;
     final face = faceOf(draft);
     final hasPhoto = draft.photoPath.isNotEmpty;
@@ -145,6 +150,7 @@ class CoverPreview extends StatelessWidget {
                 photoRatio: photoRatio,
                 face: face,
                 mode: mode,
+                effects: effects,
                 paint: draft.color,
               )
             else
@@ -203,19 +209,24 @@ class CoverPreview extends StatelessWidget {
                 right: 0,
                 child: IgnorePointer(
                   child: ExcludeSemantics(
-                    child: Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      softWrap: false,
-                      overflow: TextOverflow.visible,
-                      style: EselTypography.masthead(
-                        fontSize: plainMastheadSize(
-                          draft,
-                          box,
-                          ratio: photoRatio,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        title,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        softWrap: false,
+                        overflow: TextOverflow.visible,
+                        style: EselTypography.masthead(
+                          fontSize: plainMastheadSize(
+                            draft,
+                            box,
+                            ratio: photoRatio,
+                          ),
+                          color: draft.whiteTitle
+                              ? Colors.white
+                              : EselColors.ink,
                         ),
-                        color: draft.whiteTitle ? Colors.white : EselColors.ink,
                       ),
                     ),
                   ),
@@ -254,7 +265,7 @@ class CoverPreview extends StatelessWidget {
                 ),
               ),
             // 얼굴 자리 표시: 가운데와 얼굴 폭. 위치를 정하는 동안에만.
-            if (canPlace && !draft.faceConfirmed)
+            if (canPlace && !draft.faceConfirmed && !locatingFace)
               Positioned(
                 left:
                     rect.left +

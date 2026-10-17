@@ -28,10 +28,15 @@ class OnboardingDraft {
   final String masthead;
   final MastheadStatus mastheadStatus;
   final FaceLayoutMode faceMode;
+  final Set<FaceLayoutMode>? faceEffects;
+  final double mastheadScale;
+  Set<FaceLayoutMode> get effectiveFaceEffects =>
+      normalizeFaceEffects(faceEffects ?? {faceMode});
 
-  /// 얼굴 가운데(표지에 대한 비율). 사용자가 눌러서 정하기 전에는 [facePlaced]가 false.
+  /// 얼굴 가운데(원본 사진에 대한 비율). 지정 전에는 [facePlaced]가 false.
   final double faceX;
   final double faceY;
+  final double faceWidth;
   final bool facePlaced;
 
   /// 발행된 창간호(Nº 001). done 단계에서만 있다.
@@ -46,9 +51,12 @@ class OnboardingDraft {
     this.photoPath = '',
     this.masthead = '',
     this.mastheadStatus = MastheadStatus.tooShort,
-    this.faceMode = FaceLayoutMode.paintStroke,
+    this.faceMode = FaceLayoutMode.original,
+    this.faceEffects,
+    this.mastheadScale = 1,
     this.faceX = .5,
     this.faceY = .3,
+    this.faceWidth = CoverDraft.defaultFaceWidth,
     this.facePlaced = false,
     this.issue,
     this.sameColorCount = 1,
@@ -61,8 +69,11 @@ class OnboardingDraft {
     String? masthead,
     MastheadStatus? mastheadStatus,
     FaceLayoutMode? faceMode,
+    Set<FaceLayoutMode>? faceEffects,
+    double? mastheadScale,
     double? faceX,
     double? faceY,
+    double? faceWidth,
     bool? facePlaced,
     CoverDraft? issue,
     int? sameColorCount,
@@ -73,9 +84,14 @@ class OnboardingDraft {
       photoPath: photoPath ?? this.photoPath,
       masthead: masthead ?? this.masthead,
       mastheadStatus: mastheadStatus ?? this.mastheadStatus,
-      faceMode: faceMode ?? this.faceMode,
+      faceMode: faceEffects != null
+          ? primaryFaceEffect(faceEffects)
+          : faceMode ?? this.faceMode,
+      faceEffects: faceEffects ?? (faceMode != null ? null : this.faceEffects),
+      mastheadScale: mastheadScale ?? this.mastheadScale,
       faceX: faceX ?? this.faceX,
       faceY: faceY ?? this.faceY,
+      faceWidth: faceWidth ?? this.faceWidth,
       facePlaced: facePlaced ?? this.facePlaced,
       issue: issue ?? this.issue,
       sameColorCount: sameColorCount ?? this.sameColorCount,
@@ -89,8 +105,11 @@ class OnboardingDraft {
     masthead: masthead,
     color: color ?? EselPaint.camel,
     faceMode: faceMode,
+    faceEffects: effectiveFaceEffects,
+    mastheadScale: mastheadScale,
     faceX: faceX,
     faceY: faceY,
+    faceWidth: faceWidth,
     faceConfirmed: facePlaced,
     updatedAt: now,
   );

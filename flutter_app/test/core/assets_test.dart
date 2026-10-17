@@ -7,7 +7,9 @@ import 'package:esel/core/mock/demo_people.dart';
 void main() {
   final photos = [
     for (final dir in ['assets/models', 'assets/demo'])
-      ...Directory(dir).listSync().whereType<File>().map((f) => f.path),
+      ...Directory(
+        dir,
+      ).listSync().whereType<File>().map((f) => f.path.replaceAll('\\', '/')),
   ]..sort();
 
   test('코드가 부르는 에셋 파일은 모두 있다', () {

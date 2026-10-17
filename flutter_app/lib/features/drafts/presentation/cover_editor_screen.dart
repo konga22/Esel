@@ -12,6 +12,7 @@ import '../../media/domain/models/face_layout_mode.dart';
 import '../../media/presentation/cover_preview.dart';
 import '../data/local_library.dart';
 import '../domain/cover_draft.dart';
+import '../../challenges/domain/challenge.dart';
 import '../../settings/presentation/device_preferences.dart';
 
 class CoverEditorScreen extends StatefulWidget {
@@ -39,6 +40,7 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
   final _scroll = ScrollController();
   final _history = <CoverDraft>[];
   bool _busy = false, _dirty = false, _allowPop = false;
+  bool _locatingFace = false;
   @override
   void initState() {
     super.initState();
@@ -158,6 +160,9 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
     }
     setState(() => _busy = true);
     try {
+      if (!await widget.library.photoExists(_draft.photoPath)) {
+        throw const FormatException('사진 파일을 찾을 수 없어요. 앨범에서 다시 골라 주세요.');
+      }
       await widget.onPublish!(_draft);
       if (mounted) setState(() => _dirty = false);
     } on FormatException catch (error) {
@@ -314,21 +319,43 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
           controller: _scroll,
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           children: [
+            if (_draft.challengeId != null) ...[
+              Text(
+                '${StyleChallenge.resolve(_draft.challengeId)?.title ?? '지난 참여'}에 연결할 오늘 호',
+              ),
+              const Text('마감되었거나 다른 주제로 바꾸려면 참여만 해제하고 편집을 계속하세요.'),
+              TextButton(
+                onPressed: () => _edit(_draft.copyWith(clearChallenge: true)),
+                child: const Text('콘텐츠 참여만 해제'),
+              ),
+            ],
             Text(
               widget.onPublish == null
                   ? '초안은 이 기기에만 보관돼요. 발행 전까지 공개되지 않아요.'
                   : '로컬 시연 · 발행한 호는 이 기기에 저장돼요.',
             ),
             const SizedBox(height: 16),
+            if (_locatingFace)
+              const Padding(
+                padding: EdgeInsets.only(bottom: 8),
+                child: Text(
+                  '얼굴 위치 지정 중 · 효과를 숨긴 원본이에요. 사진의 얼굴 가운데를 누르면 효과가 다시 적용돼요.',
+                ),
+              ),
             RepaintBoundary(
               key: _capture,
               child: CoverPreview(
                 draft: _draft,
-                editing: !_draft.faceConfirmed,
-                onFacePosition: (point) => _edit(
-                  _draft.copyWith(faceX: point.dx, faceY: point.dy),
-                  history: false,
-                ),
+                editing: _locatingFace || !_draft.faceConfirmed,
+                locatingFace: _locatingFace,
+                chrome: !_locatingFace,
+                onFacePosition: (point) {
+                  _edit(
+                    _draft.copyWith(faceX: point.dx, faceY: point.dy),
+                    history: false,
+                  );
+                  setState(() => _locatingFace = false);
+                },
               ),
             ),
             const SizedBox(height: 16),
@@ -366,6 +393,16 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
                 ),
                 onChanged: (v) => _edit(_draft.copyWith(masthead: v)),
               ),
+            Text('잡지 이름 크기 · ${(_draft.mastheadScale * 100).round()}%'),
+            Slider(
+              key: const Key('draft-masthead-scale'),
+              value: _draft.mastheadScale,
+              min: .5,
+              max: 1.4,
+              onChangeStart: (_) => _history.add(_draft),
+              onChanged: (v) =>
+                  _edit(_draft.copyWith(mastheadScale: v), history: false),
+            ),
             TextField(
               key: const Key('draft-caption'),
               controller: _caption,
@@ -410,34 +447,79 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
                   .toList(),
             ),
             const SizedBox(height: 16),
-            const Text('얼굴 연출'),
+            const Text('얼굴 자르기 · 하나만 선택해 주세요'),
             Wrap(
               spacing: 6,
               children:
                   [
                         ('그대로', FaceLayoutMode.original),
-                        ('물감 한 획', FaceLayoutMode.paintStroke),
                         ('제호 뒤로', FaceLayoutMode.behindLogo),
                         ('목 아래', FaceLayoutMode.belowNeck),
                       ]
                       .map(
                         (item) => ChoiceChip(
                           label: Text(item.$1),
-                          selected: _draft.faceMode == item.$2,
-                          onSelected: (_) => _edit(
-                            _draft.copyWith(
-                              faceMode: item.$2,
-                              faceConfirmed: false,
-                            ),
-                          ),
+                          selected: item.$2 == FaceLayoutMode.original
+                              ? faceCropMode(_draft.effectiveFaceEffects) ==
+                                    FaceLayoutMode.original
+                              : _draft.effectiveFaceEffects.contains(item.$2),
+                          onSelected: (_) {
+                            setState(() => _locatingFace = false);
+                            _edit(
+                              _draft.copyWith(
+                                faceMode: item.$2,
+                                faceEffects: toggleFaceEffect(
+                                  _draft.effectiveFaceEffects,
+                                  item.$2,
+                                ),
+                                faceConfirmed: false,
+                              ),
+                            );
+                          },
                         ),
                       )
                       .toList(),
             ),
+            const SizedBox(height: 8),
+            ChoiceChip(
+              label: const Text('물감 한 획'),
+              selected: _draft.effectiveFaceEffects.contains(
+                FaceLayoutMode.paintStroke,
+              ),
+              onSelected:
+                  faceCropMode(_draft.effectiveFaceEffects) ==
+                      FaceLayoutMode.belowNeck
+                  ? null
+                  : (_) {
+                      setState(() => _locatingFace = false);
+                      _edit(
+                        _draft.copyWith(
+                          faceEffects: toggleFaceEffect(
+                            _draft.effectiveFaceEffects,
+                            FaceLayoutMode.paintStroke,
+                          ),
+                          faceConfirmed: false,
+                        ),
+                      );
+                    },
+            ),
             Text(
-              _draft.faceMode == FaceLayoutMode.belowNeck
-                  ? '목 아래는 턱 아래부터 표지를 채워요. 얼굴 위치는 다른 연출에서 먼저 정해 주세요.'
+              _draft.effectiveFaceEffects.contains(FaceLayoutMode.belowNeck)
+                  ? '목 아래에서는 물감이 꺼지고 선택할 수 없어요. 그대로 또는 제호 뒤로를 고르면 다시 켤 수 있어요.'
                   : '표지에서 얼굴 가운데를 누르거나 움직여 위치를 정해 주세요.',
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() => _locatingFace = !_locatingFace);
+                if (_locatingFace) {
+                  _scroll.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 180),
+                    curve: Curves.easeOut,
+                  );
+                }
+              },
+              child: Text(_locatingFace ? '효과 미리보기로 돌아가기' : '원본에서 얼굴 위치 맞추기'),
             ),
             if (_plainTouchesFace)
               Text(
@@ -465,7 +547,10 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
               value: _draft.faceConfirmed,
               onChanged: _draft.photoPath.isEmpty
                   ? null
-                  : (v) => _edit(_draft.copyWith(faceConfirmed: v ?? false)),
+                  : (v) {
+                      if (v == true) setState(() => _locatingFace = false);
+                      _edit(_draft.copyWith(faceConfirmed: v ?? false));
+                    },
             ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,

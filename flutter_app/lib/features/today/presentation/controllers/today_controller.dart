@@ -36,7 +36,9 @@ class TodayController extends ChangeNotifier {
 
   /// 서가 순서(최신 호가 앞).
   List<CoverDraft> get issues => _issues;
-  int get issueCount => _issues.length;
+  int get issueCount => _ownerId == null
+      ? 0
+      : _library?.publicationCount(_ownerId!) ?? _issues.length;
 
   /// 오늘 발행한 호. 없으면 null.
   CoverDraft? get todayIssue {
@@ -46,7 +48,9 @@ class TodayController extends ChangeNotifier {
     return null;
   }
 
-  bool get hasPublishedToday => todayIssue != null;
+  bool get hasPublishedToday =>
+      todayIssue != null ||
+      (_ownerId != null && _library?.hasPublishedOn(_ownerId!, _today) == true);
 
   /// 캡슐·만들기에 보이는 내 오늘의 색. 발행했으면 그 호의 색, 아니면 고른 후보,
   /// 그것도 없으면 저장해 둔 초안의 색(오늘 후보일 때), 마지막으로 첫 후보.

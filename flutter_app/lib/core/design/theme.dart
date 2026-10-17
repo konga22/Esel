@@ -14,6 +14,8 @@ abstract final class EselTheme {
         onSurface: EselColors.ink,
         primary: EselColors.ink,
         onPrimary: EselColors.paper,
+        secondaryContainer: EselColors.ink,
+        onSecondaryContainer: EselColors.paper,
         outline: EselColors.hairline,
         error: EselColors.error,
       ),
