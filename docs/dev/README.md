@@ -69,7 +69,7 @@ data 계층은 인증(`features/auth/data`), 기기 보관함(`features/drafts/d
 | `twin*` | `features/twin/.../twin_screen.dart` | T1~T10 |
 | `settings`, `profile`, `notifications`, `account`, `logout`, `delete*` | `features/settings/.../settings_screen.dart` | S1~S6 |
 
-화면 전환은 `app.dart`의 상태(`AppTab`, `ActiveScreen`)로 한다. 라우터 패키지는 승인 없이 추가하지 않는다. 하단 글라스 캡슐(오늘의 색·만들기·내 잡지)은 `app.dart`의 `_buildGlassBottomBar` 한 곳에 둔다. `features/drafts/presentation/device_home_screen.dart`는 서버 모드에서만 보이는 이전 기기 보관함 화면이다. 새 화면이 그 역할을 대체하면 같은 작업에서 정리한다.
+화면 전환은 `app.dart`의 상태(`AppTab`, `ActiveScreen`)로 한다. 라우터 패키지는 승인 없이 추가하지 않는다. 하단 글라스 캡슐(지금 앱은 오늘의 색·만들기·내 잡지 3칸, DEV-25에서 홈·팔레트·만들기·스케치북 4칸으로)은 `app.dart`의 `_buildGlassBottomBar` 한 곳에 둔다. `features/drafts/presentation/device_home_screen.dart`는 서버 모드에서만 보이는 이전 기기 보관함 화면이다. 새 화면이 그 역할을 대체하면 같은 작업에서 정리한다.
 
 ### 서버 (`server/`)
 
@@ -143,7 +143,7 @@ PR을 올리면 [CI](../../.github/workflows/ci.yml)가 하네스·규칙 검사
 | 명령 | 하는 일 |
 |---|---|
 | `npm run dev:docs` | `features.json` → `FEATURES.md`, `harness.json`·생성기 물감 → `flutter_app/lib/core/design/tokens.g.dart` |
-| `npm run mockup:capture` | 목업을 상태별로 찍어 `docs/dev/screens/`에 쓴다(화면 56장, Chrome 필요) |
+| `npm run mockup:capture` | 목업을 상태별로 찍어 `docs/dev/screens/`에 쓴다(화면 60장, Chrome 필요) |
 | `npm run mockup:build` | 목업 다시 만들기 |
 
 목업이나 디자인 값이 바뀌면 이 순서로 다시 만들고 `check:harness`를 돌린다. 기능 목록의 화면은 [화면 등록부](FEATURES.md#화면-등록부)에 있는 ID만 쓸 수 있고, 검사가 목업 경로·그림·계약 연결을 확인한다.
