@@ -18,6 +18,7 @@ const environmentSchema = z
       .refine(isValidTimeZone, {
         message: 'IANA 시간대 이름이어야 해요. 예: Asia/Seoul',
       }),
+    MEDIA_STORAGE_ROOT: z.string().trim().min(1).default('./data/media'),
   })
   .transform((env, ctx) => {
     if (!env.CORS_ORIGINS && env.NODE_ENV === 'production') {

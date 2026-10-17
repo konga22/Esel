@@ -28,8 +28,11 @@ services:
       DATABASE_URL: postgresql://esel:esel_dev@postgres:5432/esel?schema=public
       CORS_ORIGINS: http://localhost:8081,http://localhost:4173
       SERVICE_TIME_ZONE: Asia/Seoul
+      MEDIA_STORAGE_ROOT: /app/data/media
     ports:
       - "127.0.0.1:3000:3000"
+    volumes:
+      - esel-media-data:/app/data/media
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -59,3 +62,4 @@ services:
 
 volumes:
   esel-postgres-data:
+  esel-media-data:

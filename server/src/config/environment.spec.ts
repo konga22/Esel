@@ -10,7 +10,14 @@ describe('validateEnvironment', () => {
       PORT: 3000,
       CORS_ORIGINS: ['http://localhost:8081'],
       SERVICE_TIME_ZONE: 'Asia/Seoul',
+      MEDIA_STORAGE_ROOT: './data/media',
     });
+  });
+
+  it('로컬 미디어 저장 경로는 빈 문자열이면 안 된다', () => {
+    expect(() =>
+      validateEnvironment({ ...base, MEDIA_STORAGE_ROOT: ' ' }),
+    ).toThrow(/MEDIA_STORAGE_ROOT/);
   });
 
   it('운영에서 CORS_ORIGINS를 빼먹으면 시작하지 않는다', () => {

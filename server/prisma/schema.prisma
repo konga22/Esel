@@ -28,19 +28,38 @@ enum FaceMode {
 }
 
 model User {
-  id              String            @id @default(uuid()) @db.Uuid
-  email           String?           @unique
-  status          UserStatus        @default(ACTIVE)
-  createdAt       DateTime          @default(now()) @map("created_at")
-  updatedAt       DateTime          @updatedAt @map("updated_at")
-  profile         Profile?
-  emailCredential EmailCredential?
-  authSessions    AuthSession[]
-  choices         UserDailyChoice[]
-  mediaAssets     MediaAsset[]
-  issues          Issue[]
+  id                   String                @id @default(uuid()) @db.Uuid
+  email                String?               @unique
+  status               UserStatus            @default(ACTIVE)
+  createdAt            DateTime              @default(now()) @map("created_at")
+  updatedAt            DateTime              @updatedAt @map("updated_at")
+  profile              Profile?
+  emailCredential      EmailCredential?
+  authSessions         AuthSession[]
+  notificationSettings NotificationSettings?
+  choices              UserDailyChoice[]
+  mediaAssets          MediaAsset[]
+  issues               Issue[]
+  likes                Like[]
+  scraps               Scrap[]
+  readerLines          ReaderLine[]
+  subscriptionsMade    Subscription[]        @relation("SubscriptionsMade")
+  magazineSubscribers  Subscription[]        @relation("MagazineSubscribers")
+  restoredColors       RestoredColor[]
 
   @@map("users")
+}
+
+model NotificationSettings {
+  userId    String   @id @map("user_id") @db.Uuid
+  enabled   Boolean  @default(true)
+  newIssue  Boolean  @default(true) @map("new_issue")
+  reactions Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_settings")
 }
 
 model EmailCredential {
@@ -89,6 +108,7 @@ model Color {
   paletteColors DailyPaletteColor[]
   choices       UserDailyChoice[]
   issues        Issue[]
+  restoredColors RestoredColor[]
 
   @@map("colors")
 }
@@ -149,21 +169,87 @@ model MediaAsset {
 }
 
 model Issue {
-  id          String     @id @default(uuid()) @db.Uuid
-  authorId    String     @map("author_id") @db.Uuid
-  serviceDate DateTime   @map("service_date") @db.Date
-  issueNumber Int        @map("issue_number")
-  colorId     String     @map("color_id") @db.VarChar(32)
-  mediaId     String     @unique @map("media_id") @db.Uuid
-  caption     String     @db.VarChar(280)
-  faceMode    FaceMode   @map("face_mode")
-  publishedAt DateTime   @default(now()) @map("published_at")
-  author      User       @relation(fields: [authorId], references: [id], onDelete: Restrict)
-  color       Color      @relation(fields: [colorId], references: [id], onDelete: Restrict)
-  media       MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+  id          String       @id @default(uuid()) @db.Uuid
+  authorId    String       @map("author_id") @db.Uuid
+  serviceDate DateTime     @map("service_date") @db.Date
+  issueNumber Int          @map("issue_number")
+  colorId     String       @map("color_id") @db.VarChar(32)
+  mediaId     String       @unique @map("media_id") @db.Uuid
+  caption     String       @db.VarChar(280)
+  faceMode    FaceMode     @map("face_mode")
+  publishedAt DateTime     @default(now()) @map("published_at")
+  author      User         @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  color       Color        @relation(fields: [colorId], references: [id], onDelete: Restrict)
+  media       MediaAsset   @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+  likes       Like[]
+  scraps      Scrap[]
+  readerLines ReaderLine[]
 
   @@unique([authorId, serviceDate])
   @@unique([authorId, issueNumber])
   @@index([serviceDate, colorId, publishedAt])
   @@map("issues")
+}
+
+model Like {
+  userId    String   @map("user_id") @db.Uuid
+  issueId   String   @map("issue_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  issue     Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@id([userId, issueId])
+  @@index([issueId, createdAt])
+  @@map("likes")
+}
+
+model Scrap {
+  userId    String   @map("user_id") @db.Uuid
+  issueId   String   @map("issue_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  issue     Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@id([userId, issueId])
+  @@index([issueId, createdAt])
+  @@map("scraps")
+}
+
+model ReaderLine {
+  id        String   @id @default(uuid()) @db.Uuid
+  authorId  String   @map("author_id") @db.Uuid
+  issueId   String   @map("issue_id") @db.Uuid
+  text      String   @db.VarChar(60)
+  createdAt DateTime @default(now()) @map("created_at")
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  issue     Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@index([issueId, createdAt, id])
+  @@map("reader_lines")
+}
+
+model Subscription {
+  subscriberId String   @map("subscriber_id") @db.Uuid
+  magazineId   String   @map("magazine_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at")
+  subscriber   User     @relation("SubscriptionsMade", fields: [subscriberId], references: [id], onDelete: Cascade)
+  magazine     User     @relation("MagazineSubscribers", fields: [magazineId], references: [id], onDelete: Cascade)
+
+  @@id([subscriberId, magazineId])
+  @@index([magazineId, createdAt])
+  @@map("subscriptions")
+}
+
+model RestoredColor {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  serviceDate DateTime @map("service_date") @db.Date
+  colorId     String   @map("color_id") @db.VarChar(32)
+  createdAt   DateTime @default(now()) @map("created_at")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  color       Color    @relation(fields: [colorId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, serviceDate])
+  @@index([userId, serviceDate])
+  @@map("restored_colors")
 }
