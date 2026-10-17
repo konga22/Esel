@@ -12,10 +12,11 @@ class StyleChallenge {
   String get title => restyle ? '같은 옷, 다른 코디' : '주간 드레스코드';
   String get topic => restyle
       ? '지난 표지 속 옷을 다르게 입어 봐요'
-      : (start.startsAt.difference(DateTime.utc(2026, 1, 4, 15)).inDays ~/ 7)
-            .isEven
-      ? '가방으로 포인트'
-      : '겹쳐 입기';
+      : ['가방으로 포인트', '겹쳐 입기', '데님', '비 오는 날'][(start.startsAt
+                    .difference(DateTime.utc(2026, 1, 4, 15))
+                    .inDays ~/
+                7) %
+            4];
   String get instruction => restyle
       ? '내 지난 날짜 표지를 골라 오늘 착장과 연결해요. 같은 옷인지는 직접 확인해 주세요.'
       : '오늘 후보 색 중 하나와 이번 주 주제를 함께 표현해요. 새 옷을 살 필요는 없어요.';

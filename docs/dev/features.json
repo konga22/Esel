@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-17",
+  "updatedAt": "2026-10-18",
   "note": "앱 목업을 실제 기능으로 만드는 작업 목록. 사람이 읽는 표는 FEATURES.md이며 `npm run dev:docs`로 이 파일에서 다시 만든다. API 경로와 데이터는 초안이고, 서버 PR konga22/Esel#4의 구조(NestJS·Prisma, /api 접두어)를 따른다. 상태는 todo·doing·blocked·done 중 하나다.",
   "statuses": [
     "todo",
@@ -391,6 +391,12 @@
       "title": "이번 주의 착장 · 두 참여 유형",
       "route": "challenges",
       "image": "docs/dev/screens/ch1-challenges.jpg"
+    },
+    {
+      "id": "CL1",
+      "title": "일·주·월 표지 특집",
+      "route": "collections",
+      "image": "docs/dev/screens/cl1-collections.jpg"
     }
   ],
   "features": [
@@ -1211,7 +1217,7 @@
       "id": "DEV-21",
       "phase": 4,
       "title": "주간 드레스코드",
-      "summary": "2026-10-17 요청: 서버 연결 전 로컬 동작. 기존 발행 흐름 재사용. 서버까지 전체 완료 아님.",
+      "summary": "2026-10-18: 주간 주제 참여·다른 기기 내 계정의 공개 표지 조회까지. 실제 서버 사용자 목록/동기화 제외.",
       "screens": [
         "CH1",
         "C4",
@@ -1229,8 +1235,8 @@
         "DEV-12"
       ],
       "client": [
-        "features/challenges/domain·data·presentation, 기존 모드 선택과 LocalLibrary 사용",
-        "본인 참여만 조회, 오늘 호 연결, 서울 기간 재검증, 저장 데이터 하위 호환"
+        "가방·겹쳐 입기·데님·비 오는 날 주간 주제, 기존 발행/참여 재사용",
+        "계정별 내 기록과 기기 내 공개 참여 목록, 공개 필터 후 그룹화, 잠긴 색은 숨김"
       ],
       "server": [
         "미합의 검토안: docs/flutter/LOCAL_CONTENTS.md. 확정 API·migration 구현 안 함"
@@ -1245,7 +1251,7 @@
         "flutter_app/test/features/challenges/content_flow_test.dart"
       ],
       "openDecisions": [
-        "서버 계약·공개 참여 목록·실제 동기화는 후속"
+        "실제 서버 운영 주제·공개 참여 API·동기화는 후속. 로컬 공개 참여와 구분"
       ],
       "status": "doing"
     },
@@ -1286,7 +1292,47 @@
         "flutter_app/test/features/challenges/content_flow_test.dart"
       ],
       "openDecisions": [
-        "서버 계약·공개 참여 목록·실제 동기화는 후속"
+        "실제 서버 운영 주제·공개 참여 API·동기화는 후속. 로컬 공개 참여와 구분"
+      ],
+      "status": "doing"
+    },
+    {
+      "id": "DEV-23",
+      "phase": 4,
+      "title": "일·주·월 표지 특집",
+      "summary": "2026-10-18 사용자 확정: 공개 표지를 직접 선정하고 이유를 적는 로컬 편집. 베스트/공개 순위/연간 특집 제외. 서버 전체 완료 아님.",
+      "screens": [
+        "CL1",
+        "C4",
+        "M1"
+      ],
+      "contracts": [
+        "P01",
+        "P02",
+        "P04",
+        "P18"
+      ],
+      "dependsOn": [
+        "DEV-09",
+        "DEV-12"
+      ],
+      "client": [
+        "features/collections domain/data/presentation, 서울 기간·이유 검증·계정별 선정 저장",
+        "공개 필터 후 기간 모음, 이전 JSON 호환, 기존 호 유지·다음 호수 불변"
+      ],
+      "server": [
+        "미합의 검토안: docs/flutter/PERIOD_COLLECTIONS.md. 운영자 권한·선정 기준·공개·미디어·동기화 후속"
+      ],
+      "acceptance": [
+        "일·주·월 이동, 미래 기간 차단, 선정 이유 수정·해제·재시작 유지",
+        "잠긴/삭제/미발행/타 계정의 비공개 표지 정보 누출 없음, 서버 실패 자동 전환 없음"
+      ],
+      "tests": [
+        "flutter_app/test/features/collections/collections_test.dart",
+        "flutter_app/test/features/collections/collection_screen_test.dart"
+      ],
+      "openDecisions": [
+        "서버 운영자의 최종 선정 권한·운영 기준·발행 절차, 공유 정책"
       ],
       "status": "doing"
     }

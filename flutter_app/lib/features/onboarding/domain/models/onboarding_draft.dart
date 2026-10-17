@@ -28,6 +28,13 @@ class OnboardingDraft {
   final String masthead;
   final MastheadStatus mastheadStatus;
   final FaceLayoutMode faceMode;
+  final Set<FaceLayoutMode>? faceEffects;
+  final double mastheadScale;
+  Set<FaceLayoutMode> get effectiveFaceEffects => Set.unmodifiable(
+    (faceEffects ?? {faceMode}).where(
+      (mode) => mode != FaceLayoutMode.original,
+    ),
+  );
 
   /// 얼굴 가운데(원본 사진에 대한 비율). 지정 전에는 [facePlaced]가 false.
   final double faceX;
@@ -47,7 +54,9 @@ class OnboardingDraft {
     this.photoPath = '',
     this.masthead = '',
     this.mastheadStatus = MastheadStatus.tooShort,
-    this.faceMode = FaceLayoutMode.paintStroke,
+    this.faceMode = FaceLayoutMode.original,
+    this.faceEffects,
+    this.mastheadScale = 1,
     this.faceX = .5,
     this.faceY = .3,
     this.faceWidth = CoverDraft.defaultFaceWidth,
@@ -63,6 +72,8 @@ class OnboardingDraft {
     String? masthead,
     MastheadStatus? mastheadStatus,
     FaceLayoutMode? faceMode,
+    Set<FaceLayoutMode>? faceEffects,
+    double? mastheadScale,
     double? faceX,
     double? faceY,
     double? faceWidth,
@@ -76,7 +87,11 @@ class OnboardingDraft {
       photoPath: photoPath ?? this.photoPath,
       masthead: masthead ?? this.masthead,
       mastheadStatus: mastheadStatus ?? this.mastheadStatus,
-      faceMode: faceMode ?? this.faceMode,
+      faceMode: faceEffects != null
+          ? primaryFaceEffect(faceEffects)
+          : faceMode ?? this.faceMode,
+      faceEffects: faceEffects ?? (faceMode != null ? null : this.faceEffects),
+      mastheadScale: mastheadScale ?? this.mastheadScale,
       faceX: faceX ?? this.faceX,
       faceY: faceY ?? this.faceY,
       faceWidth: faceWidth ?? this.faceWidth,
@@ -93,6 +108,8 @@ class OnboardingDraft {
     masthead: masthead,
     color: color ?? EselPaint.camel,
     faceMode: faceMode,
+    faceEffects: effectiveFaceEffects,
+    mastheadScale: mastheadScale,
     faceX: faceX,
     faceY: faceY,
     faceWidth: faceWidth,

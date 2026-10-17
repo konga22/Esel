@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:esel/core/design/tokens.g.dart';
 import 'package:esel/features/drafts/data/local_library.dart';
+import 'package:esel/features/drafts/domain/cover_draft.dart';
+import 'package:esel/features/media/presentation/cover_preview.dart';
+import 'package:esel/features/media/presentation/cover_photo.dart';
+import 'package:esel/core/ui/esel_paint_asset.dart';
 import 'package:esel/features/drafts/presentation/cover_editor_screen.dart';
 import 'package:esel/features/drafts/presentation/local_calendar_screen.dart';
 import 'package:esel/features/media/domain/models/face_layout_mode.dart';
@@ -20,6 +24,96 @@ void main() {
   tearDown(() {
     library.directory!.deleteSync(recursive: true);
     library.dispose();
+  });
+  testWidgets('원본 위치 지정 중 효과 버튼을 누르면 실제 효과 미리보기로 돌아온다', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CoverEditorScreen(
+          library: library,
+          initial: CoverDraft(
+            id: 'face-regression',
+            photoPath: 'missing.png',
+            masthead: 'style',
+            faceEffects: {FaceLayoutMode.paintStroke},
+            faceX: .5,
+            faceY: .3,
+            updatedAt: DateTime(2026),
+          ),
+        ),
+      ),
+    );
+    Future<void> reach(String text) async {
+      if (find.text(text).evaluate().isEmpty) {
+        await tester.scrollUntilVisible(
+          find.text(text),
+          250,
+          scrollable: find.byType(Scrollable).first,
+        );
+      } else {
+        await tester.ensureVisible(find.text(text));
+      }
+      await tester.pumpAndSettle();
+    }
+
+    await reach('원본에서 얼굴 위치 맞추기');
+    await tester.tap(find.text('원본에서 얼굴 위치 맞추기'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byType(CoverPreview),
+      -250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(
+      tester.widget<CoverPreview>(find.byType(CoverPreview)).locatingFace,
+      isTrue,
+    );
+    await reach('목 아래');
+    await tester.tap(find.text('목 아래'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byType(CoverPreview),
+      -250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(
+      tester.widget<CoverPreview>(find.byType(CoverPreview)).locatingFace,
+      isFalse,
+    );
+    expect(tester.widget<CoverPhoto>(find.byType(CoverPhoto)).effects, {
+      FaceLayoutMode.paintStroke,
+      FaceLayoutMode.belowNeck,
+    });
+    await reach('목 아래');
+    await tester.tap(find.text('목 아래'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byType(CoverPreview),
+      -250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    final photo = find.byType(CoverPhoto);
+    expect(tester.widget<CoverPhoto>(photo).effects, {
+      FaceLayoutMode.paintStroke,
+    });
+    expect(
+      find.descendant(of: photo, matching: find.byType(EselPaintAsset)),
+      findsOneWidget,
+    );
+    await reach('원본에서 얼굴 위치 맞추기');
+    await tester.tap(find.text('원본에서 얼굴 위치 맞추기'));
+    await tester.pumpAndSettle();
+    final preview = find.byType(CoverPreview);
+    final rect = tester.getRect(preview);
+    await tester.tapAt(
+      rect.topLeft + Offset(rect.width * .5, rect.height * .35),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.widget<CoverPreview>(preview).locatingFace, isFalse);
+    expect(tester.widget<CoverPhoto>(photo).face.y, closeTo(.35, .01));
+    expect(
+      find.descendant(of: photo, matching: find.byType(EselPaintAsset)),
+      findsOneWidget,
+    );
   });
   testWidgets(
     'edit, undo, four face modes and close cancellation work offline',

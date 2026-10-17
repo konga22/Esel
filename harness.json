@@ -191,12 +191,13 @@
     "docs/design/screens/j7-first-issue.jpg"
   ],
   "localContents": {
-    "decisionDate": "2026-10-17",
-    "guide": "docs/flutter/LOCAL_CONTENTS.md",
+    "decisionDate": "2026-10-18",
+    "guide": "docs/flutter/PERIOD_COLLECTIONS.md",
     "validation": "docs/flutter/CONTENT_VALIDATION.md",
     "included": [
       "weekly-dresscode",
-      "same-garment-restyle"
+      "same-garment-restyle",
+      "day-week-month-cover-collections"
     ],
     "excluded": [
       "monthly-yearly-best",

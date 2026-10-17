@@ -22,6 +22,7 @@ const scroll = (from, to, step) => `(()=>{const sc=document.querySelector('#scro
 const twin = (step) => `${IN}S.twin.step='${step}';`;
 const SETUP = {
   CH1: IN + at('challenges'),
+  CL1: IN + at('collections'),
   J1: '',
   J1b: scroll(0, 1300, 20),
   J2: 'openLogin();',

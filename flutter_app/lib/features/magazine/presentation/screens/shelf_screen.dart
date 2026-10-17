@@ -381,6 +381,7 @@ class _ShelfScreenState extends State<ShelfScreen> {
         photoRatio: issue.photoRatio,
         face: issue.face,
         mode: issue.faceMode,
+        effects: issue.faceEffects,
         paint: issue.color,
         semanticLabel: issue.alt,
       ),

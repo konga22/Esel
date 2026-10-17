@@ -21,6 +21,7 @@ class CoverPhoto extends StatelessWidget {
   final double? photoRatio;
   final FaceBox face;
   final FaceLayoutMode mode;
+  final Set<FaceLayoutMode>? effects;
   final EselPaint paint;
 
   /// object-position. (0.5, 0.5)이 가운데.
@@ -33,6 +34,7 @@ class CoverPhoto extends StatelessWidget {
     this.photoRatio,
     required this.face,
     required this.mode,
+    this.effects,
     required this.paint,
     this.position = const Offset(0.5, 0.5),
     this.semanticLabel,
@@ -110,7 +112,8 @@ class CoverPhoto extends StatelessWidget {
   Widget _build(double ratio) {
     final widget = this;
     final face = widget.face;
-    final mode = widget.mode;
+    final effects = widget.effects ?? {widget.mode};
+    final mode = faceCropMode(effects);
     return LayoutBuilder(
       builder: (context, box) {
         final size = Size(box.maxWidth, box.maxHeight);
@@ -137,7 +140,7 @@ class CoverPhoto extends StatelessWidget {
                       const ColoredBox(color: EselColors.photo),
                 ),
               ),
-              if (mode == FaceLayoutMode.paintStroke)
+              if (effects.contains(FaceLayoutMode.paintStroke))
                 Positioned.fromRect(
                   rect: stroke,
                   child: Transform.rotate(

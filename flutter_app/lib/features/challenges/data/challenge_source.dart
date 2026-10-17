@@ -3,6 +3,8 @@ import '../../drafts/domain/cover_draft.dart';
 import '../../../core/time/service_date.dart';
 import '../../../core/errors/failures.dart';
 import '../domain/challenge.dart';
+import '../../stand/domain/rules/same_color_rule.dart';
+import '../../issue/domain/rules/local_publication_access.dart';
 
 abstract class ChallengeSource {
   Future<List<StyleChallenge>> current(ServiceDate today);
@@ -15,6 +17,11 @@ abstract class ChallengeSource {
     String? previousId,
   });
   Future<void> detach(String ownerId, String issueId);
+  Future<List<CoverDraft>> participants(
+    String ownerId,
+    SameColorViewer viewer,
+    String challengeId,
+  );
 }
 
 /// Only this account's local publications. This is not a simulated public feed:
@@ -47,6 +54,16 @@ class LocalChallengeSource implements ChallengeSource {
   @override
   Future<void> detach(String ownerId, String issueId) =>
       _store.detachChallenge(issueId, ownerId);
+  @override
+  Future<List<CoverDraft>> participants(
+    String ownerId,
+    SameColorViewer viewer,
+    String challengeId,
+  ) async => visibleLocalPublications(
+    _store.drafts,
+    viewer,
+    ownerId,
+  ).where((d) => d.challengeId == challengeId).toList();
 }
 
 /// Server handoff point. No unagreed URL or silent local fallback.
@@ -67,4 +84,10 @@ class RemoteChallengeSource implements ChallengeSource {
   }) async => _pending();
   @override
   Future<void> detach(String ownerId, String issueId) async => _pending();
+  @override
+  Future<List<CoverDraft>> participants(
+    String ownerId,
+    SameColorViewer viewer,
+    String challengeId,
+  ) async => _pending();
 }

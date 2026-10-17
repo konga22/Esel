@@ -147,24 +147,29 @@ void main() {
       await tester.pump(const Duration(milliseconds: 10));
       expect(tester.widget<TextField>(field).controller!.text, 'minakim');
       expect(find.text('minakim — 쓸 수 있는 이름이에요.'), findsOneWidget);
+      final scale = find.byKey(const Key('founding-masthead-scale'));
+      await tester.ensureVisible(scale);
+      tester.widget<Slider>(scale).onChanged!(1.2);
+      await tester.pump();
       await tester.tap(find.text('다음'));
       await tester.pumpAndSettle();
       expect(find.text('창간 4 / 4'), findsOneWidget);
 
-      // J6: 얼굴 위치를 정해야 창간할 수 있다.
-      await tester.tap(find.bySemanticsLabel('목 아래 · 옷만 보여요'));
-      await tester.pump();
+      // 선택 즉시 2개/3개를 적용하고, 원본 위치 지정은 명시적으로 연다.
+      for (final label in [
+        '물감 한 획 · 오늘의 색으로 가려요',
+        '제호 뒤로 · 이름 뒤에 숨겨요',
+        '목 아래 · 옷만 보여요',
+      ]) {
+        await tester.ensureVisible(find.bySemanticsLabel(label));
+        await tester.tap(find.bySemanticsLabel(label));
+        await tester.pump();
+      }
       var preview = tester.widget<CoverPreview>(find.byType(CoverPreview));
-      expect(preview.locatingFace, isTrue);
-      expect(preview.editing, isTrue);
-      await tester.tap(find.bySemanticsLabel('제호 뒤로 · 이름 뒤에 숨겨요'));
-      await tester.tap(find.byType(CoverPreview));
-      await tester.pump();
-      preview = tester.widget<CoverPreview>(find.byType(CoverPreview));
       expect(preview.locatingFace, isFalse);
-      expect(preview.draft.faceMode, FaceLayoutMode.behindLogo);
-      await tester.ensureVisible(find.text('얼굴 위치 다시 정하기'));
-      await tester.tap(find.text('얼굴 위치 다시 정하기'));
+      expect(preview.draft.effectiveFaceEffects, hasLength(3));
+      await tester.ensureVisible(find.text('얼굴 위치 맞추기'));
+      await tester.tap(find.text('얼굴 위치 맞추기'));
       await tester.pump();
       expect(
         tester.widget<CoverPreview>(find.byType(CoverPreview)).locatingFace,
@@ -173,6 +178,26 @@ void main() {
       await tester.ensureVisible(find.byType(CoverPreview));
       await tester.tap(find.byType(CoverPreview));
       await tester.pump();
+      preview = tester.widget<CoverPreview>(find.byType(CoverPreview));
+      expect(preview.locatingFace, isFalse);
+      expect(preview.draft.effectiveFaceEffects, hasLength(3));
+      await tester.ensureVisible(find.text('얼굴 위치 다시 정하기'));
+      await tester.tap(find.text('얼굴 위치 다시 정하기'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('위치 조정 취소'));
+      await tester.pumpAndSettle();
+      expect(sl.onboardingController.draft.facePlaced, isTrue);
+      // 목 아래만 다시 누르면 나머지 2개는 그대로 남는다.
+      await tester.ensureVisible(find.bySemanticsLabel('목 아래 · 옷만 보여요'));
+      await tester.tap(find.bySemanticsLabel('목 아래 · 옷만 보여요'));
+      await tester.pump();
+      expect(
+        tester
+            .widget<CoverPreview>(find.byType(CoverPreview))
+            .draft
+            .effectiveFaceEffects,
+        {FaceLayoutMode.paintStroke, FaceLayoutMode.behindLogo},
+      );
       await tester.tap(find.text('창간하기'));
       await tester.pumpAndSettle();
 
@@ -210,7 +235,11 @@ void main() {
       expect(issues.single.issueNumber, 1);
       expect(issues.single.masthead, 'minakim');
       expect(issues.single.color, color);
-      expect(issues.single.faceMode, FaceLayoutMode.behindLogo);
+      expect(issues.single.effectiveFaceEffects, {
+        FaceLayoutMode.paintStroke,
+        FaceLayoutMode.behindLogo,
+      });
+      expect(issues.single.mastheadScale, closeTo(1.2, .01));
       expect(issues.single.publishedOn, today.today.key);
       expect(today.hasPublishedToday, isTrue);
 

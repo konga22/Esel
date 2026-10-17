@@ -86,6 +86,8 @@ data 계층은 인증(`features/auth/data`), 기기 보관함(`features/drafts/d
 
 2026-10-17 사용자 요청의 DEV-21·22는 [로컬 콘텐츠 안내](../flutter/LOCAL_CONTENTS.md)를 함께 따른다. 서버 연결 전 앱 단계까지만 검증하며 선행 기능 및 서버 전체를 done으로 올리지 않는다. 기존 domain/data/presentation·모드 선택·발행 경로를 재사용한다.
 
+2026-10-18 확장한 DEV-23 일·주·월 표지 특집과 DEV-21 기기 내 공개 참여 목록은 [최신 기간 특집 계약](../flutter/PERIOD_COLLECTIONS.md)을 따른다. 로컬 직접 선정·선정 이유·저장 보완까지이며 서버 운영자의 공식 선정·실제 원격 참여·동기화 완료로 표시하지 않는다.
+
 [기능 목록](FEATURES.md)은 단계 0(기반)부터 7(운영)까지 나뉘어 있다. 단계를 건너뛰지 않는다.
 
 1. **고르기**: 선행 기능이 모두 `done`인 `todo` 하나를 고른다. [features.json](features.json)에서 상태를 `doing`으로 바꾸고 `npm run dev:docs`를 실행한다.

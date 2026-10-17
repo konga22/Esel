@@ -23,6 +23,7 @@ class MyMagazineScreen extends StatelessWidget {
   final VoidCallback onMakeTodayIssue;
   final VoidCallback onOpenShelf;
   final VoidCallback? onOpenChallenges;
+  final VoidCallback? onOpenCollections;
   final VoidCallback onOpenRecords;
   final VoidCallback onOpenFriends;
   final VoidCallback onOpenTwin;
@@ -37,6 +38,7 @@ class MyMagazineScreen extends StatelessWidget {
     required this.todayColor,
     this.todayIssue,
     this.onOpenChallenges,
+    this.onOpenCollections,
     required this.reactionsController,
     required this.onMakeTodayIssue,
     required this.onOpenShelf,
@@ -52,7 +54,7 @@ class MyMagazineScreen extends StatelessWidget {
     return AnimatedBuilder(
       animation: reactionsController,
       builder: (context, _) {
-        final stats = reactionsController.getOwnerStats('my_today');
+        final stats = reactionsController.getOwnerStats(todayIssue?.id ?? '');
 
         return Scaffold(
           backgroundColor: EselTokens.paper,
@@ -289,6 +291,12 @@ class MyMagazineScreen extends StatelessWidget {
     return Column(
       children: [
         _buildMenuItem(Icons.menu_book_outlined, '서가 전체 보기', onOpenShelf),
+        if (onOpenCollections != null)
+          _buildMenuItem(
+            Icons.auto_stories_outlined,
+            '일·주·월 표지 특집',
+            onOpenCollections!,
+          ),
         if (onOpenChallenges != null)
           _buildMenuItem(
             Icons.checkroom_outlined,

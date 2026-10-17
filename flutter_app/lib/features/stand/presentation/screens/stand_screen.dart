@@ -22,6 +22,7 @@ class StandScreen extends StatefulWidget {
   final void Function(PublicIssue issue) onSelectCover;
   final VoidCallback onMakeTodayIssue;
   final VoidCallback? onOpenChallenges;
+  final VoidCallback? onOpenCollections;
 
   const StandScreen({
     super.key,
@@ -29,6 +30,7 @@ class StandScreen extends StatefulWidget {
     required this.viewer,
     this.viewerId,
     this.onOpenChallenges,
+    this.onOpenCollections,
     required this.onSelectCover,
     required this.onMakeTodayIssue,
   });
@@ -79,6 +81,14 @@ class _StandScreenState extends State<StandScreen> {
                     child: TextButton(
                       onPressed: widget.onOpenChallenges,
                       child: const Text('이번 주의 착장 · 주간 드레스코드 / 같은 옷, 다른 코디 →'),
+                    ),
+                  ),
+                if (widget.onOpenCollections != null)
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton(
+                      onPressed: widget.onOpenCollections,
+                      child: const Text('일·주·월 표지 특집 →'),
                     ),
                   ),
                 _buildChips(),
@@ -399,6 +409,7 @@ class _StandScreenState extends State<StandScreen> {
         photoRatio: item.photoRatio,
         face: item.face,
         mode: item.faceMode,
+        effects: item.faceEffects,
         paint: item.color,
         position: const Offset(0.5, 0.3),
         semanticLabel: item.alt,

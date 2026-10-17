@@ -40,6 +40,7 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
   final _scroll = ScrollController();
   final _history = <CoverDraft>[];
   bool _busy = false, _dirty = false, _allowPop = false;
+  bool _locatingFace = false;
   @override
   void initState() {
     super.initState();
@@ -334,15 +335,27 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
                   : '로컬 시연 · 발행한 호는 이 기기에 저장돼요.',
             ),
             const SizedBox(height: 16),
+            if (_locatingFace)
+              const Padding(
+                padding: EdgeInsets.only(bottom: 8),
+                child: Text(
+                  '얼굴 위치 지정 중 · 효과를 숨긴 원본이에요. 사진의 얼굴 가운데를 누르면 효과가 다시 적용돼요.',
+                ),
+              ),
             RepaintBoundary(
               key: _capture,
               child: CoverPreview(
                 draft: _draft,
-                editing: !_draft.faceConfirmed,
-                onFacePosition: (point) => _edit(
-                  _draft.copyWith(faceX: point.dx, faceY: point.dy),
-                  history: false,
-                ),
+                editing: _locatingFace || !_draft.faceConfirmed,
+                locatingFace: _locatingFace,
+                chrome: !_locatingFace,
+                onFacePosition: (point) {
+                  _edit(
+                    _draft.copyWith(faceX: point.dx, faceY: point.dy),
+                    history: false,
+                  );
+                  setState(() => _locatingFace = false);
+                },
               ),
             ),
             const SizedBox(height: 16),
@@ -380,6 +393,16 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
                 ),
                 onChanged: (v) => _edit(_draft.copyWith(masthead: v)),
               ),
+            Text('잡지 이름 크기 · ${(_draft.mastheadScale * 100).round()}%'),
+            Slider(
+              key: const Key('draft-masthead-scale'),
+              value: _draft.mastheadScale,
+              min: .5,
+              max: 1.4,
+              onChangeStart: (_) => _history.add(_draft),
+              onChanged: (v) =>
+                  _edit(_draft.copyWith(mastheadScale: v), history: false),
+            ),
             TextField(
               key: const Key('draft-caption'),
               controller: _caption,
@@ -424,7 +447,7 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
                   .toList(),
             ),
             const SizedBox(height: 16),
-            const Text('얼굴 연출'),
+            const Text('얼굴 연출 · 여러 개를 함께 선택할 수 있어요'),
             Wrap(
               spacing: 6,
               children:
@@ -437,21 +460,43 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
                       .map(
                         (item) => ChoiceChip(
                           label: Text(item.$1),
-                          selected: _draft.faceMode == item.$2,
-                          onSelected: (_) => _edit(
-                            _draft.copyWith(
-                              faceMode: item.$2,
-                              faceConfirmed: false,
-                            ),
-                          ),
+                          selected: item.$2 == FaceLayoutMode.original
+                              ? _draft.effectiveFaceEffects.isEmpty
+                              : _draft.effectiveFaceEffects.contains(item.$2),
+                          onSelected: (_) {
+                            setState(() => _locatingFace = false);
+                            _edit(
+                              _draft.copyWith(
+                                faceMode: item.$2,
+                                faceEffects: toggleFaceEffect(
+                                  _draft.effectiveFaceEffects,
+                                  item.$2,
+                                ),
+                                faceConfirmed: false,
+                              ),
+                            );
+                          },
                         ),
                       )
                       .toList(),
             ),
             Text(
-              _draft.faceMode == FaceLayoutMode.belowNeck
-                  ? '목 아래는 턱 아래부터 표지를 채워요. 얼굴 위치는 다른 연출에서 먼저 정해 주세요.'
+              _draft.effectiveFaceEffects.contains(FaceLayoutMode.belowNeck)
+                  ? '목 아래는 얼굴을 잘라요. 함께 켠 물감·제호 가림은 화면 밖에 있을 수 있어요.'
                   : '표지에서 얼굴 가운데를 누르거나 움직여 위치를 정해 주세요.',
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() => _locatingFace = !_locatingFace);
+                if (_locatingFace) {
+                  _scroll.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 180),
+                    curve: Curves.easeOut,
+                  );
+                }
+              },
+              child: Text(_locatingFace ? '효과 미리보기로 돌아가기' : '원본에서 얼굴 위치 맞추기'),
             ),
             if (_plainTouchesFace)
               Text(
@@ -479,7 +524,10 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
               value: _draft.faceConfirmed,
               onChanged: _draft.photoPath.isEmpty
                   ? null
-                  : (v) => _edit(_draft.copyWith(faceConfirmed: v ?? false)),
+                  : (v) {
+                      if (v == true) setState(() => _locatingFace = false);
+                      _edit(_draft.copyWith(faceConfirmed: v ?? false));
+                    },
             ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,

@@ -53,12 +53,10 @@ class CoverPreview extends StatelessWidget {
   /// 그대로 연출에서 제호 글자 크기. 얼굴 윗부분(얼굴 폭의 0.7 위)에 닿지 않게 줄인다.
   static double plainMastheadSize(CoverDraft draft, Size box, {double? ratio}) {
     final title = draft.masthead.isEmpty ? 'Esel' : draft.masthead;
-    final full = EselTypography.mastheadSize(
-      title,
-      box.width,
-      max: box.width * .54,
-    );
-    if (draft.faceMode != FaceLayoutMode.original) return full;
+    final full =
+        EselTypography.mastheadSize(title, box.width, max: box.width * .54) *
+        draft.mastheadScale;
+    if (draft.effectiveFaceEffects.isNotEmpty) return full;
     final rect = CoverPhoto.photoRect(
       box: box,
       photoRatio: ratio ?? 4 / 3,
@@ -80,7 +78,7 @@ class CoverPreview extends StatelessWidget {
     Size box, {
     double? ratio,
   }) {
-    if (draft.faceMode != FaceLayoutMode.original) return false;
+    if (draft.effectiveFaceEffects.isNotEmpty) return false;
     final rect = CoverPhoto.photoRect(
       box: box,
       photoRatio: ratio ?? 4 / 3,
@@ -113,7 +111,10 @@ class CoverPreview extends StatelessWidget {
 
   Widget _buildCover(BoxConstraints c, double photoRatio) {
     final box = Size(c.maxWidth, c.maxHeight);
-    final mode = locatingFace ? FaceLayoutMode.original : draft.faceMode;
+    final effects = locatingFace
+        ? <FaceLayoutMode>{}
+        : draft.effectiveFaceEffects;
+    final mode = faceCropMode(effects);
     final title = draft.masthead.isEmpty ? 'Esel' : draft.masthead;
     final face = faceOf(draft);
     final hasPhoto = draft.photoPath.isNotEmpty;
@@ -149,6 +150,7 @@ class CoverPreview extends StatelessWidget {
                 photoRatio: photoRatio,
                 face: face,
                 mode: mode,
+                effects: effects,
                 paint: draft.color,
               )
             else
@@ -207,19 +209,24 @@ class CoverPreview extends StatelessWidget {
                 right: 0,
                 child: IgnorePointer(
                   child: ExcludeSemantics(
-                    child: Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      softWrap: false,
-                      overflow: TextOverflow.visible,
-                      style: EselTypography.masthead(
-                        fontSize: plainMastheadSize(
-                          draft,
-                          box,
-                          ratio: photoRatio,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        title,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        softWrap: false,
+                        overflow: TextOverflow.visible,
+                        style: EselTypography.masthead(
+                          fontSize: plainMastheadSize(
+                            draft,
+                            box,
+                            ratio: photoRatio,
+                          ),
+                          color: draft.whiteTitle
+                              ? Colors.white
+                              : EselColors.ink,
                         ),
-                        color: draft.whiteTitle ? Colors.white : EselColors.ink,
                       ),
                     ),
                   ),

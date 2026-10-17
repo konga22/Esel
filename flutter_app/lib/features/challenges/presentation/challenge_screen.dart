@@ -8,6 +8,8 @@ import '../../drafts/data/local_library.dart';
 import '../../drafts/domain/cover_draft.dart';
 import '../../media/presentation/cover_preview.dart';
 import '../data/challenge_source.dart';
+import '../../stand/domain/rules/same_color_rule.dart';
+import '../../today/domain/rules/daily_candidates.dart';
 import '../domain/challenge.dart';
 
 /// An account-private local journal, never an alternative public colour room.
@@ -18,6 +20,7 @@ class ChallengeScreen extends StatefulWidget {
   final ServiceClock clock;
   final VoidCallback onBack;
   final Future<void> Function(StyleChallenge, String?) onBegin;
+  final SameColorViewer? viewer;
   const ChallengeScreen({
     super.key,
     required this.ownerId,
@@ -26,6 +29,7 @@ class ChallengeScreen extends StatefulWidget {
     required this.clock,
     required this.onBack,
     required this.onBegin,
+    this.viewer,
   });
   @override
   State<ChallengeScreen> createState() => _ChallengeScreenState();
@@ -34,6 +38,8 @@ class ChallengeScreen extends StatefulWidget {
 class _ChallengeScreenState extends State<ChallengeScreen> {
   List<CoverDraft>? _entries;
   List<StyleChallenge> _challenges = [];
+  Map<String, List<CoverDraft>> _participants = {};
+  String? _expanded;
   ServiceDate? _loadedOn;
   String? _error;
   bool _busy = false;
@@ -54,7 +60,11 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   @override
   void didUpdateWidget(ChallengeScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (_loadedOn != widget.clock.today) _reload();
+    if (_loadedOn != widget.clock.today ||
+        oldWidget.ownerId != widget.ownerId ||
+        oldWidget.viewer != widget.viewer) {
+      _reload();
+    }
   }
 
   Future<void> _reload() async {
@@ -63,15 +73,36 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     _loadedOn = today;
     setState(() {
       _entries = null;
+      _participants = {};
       _error = null;
     });
     try {
       final entries = await widget.source.mine(widget.ownerId);
       final challenges = await widget.source.current(today);
+      final viewer =
+          widget.viewer ??
+          SameColorViewer(
+            today: today,
+            candidates: DailyCandidates.forDate(today),
+            hasPublishedToday: widget.library.hasPublishedOn(
+              widget.ownerId,
+              today,
+            ),
+            isMinor: false,
+          );
+      final participants = <String, List<CoverDraft>>{};
+      for (final challenge in challenges) {
+        participants[challenge.id] = await widget.source.participants(
+          widget.ownerId,
+          viewer,
+          challenge.id,
+        );
+      }
       if (mounted && request == _request) {
         setState(() {
           _entries = entries;
           _challenges = challenges;
+          _participants = participants;
         });
       }
     } catch (_) {
@@ -207,7 +238,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
           Text('옷을 입는 작은 이유', style: EselTypography.heading(fontSize: 30)),
           const SizedBox(height: 12),
           const Text(
-            '오늘 후보 3색과 함께, 내 잡지에 새로운 이야기를 남겨요.\n로컬 시연 · 이 기기의 내 참여 표지만 보여요.',
+            '오늘 후보 3색과 함께, 내 잡지에 새로운 이야기를 남겨요.\n로컬 시연 · 이 기기에 저장된 공개 참여 표지를 함께 봐요. 서버 사용자 목록은 아니에요.',
           ),
           for (final challenge in _challenges) ...[
             const SizedBox(height: 24),
@@ -231,6 +262,27 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
               enabled: !_busy && _error == null && _entries != null,
               onTap: () => _begin(challenge),
             ),
+            TextButton(
+              onPressed: _error != null || _entries == null
+                  ? null
+                  : () => setState(() {
+                      _expanded = _expanded == challenge.id
+                          ? null
+                          : challenge.id;
+                    }),
+              child: Text(
+                _expanded == challenge.id
+                    ? '참여 표지 접기'
+                    : '${challenge.title} 참여 표지 보기',
+              ),
+            ),
+            if (_expanded == challenge.id) ...[
+              const Text('같은 색 공개 규칙을 적용한 기기 내 기록이에요. 잠긴 색은 발행 후 확인할 수 있어요.'),
+              if ((_participants[challenge.id] ?? []).isEmpty)
+                const Text('지금 볼 수 있는 참여 표지가 없어요. 오늘 호로 첫 기록을 남겨 보세요.'),
+              for (final issue in _participants[challenge.id] ?? <CoverDraft>[])
+                _cover(issue),
+            ],
           ],
           const SizedBox(height: 32),
           Text('내 참여 표지', style: EselTypography.heading(fontSize: 24)),
@@ -286,7 +338,9 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('${issue.publishedOn} · Nº ${issue.issueNumber}'),
+        Text(
+          '${issue.masthead} · ${issue.publishedOn} · Nº ${issue.issueNumber}',
+        ),
         const SizedBox(height: 8),
         AspectRatio(aspectRatio: .75, child: CoverPreview(draft: issue)),
         if (issue.caption.isNotEmpty) Text(issue.caption),

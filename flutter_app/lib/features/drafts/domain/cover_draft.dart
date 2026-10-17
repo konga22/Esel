@@ -16,6 +16,15 @@ class CoverDraft {
   final String caption;
   final EselPaint color;
   final FaceLayoutMode faceMode;
+
+  /// null인 이전 저장본은 faceMode 하나를 적용한다.
+  final Set<FaceLayoutMode>? faceEffects;
+  final double mastheadScale;
+  Set<FaceLayoutMode> get effectiveFaceEffects => Set.unmodifiable(
+    (faceEffects ?? {faceMode}).where(
+      (mode) => mode != FaceLayoutMode.original,
+    ),
+  );
   final double faceX, faceY, faceWidth;
   final bool faceConfirmed, whiteTitle;
   final DateTime updatedAt;
@@ -30,6 +39,8 @@ class CoverDraft {
     this.caption = '',
     this.color = EselPaint.powder,
     this.faceMode = FaceLayoutMode.original,
+    this.faceEffects,
+    this.mastheadScale = 1,
     this.faceX = .5,
     this.faceY = .3,
     this.faceWidth = defaultFaceWidth,
@@ -48,6 +59,8 @@ class CoverDraft {
     String? caption,
     EselPaint? color,
     FaceLayoutMode? faceMode,
+    Set<FaceLayoutMode>? faceEffects,
+    double? mastheadScale,
     double? faceX,
     double? faceY,
     double? faceWidth,
@@ -66,7 +79,11 @@ class CoverDraft {
     masthead: masthead ?? this.masthead,
     caption: caption ?? this.caption,
     color: color ?? this.color,
-    faceMode: faceMode ?? this.faceMode,
+    faceMode: faceEffects != null
+        ? primaryFaceEffect(faceEffects)
+        : faceMode ?? this.faceMode,
+    faceEffects: faceEffects ?? (faceMode != null ? null : this.faceEffects),
+    mastheadScale: mastheadScale ?? this.mastheadScale,
     faceX: faceX ?? this.faceX,
     faceY: faceY ?? this.faceY,
     faceWidth: faceWidth ?? this.faceWidth,
@@ -97,7 +114,9 @@ class CoverDraft {
     'masthead': masthead,
     'caption': caption,
     'color': color.name,
-    'faceMode': faceMode.name,
+    'faceMode': primaryFaceEffect(effectiveFaceEffects).name,
+    'faceEffects': effectiveFaceEffects.map((mode) => mode.name).toList(),
+    'mastheadScale': mastheadScale,
     'faceX': faceX,
     'faceY': faceY,
     'faceWidth': faceWidth,
@@ -117,6 +136,13 @@ class CoverDraft {
     caption: json['caption'] as String,
     color: EselPaint.values.byName(json['color'] as String),
     faceMode: FaceLayoutMode.values.byName(json['faceMode'] as String),
+    faceEffects: (json['faceEffects'] as List?)
+        ?.map((value) => FaceLayoutMode.values.byName(value as String))
+        .toSet(),
+    mastheadScale: ((json['mastheadScale'] as num?)?.toDouble() ?? 1).clamp(
+      .5,
+      1.4,
+    ),
     faceX: (json['faceX'] as num).toDouble().clamp(0, 1),
     faceY: (json['faceY'] as num).toDouble().clamp(0, 1),
     // 이전 저장본은 물감 폭(maskSize, 표지 폭 비율)만 있어서 얼굴 폭 = 물감 폭 ÷ 2.15로 읽는다.

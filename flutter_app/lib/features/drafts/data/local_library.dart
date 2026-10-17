@@ -82,12 +82,65 @@ class LocalLibrary extends ChangeNotifier {
       }
       moved.add(draft);
     }
-    await File(
-      '${to.path}/library.json',
-    ).writeAsString(jsonEncode({...data, 'drafts': moved}), flush: true);
+    final metadata = {
+      for (final key in [
+        'publicationLedger',
+        'reactionRecords',
+        'featureRecords',
+      ])
+        key: {
+          for (final entry in (data[key] as Map? ?? {}).entries)
+            if ((entry.key as String).startsWith('mock_'))
+              entry.key: entry.value,
+        },
+    };
+    await File('${to.path}/library.json').writeAsString(
+      jsonEncode({...data, ...metadata, 'drafts': moved}),
+      flush: true,
+    );
   }
 
   final List<CoverDraft> _drafts = [];
+  final Map<String, Map<String, int>> _publicationLedger = {};
+  final Map<String, Map<String, dynamic>> _reactionRecords = {};
+  final Map<String, Map<String, dynamic>> _featureRecords = {};
+  Map<String, dynamic> reactionsFor(String owner) => Map<String, dynamic>.from(
+    jsonDecode(jsonEncode(_reactionRecords[owner] ?? {})) as Map,
+  );
+  Map<String, dynamic> featuresFor(String owner) => Map<String, dynamic>.from(
+    jsonDecode(jsonEncode(_featureRecords[owner] ?? {})) as Map,
+  );
+  Future<void> saveReactions(String owner, Map<String, dynamic> data) {
+    if (owner.isEmpty) throw const FormatException('로그인이 필요해요.');
+    final copy = Map<String, dynamic>.from(jsonDecode(jsonEncode(data)) as Map);
+    return _change(() => _reactionRecords[owner] = copy);
+  }
+
+  Future<void> selectFeature(
+    String owner,
+    String period,
+    String issueId,
+    String? reason,
+  ) => _change(() {
+    if (owner.isEmpty) throw const FormatException('로그인이 필요해요.');
+    if (reason != null &&
+        !_drafts.any((d) => d.id == issueId && d.issueNumber > 0)) {
+      throw const FormatException('표지를 찾을 수 없어요. 다시 불러와 주세요.');
+    }
+    final records = featuresFor(owner);
+    final selections = List<dynamic>.of(records[period] as List? ?? []);
+    selections.removeWhere((entry) => (entry as Map)['issueId'] == issueId);
+    if (reason != null) selections.add({'issueId': issueId, 'reason': reason});
+    records[period] = selections;
+    _featureRecords[owner] = records;
+  });
+  bool hasPublishedOn(String owner, ServiceDate day) =>
+      _publicationLedger[owner]?.containsKey(day.key) == true ||
+      issuesFor(owner).any((d) => d.publishedOn == day.key);
+  int publicationCount(String owner) => [
+    ...?_publicationLedger[owner]?.values,
+    ...issuesFor(owner).map((d) => d.issueNumber),
+  ].fold<int>(0, (a, b) => a > b ? a : b);
   List<CoverDraft> get drafts => List.unmodifiable(_drafts);
   bool reduceMotion = false, reduceTransparency = false, largeText = false;
   bool gridView = true;
@@ -128,6 +181,35 @@ class LocalLibrary extends ChangeNotifier {
     reduceTransparency = data['reduceTransparency'] == true;
     largeText = data['largeText'] == true;
     gridView = data['gridView'] != false;
+    _publicationLedger.clear();
+    for (final entry in (data['publicationLedger'] as Map? ?? {}).entries) {
+      _publicationLedger[entry.key as String] = {
+        for (final item in (entry.value as Map).entries)
+          item.key as String: (item.value as num).toInt(),
+      };
+    }
+    // 이전 저장본도 발행 이력을 지우지 않고 이어받는다.
+    for (final issue in _drafts.where(
+      (d) => d.issueNumber > 0 && d.publishedOn != null,
+    )) {
+      final ledger = _publicationLedger.putIfAbsent(issue.ownerId, () => {});
+      final previous = ledger[issue.publishedOn!] ?? 0;
+      if (issue.issueNumber > previous) {
+        ledger[issue.publishedOn!] = issue.issueNumber;
+      }
+    }
+    _reactionRecords.clear();
+    _featureRecords.clear();
+    for (final entry in (data['reactionRecords'] as Map? ?? {}).entries) {
+      _reactionRecords[entry.key as String] = Map<String, dynamic>.from(
+        entry.value as Map,
+      );
+    }
+    for (final entry in (data['featureRecords'] as Map? ?? {}).entries) {
+      _featureRecords[entry.key as String] = Map<String, dynamic>.from(
+        entry.value as Map,
+      );
+    }
   }
 
   Future<void> _persist() async {
@@ -136,6 +218,9 @@ class LocalLibrary extends ChangeNotifier {
     final data = jsonEncode({
       'version': 1,
       'drafts': _drafts.map((d) => d.toJson()).toList(),
+      'publicationLedger': _publicationLedger,
+      'reactionRecords': _reactionRecords,
+      'featureRecords': _featureRecords,
       'reduceMotion': reduceMotion,
       'reduceTransparency': reduceTransparency,
       'largeText': largeText,
@@ -151,14 +236,22 @@ class LocalLibrary extends ChangeNotifier {
   Future<void> _change(void Function() change) {
     final result = _queue.then((_) async {
       final oldDrafts = List<CoverDraft>.of(_drafts);
+      final oldLedger = {
+        for (final e in _publicationLedger.entries)
+          e.key: Map<String, int>.of(e.value),
+      };
+      final oldReactions = Map<String, Map<String, dynamic>>.of(
+        _reactionRecords,
+      );
+      final oldFeatures = Map<String, Map<String, dynamic>>.of(_featureRecords);
       final oldSettings = [
         reduceMotion,
         reduceTransparency,
         largeText,
         gridView,
       ];
-      change();
       try {
+        change();
         await _persist();
       } catch (_) {
         _drafts
@@ -168,6 +261,15 @@ class LocalLibrary extends ChangeNotifier {
         reduceTransparency = oldSettings[1];
         largeText = oldSettings[2];
         gridView = oldSettings[3];
+        _publicationLedger
+          ..clear()
+          ..addAll(oldLedger);
+        _reactionRecords
+          ..clear()
+          ..addAll(oldReactions);
+        _featureRecords
+          ..clear()
+          ..addAll(oldFeatures);
         rethrow;
       }
       notifyListeners();
@@ -208,6 +310,9 @@ class LocalLibrary extends ChangeNotifier {
     final removedIds = removed.map((d) => d.id).toSet();
     await _change(() {
       _drafts.removeWhere((d) => d.ownerId == ownerId);
+      _publicationLedger.remove(ownerId);
+      _reactionRecords.remove(ownerId);
+      _featureRecords.remove(ownerId);
       for (var i = 0; i < _drafts.length; i++) {
         if (removedIds.contains(_drafts[i].previousIssueId)) {
           _drafts[i] = _drafts[i].copyWith(clearChallenge: true);
@@ -281,7 +386,7 @@ class LocalLibrary extends ChangeNotifier {
         throw const FormatException('이미 발행했거나 다른 계정의 표지는 발행할 수 없어요.');
       }
       if (!PublishRule.canPublishToday(
-        hasPublishedToday: existing.any((d) => d.publishedOn == day),
+        hasPublishedToday: hasPublishedOn(ownerId, on),
       )) {
         throw const FormatException('오늘은 이미 한 호를 발행했어요.');
       }
@@ -300,12 +405,19 @@ class LocalLibrary extends ChangeNotifier {
       }
       issue = draft.copyWith(
         ownerId: ownerId,
-        issueNumber: PublishRule.nextIssueNumber(existing.length),
+        issueNumber: PublishRule.nextIssueNumber(
+          [
+            publicationCount(ownerId),
+            ...existing.map((d) => d.issueNumber),
+          ].reduce((a, b) => a > b ? a : b),
+        ),
         publishedOn: day,
         updatedAt: date,
       );
       _drafts.removeWhere((d) => d.id == draft.id);
       _drafts.insert(0, issue);
+      _publicationLedger.putIfAbsent(ownerId, () => {})[day] =
+          issue.issueNumber;
     });
     return issue;
   }

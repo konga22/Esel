@@ -7,6 +7,7 @@ enum AppTab {
 }
 
 enum ActiveScreen {
+  collections, // 일·주·월 표지 특집
   challenges, // 주간 참여 · 내 비교 기록
   main, // 메인 탭 화면
   intro, // 비로그인 첫 화면 (J1)

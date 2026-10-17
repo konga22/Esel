@@ -61,7 +61,15 @@ class OnboardingController extends ChangeNotifier {
   }
 
   void selectFaceMode(FaceLayoutMode mode) {
-    _draft = _draft.copyWith(faceMode: mode);
+    _draft = _draft.copyWith(
+      faceMode: mode,
+      faceEffects: toggleFaceEffect(_draft.effectiveFaceEffects, mode),
+    );
+    notifyListeners();
+  }
+
+  void setMastheadScale(double scale) {
+    _draft = _draft.copyWith(mastheadScale: scale.clamp(.5, 1.4));
     notifyListeners();
   }
 
