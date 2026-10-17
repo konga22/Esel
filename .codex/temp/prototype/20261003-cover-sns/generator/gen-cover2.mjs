@@ -1,63 +1,79 @@
-// Cover-SNS screens (C1–C7) on the new model photos, twelve colors and the glass capsule.
+// Cover-SNS screens (C1–C8): home feed, detail with garment info, palette (explore), sketchbook, make.
+// Structure follows a familiar SNS (home feed + explore tab, 10-18); screens keep the magazine look and the words are art tools.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { mastSize, B, SANS, SERIF, MONO, INK, PAPER, MUTED, PAINT, PEOPLE, ME, COLOR_ORDER, TODAY_CANDIDATES, ROOT, cover, faceStroke, neckDown, crop, avatar, paint, icon, stat, LIKE_ATTRS, pill, masthead, capsule, page } from './lib.mjs';
+import { mastSize, SANS, SERIF, MONO, INK, PAPER, MUTED, HAIR, PAINT, PEOPLE, ME, COLOR_ORDER, TODAY_CANDIDATES, ROOT, cover, fit, faceStroke, cropStroke, cropFace, neckDown, crop, avatar, paint, icon, stat, LIKE_ATTRS, pill, masthead, capsule, tagDot, wearPill, page } from './lib.mjs';
 import { mastLayer, scrollLogic } from './scroll.mjs';
 
 const OUT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'project');
 const files = {};
-const tabs = (fg) => `<div style="display: flex">
-<button type="button" aria-pressed="true" style="height: 44px; padding: 0 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px"><span>전체</span><span style="width: 100%; height: 1.5px; background: ${fg}"></span></button>
-<button type="button" aria-pressed="false" style="height: 44px; padding: 0 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; opacity: 0.78"><span>구독</span><span style="width: 100%; height: 1.5px"></span></button>
-</div>`;
-const topBar = (fg, { issue = 249, withTabs = true } = {}) => `<div style="position: absolute; left: 14px; right: 20px; top: 48px; height: 44px; display: flex; align-items: center; justify-content: space-between; color: ${fg}; font-size: 13px; font-weight: 600; letter-spacing: 0.04em">
-${withTabs ? tabs(fg) : '<span style="padding-left: 6px">오늘의 표지</span>'}
+// Home is one feed mixing subscriptions and recommendations, so it has no 전체/구독 tabs (10-18; subscriptions live in the palette).
+const topBar = (fg, { issue = 249, home = true } = {}) => `<div style="position: absolute; left: 14px; right: 20px; top: 48px; height: 44px; display: flex; align-items: center; justify-content: space-between; color: ${fg}; font-size: 13px; font-weight: 600; letter-spacing: 0.04em">
+${home ? '<span></span>' : '<span style="padding-left: 6px">오늘의 표지</span>'}
 <span style="font-size: 12px">Nº ${issue} · 2026. 9. 6.</span>
 </div>`;
-// Popularity counts (likes, readers' lines, subscribers) are shown only to the publisher, never on others' covers.
+// How many garments each example post tagged (garment info is optional, P19 draft).
+const WEAR = { dana: 3, theo: 2, ama: 2, kofi: 4, riva: 2 };
+const wearLink = (n, extra = '') => `<a href="CoverSpread.dc.html" aria-label="착용 정보 ${n}개 보기" style="height: 44px; display: flex; align-items: center${extra}">${wearPill(n)}</a>`;
+// Popularity counts (likes, one-lines, subscribers) are shown only to the publisher, never on others' covers.
 const coverText = (key, { same, bottom = 100 }) => {
   const p = PEOPLE[key];
   return `<div style="position: absolute; left: 20px; right: 8px; bottom: ${bottom}px; color: #FFFFFF">
 <div style="display: flex; align-items: flex-end; gap: 12px">
 <a href="CoverShelf.dc.html" style="font-family: ${SERIF}; font-style: italic; font-size: 76px; line-height: 0.9; letter-spacing: -0.03em">${key}</a>
 <button type="button" style="height: 44px; display: flex; align-items: center">${pill('구독', '#FFFFFF')}</button>
+${WEAR[key] ? wearLink(WEAR[key], '; margin-left: auto; padding-right: 4px') : ''}
 </div>
 <a href="CoverStand.dc.html" style="height: 44px; margin-top: 4px; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600">${paint(p.color, 60)}<span>${PAINT[p.color].name} · 같은 색 ${same}명</span>${icon('arrow', 18, 1.8)}</a>
 <p style="margin: 0; font-size: 15px; line-height: 1.45">${p.cap}</p>
 <div style="display: flex; align-items: center; margin: 2px 0 0 -12px">
 ${stat('heart', '좋아요', '', LIKE_ATTRS)}
-${stat('comment', '독자 한 줄', '')}
-${stat('bookmark', '스크랩', '')}
-<a href="CoverSpread.dc.html" style="margin-left: auto; height: 48px; padding: 0 12px; display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600"><span>펼쳐 보기</span>${icon('up', 20, 1.8)}</a>
+${stat('comment', '한 줄', '')}
+${stat('bookmark', '저장', '')}
+<a href="CoverSpread.dc.html" style="margin-left: auto; height: 48px; padding: 0 12px; display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600"><span>자세히 보기</span>${icon('up', 20, 1.8)}</a>
 </div>
 </div>`;
 };
 const shade = (h = 480) => `<div aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: 0; height: ${h}px; background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.72))"></div>`;
 const topShade = `<div aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 0; height: 300px; background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0))"></div>`;
 
-// C1 표지 피드
-files.CoverFeed = page('표지 SNS 1 표지 피드', `<div style="${ROOT(`background: #C9D3DC; color: ${INK}`)}">
+// C1 홈 피드
+files.CoverFeed = page('표지 SNS 1 홈 피드', `<div style="${ROOT(`background: #C9D3DC; color: ${INK}`)}">
 ${cover('dana', 393, 852, 0.58, 0.5, '; position: absolute; left: 0; top: 0')}
 ${shade()}
 ${topBar(INK)}
 ${masthead('Esel', INK)}
 ${coverText('dana', { same: 187 })}
-${capsule({ color: PEOPLE[ME].color })}
+${capsule({ color: PEOPLE[ME].color, active: 'home' })}
 </div>`);
 
-// C2 다음 표지 · 어두운 사진
-files.CoverNext = page('표지 SNS 2 다음 표지', `<div style="${ROOT('background: #26252C; color: #FFFFFF')}">
+// C2 홈 · 다음 표지 · 어두운 사진
+files.CoverNext = page('표지 SNS 2 홈 · 다음 표지', `<div style="${ROOT('background: #26252C; color: #FFFFFF')}">
 ${cover('theo', 393, 852, 0.5, 0.5, '; position: absolute; left: 0; top: 0')}
 ${topShade}
 ${shade()}
 ${topBar('#FFFFFF')}
 ${masthead('Esel', '#FFFFFF')}
 ${coverText('theo', { same: 96 })}
-${capsule({ color: PEOPLE[ME].color })}
+${capsule({ color: PEOPLE[ME].color, active: 'home' })}
 </div>`);
 
-// C3 펼침면
+// C3 자세히 보기 · 착용 정보
+// Garments: kind, optional name or brand, optional note, whether it carries the color of the day, and where it sits on the photo (fractions).
+// No price, no shopping link (P19 draft).
+const GARMENTS = {
+  dana: [
+    { kind: '셔츠', name: '크롭 셔츠', note: '직접 줄여 입음', today: true, at: [0.6, 0.63] },
+    { kind: '데님', name: '끈 장식 와이드', note: '빈티지', at: [0.52, 0.87] },
+    { kind: '반지', note: '물려받음', at: [0.3, 0.71] },
+  ],
+};
+const garmentRow = (g, color) => `<li style="min-height: 42px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid ${HAIR}">
+<span style="width: 48px; flex-shrink: 0; font-size: 14px; font-weight: 600">${g.kind}</span>
+<span style="flex: 1 1 0; min-width: 0; font-size: 14px; line-height: 1.35">${[g.name, g.note && `<span style="color: ${MUTED}">${g.note}</span>`].filter(Boolean).join(`<span style="color: ${MUTED}"> · </span>`)}</span>
+${g.today ? `<span style="flex-shrink: 0; display: flex; align-items: center; gap: 2px; font-size: 12px; color: ${MUTED}">${paint(color, 40, '', '')}<span>${PAINT[color].name}</span></span>` : ''}
+</li>`;
 const reader = (key, text) => `<div style="display: flex; gap: 10px; padding: 7px 0">
 ${avatar(key, 30)}
 <div style="min-width: 0">
@@ -65,28 +81,36 @@ ${avatar(key, 30)}
 <p style="margin: 2px 0 0; font-size: 14.5px; line-height: 1.4">${text}</p>
 </div>
 </div>`;
-files.CoverSpread = page('표지 SNS 3 펼침면', `<div style="${ROOT(`padding-top: 54px; display: flex; flex-direction: column; background: ${PAPER}; color: ${INK}`)}">
+const SP = { W: 236, H: 290, px: 0.58, py: 0.72 };
+const spreadPhoto = (() => {
+  const f = fit('dana', SP.W, SP.H, SP.px, SP.py);
+  const dots = GARMENTS.dana.map((g) => tagDot(g.at[0] * f.dw - f.ox, g.at[1] * f.dh - f.oy)).join('');
+  return `<span style="position: relative; display: block; width: ${SP.W}px; height: ${SP.H}px; flex-shrink: 0; overflow: hidden; border-radius: 4px">${cover('dana', SP.W, SP.H, SP.px, SP.py)}${dots}<span style="position: absolute; right: 8px; bottom: 8px">${wearPill(GARMENTS.dana.length)}</span></span>`;
+})();
+files.CoverSpread = page('표지 SNS 3 자세히 보기', `<div style="${ROOT(`padding-top: 54px; display: flex; flex-direction: column; background: ${PAPER}; color: ${INK}`)}">
 <header style="flex-shrink: 0; height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px 0 6px">
 <a href="CoverFeed.dc.html" aria-label="표지로 돌아가기" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center">${icon('down', 24)}</a>
 <span style="font-family: ${SERIF}; font-style: italic; font-size: 18px">dana · Nº 038</span>
 <button type="button" style="height: 44px; display: flex; align-items: center">${pill('구독', INK)}</button>
 </header>
 <main style="flex: 1 1 0; min-height: 0; overflow: hidden; padding: 0 20px">
-<div style="display: flex; align-items: baseline; justify-content: space-between; height: 30px; font-family: ${SERIF}; font-style: italic; font-size: 16px"><span>01</span><span>${PEOPLE.dana.time}</span></div>
-<h1 style="margin: 6px 0 0; font-family: ${SERIF}; font-size: 34px; font-weight: 400; line-height: 1.22; letter-spacing: -0.01em">난간에 기대서,<br>셔츠 하나로.</h1>
-<a href="CoverShelf.dc.html" style="height: 48px; display: flex; align-items: center; gap: 8px">${avatar('dana', 32)}<span style="margin-left: 2px; font-size: 15px; font-weight: 600">dana</span>${paint('powder', 48, '', '')}<span style="font-size: 13px; color: ${MUTED}">파우더 블루</span></a>
-<div style="display: flex; gap: 8px; margin: 6px -20px 0 0; overflow: hidden">
-${cover('dana', 210, 280, 0.58, 0.45, '; flex-shrink: 0; border-radius: 4px')}
-${crop('dana', 210, 280, 2.6, 0.55, 0.8, 105, 140, { extra: '; flex-shrink: 0; border-radius: 4px', alt: '셔츠 끈 매듭과 데님 허리 부분' })}
+<div style="display: flex; align-items: baseline; justify-content: space-between; height: 28px; font-family: ${SERIF}; font-style: italic; font-size: 16px"><span>01</span><span>${PEOPLE.dana.time}</span></div>
+<h1 style="margin: 2px 0 0; font-family: ${SERIF}; font-size: 30px; font-weight: 400; line-height: 1.2; letter-spacing: -0.01em">난간에 기대서,<br>셔츠 하나로.</h1>
+<div style="height: 48px; display: flex; align-items: center; gap: 8px">
+<a href="CoverShelf.dc.html" style="height: 48px; display: flex; align-items: center; gap: 8px">${avatar('dana', 28)}<span style="font-size: 15px; font-weight: 600">dana</span>${paint('powder', 44, '', '')}<span style="font-size: 13px; color: ${MUTED}">파우더 블루</span></a>
+<span style="margin: 0 -12px 0 auto; display: flex">${stat('heart', '좋아요', '', LIKE_ATTRS)}${stat('bookmark', '저장', '')}</span>
 </div>
-<div style="display: flex; align-items: center; margin-left: -12px">
-${stat('heart', '좋아요', '', LIKE_ATTRS)}
-${stat('bookmark', '스크랩', '')}
+<div style="display: flex; gap: 8px; margin: 4px -20px 0 0; overflow: hidden">
+${spreadPhoto}
+${crop('dana', 210, SP.H, 2.6, 0.55, 0.8, 105, 145, { extra: '; flex-shrink: 0; border-radius: 4px', alt: '셔츠 끈 매듭과 데님 허리 부분' })}
 </div>
-<h2 style="margin: 4px 0 2px; font-family: ${SERIF}; font-size: 21px; font-weight: 400">독자 한 줄</h2>
+<h2 style="margin: 14px 0 2px; font-family: ${SERIF}; font-size: 21px; font-weight: 400">착용 정보</h2>
+<ul style="margin: 0; padding: 0; list-style: none">
+${GARMENTS.dana.map((g) => garmentRow(g, 'powder')).join('\n')}
+</ul>
+<h2 style="margin: 14px 0 2px; font-family: ${SERIF}; font-size: 21px; font-weight: 400">한 줄</h2>
 ${reader('zuri', '셔츠 끈 매듭이 다 했네요.')}
 ${reader('kofi', '하늘이랑 셔츠 색이 똑같아요.')}
-${reader('riva', '파란 계열끼리 반가워요.')}
 </main>
 <div style="position: absolute; left: 16px; right: 16px; bottom: 34px">
 <label for="one-line" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%)">한 줄 남기기</label>
@@ -94,7 +118,7 @@ ${reader('riva', '파란 계열끼리 반가워요.')}
 </div>
 </div>`);
 
-// Small covers used on the stand and the shelf.
+// Small covers (with a sign) used on the boards.
 function miniCover({ key, w, h, mast = 'Esel', mastColor = '#FFFFFF', name = key, style = 'plain', px = 0.5, py = 0.5, href = 'CoverFeed.dc.html', label, fs }) {
   const size = fs ?? Math.round(w * 0.44);
   let img;
@@ -111,186 +135,272 @@ ${name ? `<span style="position: absolute; left: ${Math.round(w * 0.06)}px; bott
 </a>`;
 }
 
-// C4 가판대
-const chip = (label, color, active = false) => `<button type="button" aria-pressed="${active}" style="height: 44px; flex-shrink: 0; display: flex; align-items: center"><span style="height: 38px; padding: 0 ${color ? '14px 0 8px' : '16px'}; border-radius: 19px; display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 500; white-space: nowrap; ${active ? `background: ${INK}; color: ${PAPER}` : 'background: #FFFFFF; box-shadow: inset 0 0 0 1px #E0E1DC'}">${color ? paint(color, 40, '', '') : ''}<span>${label}</span></span></button>`;
-// Today's candidate colors before I publish: each chip opens the half-open same-color room (C8), so switching color opens nothing (P01).
-const lockedChip = (c, active = false) => `<a href="CoverStandLocked.dc.html" aria-label="${PAINT[c].name} · 오늘 발행 전이라 세 장만 먼저 보여요"${active ? ' aria-current="true"' : ''} style="height: 44px; flex-shrink: 0; display: flex; align-items: center"><span style="height: 38px; padding: 0 12px 0 8px; border-radius: 19px; display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 500; white-space: nowrap; ${active ? `background: ${INK}; color: ${PAPER}` : 'background: #FFFFFF; box-shadow: inset 0 0 0 1.5px #292A27'}">${paint(c, 40, '', '')}<span>${PAINT[c].name}</span>${icon('lock', 15, 1.8)}</span></a>`;
-const todayChips = [PEOPLE[ME].color, ...TODAY_CANDIDATES.filter((c) => c !== PEOPLE[ME].color)];
-const colorChips = (activeLocked = false) => [...todayChips.map((c, i) => lockedChip(c, activeLocked && i === 0)), ...COLOR_ORDER.filter((c) => !todayChips.includes(c)).map((c) => chip(PAINT[c].name, c))].join('\n');
-const shelfRow = (a, b) => `<div style="flex-shrink: 0; display: flex; justify-content: space-between; padding: 0 16px">${miniCover({ ...a, w: 174, h: 250 })}${miniCover({ ...b, w: 174, h: 250 })}</div>
-<span aria-hidden="true" style="flex-shrink: 0; height: 2px; margin-bottom: 16px; background: ${INK}"></span>`;
-files.CoverStand = page('표지 SNS 4 가판대', `<div style="${ROOT(`padding-top: 54px; display: flex; flex-direction: column; background: ${PAPER}; color: ${INK}`)}">
-<header style="flex-shrink: 0; height: 48px; display: flex; align-items: baseline; justify-content: space-between; padding: 8px 18px 0; box-sizing: border-box">
-<h1 style="margin: 0; font-family: ${SERIF}; font-size: 32px; font-weight: 400; line-height: 1">가판대</h1>
-<span style="font-family: ${SERIF}; font-style: italic; font-size: 17px">9. 6. 일요일</span>
-</header>
-<div style="flex-shrink: 0; display: flex; gap: 8px; padding: 4px 16px 10px; overflow: hidden">
-${chip('전체', null, true)}
-${colorChips()}
-</div>
-${shelfRow({ key: 'ama', py: 0.3 }, { key: 'lise', style: 'paint', py: 0.3 })}
-${shelfRow({ key: 'rio', py: 0.3 }, { key: 'riva', py: 0.3 })}
-${shelfRow({ key: 'maya', style: 'neck', mastColor: INK }, { key: 'nia', py: 0.3 })}
-${capsule({ color: PEOPLE[ME].color })}
-</div>`);
-
-// C5 서가 · dana의 잡지. 호수는 발행할 때만 1씩 오르므로 결호 없이 이어진다.
-const ISSUES = 38;
-const DARK_SPINE = new Set(['burgundy', 'olive', 'charcoal', 'cobalt', 'terracotta']);
-const OLDER_COLORS = ['coral', 'sage', 'butter', 'cobalt', 'cream', 'powder', 'lilac', 'camel', 'olive', 'powder', 'terracotta', 'charcoal', 'sage', 'powder', 'burgundy', 'butter', 'powder', 'coral', 'cream', 'powder'];
-const issueDate = (i) => { const d = new Date(Date.UTC(2026, 8, 6 - Math.floor(i * 1.6))); return `${d.getUTCMonth() + 1}. ${d.getUTCDate()}.`; };
-const shelfIssues = Array.from({ length: 26 }, (_, i) => ({ no: String(ISSUES - i).padStart(3, '0'), color: i < 6 ? 'powder' : OLDER_COLORS[(i - 6) % OLDER_COLORS.length], date: issueDate(i) }));
-const issue = (style, i) => { const it = shelfIssues[i]; return `<div style="width: 113px">
-${miniCover({ key: 'dana', w: 113, h: 166, mast: 'dana', mastColor: INK, name: '', style, px: 0.58, py: 0.5, fs: 46, label: `Nº ${it.no} 표지 보기` })}
-<div style="height: 26px; display: flex; align-items: center; justify-content: space-between; font-family: ${MONO}; font-size: 11px"><span>Nº ${it.no}</span><span style="width: 22px; height: 4px; border-radius: 2px; background: ${PAINT[it.color].hex}"></span></div>
-</div>`; };
-const spine = (it) => `<a href="CoverShelf.dc.html" aria-label="Nº ${it.no} · ${PAINT[it.color].name} · ${it.date}" style="width: 22px; height: 196px; flex-shrink: 0; box-sizing: border-box; padding: 8px 0; display: flex; flex-direction: column; align-items: center; justify-content: space-between; background: ${PAINT[it.color].hex}; color: ${DARK_SPINE.has(it.color) ? '#FFFFFF' : INK}; box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.12), inset 1px 0 0 rgba(255, 255, 255, 0.35)"><span style="writing-mode: vertical-rl; font-family: ${SERIF}; font-style: italic; font-size: 13px; line-height: 1">dana</span><span style="writing-mode: vertical-rl; font-family: ${MONO}; font-size: 10px; letter-spacing: 0.04em">Nº ${it.no}</span></a>`;
-const spineRow = (items) => `<div style="display: flex; gap: 5px; align-items: flex-end">${items.map(spine).join('')}</div>
-<span aria-hidden="true" style="display: block; height: 2px; margin: 0 0 18px; background: ${INK}"></span>`;
-const viewBtn = (label, key) => `<button type="button" aria-pressed="{{${key}Pressed}}" onClick="{{show_${key}}}" style="height: 44px; padding: 0 8px; font-size: 14px; font-weight: {{${key}Weight}}; color: {{${key}Color}}">${label}</button>`;
-files.CoverShelf = page('표지 SNS 5 서가', `<div style="${ROOT(`padding-top: 54px; display: flex; flex-direction: column; background: ${PAPER}; color: ${INK}`)}">
-<header style="flex-shrink: 0; height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 18px 0 6px">
-<a href="CoverFeed.dc.html" aria-label="표지로 돌아가기" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center">${icon('left', 24)}</a>
-<span style="font-family: ${MONO}; font-size: 12px">ESEL · 개인 잡지</span>
-</header>
-<div style="flex-shrink: 0; padding: 0 20px">
-<h1 style="margin: 0; font-family: ${SERIF}; font-style: italic; font-weight: 400; font-size: 92px; line-height: 0.85; letter-spacing: -0.03em">dana</h1>
-<div style="display: flex; align-items: center; justify-content: space-between; margin-top: 14px">
-<div style="display: flex; flex-direction: column; gap: 2px">
-<div style="display: flex; align-items: center; gap: 6px; font-size: 14px">${paint('powder', 52, '', '')}<span>오늘은 파우더 블루</span></div>
-<span style="font-size: 14px; color: ${MUTED}">${ISSUES}호 발행</span>
-</div>
-<button type="button" style="height: 44px; padding: 0 24px; border-radius: 22px; background: ${INK}; color: ${PAPER}; font-size: 15px; font-weight: 600">구독</button>
-</div>
-</div>
-<div style="flex-shrink: 0; margin: 14px 20px 10px; border-bottom: 2px solid ${INK}; display: flex; align-items: center; justify-content: space-between">
-<h2 style="margin: 0; font-family: ${SERIF}; font-size: 21px; font-weight: 400">지난 호</h2>
-<div role="group" aria-label="지난 호 보기" style="display: flex; margin-right: -8px">${viewBtn('표지', 'covers')}${viewBtn('책등', 'spines')}</div>
-</div>
-<main style="flex: 1 1 0; min-height: 0; overflow: hidden; padding: 0 20px">
-<div style="display: {{vCovers}}; flex-wrap: wrap; justify-content: space-between; row-gap: 8px">
-${issue('plain', 0)}
-${issue('paint', 1)}
-${issue('zoom', 2)}
-${issue('neck', 3)}
-${issue('detail', 4)}
-${issue('mono', 5)}
-</div>
-<div style="display: {{vSpines}}; flex-direction: column; padding-top: 6px">
-${spineRow(shelfIssues.slice(0, 13))}
-${spineRow(shelfIssues.slice(13, 26))}
-</div>
-</main>
-${capsule({ color: PEOPLE[ME].color })}
-</div>`, { logic: `const view = (this.state && this.state.view) || 'covers';
-for (const k of ['covers', 'spines']) {
-const on = view === k;
-vals[k + 'Pressed'] = on ? 'true' : 'false';
-vals[k + 'Weight'] = on ? '600' : '400';
-vals[k + 'Color'] = on ? '${INK}' : '${MUTED}';
-vals['show_' + k] = () => this.setState({ view: k });
+// ───────── 팔레트 (탐색). 작은 3열 격자: 2px 간격, 3:4 칸, 두 줄마다 세로로 긴 칸 하나를 좌우 번갈아.
+// Cells carry no number. Each is the owner's cover scaled down, keeping the face choice they made.
+const GRID = { cols: [130, 129, 130], gap: 2, cell: 173 };
+GRID.x = [0, GRID.cols[0] + GRID.gap, GRID.cols[0] + GRID.cols[1] + GRID.gap * 2];
+GRID.tall = GRID.cell * 2 + GRID.gap;
+GRID.block = GRID.tall + GRID.gap;
+// Horizontal crop that keeps the face in the cell.
+const faceX = (key, w, h) => { const f = fit(key, w, h, 0, 0); return f.dw > w ? Math.max(0, Math.min(1, (f.fx - w / 2) / (f.dw - w))) : 0.5; };
+// A palette cell is the owner's cover, only smaller: the photo with the face choice they made and their sign on top,
+// scaled to the cell (10-18). "Behind the sign" still hides the face because the sign shrinks with the cell.
+// For "as is" the sign shrinks further so it never touches the face, the same rule as the big cover.
+function tileImg({ key, w, h, style = 'plain', py = 0.3, mastColor = '#FFFFFF' }) {
+  const p = PEOPLE[key];
+  const full = mastSize(key, w, Math.round(w * 0.44));
+  const top = Math.round(h * 0.025);
+  let img;
+  let size = full;
+  if (style === 'neck') img = neckDown(key, w, h);
+  else if (style === 'behind') img = crop(key, w, h, 1.7, p.fx, p.fy, w / 2, top + full * 0.55);
+  else {
+    const px = faceX(key, w, h);
+    img = `<span style="position: relative; display: block; width: ${w}px; height: ${h}px; overflow: hidden">${cover(key, w, h, px, py)}${style === 'paint' ? faceStroke(key, w, h, px, py) : ''}</span>`;
+    if (style === 'plain') {
+      const f = fit(key, w, h, px, py);
+      size = Math.max(Math.round(full * 0.62), Math.min(full, Math.floor((f.fy - f.fwPx * 0.6 - top) / 0.9)));
+    }
+  }
+  return `<span style="position: relative; display: block; width: ${w}px; height: ${h}px; overflow: hidden">${img}
+<span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 0; height: 38%; background: linear-gradient(rgba(0, 0, 0, 0.26), rgba(0, 0, 0, 0))"></span>
+<span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: ${top}px; text-align: center; font-family: ${SERIF}; font-size: ${size}px; line-height: 0.9; letter-spacing: -0.05em; padding-right: ${Math.round(size * 0.05)}px; color: ${mastColor}; white-space: nowrap">${key}</span></span>`;
 }
-vals.vCovers = view === 'covers' ? 'flex' : 'none';
-vals.vSpines = view === 'spines' ? 'flex' : 'none';` });
-
-// C8 가판대 · 같은 색, 오늘 발행 전. 세 장만 먼저 보이고 나머지는 흐린 책등. 발행하거나 자정이 지나면 모두 펼쳐진다.
-const LOCK = { color: PEOPLE[ME].color, total: 64, open: Object.keys(PEOPLE).filter((k) => k !== ME && PEOPLE[k].color === PEOPLE[ME].color).slice(0, 3) };
-// Each person picked their own face presentation; "plain" keeps a smaller masthead so it never sits on the face.
-const LOCK_FACE = { leo: { style: 'neck', mastColor: INK }, noor: { style: 'zoom' }, mara: { fs: 38 } };
-const LOCK_NAMES = ['yuna', 'marco', 'ella', 'kai', 'sora', 'remi', 'zoe', 'taro', 'lena', 'oli', 'mina', 'jun', 'ava', 'noa'];
-const lockSpines = LOCK_NAMES.map((n, i) => `<span style="width: 22px; height: ${196 + ((i * 37) % 5) * 6}px; flex-shrink: 0; display: flex; justify-content: center; padding-top: 8px; box-sizing: border-box; background: ${PAINT[LOCK.color].hex}; opacity: ${0.55 + ((i * 3) % 4) * 0.1}; font-family: ${SERIF}; font-style: italic; font-size: 13px; writing-mode: vertical-rl">${n}</span>`).join('');
-const openW = LOCK.open.length >= 3 ? 113 : 174;
-files.CoverStandLocked = page('표지 SNS 8 같은 색 · 발행 전', `<div style="${ROOT(`padding-top: 54px; display: flex; flex-direction: column; background: ${PAPER}; color: ${INK}`)}">
-<header style="flex-shrink: 0; height: 48px; display: flex; align-items: baseline; justify-content: space-between; padding: 8px 18px 0; box-sizing: border-box">
-<h1 style="margin: 0; font-family: ${SERIF}; font-size: 32px; font-weight: 400; line-height: 1">가판대</h1>
+const tile = (it, x, y, w, h) => `<a href="${it.href ?? 'CoverShelf.dc.html'}" aria-label="${it.key}의 스케치북" style="position: absolute; left: ${x}px; top: ${y}px; width: ${w}px; height: ${h}px; overflow: hidden; background: #EDEEEA">${tileImg({ ...it, w, h })}</a>`;
+// One block = two rows with one tall cell (right or left) and four small cells.
+function gridBlock(items, top, tallLeft, draw = tile) {
+  const [a, b, c, d, e] = items;
+  const { x, cols, cell, tall, gap } = GRID;
+  const r2 = top + cell + gap;
+  if (tallLeft) return [draw(a, x[0], top, cols[0], tall), draw(b, x[1], top, cols[1], cell), draw(c, x[2], top, cols[2], cell), draw(d, x[1], r2, cols[1], cell), draw(e, x[2], r2, cols[2], cell)].join('\n');
+  return [draw(a, x[0], top, cols[0], cell), draw(b, x[1], top, cols[1], cell), draw(c, x[2], top, cols[2], tall), draw(d, x[0], r2, cols[0], cell), draw(e, x[1], r2, cols[1], cell)].join('\n');
+}
+// 추천: recently posted, same color as me, not yet subscribed. Before I post, my three candidate colors stay out (P01).
+const RECOMMENDED = [
+  [{ key: 'dana' }, { key: 'ama' }, { key: 'riva', py: 0.5 }, { key: 'lise', style: 'paint' }, { key: 'omar', style: 'neck' }],
+  [{ key: 'vera', py: 0.5 }, { key: 'zuri' }, { key: 'elin', py: 0.2 }, { key: 'freya', style: 'behind' }, { key: 'hana', py: 0.35 }],
+  [{ key: 'sol', py: 0.35 }, { key: 'nia', py: 0.4 }, { key: 'june', style: 'neck' }, { key: 'cleo', py: 0.25 }, { key: 'maya', py: 0.35 }],
+  [{ key: 'ines', style: 'paint', py: 0.2 }, { key: 'rio', py: 0.4 }, { key: 'mira', py: 0.25 }, { key: 'ayo', py: 0.3 }, { key: 'elin', style: 'behind' }],
+];
+const paletteHead = `<header style="flex-shrink: 0; height: 48px; display: flex; align-items: baseline; justify-content: space-between; padding: 8px 18px 0; box-sizing: border-box">
+<h1 style="margin: 0; font-family: ${SERIF}; font-size: 32px; font-weight: 400; line-height: 1">팔레트</h1>
 <span style="font-family: ${SERIF}; font-style: italic; font-size: 17px">9. 6. 일요일</span>
-</header>
-<div style="flex-shrink: 0; display: flex; gap: 8px; padding: 4px 16px 6px; overflow: hidden">
-<a href="CoverStand.dc.html" style="height: 44px; flex-shrink: 0; display: flex; align-items: center"><span style="height: 38px; padding: 0 16px; border-radius: 19px; display: flex; align-items: center; font-size: 14px; font-weight: 500; background: #FFFFFF; box-shadow: inset 0 0 0 1px #E0E1DC">전체</span></a>
-${colorChips(true)}
-</div>
-<div style="flex-shrink: 0; height: 48px; display: flex; align-items: center; gap: 6px; padding: 0 20px">${paint(LOCK.color, 56, '', '')}<span style="font-size: 15px; font-weight: 600">오늘의 ${PAINT[LOCK.color].name} · ${LOCK.total}명</span><span style="margin-left: auto; font-size: 13px; color: ${MUTED}">먼저 ${LOCK.open.length}장</span></div>
-<div style="flex-shrink: 0; display: flex; justify-content: space-between; padding: 0 16px">
-${LOCK.open.map((k) => miniCover({ key: k, w: openW, h: Math.round(openW * 1.437), py: 0.3, ...LOCK_FACE[k] })).join('\n')}
-</div>
-<span aria-hidden="true" style="flex-shrink: 0; height: 2px; margin-bottom: 14px; background: ${INK}"></span>
-<section aria-label="${PAINT[LOCK.color].name} 표지 ${LOCK.total - LOCK.open.length}장 · 오늘 호를 발행하면 펼쳐져요" style="flex-shrink: 0; position: relative; padding: 0 16px">
-<div aria-hidden="true" style="display: flex; gap: 4px; align-items: flex-end; filter: blur(2.5px); color: ${INK}">${lockSpines}</div>
-<span aria-hidden="true" style="display: block; height: 2px; background: ${INK}"></span>
-<div style="position: absolute; left: 50%; top: 60px; transform: translateX(-50%); width: 280px; padding: 16px 18px 12px; box-sizing: border-box; border-radius: 22px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; background: rgba(249, 249, 251, 0.94); box-shadow: inset 0 0 0 1px #E0E1DC, 0 10px 28px rgba(0, 0, 0, 0.1)">
-${icon('lock', 20, 1.8)}
-<p style="margin: 2px 0 0; font-family: ${SERIF}; font-size: 22px; line-height: 1.2">발행하면 함께 펼쳐집니다</p>
-<p style="margin: 0; font-size: 13px; line-height: 1.45; color: ${MUTED}">${PAINT[LOCK.color].name} 표지 ${LOCK.total - LOCK.open.length}장이 더 있어요.<br>자정이 지나면 모두 펼쳐져요.</p>
-</div>
+</header>`;
+// Tabs: 추천 · 색상 ▾ · 구독. No "전체". The underline does not slide (motion board).
+const tabLink = (label, href, on, extra = '') => `<a href="${href}"${on ? ' aria-current="page"' : ''} style="height: 44px; padding: 0 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 16px; font-weight: 600; color: ${on ? INK : MUTED}"><span style="height: 22px; display: flex; align-items: center; gap: 2px">${label}${extra}</span><span style="align-self: stretch; height: 1.5px; background: ${on ? INK : 'transparent'}"></span></a>`;
+const paletteTabs = (active) => `<nav aria-label="팔레트 보기" style="flex-shrink: 0; height: 46px; box-sizing: border-box; display: flex; gap: 18px; padding: 2px 16px 0">
+${tabLink('추천', 'CoverStand.dc.html', active === 'pick')}
+${tabLink('색상', 'CoverStandLocked.dc.html', active === 'color', icon('down', 16, 2))}
+${tabLink('구독', 'CoverStand.dc.html', active === 'sub')}
+</nav>`;
+const gridTop = 8;
+
+// C4 팔레트 · 추천
+files.CoverStand = page('표지 SNS 4 팔레트', `<div style="${ROOT(`padding-top: 54px; display: flex; flex-direction: column; background: ${PAPER}; color: ${INK}`)}">
+${paletteHead}
+${paletteTabs('pick')}
+<div class="esel-scroll" style="flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none">
+<section aria-label="추천" style="position: relative; height: ${GRID.block * RECOMMENDED.length}px; margin-top: ${gridTop}px">
+${RECOMMENDED.map((items, i) => gridBlock(items, i * GRID.block, i % 2 === 1)).join('\n')}
 </section>
-<a href="CoverMake.dc.html" style="flex-shrink: 0; align-self: center; margin-top: 18px; height: 48px; padding: 0 26px; border-radius: 24px; display: flex; align-items: center; gap: 6px; background: ${INK}; color: ${PAPER}; font-size: 15px; font-weight: 600">${icon('plus', 18, 2)}<span>오늘 호 만들기</span></a>
-${capsule({ color: PEOPLE[ME].color })}
+<div style="height: 110px"></div>
+</div>
+${capsule({ color: PEOPLE[ME].color, active: 'palette' })}
 </div>`);
 
+// C8 팔레트 · 색상, 오늘 올리기 전. 고른 색(카멜)의 방은 먼저 3장만 선명하고 나머지는 흐린 칸. 올리거나 자정이 지나면 모두 펼쳐진다.
+const LOCK = { color: PEOPLE[ME].color, total: 64, open: Object.keys(PEOPLE).filter((k) => k !== ME && PEOPLE[k].color === PEOPLE[ME].color).slice(0, 3) };
+// Each person picked their own face presentation.
+const LOCK_FACE = { leo: { style: 'neck' }, noor: { style: 'behind' }, mara: { py: 0.3 } };
+// Color list: my three candidates (locked before I post, mine first), then the rest in an assumed "picked most today" order. No numbers.
+const PICK_ORDER = ['powder', 'butter', 'cobalt', 'coral', 'sage', 'cream', 'charcoal', 'terracotta', 'burgundy'];
+const myCandidates = [PEOPLE[ME].color, ...TODAY_CANDIDATES.filter((c) => c !== PEOPLE[ME].color)];
+const colorList = [...myCandidates, ...PICK_ORDER.filter((c) => !myCandidates.includes(c)), ...COLOR_ORDER.filter((c) => !myCandidates.includes(c) && !PICK_ORDER.includes(c))];
+const colorRow = (c) => {
+  const locked = myCandidates.includes(c);
+  const current = c === LOCK.color;
+  return `<button type="button" onClick="{{closeList}}" aria-label="${PAINT[c].name}${locked ? ' · 올리기 전이라 세 장만 먼저 보여요' : ''}"${current ? ' aria-current="true"' : ''} style="width: calc(100% - 12px); height: 48px; margin: 0 6px; box-sizing: border-box; padding: 0 8px 0 4px; border-radius: 10px; display: flex; align-items: center; gap: 4px; font-size: 15px; font-weight: ${current ? 600 : 500}; background: ${current ? '#F1F1EE' : 'transparent'}">${paint(c, 44, '', '')}<span>${PAINT[c].name}</span><span style="margin-left: auto; display: flex; align-items: center; gap: 8px">${locked ? icon('lock', 15, 1.8) : ''}<span style="width: 18px; display: flex">${current ? icon('check', 18, 2) : ''}</span></span></button>`;
+};
+const colorPanel = (top, maxH) => `<div id="color-list" role="group" aria-label="색 고르기" style="display: {{listDisplay}}; position: absolute; left: 16px; top: ${top}px; width: 236px; max-height: ${maxH}px; overflow-y: auto; box-sizing: border-box; padding: 6px 0; border-radius: 16px; background: #FFFFFF; box-shadow: inset 0 0 0 1px ${HAIR}, 0 10px 28px rgba(0, 0, 0, 0.14); scrollbar-width: none; z-index: 2">
+${colorList.slice(0, myCandidates.length).map(colorRow).join('\n')}
+<span aria-hidden="true" style="display: block; height: 1px; margin: 4px 14px; background: ${HAIR}"></span>
+${colorList.slice(myCandidates.length).map(colorRow).join('\n')}
+</div>`;
+const colorButton = (c) => `<button type="button" aria-expanded="{{listExpanded}}" aria-controls="color-list" onClick="{{toggleList}}" aria-label="색 고르기 · 지금 ${PAINT[c].name}" style="height: 48px; display: flex; align-items: center"><span style="height: 40px; padding: 0 10px 0 8px; border-radius: 20px; display: flex; align-items: center; gap: 4px; background: #FFFFFF; box-shadow: inset 0 0 0 1.5px ${INK}; font-size: 15px; font-weight: 600">${paint(c, 40, '', '')}<span>${PAINT[c].name}</span>${icon('lock', 15, 1.8)}<span style="display: flex; margin-left: 2px; transform: {{chevronTurn}}">${icon('down', 18, 2)}</span></span></button>`;
+// Blurred cells keep the grid's shape; no photo, name or face shows through.
+const blurCell = (i) => (it, x, y, w, h) => `<span style="position: absolute; left: ${x}px; top: ${y}px; width: ${w}px; height: ${h}px; background: ${PAINT[LOCK.color].hex}; opacity: ${0.32 + ((it * 5 + i * 3) % 4) * 0.08}"></span>`;
+const LK = { row: 48, top: 54 + 48 + 46 + 4 };
+LK.grid = LK.top + LK.row + 4;
+LK.blur = LK.grid + GRID.cell + GRID.gap;
+const lockedGrid = `<div style="position: absolute; left: 0; right: 0; top: ${LK.grid}px">
+${LOCK.open.map((k, i) => tile({ key: k, ...LOCK_FACE[k] }, GRID.x[i], 0, GRID.cols[i], GRID.cell)).join('\n')}
+</div>
+<section aria-label="${PAINT[LOCK.color].name} 사진 ${LOCK.total - LOCK.open.length}장 · 오늘의 캔버스를 올리면 펼쳐져요" style="position: absolute; left: 0; right: 0; top: ${LK.blur}px; height: ${852 - LK.blur}px; overflow: hidden">
+<div aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 0; filter: blur(1.5px)">
+${gridBlock([0, 1, 2, 3, 4], 0, true, blurCell(0))}
+${[0, 1, 2].map((i) => blurCell(1)(i + 5, GRID.x[i], GRID.block, GRID.cols[i], GRID.cell)).join('\n')}
+</div>
+<div style="position: absolute; left: 50%; top: 58px; transform: translateX(-50%); width: 300px; padding: 18px 18px 16px; box-sizing: border-box; border-radius: 22px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; background: rgba(249, 249, 251, 0.95); box-shadow: inset 0 0 0 1px ${HAIR}, 0 10px 28px rgba(0, 0, 0, 0.1)">
+${icon('lock', 20, 1.8)}
+<p style="margin: 2px 0 0; font-family: ${SERIF}; font-size: 22px; line-height: 1.2">올리면 함께 펼쳐집니다</p>
+<p style="margin: 0; font-size: 13px; line-height: 1.45; color: ${MUTED}">${PAINT[LOCK.color].name} ${LOCK.total - LOCK.open.length}장이 더 있어요.<br>자정이 지나면 모두 펼쳐져요.</p>
+<a href="CoverMake.dc.html" style="margin-top: 10px; height: 48px; padding: 0 22px; border-radius: 24px; display: flex; align-items: center; gap: 6px; background: ${INK}; color: ${PAPER}; font-size: 15px; font-weight: 600">${icon('plus', 18, 2)}<span>오늘의 캔버스 만들기</span></a>
+</div>
+</section>`;
+files.CoverStandLocked = page('표지 SNS 8 팔레트 · 색상 · 올리기 전', `<div style="${ROOT(`padding-top: 54px; display: flex; flex-direction: column; background: ${PAPER}; color: ${INK}`)}">
+${paletteHead}
+${paletteTabs('color')}
+<div style="flex-shrink: 0; height: ${LK.row}px; margin-top: 4px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px 0 16px">
+${colorButton(LOCK.color)}
+<span style="font-size: 13px; color: ${MUTED}">같은 색 ${LOCK.total}명 · 먼저 ${LOCK.open.length}장</span>
+</div>
+${lockedGrid}
+${colorPanel(LK.top + LK.row + 2, 6 + 3 * 48 + 9 + 7.5 * 48)}
+${capsule({ color: PEOPLE[ME].color, active: 'palette' })}
+</div>`, { logic: `const open = !!(this.state && this.state.list);
+vals.listDisplay = open ? 'block' : 'none';
+vals.listExpanded = open ? 'true' : 'false';
+vals.chevronTurn = open ? 'rotate(180deg)' : 'none';
+vals.toggleList = () => this.setState({ list: !open });
+vals.closeList = () => this.setState({ list: false });` });
 
-// C6 표지 만들기 · 얼굴 연출과 제호 색
-const MK = { W: 236, H: 350 };
+// C5 스케치북 · dana. 팔레트 격자에서 사람을 누르면 온다. 그 사람의 사진이 최신부터 세로로 이어진다.
+// Issue numbers rise only by posting, so they run without gaps (P04).
+const ISSUES = 38;
+const issueDate = (i) => { const d = new Date(Date.UTC(2026, 8, 6 - Math.floor(i * 1.6))); return `${d.getUTCMonth() + 1}. ${d.getUTCDate()}.`; };
+const SK = { H: 420 };
+const iconBtn = (name, label, attrs = '') => `<button type="button" aria-label="${label}"${attrs} style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center">${icon(name, 23)}</button>`;
+const sketchPost = ({ i, style = 'plain', py = 0.62, cap, wear }) => {
+  const key = 'dana';
+  const color = PEOPLE[key].color;
+  const img = style === 'neck' ? neckDown(key, 393, SK.H)
+    : `<span style="position: relative; display: block; width: 393px; height: ${SK.H}px; overflow: hidden; background: #EDEEEA">${cover(key, 393, SK.H, 0.58, py)}${style === 'paint' ? faceStroke(key, 393, SK.H, 0.58, py) : ''}</span>`;
+  return `<article style="padding-bottom: 18px">
+<div style="position: relative">${img}${wear ? `<span style="position: absolute; right: 10px; bottom: 4px">${wearLink(wear)}</span>` : ''}</div>
+<div style="height: 48px; display: flex; align-items: center; gap: 6px; padding: 0 6px 0 18px">
+<span style="font-family: ${MONO}; font-size: 12px; letter-spacing: 0.06em">Nº ${String(ISSUES - i).padStart(3, '0')} · ${issueDate(i)}</span>
+${paint(color, 44, '; margin-left: 4px', '')}
+<span style="font-size: 13px; color: ${MUTED}">${PAINT[color].name}</span>
+<span style="margin-left: auto; display: flex">${i === 0 ? iconBtn('heart', '좋아요', LIKE_ATTRS) : iconBtn('heartPlain', '좋아요')}${iconBtn('comment', '한 줄')}${iconBtn('bookmark', '저장')}</span>
+</div>
+<p style="margin: 0; padding: 0 18px; font-size: 15px; line-height: 1.45">${cap}</p>
+</article>`;
+};
+files.CoverShelf = page('표지 SNS 5 스케치북', `<div style="${ROOT(`padding-top: 54px; display: flex; flex-direction: column; background: ${PAPER}; color: ${INK}`)}">
+<header style="flex-shrink: 0; height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 18px 0 6px">
+<a href="CoverStand.dc.html" aria-label="팔레트로 돌아가기" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center">${icon('left', 24)}</a>
+<span style="font-family: ${MONO}; font-size: 12px; letter-spacing: 0.06em">ESEL · 스케치북</span>
+</header>
+<div style="flex-shrink: 0; padding: 4px 20px 0">
+<div style="display: flex; align-items: center; gap: 14px">
+${avatar('dana', 60)}
+<h1 style="margin: 0; font-family: ${SERIF}; font-style: italic; font-weight: 400; font-size: 76px; line-height: 0.85; letter-spacing: -0.03em; padding-bottom: 8px">dana</h1>
+<button type="button" style="margin-left: auto; height: 44px; padding: 0 22px; border-radius: 22px; background: ${INK}; color: ${PAPER}; font-size: 15px; font-weight: 600">구독</button>
+</div>
+<p style="margin: 10px 0 0; font-size: 15px; line-height: 1.45">하늘색 셔츠를 제일 자주 입어요.</p>
+<div style="height: 36px; display: flex; align-items: center; gap: 4px; font-size: 14px">${paint('powder', 44, '', '')}<span>오늘은 파우더 블루</span><span style="color: ${MUTED}">· 캔버스 ${ISSUES}장</span></div>
+</div>
+<span aria-hidden="true" style="flex-shrink: 0; height: 1px; margin: 10px 0 0; background: ${HAIR}"></span>
+<main style="flex: 1 1 0; min-height: 0; overflow: hidden">
+${sketchPost({ i: 0, cap: PEOPLE.dana.cap, wear: WEAR.dana })}
+${sketchPost({ i: 1, style: 'paint', py: 0.55, cap: '같은 셔츠, 오늘은 물감 한 획.' })}
+</main>
+${capsule({ color: PEOPLE[ME].color, active: 'palette' })}
+</div>`);
+
+// C6 오늘의 캔버스 만들기 · 자르기 하나(그대로 · 사인 뒤로 · 목 아래) + 물감 한 획 켜기·끄기, 사인 색, 착용 정보
+const MK = { W: 200, H: 296, top: 108 };
 const me = PEOPLE[ME];
+const zoom = [MK.W, MK.H, 1.9, me.fx, me.fy, MK.W / 2, MK.H * 0.21];
 const mkFace = `<span style="position: absolute; left: 0; top: 0; display: {{vPlain}}">${cover(ME, MK.W, MK.H, 0.5, 0.5)}</span>
-<span style="position: absolute; left: 0; top: 0; width: ${MK.W}px; height: ${MK.H}px; display: {{vPaint}}">${cover(ME, MK.W, MK.H, 0.5, 0.5)}${faceStroke(ME, MK.W, MK.H, 0.5, 0.5)}</span>
-<span style="position: absolute; left: 0; top: 0; display: {{vZoom}}">${crop(ME, MK.W, MK.H, 1.9, me.fx, me.fy, MK.W / 2, MK.H * 0.17)}</span>
+<span style="position: absolute; left: 0; top: 0; display: {{vZoom}}">${crop(ME, ...zoom)}</span>
 <span style="position: absolute; left: 0; top: 0; display: {{vNeck}}">${neckDown(ME, MK.W, MK.H)}</span>
+<span aria-hidden="true" style="position: absolute; left: 0; top: 0; width: ${MK.W}px; height: ${MK.H}px; display: {{vPlainPaint}}">${faceStroke(ME, MK.W, MK.H, 0.5, 0.5)}</span>
+<span aria-hidden="true" style="position: absolute; left: 0; top: 0; width: ${MK.W}px; height: ${MK.H}px; display: {{vZoomPaint}}">${cropStroke(ME, ...zoom)}</span>
 <span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 0; height: 45%; background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0))"></span>`;
-const seg = (label, key, hole) => `<button type="button" aria-pressed="{{${hole}Pressed}}" onClick="{{pick${hole}}}" style="height: 44px; flex: 1 1 0; display: flex; align-items: center"><span style="width: 100%; height: 36px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; background: {{${hole}Bg}}; color: {{${hole}Fg}}; box-shadow: inset 0 0 0 1.5px ${INK}">${label}</span></button>`;
-files.CoverMake = page('표지 SNS 6 표지 만들기', `<div style="${ROOT(`padding-top: 54px; background: ${PAPER}; color: ${INK}`)}">
+const seg = (label, hole, extra = '') => `<button type="button" aria-pressed="{{${hole}Pressed}}" onClick="{{pick${hole}}}"${extra} style="height: 44px; flex: 1 1 0; display: flex; align-items: center"><span style="width: 100%; height: 36px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; background: {{${hole}Bg}}; color: {{${hole}Fg}}; box-shadow: inset 0 0 0 1.5px ${INK}">${label}</span></button>`;
+// Garments added so far: the one in today's color carries its paint and color name; brand is optional.
+const MK_GARMENTS = [{ label: '카멜 코트', color: me.color }, { label: '페도라' }, { label: '니트' }];
+const garmentChip = (g) => `<button type="button" aria-label="${g.label}${g.color ? ' · 오늘의 색' : ''} 고치기" style="height: 44px; flex-shrink: 0; display: flex; align-items: center"><span style="height: 38px; padding: 0 ${g.color ? '14px 0 6px' : '14px'}; border-radius: 19px; display: flex; align-items: center; gap: 2px; background: #FFFFFF; box-shadow: inset 0 0 0 1px ${HAIR}; font-size: 14px; font-weight: 500; white-space: nowrap">${g.color ? paint(g.color, 36, '', '') : ''}<span>${g.label}</span></span></button>`;
+const addChip = `<button type="button" aria-label="착용 정보 더하기" style="width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center"><span style="width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1.5px ${INK}">${icon('plus', 18, 2)}</span></button>`;
+files.CoverMake = page('표지 SNS 6 오늘의 캔버스 만들기', `<div style="${ROOT(`padding-top: 54px; background: ${PAPER}; color: ${INK}`)}">
 <header style="height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 18px 0 6px">
 <a href="CoverFeed.dc.html" aria-label="닫기" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center">${icon('x', 24)}</a>
-<h1 style="margin: 0; font-size: 16px; font-weight: 600">오늘 호 만들기</h1>
+<h1 style="margin: 0; font-size: 16px; font-weight: 600">오늘의 캔버스 만들기</h1>
 <span style="font-family: ${SERIF}; font-style: italic; font-size: 18px">Nº 012</span>
 </header>
-<div style="position: absolute; left: ${(393 - MK.W) / 2}px; top: 104px; width: ${MK.W}px; height: ${MK.H}px; overflow: hidden; background: #EDEEEA; color: {{mastColor}}; box-shadow: 0 14px 36px rgba(41, 42, 39, 0.2)">
+<div style="position: absolute; left: ${(393 - MK.W) / 2}px; top: ${MK.top}px; width: ${MK.W}px; height: ${MK.H}px; overflow: hidden; background: #EDEEEA; color: {{mastColor}}; box-shadow: 0 14px 36px rgba(41, 42, 39, 0.2)">
 ${mkFace}
 <span aria-hidden="true" style="position: absolute; left: 10px; right: 10px; top: 8px; display: flex; justify-content: space-between; font-family: ${MONO}; font-size: 8px; letter-spacing: 0.06em"><span>ESEL</span><span>Nº 012 · 9. 6.</span></span>
-<span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 18px; text-align: center; font-family: ${SERIF}; font-size: ${mastSize(ME, MK.W, 128)}px; line-height: 0.9; letter-spacing: -0.05em; padding-right: 6px">${ME}</span>
+<span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 18px; text-align: center; font-family: ${SERIF}; font-size: ${mastSize(ME, MK.W, 128)}px; line-height: 0.9; letter-spacing: -0.05em; padding-right: 5px">${ME}</span>
 <span aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: 0; height: 40%; background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5))"></span>
-<span style="position: absolute; left: 14px; bottom: 14px; color: #FFFFFF; font-size: 12px; font-weight: 500">${me.cap}</span>
+<span style="position: absolute; left: 12px; bottom: 12px; color: #FFFFFF; font-size: 11px; font-weight: 500">${me.cap}</span>
 </div>
-<div style="position: absolute; left: 20px; right: 20px; top: 466px; display: flex; flex-direction: column">
-<span style="font-size: 12px; color: ${MUTED}">얼굴</span>
-<div role="group" aria-label="얼굴 연출" style="display: flex; gap: 6px; margin-top: 2px">
-${seg('그대로', 'plain', 'Plain')}
-${seg('물감', 'paint', 'Paint')}
-${seg('제호 뒤', 'zoom', 'Zoom')}
-${seg('목 아래', 'neck', 'Neck')}
+<div style="position: absolute; left: 20px; right: 20px; top: ${MK.top + MK.H + 10}px; display: flex; flex-direction: column">
+<span style="font-size: 12px; line-height: 16px; color: ${MUTED}">얼굴 · 자르기</span>
+<div role="group" aria-label="자르기" style="display: flex; gap: 6px">
+${seg('그대로', 'Plain')}
+${seg('사인 뒤로', 'Zoom')}
+${seg('목 아래', 'Neck')}
 </div>
-<div style="display: flex; align-items: center; gap: 6px; margin-top: 10px">
-<span style="font-size: 14px; margin-right: 6px">제호 색</span>
-<div role="group" aria-label="제호 색" style="display: flex; gap: 6px; width: 140px">
-${seg('먹', 'ink', 'Ink')}
-${seg('흰', 'white', 'White')}
+<div style="height: 44px; display: flex; align-items: center; gap: 2px; opacity: {{paintRowOpacity}}">
+<span style="font-size: 14px; margin-right: 2px">물감 한 획</span>${paint(me.color, 40, '', '')}<span style="font-size: 13px; color: ${MUTED}">${PAINT[me.color].name}</span>
+<div role="group" aria-label="물감 한 획" style="margin-left: auto; display: flex; gap: 6px; width: 140px">
+${seg('끔', 'Off', ' aria-disabled="{{paintDisabled}}"')}
+${seg('켬', 'On', ' aria-disabled="{{paintDisabled}}"')}
 </div>
-<span style="margin-left: auto; display: flex; align-items: center; gap: 4px; font-size: 14px">${paint(me.color, 52, '', '')}<span>${PAINT[me.color].name}</span></span>
 </div>
-<label for="cover-line" style="margin-top: 12px; font-size: 12px; line-height: 16px; color: ${MUTED}">표지 문구</label>
-<input id="cover-line" type="text" value="${me.cap}" style="height: 44px; box-sizing: border-box; padding: 0; border: 0; border-bottom: 1.5px solid ${INK}; border-radius: 0; background: transparent; font-size: 17px">
+<p style="margin: 0; font-size: 12px; line-height: 18px; color: ${MUTED}; display: {{neckNote}}">목 아래는 얼굴이 없어 물감을 쓰지 않아요.</p>
+<div style="height: 44px; display: flex; align-items: center; gap: 6px">
+<span style="font-size: 14px">사인 색</span>
+<div role="group" aria-label="사인 색" style="margin-left: auto; display: flex; gap: 6px; width: 140px">
+${seg('먹', 'Ink')}
+${seg('흰', 'White')}
 </div>
-<a href="CoverFeed.dc.html" style="position: absolute; left: 20px; right: 20px; bottom: 46px; height: 56px; border-radius: 28px; display: flex; align-items: center; justify-content: center; background: ${INK}; color: ${PAPER}; font-size: 16px; font-weight: 600">발행</a>
-</div>`, { logic: `const face = (this.state && this.state.face) || 'plain';
-const white = !(this.state && this.state.white === false);
-const on = (k) => face === k;
+</div>
+<span style="margin-top: 8px; font-size: 12px; line-height: 16px; color: ${MUTED}">착용 정보 · 브랜드는 쓰지 않아도 돼요</span>
+<div style="display: flex; align-items: center; gap: 6px">
+${MK_GARMENTS.map(garmentChip).join('\n')}
+${addChip}
+</div>
+<label for="cover-line" style="margin-top: 8px; font-size: 12px; line-height: 16px; color: ${MUTED}">표지 문구</label>
+<input id="cover-line" type="text" value="${me.cap}" style="height: 42px; box-sizing: border-box; padding: 0; border: 0; border-bottom: 1.5px solid ${INK}; border-radius: 0; background: transparent; font-size: 17px">
+</div>
+<a href="CoverFeed.dc.html" style="position: absolute; left: 20px; right: 20px; bottom: 40px; height: 56px; border-radius: 28px; display: flex; align-items: center; justify-content: center; background: ${INK}; color: ${PAPER}; font-size: 16px; font-weight: 600">올리기</a>
+</div>`, { logic: faceLogic({ crop: 'plain', paint: false }) });
+
+// Face presentation shared with J6: one crop (plain · behind the sign · neck down) plus the paint stroke on or off.
+// Neck down has no face, so the stroke is switched off there.
+export function faceLogic(defaults) {
+  return `const st = this.state || {};
+const cropK = st.crop || '${defaults.crop}';
+const neck = cropK === 'neck';
+const painted = !neck && (st.paint != null ? !!st.paint : ${defaults.paint});
+const white = !(st.white === false);
 const show = (b) => (b ? 'block' : 'none');
-vals.vPlain = show(on('plain'));
-vals.vPaint = show(on('paint'));
-vals.vZoom = show(on('zoom'));
-vals.vNeck = show(on('neck'));
+vals.vPlain = show(cropK === 'plain');
+vals.vZoom = show(cropK === 'zoom');
+vals.vNeck = show(neck);
+vals.vPlainPaint = show(cropK === 'plain' && painted);
+vals.vZoomPaint = show(cropK === 'zoom' && painted);
 const segVals = (name, active, pick) => {
 vals[name + 'Pressed'] = active ? 'true' : 'false';
 vals[name + 'Bg'] = active ? '${INK}' : 'transparent';
 vals[name + 'Fg'] = active ? '${PAPER}' : '${INK}';
 vals['pick' + name] = pick;
 };
-segVals('Plain', on('plain'), () => this.setState({ face: 'plain' }));
-segVals('Paint', on('paint'), () => this.setState({ face: 'paint' }));
-segVals('Zoom', on('zoom'), () => this.setState({ face: 'zoom' }));
-segVals('Neck', on('neck'), () => this.setState({ face: 'neck' }));
+segVals('Plain', cropK === 'plain', () => this.setState({ crop: 'plain' }));
+segVals('Zoom', cropK === 'zoom', () => this.setState({ crop: 'zoom' }));
+segVals('Neck', neck, () => this.setState({ crop: 'neck' }));
+segVals('Off', !painted, () => { if (!neck) this.setState({ paint: false }); });
+segVals('On', painted, () => { if (!neck) this.setState({ paint: true }); });
 segVals('Ink', !white, () => this.setState({ white: false }));
 segVals('White', white, () => this.setState({ white: true }));
-vals.mastColor = white ? '#FFFFFF' : '${INK}';` });
+vals.paintDisabled = neck ? 'true' : 'false';
+vals.paintRowOpacity = neck ? '0.38' : '1';
+vals.neckNote = neck ? 'block' : 'none';
+vals.mastColor = white ? '#FFFFFF' : '${INK}';`;
+}
 
 // C7 스크롤 시안 · 첫 장만 표지
 const inner = ({ key, no, style = 'plain', px = 0.5, py = 0.3 }) => {
@@ -300,12 +410,12 @@ const inner = ({ key, no, style = 'plain', px = 0.5, py = 0.3 }) => {
   else img = `<span style="position: relative; display: block; width: 393px; height: 500px; overflow: hidden; background: #EDEEEA">${cover(key, 393, 500, px, py)}${style === 'paint' ? faceStroke(key, 393, 500, px, py) : ''}</span>`;
   return `<article style="padding-bottom: 22px">
 <div style="display: flex; align-items: baseline; justify-content: space-between; padding: 16px 18px 8px; font-family: ${SERIF}; font-style: italic; font-size: 16px"><span>${no}</span><span>${p.time}</span></div>
-${img}
+<div style="position: relative">${img}${WEAR[key] ? `<span style="position: absolute; right: 10px; bottom: 4px">${wearLink(WEAR[key])}</span>` : ''}</div>
 <div style="display: flex; align-items: center; gap: 8px; padding: 4px 6px 0 18px">
 <span style="font-size: 18px; font-weight: 600">${key}</span>
 ${paint(p.color, 54, '', '')}
 <span style="font-size: 13px; color: ${MUTED}">${PAINT[p.color].name}</span>
-<span style="margin-left: auto; display: flex">${stat('heartPlain', '좋아요', '')}${stat('bookmark', '스크랩', '')}</span>
+<span style="margin-left: auto; display: flex">${stat('heartPlain', '좋아요', '')}${stat('bookmark', '저장', '')}</span>
 </div>
 <p style="margin: 0; padding: 0 18px; font-size: 15px; line-height: 1.45">${p.cap}</p>
 </article>`;
@@ -318,10 +428,10 @@ const innerPages = [
   inner({ key: 'omar', no: '06', style: 'neck' }),
   inner({ key: 'riva', no: '07', py: 0.25 }),
 ].join('\n');
-const scrollCover = ({ withTabs = true } = {}) => `<section aria-label="오늘의 표지" style="position: relative; height: 800px; overflow: hidden; background: #C9D3DC">
+const scrollCover = ({ home = true } = {}) => `<section aria-label="오늘의 표지" style="position: relative; height: 800px; overflow: hidden; background: #C9D3DC">
 ${cover('dana', 393, 800, 0.58, 0.5, '; position: absolute; left: 0; top: 0')}
 ${shade(460)}
-${topBar(INK, { withTabs })}
+${topBar(INK, { home })}
 <h1 style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); margin: 0">Esel 오늘의 표지</h1>
 ${coverText('dana', { same: 187, bottom: 52 })}
 </section>`;
@@ -333,9 +443,9 @@ ${innerPages}
 <div aria-hidden="true" style="height: 110px"></div>
 </div>
 ${mastLayer}
-${capsule({ color: PEOPLE[ME].color })}
+${capsule({ color: PEOPLE[ME].color, active: 'home' })}
 </div>`, sc);
 
 for (const [name, html] of Object.entries(files)) fs.writeFileSync(path.join(OUT, `${name}.dc.html`), html);
-export { scrollCover, innerPages, inner, coverText, topBar, shade, miniCover };
+export { scrollCover, innerPages, inner, coverText, topBar, shade, miniCover, GRID, gridBlock, tile, tileImg, paletteTabs, colorRow, colorList, myCandidates, GARMENTS, garmentRow, WEAR };
 console.log('ok', Object.entries(files).map(([n, h]) => `${n}:${h.length}`).join(' '));

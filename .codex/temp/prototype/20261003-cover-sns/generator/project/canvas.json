@@ -97,7 +97,7 @@
       "is_interactive": true,
       "page": "cover",
       "radius": 28,
-      "title": "C1 표지 피드",
+      "title": "C1 홈 피드",
       "w": 393,
       "x": 0,
       "y": 0
@@ -107,7 +107,7 @@
       "is_interactive": true,
       "page": "cover",
       "radius": 28,
-      "title": "C6 표지 만들기",
+      "title": "C6 오늘의 캔버스 만들기",
       "w": 393,
       "x": 2365,
       "y": 0
@@ -117,7 +117,7 @@
       "is_interactive": true,
       "page": "cover",
       "radius": 28,
-      "title": "C2 다음 표지 · 어두운 사진",
+      "title": "C2 홈 · 다음 표지 · 어두운 사진",
       "w": 393,
       "x": 473,
       "y": 0
@@ -137,7 +137,7 @@
       "is_interactive": true,
       "page": "cover",
       "radius": 28,
-      "title": "C5 서가 · 표지 / 책등",
+      "title": "C5 스케치북 · dana",
       "w": 393,
       "x": 1892,
       "y": 0
@@ -147,7 +147,7 @@
       "is_interactive": true,
       "page": "cover",
       "radius": 28,
-      "title": "C3 펼침면",
+      "title": "C3 자세히 보기 · 착용 정보",
       "w": 393,
       "x": 946,
       "y": 0
@@ -157,7 +157,7 @@
       "is_interactive": true,
       "page": "cover",
       "radius": 28,
-      "title": "C4 가판대",
+      "title": "C4 팔레트 · 추천",
       "w": 393,
       "x": 1419,
       "y": 0
@@ -456,7 +456,7 @@
       "w": 393,
       "h": 852,
       "page": "join",
-      "title": "J3 창간호의 색",
+      "title": "J3 첫 캔버스의 색",
       "is_interactive": true,
       "radius": 28
     },
@@ -476,7 +476,7 @@
       "w": 393,
       "h": 852,
       "page": "join",
-      "title": "J5 제호 정하기",
+      "title": "J5 사인 정하기",
       "is_interactive": true,
       "radius": 28
     },
@@ -496,7 +496,7 @@
       "w": 393,
       "h": 852,
       "page": "join",
-      "title": "J7 창간호",
+      "title": "J7 첫 캔버스",
       "is_interactive": true,
       "radius": 28
     },
@@ -522,7 +522,7 @@
       "x": 0,
       "y": 0,
       "w": 1440,
-      "h": 1770,
+      "h": 2930,
       "page": "components",
       "title": "02 컴포넌트",
       "radius": 0
@@ -541,7 +541,7 @@
       "is_interactive": true,
       "page": "cover",
       "radius": 28,
-      "title": "C8 같은 색 · 발행 전",
+      "title": "C8 팔레트 · 색상 · 올리기 전",
       "w": 393,
       "x": 473,
       "y": 1240
@@ -579,7 +579,7 @@
       "kind": "title1",
       "maxW": 1812,
       "page": "cover",
-      "text": "스크롤 시안 · 같은 색 발행 전 — C7은 Play로 열어 아래로 내리고 다시 올려 보기",
+      "text": "스크롤 시안 · 올리기 전 색상 탭 — C7은 Play로 열어 아래로 내리고 다시 올려 보기, C8은 카멜 버튼을 눌러 색 목록 열기",
       "w": 240,
       "x": 0,
       "y": 980
@@ -588,7 +588,7 @@
       "kind": "title1",
       "maxW": 2758,
       "page": "cover",
-      "text": "표지를 SNS로 — 넘기기 · 펼치기 · 가판대 · 서가 · 만들기",
+      "text": "홈 · 자세히 보기 · 팔레트 · 스케치북 · 만들기 — 구조는 SNS, 화면은 잡지, 단어는 미술 도구",
       "w": 240,
       "x": 0,
       "y": -260
@@ -641,7 +641,7 @@
     "join-title": {
       "x": 0,
       "y": -260,
-      "text": "로그인 · 창간 — 표지를 읽다가, 내 잡지를 만든다",
+      "text": "로그인 · 첫 캔버스 — 표지를 보다가, 내 스케치북을 만든다",
       "kind": "title1",
       "maxW": 1812,
       "page": "join"
@@ -723,7 +723,7 @@
     },
     {
       "id": "join",
-      "name": "03 화면 · 로그인 · 창간"
+      "name": "03 화면 · 로그인 · 첫 캔버스"
     },
     {
       "id": "motion",

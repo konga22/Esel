@@ -62,12 +62,19 @@ export const PEOPLE = {
 export const ME = 'selin';
 
 // Place a focus point of the photo (fractions) at (tx, ty) inside a W×H box, with the photo k× the box width.
-export function crop(key, W, H, k, focusX, focusY, tx, ty, { extra = '', alt, filter = '' } = {}) {
+function cropBox(key, W, H, k, focusX, focusY, tx, ty) {
   const p = PEOPLE[key];
   const dw = Math.round(W * k);
   const dh = Math.round(dw * p.r);
   const left = Math.round(Math.min(0, Math.max(W - dw, tx - focusX * dw)));
   const top = Math.round(Math.min(0, Math.max(H - dh, ty - focusY * dh)));
+  return { dw, dh, left, top, fx: left + p.fx * dw, fy: top + p.fy * dh, fwPx: p.fw * dw };
+}
+// Where the face lands after crop(): centre and width in px.
+export const cropFace = cropBox;
+export function crop(key, W, H, k, focusX, focusY, tx, ty, { extra = '', alt, filter = '' } = {}) {
+  const p = PEOPLE[key];
+  const { dw, dh, left, top } = cropBox(key, W, H, k, focusX, focusY, tx, ty);
   return `<span style="position: relative; display: block; width: ${W}px; height: ${H}px; overflow: hidden; background: #EDEEEA${extra}"><img src="${B(p.id)}" alt="${alt ?? p.alt}" style="position: absolute; left: ${left}px; top: ${top}px; width: ${dw}px; height: ${dh}px; max-width: none${filter ? `; filter: ${filter}` : ''}"></span>`;
 }
 
@@ -88,13 +95,15 @@ const pct = (v) => `${Math.round(v * 100)}%`;
 export const photo = (key, style, alt) => `<img src="${B(PEOPLE[key].id)}" alt="${alt ?? PEOPLE[key].alt}" style="${style}">`;
 export const cover = (key, W, H, px = 0.5, py = 0.5, extra = '', alt) => photo(key, `display: block; width: ${W}px; height: ${H}px; object-fit: cover; object-position: ${pct(px)} ${pct(py)}${extra}`, alt);
 
-// An acrylic stroke laid across the eyes of a photo shown in a W×H cover box.
-export function faceStroke(key, W, H, px = 0.5, py = 0.5, rot = -10) {
-  const f = fit(key, W, H, px, py);
+// An acrylic stroke laid across the eyes of a face at (fx, fy) with face width fwPx, in the person's own color.
+const strokeAt = (color, f, rot) => {
   const pw = Math.round(f.fwPx * 2.15);
-  const color = PEOPLE[key].color;
   return `<img src="${B(PAINT[color].id)}" alt="" style="position: absolute; left: ${Math.round(f.fx - pw / 2)}px; top: ${Math.round(f.fy - f.fwPx * 0.12 - pw / 4)}px; width: ${pw}px; height: ${Math.round(pw / 2)}px; max-width: none; transform: rotate(${rot}deg); pointer-events: none">`;
-}
+};
+// The stroke on a photo shown in a W×H cover box.
+export const faceStroke = (key, W, H, px = 0.5, py = 0.5, rot = -10) => strokeAt(PEOPLE[key].color, fit(key, W, H, px, py), rot);
+// The stroke on a photo placed with crop() (the "behind the sign" zoom can also carry the stroke).
+export const cropStroke = (key, W, H, k, focusX, focusY, tx, ty, rot = -10) => strokeAt(PEOPLE[key].color, cropBox(key, W, H, k, focusX, focusY, tx, ty), rot);
 // The same photo cropped so the frame starts just under the chin.
 // Enlarges the photo when needed so that chin-to-bottom alone fills the box.
 export function neckDown(key, W, H, extra = '') {
@@ -136,6 +145,8 @@ const PATHS = {
   apple: '<path d="M15.6 3.5c.1 1.2-.4 2.3-1.1 3.1-.8.8-1.9 1.4-3 1.3-.1-1.1.4-2.3 1.1-3 .8-.8 2-1.4 3-1.4z" fill="currentColor" stroke="none"></path><path d="M19.6 16.9c-.5 1.1-.8 1.6-1.4 2.6-.9 1.4-2.2 3.1-3.8 3.1-1.4 0-1.8-.9-3.7-.9s-2.3.9-3.7.9c-1.6 0-2.8-1.6-3.7-3-2.5-3.9-2.8-8.4-1.2-10.8 1.1-1.7 2.9-2.7 4.6-2.7s2.8.9 4.2.9c1.4 0 2.2-.9 4.2-.9 1.5 0 3.1.8 4.2 2.2-3.7 2-3.1 7.3.3 8.6z" fill="currentColor" stroke="none"></path>',
   mail: '<rect x="3.5" y="5.5" width="17" height="13" rx="2"></rect><path d="M4 7l8 6 8-6"></path>',
   camera: '<path d="M4 8h3.2l1.5-2.5h6.6L16.8 8H20v11H4z"></path><circle cx="12" cy="13.2" r="3.4"></circle>',
+  home: '<path d="M4.5 10.4L12 4.3l7.5 6.1V19.5h-5v-5h-5v5h-5z"></path>',
+  hanger: '<path d="M10 6.2a2 2 0 1 1 2.6 1.9c-.4.1-.6.5-.6.9v.8"></path><path d="M12 9.8L3.8 15.6c-.6.4-.3 1.4.4 1.4h15.6c.7 0 1-.9.4-1.4z"></path>',
   lock: '<rect x="5.5" y="10.5" width="13" height="9.5" rx="1.5"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"></path>',
 };
 export const icon = (name, size = 24, sw = 1.7) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${PATHS[name]}</svg>`;
@@ -148,14 +159,23 @@ export const pill = (label, fg, extra = '') => `<span style="height: 32px; paddi
 // The masthead: the brand name set huge across the top of a cover.
 export const masthead = (text, color, { size = 200, top = 80, track = -0.05 } = {}) => `<div aria-hidden="true" style="position: absolute; left: 0; right: 0; top: ${top}px; text-align: center; font-family: ${SERIF}; font-size: ${size}px; line-height: 0.9; letter-spacing: ${track}em; padding-right: ${Math.round(-track * size)}px; color: ${color}; white-space: nowrap">${text}</div>`;
 
-// Floating glass capsule: today's paint, make a cover, my magazine.
-export function capsule({ color = 'powder', me = ME } = {}) {
-  return `<nav aria-label="주요 화면" class="esel-glass" style="position: absolute; left: 50%; bottom: 34px; width: 196px; height: 60px; margin-left: -98px; box-sizing: border-box; padding: 0 6px; border-radius: 30px; display: flex; align-items: center; justify-content: space-between; color: ${INK}">
-<a href="CoverStand.dc.html" aria-label="오늘의 색 가판대" style="width: 60px; height: 48px; display: flex; align-items: center; justify-content: center">${paint(color, 52, '', '')}</a>
-<a href="CoverMake.dc.html" aria-label="표지 만들기" style="width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: ${INK}; color: ${PAPER}">${icon('plus', 22, 2)}</a>
-<a href="CoverShelf.dc.html" aria-label="내 잡지" style="width: 60px; height: 48px; display: flex; align-items: center; justify-content: center">${avatar(me, 34)}</a>
+// Floating glass capsule, four slots: home, palette (my paint of the day), make (+), my sketchbook (my avatar).
+// `active` marks the screen in view with a small dot under its icon; making a canvas is a modal step and never marked.
+export const CAPSULE = { w: 260, h: 60, slot: 62 };
+export function capsule({ color = 'powder', me = ME, active = null, bottom = 34, solid = false } = {}) {
+  const slot = (key, href, label, inner) => `<a href="${href}" aria-label="${label}"${active === key ? ' aria-current="page"' : ''} style="position: relative; width: ${CAPSULE.slot}px; height: 48px; box-sizing: border-box; padding-bottom: 6px; display: flex; align-items: center; justify-content: center">${inner}<span aria-hidden="true" style="position: absolute; left: 50%; bottom: 1px; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: ${active === key ? INK : 'transparent'}"></span></a>`;
+  const skin = solid ? `background: ${PAPER}; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14)` : '';
+  return `<nav aria-label="주요 화면"${solid ? '' : ' class="esel-glass"'} style="position: absolute; left: 50%; bottom: ${bottom}px; width: ${CAPSULE.w}px; height: ${CAPSULE.h}px; margin-left: -${CAPSULE.w / 2}px; box-sizing: border-box; padding: 0 6px; border-radius: 30px; display: flex; align-items: center; justify-content: space-between; color: ${INK}${skin ? `; ${skin}` : ''}">
+${slot('home', 'CoverFeed.dc.html', '홈', icon('home', 24, 1.7))}
+${slot('palette', 'CoverStand.dc.html', '팔레트', paint(color, 52, '', ''))}
+<span style="width: ${CAPSULE.slot}px; display: flex; justify-content: center"><a href="CoverMake.dc.html" aria-label="오늘의 캔버스 만들기" style="width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: ${INK}; color: ${PAPER}">${icon('plus', 22, 2)}</a></span>
+${slot('me', 'CoverShelf.dc.html', '내 스케치북', avatar(me, 34))}
 </nav>`;
 }
+
+// Garment info on a photo: white tag dots where each piece is, and a small pill with how many pieces were tagged.
+export const tagDot = (x, y) => `<span aria-hidden="true" style="position: absolute; left: ${Math.round(x - 6)}px; top: ${Math.round(y - 6)}px; width: 12px; height: 12px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 0 3px rgba(20, 20, 18, 0.22), 0 1px 4px rgba(20, 20, 18, 0.35)"></span>`;
+export const wearPill = (n) => `<span style="height: 28px; padding: 0 10px 0 8px; border-radius: 14px; display: inline-flex; align-items: center; gap: 4px; background: rgba(20, 20, 18, 0.58); color: #FFFFFF; font-size: 12px; font-weight: 600; white-space: nowrap">${icon('hanger', 16, 1.6)}<span>착용 ${n}</span></span>`;
 
 const GLASS_CSS = `@font-face{font-family:'Esel Dot';src:local('AppleSDGothicNeo-Regular'),local('Apple SD Gothic Neo'),local('Pretendard-Regular'),local('Pretendard Regular'),local('NotoSansKR-Regular'),local('Noto Sans KR'),local('Malgun Gothic');unicode-range:U+00B7}
 .esel-glass{background:rgba(249,249,251,0.58);-webkit-backdrop-filter:blur(22px) saturate(1.6);backdrop-filter:blur(22px) saturate(1.6);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.6),0 10px 28px rgba(0,0,0,0.14)}
@@ -182,7 +202,7 @@ export function page(title, body, { logic = '', methods = '', w = 393, h = 852, 
 <helmet>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&amp;family=DM+Mono:wght@400;500&amp;family=Instrument+Sans:wght@400;500;600&amp;family=Nanum+Myeongjo:wght@400;700&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap" rel="stylesheet">
 <style>
-body{margin:0}
+body{margin:0;word-break:keep-all}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:inherit}
 input{font:inherit;color:inherit}
 a{color:inherit;text-decoration:none}a:hover{color:inherit}

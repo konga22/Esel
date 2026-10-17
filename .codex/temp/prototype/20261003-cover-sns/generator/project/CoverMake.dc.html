@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<title>표지 SNS 6 표지 만들기</title>
+<title>표지 SNS 6 오늘의 캔버스 만들기</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -10,7 +10,7 @@
 <helmet>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&amp;family=DM+Mono:wght@400;500&amp;family=Instrument+Sans:wght@400;500;600&amp;family=Nanum+Myeongjo:wght@400;700&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap" rel="stylesheet">
 <style>
-body{margin:0}
+body{margin:0;word-break:keep-all}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:inherit}
 input{font:inherit;color:inherit}
 a{color:inherit;text-decoration:none}a:hover{color:inherit}
@@ -28,40 +28,54 @@ button:active,a:active{transform:scale(0.97)}
 <div style="width: 393px; height: 852px; box-sizing: border-box; position: relative; overflow: hidden; font-family: 'Esel Dot', 'Instrument Sans', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; padding-top: 54px; background: #F9F9FB; color: #292A27">
 <header style="height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 18px 0 6px">
 <a href="CoverFeed.dc.html" aria-label="닫기" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12"></path><path d="M18 6L6 18"></path></svg></a>
-<h1 style="margin: 0; font-size: 16px; font-weight: 600">오늘 호 만들기</h1>
+<h1 style="margin: 0; font-size: 16px; font-weight: 600">오늘의 캔버스 만들기</h1>
 <span style="font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-style: italic; font-size: 18px">Nº 012</span>
 </header>
-<div style="position: absolute; left: 78.5px; top: 104px; width: 236px; height: 350px; overflow: hidden; background: #EDEEEA; color: {{mastColor}}; box-shadow: 0 14px 36px rgba(41, 42, 39, 0.2)">
-<span style="position: absolute; left: 0; top: 0; display: {{vPlain}}"><img src="/_blob/0d2c5aca03c0e210cd888e2094c78869" alt="카멜 코트와 페도라 착장" style="display: block; width: 236px; height: 350px; object-fit: cover; object-position: 50% 50%"></span>
-<span style="position: absolute; left: 0; top: 0; width: 236px; height: 350px; display: {{vPaint}}"><img src="/_blob/0d2c5aca03c0e210cd888e2094c78869" alt="카멜 코트와 페도라 착장" style="display: block; width: 236px; height: 350px; object-fit: cover; object-position: 50% 50%"><img src="/_blob/b6075b3235f77454183c94c49f6da37a" alt="" style="position: absolute; left: 84px; top: 122px; width: 81px; height: 41px; max-width: none; transform: rotate(-10deg); pointer-events: none"></span>
-<span style="position: absolute; left: 0; top: 0; display: {{vZoom}}"><span style="position: relative; display: block; width: 236px; height: 350px; overflow: hidden; background: #EDEEEA"><img src="/_blob/0d2c5aca03c0e210cd888e2094c78869" alt="카멜 코트와 페도라 착장" style="position: absolute; left: -118px; top: -223px; width: 448px; height: 672px; max-width: none"></span></span>
-<span style="position: absolute; left: 0; top: 0; display: {{vNeck}}"><span style="position: relative; display: block; width: 236px; height: 350px; overflow: hidden; background: #EDEEEA"><img src="/_blob/0d2c5aca03c0e210cd888e2094c78869" alt="카멜 코트와 페도라 착장, 얼굴 아래로 자른 구도" style="position: absolute; left: -131px; top: -358px; width: 473px; height: 710px; max-width: none"></span></span>
+<div style="position: absolute; left: 96.5px; top: 108px; width: 200px; height: 296px; overflow: hidden; background: #EDEEEA; color: {{mastColor}}; box-shadow: 0 14px 36px rgba(41, 42, 39, 0.2)">
+<span style="position: absolute; left: 0; top: 0; display: {{vPlain}}"><img src="/_blob/0d2c5aca03c0e210cd888e2094c78869" alt="카멜 코트와 페도라 착장" style="display: block; width: 200px; height: 296px; object-fit: cover; object-position: 50% 50%"></span>
+<span style="position: absolute; left: 0; top: 0; display: {{vZoom}}"><span style="position: relative; display: block; width: 200px; height: 296px; overflow: hidden; background: #EDEEEA"><img src="/_blob/0d2c5aca03c0e210cd888e2094c78869" alt="카멜 코트와 페도라 착장" style="position: absolute; left: -100px; top: -178px; width: 380px; height: 570px; max-width: none"></span></span>
+<span style="position: absolute; left: 0; top: 0; display: {{vNeck}}"><span style="position: relative; display: block; width: 200px; height: 296px; overflow: hidden; background: #EDEEEA"><img src="/_blob/0d2c5aca03c0e210cd888e2094c78869" alt="카멜 코트와 페도라 착장, 얼굴 아래로 자른 구도" style="position: absolute; left: -111px; top: -302px; width: 400px; height: 600px; max-width: none"></span></span>
+<span aria-hidden="true" style="position: absolute; left: 0; top: 0; width: 200px; height: 296px; display: {{vPlainPaint}}"><img src="/_blob/b6075b3235f77454183c94c49f6da37a" alt="" style="position: absolute; left: 71px; top: 103px; width: 68px; height: 34px; max-width: none; transform: rotate(-10deg); pointer-events: none"></span>
+<span aria-hidden="true" style="position: absolute; left: 0; top: 0; width: 200px; height: 296px; display: {{vZoomPaint}}"><img src="/_blob/b6075b3235f77454183c94c49f6da37a" alt="" style="position: absolute; left: 35px; top: 22px; width: 130px; height: 65px; max-width: none; transform: rotate(-10deg); pointer-events: none"></span>
 <span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 0; height: 45%; background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0))"></span>
 <span aria-hidden="true" style="position: absolute; left: 10px; right: 10px; top: 8px; display: flex; justify-content: space-between; font-family: 'DM Mono', ui-monospace, Menlo, monospace; font-size: 8px; letter-spacing: 0.06em"><span>ESEL</span><span>Nº 012 · 9. 6.</span></span>
-<span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 18px; text-align: center; font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-size: 90px; line-height: 0.9; letter-spacing: -0.05em; padding-right: 6px">selin</span>
+<span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 18px; text-align: center; font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-size: 76px; line-height: 0.9; letter-spacing: -0.05em; padding-right: 5px">selin</span>
 <span aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: 0; height: 40%; background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5))"></span>
-<span style="position: absolute; left: 14px; bottom: 14px; color: #FFFFFF; font-size: 12px; font-weight: 500">카멜 코트와 페도라.</span>
+<span style="position: absolute; left: 12px; bottom: 12px; color: #FFFFFF; font-size: 11px; font-weight: 500">카멜 코트와 페도라.</span>
 </div>
-<div style="position: absolute; left: 20px; right: 20px; top: 466px; display: flex; flex-direction: column">
-<span style="font-size: 12px; color: #71736C">얼굴</span>
-<div role="group" aria-label="얼굴 연출" style="display: flex; gap: 6px; margin-top: 2px">
+<div style="position: absolute; left: 20px; right: 20px; top: 414px; display: flex; flex-direction: column">
+<span style="font-size: 12px; line-height: 16px; color: #71736C">얼굴 · 자르기</span>
+<div role="group" aria-label="자르기" style="display: flex; gap: 6px">
 <button type="button" aria-pressed="{{PlainPressed}}" onClick="{{pickPlain}}" style="height: 44px; flex: 1 1 0; display: flex; align-items: center"><span style="width: 100%; height: 36px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; background: {{PlainBg}}; color: {{PlainFg}}; box-shadow: inset 0 0 0 1.5px #292A27">그대로</span></button>
-<button type="button" aria-pressed="{{PaintPressed}}" onClick="{{pickPaint}}" style="height: 44px; flex: 1 1 0; display: flex; align-items: center"><span style="width: 100%; height: 36px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; background: {{PaintBg}}; color: {{PaintFg}}; box-shadow: inset 0 0 0 1.5px #292A27">물감</span></button>
-<button type="button" aria-pressed="{{ZoomPressed}}" onClick="{{pickZoom}}" style="height: 44px; flex: 1 1 0; display: flex; align-items: center"><span style="width: 100%; height: 36px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; background: {{ZoomBg}}; color: {{ZoomFg}}; box-shadow: inset 0 0 0 1.5px #292A27">제호 뒤</span></button>
+<button type="button" aria-pressed="{{ZoomPressed}}" onClick="{{pickZoom}}" style="height: 44px; flex: 1 1 0; display: flex; align-items: center"><span style="width: 100%; height: 36px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; background: {{ZoomBg}}; color: {{ZoomFg}}; box-shadow: inset 0 0 0 1.5px #292A27">사인 뒤로</span></button>
 <button type="button" aria-pressed="{{NeckPressed}}" onClick="{{pickNeck}}" style="height: 44px; flex: 1 1 0; display: flex; align-items: center"><span style="width: 100%; height: 36px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; background: {{NeckBg}}; color: {{NeckFg}}; box-shadow: inset 0 0 0 1.5px #292A27">목 아래</span></button>
 </div>
-<div style="display: flex; align-items: center; gap: 6px; margin-top: 10px">
-<span style="font-size: 14px; margin-right: 6px">제호 색</span>
-<div role="group" aria-label="제호 색" style="display: flex; gap: 6px; width: 140px">
+<div style="height: 44px; display: flex; align-items: center; gap: 2px; opacity: {{paintRowOpacity}}">
+<span style="font-size: 14px; margin-right: 2px">물감 한 획</span><img src="/_blob/b6075b3235f77454183c94c49f6da37a" alt="" style="width: 40px; height: 20px; flex-shrink: 0; object-fit: contain"><span style="font-size: 13px; color: #71736C">카멜</span>
+<div role="group" aria-label="물감 한 획" style="margin-left: auto; display: flex; gap: 6px; width: 140px">
+<button type="button" aria-pressed="{{OffPressed}}" onClick="{{pickOff}}" aria-disabled="{{paintDisabled}}" style="height: 44px; flex: 1 1 0; display: flex; align-items: center"><span style="width: 100%; height: 36px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; background: {{OffBg}}; color: {{OffFg}}; box-shadow: inset 0 0 0 1.5px #292A27">끔</span></button>
+<button type="button" aria-pressed="{{OnPressed}}" onClick="{{pickOn}}" aria-disabled="{{paintDisabled}}" style="height: 44px; flex: 1 1 0; display: flex; align-items: center"><span style="width: 100%; height: 36px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; background: {{OnBg}}; color: {{OnFg}}; box-shadow: inset 0 0 0 1.5px #292A27">켬</span></button>
+</div>
+</div>
+<p style="margin: 0; font-size: 12px; line-height: 18px; color: #71736C; display: {{neckNote}}">목 아래는 얼굴이 없어 물감을 쓰지 않아요.</p>
+<div style="height: 44px; display: flex; align-items: center; gap: 6px">
+<span style="font-size: 14px">사인 색</span>
+<div role="group" aria-label="사인 색" style="margin-left: auto; display: flex; gap: 6px; width: 140px">
 <button type="button" aria-pressed="{{InkPressed}}" onClick="{{pickInk}}" style="height: 44px; flex: 1 1 0; display: flex; align-items: center"><span style="width: 100%; height: 36px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; background: {{InkBg}}; color: {{InkFg}}; box-shadow: inset 0 0 0 1.5px #292A27">먹</span></button>
 <button type="button" aria-pressed="{{WhitePressed}}" onClick="{{pickWhite}}" style="height: 44px; flex: 1 1 0; display: flex; align-items: center"><span style="width: 100%; height: 36px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; background: {{WhiteBg}}; color: {{WhiteFg}}; box-shadow: inset 0 0 0 1.5px #292A27">흰</span></button>
 </div>
-<span style="margin-left: auto; display: flex; align-items: center; gap: 4px; font-size: 14px"><img src="/_blob/b6075b3235f77454183c94c49f6da37a" alt="" style="width: 52px; height: 26px; flex-shrink: 0; object-fit: contain"><span>카멜</span></span>
 </div>
-<label for="cover-line" style="margin-top: 12px; font-size: 12px; line-height: 16px; color: #71736C">표지 문구</label>
-<input id="cover-line" type="text" value="카멜 코트와 페도라." style="height: 44px; box-sizing: border-box; padding: 0; border: 0; border-bottom: 1.5px solid #292A27; border-radius: 0; background: transparent; font-size: 17px">
+<span style="margin-top: 8px; font-size: 12px; line-height: 16px; color: #71736C">착용 정보 · 브랜드는 쓰지 않아도 돼요</span>
+<div style="display: flex; align-items: center; gap: 6px">
+<button type="button" aria-label="카멜 코트 · 오늘의 색 고치기" style="height: 44px; flex-shrink: 0; display: flex; align-items: center"><span style="height: 38px; padding: 0 14px 0 6px; border-radius: 19px; display: flex; align-items: center; gap: 2px; background: #FFFFFF; box-shadow: inset 0 0 0 1px #E0E1DC; font-size: 14px; font-weight: 500; white-space: nowrap"><img src="/_blob/b6075b3235f77454183c94c49f6da37a" alt="" style="width: 36px; height: 18px; flex-shrink: 0; object-fit: contain"><span>카멜 코트</span></span></button>
+<button type="button" aria-label="페도라 고치기" style="height: 44px; flex-shrink: 0; display: flex; align-items: center"><span style="height: 38px; padding: 0 14px; border-radius: 19px; display: flex; align-items: center; gap: 2px; background: #FFFFFF; box-shadow: inset 0 0 0 1px #E0E1DC; font-size: 14px; font-weight: 500; white-space: nowrap"><span>페도라</span></span></button>
+<button type="button" aria-label="니트 고치기" style="height: 44px; flex-shrink: 0; display: flex; align-items: center"><span style="height: 38px; padding: 0 14px; border-radius: 19px; display: flex; align-items: center; gap: 2px; background: #FFFFFF; box-shadow: inset 0 0 0 1px #E0E1DC; font-size: 14px; font-weight: 500; white-space: nowrap"><span>니트</span></span></button>
+<button type="button" aria-label="착용 정보 더하기" style="width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center"><span style="width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1.5px #292A27"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></span></button>
 </div>
-<a href="CoverFeed.dc.html" style="position: absolute; left: 20px; right: 20px; bottom: 46px; height: 56px; border-radius: 28px; display: flex; align-items: center; justify-content: center; background: #292A27; color: #F9F9FB; font-size: 16px; font-weight: 600">발행</a>
+<label for="cover-line" style="margin-top: 8px; font-size: 12px; line-height: 16px; color: #71736C">표지 문구</label>
+<input id="cover-line" type="text" value="카멜 코트와 페도라." style="height: 42px; box-sizing: border-box; padding: 0; border: 0; border-bottom: 1.5px solid #292A27; border-radius: 0; background: transparent; font-size: 17px">
+</div>
+<a href="CoverFeed.dc.html" style="position: absolute; left: 20px; right: 20px; bottom: 40px; height: 56px; border-radius: 28px; display: flex; align-items: center; justify-content: center; background: #292A27; color: #F9F9FB; font-size: 16px; font-weight: 600">올리기</a>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":393,"height":852}}'>
@@ -73,26 +87,33 @@ heartFill: liked ? 'currentColor' : 'none',
 likePressed: liked ? 'true' : 'false',
 toggleLike: () => this.setState({ liked: !liked })
 };
-const face = (this.state && this.state.face) || 'plain';
-const white = !(this.state && this.state.white === false);
-const on = (k) => face === k;
+const st = this.state || {};
+const cropK = st.crop || 'plain';
+const neck = cropK === 'neck';
+const painted = !neck && (st.paint != null ? !!st.paint : false);
+const white = !(st.white === false);
 const show = (b) => (b ? 'block' : 'none');
-vals.vPlain = show(on('plain'));
-vals.vPaint = show(on('paint'));
-vals.vZoom = show(on('zoom'));
-vals.vNeck = show(on('neck'));
+vals.vPlain = show(cropK === 'plain');
+vals.vZoom = show(cropK === 'zoom');
+vals.vNeck = show(neck);
+vals.vPlainPaint = show(cropK === 'plain' && painted);
+vals.vZoomPaint = show(cropK === 'zoom' && painted);
 const segVals = (name, active, pick) => {
 vals[name + 'Pressed'] = active ? 'true' : 'false';
 vals[name + 'Bg'] = active ? '#292A27' : 'transparent';
 vals[name + 'Fg'] = active ? '#F9F9FB' : '#292A27';
 vals['pick' + name] = pick;
 };
-segVals('Plain', on('plain'), () => this.setState({ face: 'plain' }));
-segVals('Paint', on('paint'), () => this.setState({ face: 'paint' }));
-segVals('Zoom', on('zoom'), () => this.setState({ face: 'zoom' }));
-segVals('Neck', on('neck'), () => this.setState({ face: 'neck' }));
+segVals('Plain', cropK === 'plain', () => this.setState({ crop: 'plain' }));
+segVals('Zoom', cropK === 'zoom', () => this.setState({ crop: 'zoom' }));
+segVals('Neck', neck, () => this.setState({ crop: 'neck' }));
+segVals('Off', !painted, () => { if (!neck) this.setState({ paint: false }); });
+segVals('On', painted, () => { if (!neck) this.setState({ paint: true }); });
 segVals('Ink', !white, () => this.setState({ white: false }));
 segVals('White', white, () => this.setState({ white: true }));
+vals.paintDisabled = neck ? 'true' : 'false';
+vals.paintRowOpacity = neck ? '0.38' : '1';
+vals.neckNote = neck ? 'block' : 'none';
 vals.mastColor = white ? '#FFFFFF' : '#292A27';
 return vals;
 }
