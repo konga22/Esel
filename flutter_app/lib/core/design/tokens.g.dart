@@ -59,8 +59,7 @@ abstract final class EselSizes {
   static const double button = 54.0;
   static const double chip = 38.0;
   static const double segment = 36.0;
-  static const double capsuleWidth = 260.0;
-  static const double capsuleItem = 62.0;
+  static const double capsuleWidth = 196.0;
   static const double capsuleHeight = 60.0;
   static const double loginBar = 66.0;
   static const double gutter = 20.0;
