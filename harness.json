@@ -59,7 +59,7 @@
     "url": "http://localhost:4177/",
     "port": 4177
   },
-  "nativeApp": {"framework": "flutter", "root": "flutter_app", "routes": "flutter_app/lib/app/routing/app_routes.dart", "source": "flutter_app/lib", "tests": "flutter_app/test", "status": "mock-mode-contracts-p01-p04-p13-p16-tested-design-partial", "demoRun": "flutter run -d <device> --dart-define=ESEL_API_MODE=mock"},
+  "nativeApp": {"framework": "flutter", "root": "flutter_app", "routes": "flutter_app/lib/app/routing/app_routes.dart", "source": "flutter_app/lib", "tests": "flutter_app/test", "status": "local-demo-and-core-server-apis-connected-media-pending-design-partial", "demoRun": "flutter run -d <device> --dart-define=ESEL_API_MODE=mock"},
   "designTokens": {"paper": "#F9F9FB", "ink": "#292A27", "muted": "#71736C", "hairline": "#E0E1DC", "gutter": "20px", "touch": "48px"},
   "glass": {"background": "rgba(249,249,251,0.58)", "blur": "22px", "saturate": 1.6, "fallback": "#F9F9FB", "use": ["capsule-menu", "login-bar", "login-sheet", "small-logo"]},
   "tokenScale": {
