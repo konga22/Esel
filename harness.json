@@ -4,7 +4,7 @@
   "language": "ko",
   "concept": "cover-sns-personal-magazine",
   "designStatus": "cover-sns-direction-in-review",
-  "updatedAt": "2026-10-15",
+  "updatedAt": "2026-10-18",
   "entrypoints": ["AGENTS.md", "docs/ESEL_HARNESS.md", "CLAUDE.md"],
   "activeDesign": {
     "kind": "claude-design-canvas",
@@ -37,7 +37,7 @@
     "build": ".codex/temp/prototype/20261011-app-mockup/build.mjs",
     "output": ".codex/temp/prototype/20261011-app-mockup/dist (git 제외)",
     "dataFrom": "activeDesign.library",
-    "covers": ["J1-J7", "C1-C8", "M1", "R1-R5", "F1-F3", "T1-T10", "S1-S6", "A1-A8"],
+    "covers": ["J1-J7", "C1-C8", "M1", "R1-R5", "F1-F3", "T1-T10", "S1-S6", "A1-A8", "CH1", "CL1"],
     "realBackend": false
   },
   "development": {

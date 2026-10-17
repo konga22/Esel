@@ -2,402 +2,64 @@
   "version": 1,
   "updatedAt": "2026-10-18",
   "note": "앱 목업을 실제 기능으로 만드는 작업 목록. 사람이 읽는 표는 FEATURES.md이며 `npm run dev:docs`로 이 파일에서 다시 만든다. API 경로와 데이터는 초안이고, 서버 PR konga22/Esel#4의 구조(NestJS·Prisma, /api 접두어)를 따른다. 상태는 todo·doing·blocked·done 중 하나다.",
-  "statuses": [
-    "todo",
-    "doing",
-    "blocked",
-    "done"
-  ],
+  "statuses": ["todo", "doing", "blocked", "done"],
   "screens": [
-    {
-      "id": "J1",
-      "title": "비로그인 첫 표지",
-      "route": "intro",
-      "image": "docs/dev/screens/j1-intro.jpg",
-      "figma": "122:1180"
-    },
-    {
-      "id": "J1b",
-      "title": "스크롤 후 로그인 바",
-      "route": "intro",
-      "image": "docs/dev/screens/j1b-login-bar.jpg",
-      "figma": "126:36"
-    },
-    {
-      "id": "J2",
-      "title": "로그인 시트",
-      "route": "intro",
-      "image": "docs/dev/screens/j2-login-sheet.jpg",
-      "figma": "122:1279"
-    },
-    {
-      "id": "J3",
-      "title": "창간호의 색",
-      "route": "join-color",
-      "image": "docs/dev/screens/j3-color.jpg",
-      "figma": "122:1323"
-    },
-    {
-      "id": "J4",
-      "title": "촬영",
-      "route": "join-shoot",
-      "image": "docs/dev/screens/j4-shoot.jpg",
-      "figma": "122:1378"
-    },
-    {
-      "id": "J5",
-      "title": "제호 정하기",
-      "route": "join-name",
-      "image": "docs/dev/screens/j5-name.jpg",
-      "figma": "122:1407"
-    },
-    {
-      "id": "J6",
-      "title": "얼굴 연출",
-      "route": "join-face",
-      "image": "docs/dev/screens/j6-face.jpg",
-      "figma": "122:1440"
-    },
-    {
-      "id": "J7",
-      "title": "창간호",
-      "route": "join-done",
-      "image": "docs/dev/screens/j7-first-issue.jpg",
-      "figma": "122:1481"
-    },
-    {
-      "id": "C1",
-      "title": "표지 피드",
-      "route": "feed",
-      "image": "docs/dev/screens/c1-feed.jpg",
-      "figma": "122:89"
-    },
-    {
-      "id": "C2",
-      "title": "구독 탭 · 어두운 사진 표지",
-      "route": "feed",
-      "image": "docs/dev/screens/c2-feed-subs.jpg",
-      "figma": "122:158"
-    },
-    {
-      "id": "C3",
-      "title": "펼침면",
-      "route": "spread",
-      "image": "docs/dev/screens/c3-spread.jpg",
-      "figma": "122:228"
-    },
-    {
-      "id": "C4",
-      "title": "가판대",
-      "route": "stand",
-      "image": "docs/dev/screens/c4-stand.jpg",
-      "figma": "122:309"
-    },
-    {
-      "id": "C5",
-      "title": "서가 · 표지",
-      "route": "shelf",
-      "image": "docs/dev/screens/c5-shelf.jpg",
-      "figma": "122:461"
-    },
-    {
-      "id": "C5b",
-      "title": "서가 · 책등",
-      "route": "shelf",
-      "image": "docs/dev/screens/c5b-shelf-spines.jpg",
-      "figma": "122:1016"
-    },
-    {
-      "id": "C6",
-      "title": "오늘 호 만들기",
-      "route": "make",
-      "image": "docs/dev/screens/c6-make.jpg",
-      "figma": "122:753"
-    },
-    {
-      "id": "C7",
-      "title": "피드 안쪽 지면 · 작은 로고",
-      "route": "feed",
-      "image": "docs/dev/screens/c7-feed-inner.jpg",
-      "figma": "122:811"
-    },
-    {
-      "id": "C8",
-      "title": "같은 색 · 발행 전",
-      "route": "same",
-      "image": "docs/dev/screens/c8-same-locked.jpg",
-      "figma": "122:581"
-    },
-    {
-      "id": "C8b",
-      "title": "같은 색 · 발행 후",
-      "route": "same",
-      "image": "docs/dev/screens/c8b-same-open.jpg"
-    },
-    {
-      "id": "M1",
-      "title": "내 잡지",
-      "route": "me",
-      "image": "docs/dev/screens/m1-me.jpg",
-      "figma": "142:72"
-    },
-    {
-      "id": "A4",
-      "title": "내 표지의 반응",
-      "route": "reactions",
-      "image": "docs/dev/screens/a4-reactions.jpg",
-      "figma": "144:395"
-    },
-    {
-      "id": "R1",
-      "title": "월간 색 기록",
-      "route": "record",
-      "image": "docs/dev/screens/r1-record.jpg",
-      "figma": "142:104"
-    },
-    {
-      "id": "R2",
-      "title": "날짜 기록",
-      "route": "day",
-      "image": "docs/dev/screens/r2-day.jpg",
-      "figma": "142:228"
-    },
-    {
-      "id": "R3",
-      "title": "놓친 날의 색",
-      "route": "restore",
-      "image": "docs/dev/screens/r3-restore.jpg",
-      "figma": "142:245"
-    },
-    {
-      "id": "R4",
-      "title": "한 칸을 채웠어요",
-      "route": "restored",
-      "image": "docs/dev/screens/r4-restored.jpg",
-      "figma": "142:270"
-    },
-    {
-      "id": "R5",
-      "title": "복원 후 달력",
-      "route": "record",
-      "image": "docs/dev/screens/r5-record-restored.jpg",
-      "figma": "148:291"
-    },
-    {
-      "id": "F1",
-      "title": "나의 친구",
-      "route": "friends",
-      "image": "docs/dev/screens/f1-friends.jpg",
-      "figma": "148:227"
-    },
-    {
-      "id": "F2",
-      "title": "친구 요청",
-      "route": "friend",
-      "image": "docs/dev/screens/f2-friend-request.jpg",
-      "figma": "148:261"
-    },
-    {
-      "id": "F3",
-      "title": "친구가 되었어요",
-      "route": "friend-added",
-      "image": "docs/dev/screens/f3-friend-added.jpg",
-      "figma": "148:277"
-    },
-    {
-      "id": "T1",
-      "title": "트윈 시작",
-      "route": "twin",
-      "image": "docs/dev/screens/t1-twin.jpg",
-      "figma": "143:93"
-    },
-    {
-      "id": "T2",
-      "title": "트윈 초대",
-      "route": "twin-invite",
-      "image": "docs/dev/screens/t2-invite.jpg",
-      "figma": "143:116"
-    },
-    {
-      "id": "T3",
-      "title": "나의 색 고르기",
-      "route": "twin-color",
-      "image": "docs/dev/screens/t3-color.jpg",
-      "figma": "143:133"
-    },
-    {
-      "id": "T4",
-      "title": "나의 표지 준비",
-      "route": "twin-ready",
-      "image": "docs/dev/screens/t4-ready.jpg",
-      "figma": "143:158"
-    },
-    {
-      "id": "T5",
-      "title": "상대 게시 기다림",
-      "route": "twin-wait",
-      "image": "docs/dev/screens/t5-wait.jpg",
-      "figma": "143:173"
-    },
-    {
-      "id": "T6",
-      "title": "두 표지 공개",
-      "route": "twin-reveal",
-      "image": "docs/dev/screens/t6-reveal.jpg",
-      "figma": "143:190"
-    },
-    {
-      "id": "T7",
-      "title": "공개 범위",
-      "route": "twin-vis",
-      "image": "docs/dev/screens/t7-visibility.jpg",
-      "figma": "143:208"
-    },
-    {
-      "id": "T8",
-      "title": "공동 공개 동의 대기",
-      "route": "twin-consent",
-      "image": "docs/dev/screens/t8-consent.jpg",
-      "figma": "143:238"
-    },
-    {
-      "id": "T9",
-      "title": "우리의 한 호",
-      "route": "twin-joint",
-      "image": "docs/dev/screens/t9-joint.jpg",
-      "figma": "143:256"
-    },
-    {
-      "id": "T10",
-      "title": "공동 발행 완료",
-      "route": "twin-done",
-      "image": "docs/dev/screens/t10-published.jpg",
-      "figma": "143:272"
-    },
-    {
-      "id": "T8private",
-      "title": "둘만의 기록으로",
-      "route": "twin-done",
-      "image": "docs/dev/screens/t8private.jpg",
-      "figma": "143:288"
-    },
-    {
-      "id": "T8solo",
-      "title": "내 표지만 공개",
-      "route": "twin-done",
-      "image": "docs/dev/screens/t8solo.jpg",
-      "figma": "143:301"
-    },
-    {
-      "id": "S1",
-      "title": "나의 설정",
-      "route": "settings",
-      "image": "docs/dev/screens/s1-settings.jpg",
-      "figma": "144:128"
-    },
-    {
-      "id": "S2",
-      "title": "프로필 편집",
-      "route": "profile",
-      "image": "docs/dev/screens/s2-profile.jpg",
-      "figma": "144:159"
-    },
-    {
-      "id": "S3",
-      "title": "알림 설정",
-      "route": "notifications",
-      "image": "docs/dev/screens/s3-notifications.jpg",
-      "figma": "144:194"
-    },
-    {
-      "id": "S3off",
-      "title": "알림 꺼짐",
-      "route": "notifications",
-      "image": "docs/dev/screens/s3off-notifications.jpg",
-      "figma": "144:213"
-    },
-    {
-      "id": "S4",
-      "title": "계정 관리",
-      "route": "account",
-      "image": "docs/dev/screens/s4-account.jpg",
-      "figma": "144:232"
-    },
-    {
-      "id": "S5",
-      "title": "로그아웃 확인",
-      "route": "logout",
-      "image": "docs/dev/screens/s5-logout.jpg",
-      "figma": "144:257"
-    },
-    {
-      "id": "S5done",
-      "title": "로그아웃 완료",
-      "route": "goodbye",
-      "image": "docs/dev/screens/s5done.jpg",
-      "figma": "144:308"
-    },
-    {
-      "id": "S6",
-      "title": "탈퇴 전 확인",
-      "route": "delete",
-      "image": "docs/dev/screens/s6-delete.jpg",
-      "figma": "144:272"
-    },
-    {
-      "id": "S6confirm",
-      "title": "탈퇴 마지막 확인",
-      "route": "delete-final",
-      "image": "docs/dev/screens/s6confirm.jpg",
-      "figma": "144:293"
-    },
-    {
-      "id": "S6done",
-      "title": "탈퇴 완료",
-      "route": "goodbye",
-      "image": "docs/dev/screens/s6done.jpg",
-      "figma": "144:322"
-    },
-    {
-      "id": "A1",
-      "title": "내 표지 공유 시트",
-      "route": "me",
-      "image": "docs/dev/screens/a1-share-sheet.jpg",
-      "figma": "144:336"
-    },
-    {
-      "id": "A3",
-      "title": "공유 앱 선택",
-      "route": "me",
-      "image": "docs/dev/screens/a3-share-apps.jpg",
-      "figma": "144:370"
-    },
-    {
-      "id": "A5",
-      "title": "남의 표지 공유",
-      "route": "spread",
-      "image": "docs/dev/screens/a5-share-other.jpg",
-      "figma": "147:245"
-    },
-    {
-      "id": "A7",
-      "title": "트윈 공유",
-      "route": "twin-done",
-      "image": "docs/dev/screens/a7-share-twin.jpg",
-      "figma": "147:272"
-    },
-    {
-      "id": "CH1",
-      "title": "이번 주의 착장 · 두 참여 유형",
-      "route": "challenges",
-      "image": "docs/dev/screens/ch1-challenges.jpg"
-    },
-    {
-      "id": "CL1",
-      "title": "일·주·월 표지 특집",
-      "route": "collections",
-      "image": "docs/dev/screens/cl1-collections.jpg"
-    }
+    {"id": "J1", "title": "비로그인 첫 표지", "route": "intro", "image": "docs/dev/screens/j1-intro.jpg", "figma": "122:1180"},
+    {"id": "J1b", "title": "스크롤 후 로그인 바", "route": "intro", "image": "docs/dev/screens/j1b-login-bar.jpg", "figma": "126:36"},
+    {"id": "J2", "title": "로그인 시트", "route": "intro", "image": "docs/dev/screens/j2-login-sheet.jpg", "figma": "122:1279"},
+    {"id": "J3", "title": "창간호의 색", "route": "join-color", "image": "docs/dev/screens/j3-color.jpg", "figma": "122:1323"},
+    {"id": "J4", "title": "촬영", "route": "join-shoot", "image": "docs/dev/screens/j4-shoot.jpg", "figma": "122:1378"},
+    {"id": "J5", "title": "제호 정하기", "route": "join-name", "image": "docs/dev/screens/j5-name.jpg", "figma": "122:1407"},
+    {"id": "J6", "title": "얼굴 연출", "route": "join-face", "image": "docs/dev/screens/j6-face.jpg", "figma": "122:1440"},
+    {"id": "J7", "title": "창간호", "route": "join-done", "image": "docs/dev/screens/j7-first-issue.jpg", "figma": "122:1481"},
+    {"id": "C1", "title": "표지 피드", "route": "feed", "image": "docs/dev/screens/c1-feed.jpg", "figma": "122:89"},
+    {"id": "C2", "title": "구독 탭 · 어두운 사진 표지", "route": "feed", "image": "docs/dev/screens/c2-feed-subs.jpg", "figma": "122:158"},
+    {"id": "C3", "title": "펼침면", "route": "spread", "image": "docs/dev/screens/c3-spread.jpg", "figma": "122:228"},
+    {"id": "C4", "title": "가판대", "route": "stand", "image": "docs/dev/screens/c4-stand.jpg", "figma": "122:309"},
+    {"id": "C5", "title": "서가 · 표지", "route": "shelf", "image": "docs/dev/screens/c5-shelf.jpg", "figma": "122:461"},
+    {"id": "C5b", "title": "서가 · 책등", "route": "shelf", "image": "docs/dev/screens/c5b-shelf-spines.jpg", "figma": "122:1016"},
+    {"id": "C6", "title": "오늘 호 만들기", "route": "make", "image": "docs/dev/screens/c6-make.jpg", "figma": "122:753"},
+    {"id": "C7", "title": "피드 안쪽 지면 · 작은 로고", "route": "feed", "image": "docs/dev/screens/c7-feed-inner.jpg", "figma": "122:811"},
+    {"id": "C8", "title": "같은 색 · 발행 전", "route": "same", "image": "docs/dev/screens/c8-same-locked.jpg", "figma": "122:581"},
+    {"id": "C8b", "title": "같은 색 · 발행 후", "route": "same", "image": "docs/dev/screens/c8b-same-open.jpg"},
+    {"id": "M1", "title": "내 잡지", "route": "me", "image": "docs/dev/screens/m1-me.jpg", "figma": "142:72"},
+    {"id": "A4", "title": "내 표지의 반응", "route": "reactions", "image": "docs/dev/screens/a4-reactions.jpg", "figma": "144:395"},
+    {"id": "R1", "title": "월간 색 기록", "route": "record", "image": "docs/dev/screens/r1-record.jpg", "figma": "142:104"},
+    {"id": "R2", "title": "날짜 기록", "route": "day", "image": "docs/dev/screens/r2-day.jpg", "figma": "142:228"},
+    {"id": "R3", "title": "놓친 날의 색", "route": "restore", "image": "docs/dev/screens/r3-restore.jpg", "figma": "142:245"},
+    {"id": "R4", "title": "한 칸을 채웠어요", "route": "restored", "image": "docs/dev/screens/r4-restored.jpg", "figma": "142:270"},
+    {"id": "R5", "title": "복원 후 달력", "route": "record", "image": "docs/dev/screens/r5-record-restored.jpg", "figma": "148:291"},
+    {"id": "F1", "title": "나의 친구", "route": "friends", "image": "docs/dev/screens/f1-friends.jpg", "figma": "148:227"},
+    {"id": "F2", "title": "친구 요청", "route": "friend", "image": "docs/dev/screens/f2-friend-request.jpg", "figma": "148:261"},
+    {"id": "F3", "title": "친구가 되었어요", "route": "friend-added", "image": "docs/dev/screens/f3-friend-added.jpg", "figma": "148:277"},
+    {"id": "T1", "title": "트윈 시작", "route": "twin", "image": "docs/dev/screens/t1-twin.jpg", "figma": "143:93"},
+    {"id": "T2", "title": "트윈 초대", "route": "twin-invite", "image": "docs/dev/screens/t2-invite.jpg", "figma": "143:116"},
+    {"id": "T3", "title": "나의 색 고르기", "route": "twin-color", "image": "docs/dev/screens/t3-color.jpg", "figma": "143:133"},
+    {"id": "T4", "title": "나의 표지 준비", "route": "twin-ready", "image": "docs/dev/screens/t4-ready.jpg", "figma": "143:158"},
+    {"id": "T5", "title": "상대 게시 기다림", "route": "twin-wait", "image": "docs/dev/screens/t5-wait.jpg", "figma": "143:173"},
+    {"id": "T6", "title": "두 표지 공개", "route": "twin-reveal", "image": "docs/dev/screens/t6-reveal.jpg", "figma": "143:190"},
+    {"id": "T7", "title": "공개 범위", "route": "twin-vis", "image": "docs/dev/screens/t7-visibility.jpg", "figma": "143:208"},
+    {"id": "T8", "title": "공동 공개 동의 대기", "route": "twin-consent", "image": "docs/dev/screens/t8-consent.jpg", "figma": "143:238"},
+    {"id": "T9", "title": "우리의 한 호", "route": "twin-joint", "image": "docs/dev/screens/t9-joint.jpg", "figma": "143:256"},
+    {"id": "T10", "title": "공동 발행 완료", "route": "twin-done", "image": "docs/dev/screens/t10-published.jpg", "figma": "143:272"},
+    {"id": "T8private", "title": "둘만의 기록으로", "route": "twin-done", "image": "docs/dev/screens/t8private.jpg", "figma": "143:288"},
+    {"id": "T8solo", "title": "내 표지만 공개", "route": "twin-done", "image": "docs/dev/screens/t8solo.jpg", "figma": "143:301"},
+    {"id": "S1", "title": "나의 설정", "route": "settings", "image": "docs/dev/screens/s1-settings.jpg", "figma": "144:128"},
+    {"id": "S2", "title": "프로필 편집", "route": "profile", "image": "docs/dev/screens/s2-profile.jpg", "figma": "144:159"},
+    {"id": "S3", "title": "알림 설정", "route": "notifications", "image": "docs/dev/screens/s3-notifications.jpg", "figma": "144:194"},
+    {"id": "S3off", "title": "알림 꺼짐", "route": "notifications", "image": "docs/dev/screens/s3off-notifications.jpg", "figma": "144:213"},
+    {"id": "S4", "title": "계정 관리", "route": "account", "image": "docs/dev/screens/s4-account.jpg", "figma": "144:232"},
+    {"id": "S5", "title": "로그아웃 확인", "route": "logout", "image": "docs/dev/screens/s5-logout.jpg", "figma": "144:257"},
+    {"id": "S5done", "title": "로그아웃 완료", "route": "goodbye", "image": "docs/dev/screens/s5done.jpg", "figma": "144:308"},
+    {"id": "S6", "title": "탈퇴 전 확인", "route": "delete", "image": "docs/dev/screens/s6-delete.jpg", "figma": "144:272"},
+    {"id": "S6confirm", "title": "탈퇴 마지막 확인", "route": "delete-final", "image": "docs/dev/screens/s6confirm.jpg", "figma": "144:293"},
+    {"id": "S6done", "title": "탈퇴 완료", "route": "goodbye", "image": "docs/dev/screens/s6done.jpg", "figma": "144:322"},
+    {"id": "A1", "title": "내 표지 공유 시트", "route": "me", "image": "docs/dev/screens/a1-share-sheet.jpg", "figma": "144:336"},
+    {"id": "A3", "title": "공유 앱 선택", "route": "me", "image": "docs/dev/screens/a3-share-apps.jpg", "figma": "144:370"},
+    {"id": "A5", "title": "남의 표지 공유", "route": "spread", "image": "docs/dev/screens/a5-share-other.jpg", "figma": "147:245"},
+    {"id": "A7", "title": "트윈 공유", "route": "twin-done", "image": "docs/dev/screens/a7-share-twin.jpg", "figma": "147:272"},
+    {"id": "CH1", "title": "이번 주의 착장 · 두 참여 유형", "route": "challenges", "image": "docs/dev/screens/ch1-challenges.jpg"},
+    {"id": "CL1", "title": "일·주·월 표지 특집", "route": "collections", "image": "docs/dev/screens/cl1-collections.jpg"}
   ],
   "features": [
     {

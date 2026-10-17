@@ -143,7 +143,7 @@ PR을 올리면 [CI](../../.github/workflows/ci.yml)가 하네스·규칙 검사
 | 명령 | 하는 일 |
 |---|---|
 | `npm run dev:docs` | `features.json` → `FEATURES.md`, `harness.json`·생성기 물감 → `flutter_app/lib/core/design/tokens.g.dart` |
-| `npm run mockup:capture` | 목업을 상태별로 찍어 `docs/dev/screens/`에 쓴다(화면 54장, Chrome 필요) |
+| `npm run mockup:capture` | 목업을 상태별로 찍어 `docs/dev/screens/`에 쓴다(화면 56장, Chrome 필요) |
 | `npm run mockup:build` | 목업 다시 만들기 |
 
 목업이나 디자인 값이 바뀌면 이 순서로 다시 만들고 `check:harness`를 돌린다. 기능 목록의 화면은 [화면 등록부](FEATURES.md#화면-등록부)에 있는 ID만 쓸 수 있고, 검사가 목업 경로·그림·계약 연결을 확인한다.
