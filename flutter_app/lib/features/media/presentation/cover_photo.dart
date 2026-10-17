@@ -68,18 +68,13 @@ class CoverPhoto extends StatelessWidget {
         double below(double dw) =>
             dw * r - (face.y * dw * r + face.width * dw * 0.78);
         final room = below(w);
-        final k = room <= 0
-            ? 4.0
-            : math.min(4.0, math.max(1.0, (h + 2) / room));
+        // 확대 상한/세로 위치 보정으로 턱을 다시 화면 안에 내리지 않는다.
+        // 턱 아래 사진이 전혀 없으면 빈 배경을 남긴다(얼굴을 노출하지 않는다).
+        final k = room <= 0 ? 1.0 : math.max(1.0, (h + 2) / room);
         final dw = w * k;
         final dh = dw * r;
         final chin = face.y * dh + face.width * dw * 0.78;
-        return Rect.fromLTWH(
-          clampX(w / 2 - face.x * dw, dw),
-          clampY(-chin, dh),
-          dw,
-          dh,
-        );
+        return Rect.fromLTWH(clampX(w / 2 - face.x * dw, dw), -chin, dw, dh);
       case FaceLayoutMode.original:
       case FaceLayoutMode.paintStroke:
         final dw = math.max(w, h / r);

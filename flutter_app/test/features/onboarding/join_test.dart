@@ -70,6 +70,16 @@ void main() {
       // 창간호는 실제로 발행한 뒤에만 열린다.
       c.nextStep();
       expect(c.currentStep, OnboardingStep.face);
+      c.selectFaceMode(FaceLayoutMode.belowNeck);
+      c.setFaceWidth(.27);
+      c.beginFacePlacement();
+      expect(c.canProceed(), isFalse);
+      expect(c.draft.faceMode, FaceLayoutMode.belowNeck);
+      c.placeFace(const Offset(.5, .4));
+      final cover = c.draft.toCover(id: 'test', now: DateTime(2026));
+      expect(cover.faceWidth, .27);
+      expect(cover.faceY, .4);
+      expect(c.canProceed(), isTrue);
       // 사진을 바꾸면 얼굴 위치를 다시 정한다.
       c.setPhoto('other.png');
       expect(c.canProceed(), isFalse);
@@ -142,7 +152,25 @@ void main() {
       expect(find.text('창간 4 / 4'), findsOneWidget);
 
       // J6: 얼굴 위치를 정해야 창간할 수 있다.
+      await tester.tap(find.bySemanticsLabel('목 아래 · 옷만 보여요'));
+      await tester.pump();
+      var preview = tester.widget<CoverPreview>(find.byType(CoverPreview));
+      expect(preview.locatingFace, isTrue);
+      expect(preview.editing, isTrue);
       await tester.tap(find.bySemanticsLabel('제호 뒤로 · 이름 뒤에 숨겨요'));
+      await tester.tap(find.byType(CoverPreview));
+      await tester.pump();
+      preview = tester.widget<CoverPreview>(find.byType(CoverPreview));
+      expect(preview.locatingFace, isFalse);
+      expect(preview.draft.faceMode, FaceLayoutMode.behindLogo);
+      await tester.ensureVisible(find.text('얼굴 위치 다시 정하기'));
+      await tester.tap(find.text('얼굴 위치 다시 정하기'));
+      await tester.pump();
+      expect(
+        tester.widget<CoverPreview>(find.byType(CoverPreview)).locatingFace,
+        isTrue,
+      );
+      await tester.ensureVisible(find.byType(CoverPreview));
       await tester.tap(find.byType(CoverPreview));
       await tester.pump();
       await tester.tap(find.text('창간하기'));

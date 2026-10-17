@@ -494,47 +494,41 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           child: _CoverFrame(
             width: 210,
             height: 310,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                CoverPreview(
-                  draft: cover,
-                  editing: true,
-                  aspectRatio: null,
-                  chrome: false,
-                  onFacePosition: _c.placeFace,
-                ),
-                const IgnorePointer(
-                  child: _Shade(top: true, fraction: 0.45, opacity: 0.4),
-                ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  top: 14,
-                  child: IgnorePointer(
-                    child: _Masthead(
-                      text: draft.masthead,
-                      width: 210,
-                      max: 110,
-                    ),
-                  ),
-                ),
-              ],
+            child: CoverPreview(
+              draft: cover,
+              editing: !draft.facePlaced,
+              locatingFace: !draft.facePlaced,
+              aspectRatio: null,
+              chrome: draft.facePlaced,
+              onFacePosition: _c.placeFace,
             ),
           ),
         ),
         const SizedBox(height: 10),
         Text(
-          draft.faceMode == FaceLayoutMode.belowNeck
-              ? (draft.facePlaced
-                    ? '턱 아래부터 표지를 채웠어요.'
-                    : '얼굴 위치는 다른 연출에서 먼저 정해 주세요.')
-              : draft.facePlaced
-              ? '얼굴 위치를 정했어요. 다시 누르면 옮겨져요.'
-              : '표지에서 얼굴 가운데를 눌러 위치를 정해 주세요.',
+          !draft.facePlaced
+              ? '원본 사진에서 얼굴 가운데를 눌러 주세요. 선택한 연출은 그다음 적용돼요.'
+              : '위치와 크기를 확인해 주세요. 얼굴 연출이 익명화를 보장하지는 않아요.',
           textAlign: TextAlign.center,
           style: EselTypography.body(fontSize: 13, color: EselColors.muted),
         ),
+        if (draft.facePlaced) ...[
+          TextButton(
+            onPressed: _c.beginFacePlacement,
+            child: const Text('얼굴 위치 다시 정하기'),
+          ),
+          const Text('얼굴 크기'),
+          Slider(
+            value: draft.faceWidth,
+            min: .05,
+            max: .45,
+            semanticFormatterCallback: (v) =>
+                '얼굴 폭 사진의 ${(v * 100).round()}퍼센트',
+            onChanged: _c.setFaceWidth,
+          ),
+          if (draft.faceMode == FaceLayoutMode.belowNeck)
+            const Text('옷이 충분히 보이지 않으면 다른 사진이나 연출을 골라 주세요.'),
+        ],
         const SizedBox(height: 14),
         GridView.count(
           crossAxisCount: 2,

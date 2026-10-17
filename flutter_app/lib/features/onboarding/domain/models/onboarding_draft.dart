@@ -29,9 +29,10 @@ class OnboardingDraft {
   final MastheadStatus mastheadStatus;
   final FaceLayoutMode faceMode;
 
-  /// 얼굴 가운데(표지에 대한 비율). 사용자가 눌러서 정하기 전에는 [facePlaced]가 false.
+  /// 얼굴 가운데(원본 사진에 대한 비율). 지정 전에는 [facePlaced]가 false.
   final double faceX;
   final double faceY;
+  final double faceWidth;
   final bool facePlaced;
 
   /// 발행된 창간호(Nº 001). done 단계에서만 있다.
@@ -49,6 +50,7 @@ class OnboardingDraft {
     this.faceMode = FaceLayoutMode.paintStroke,
     this.faceX = .5,
     this.faceY = .3,
+    this.faceWidth = CoverDraft.defaultFaceWidth,
     this.facePlaced = false,
     this.issue,
     this.sameColorCount = 1,
@@ -63,6 +65,7 @@ class OnboardingDraft {
     FaceLayoutMode? faceMode,
     double? faceX,
     double? faceY,
+    double? faceWidth,
     bool? facePlaced,
     CoverDraft? issue,
     int? sameColorCount,
@@ -76,6 +79,7 @@ class OnboardingDraft {
       faceMode: faceMode ?? this.faceMode,
       faceX: faceX ?? this.faceX,
       faceY: faceY ?? this.faceY,
+      faceWidth: faceWidth ?? this.faceWidth,
       facePlaced: facePlaced ?? this.facePlaced,
       issue: issue ?? this.issue,
       sameColorCount: sameColorCount ?? this.sameColorCount,
@@ -91,6 +95,7 @@ class OnboardingDraft {
     faceMode: faceMode,
     faceX: faceX,
     faceY: faceY,
+    faceWidth: faceWidth,
     faceConfirmed: facePlaced,
     updatedAt: now,
   );

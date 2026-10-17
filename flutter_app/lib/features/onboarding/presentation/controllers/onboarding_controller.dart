@@ -65,7 +65,17 @@ class OnboardingController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// 표지에서 얼굴 가운데를 누른 자리(표지에 대한 비율).
+  void beginFacePlacement() {
+    _draft = _draft.copyWith(facePlaced: false);
+    notifyListeners();
+  }
+
+  void setFaceWidth(double width) {
+    _draft = _draft.copyWith(faceWidth: width.clamp(.05, .45));
+    notifyListeners();
+  }
+
+  /// 원본 사진에서 얼굴 가운데를 누른 자리(사진에 대한 비율).
   void placeFace(Offset point) {
     _draft = _draft.copyWith(
       faceX: point.dx.clamp(0.0, 1.0),

@@ -21,6 +21,9 @@ class CoverPreview extends StatelessWidget {
   final CoverDraft draft;
   final bool editing;
 
+  /// 얼굴을 찾는 동안에는 변형 전 사진을 보여 준다. 선택한 연출은 유지한다.
+  final bool locatingFace;
+
   /// 표지에서 얼굴 가운데를 누른 자리(사진에 대한 비율).
   final ValueChanged<Offset>? onFacePosition;
 
@@ -34,6 +37,7 @@ class CoverPreview extends StatelessWidget {
     super.key,
     required this.draft,
     this.editing = false,
+    this.locatingFace = false,
     this.onFacePosition,
     this.aspectRatio = 3 / 4,
     this.chrome = true,
@@ -109,7 +113,7 @@ class CoverPreview extends StatelessWidget {
 
   Widget _buildCover(BoxConstraints c, double photoRatio) {
     final box = Size(c.maxWidth, c.maxHeight);
-    final mode = draft.faceMode;
+    final mode = locatingFace ? FaceLayoutMode.original : draft.faceMode;
     final title = draft.masthead.isEmpty ? 'Esel' : draft.masthead;
     final face = faceOf(draft);
     final hasPhoto = draft.photoPath.isNotEmpty;
@@ -254,7 +258,7 @@ class CoverPreview extends StatelessWidget {
                 ),
               ),
             // 얼굴 자리 표시: 가운데와 얼굴 폭. 위치를 정하는 동안에만.
-            if (canPlace && !draft.faceConfirmed)
+            if (canPlace && !draft.faceConfirmed && !locatingFace)
               Positioned(
                 left:
                     rect.left +
