@@ -37,6 +37,12 @@ enum TwinRole {
   INVITEE
 }
 
+enum TwinVisibility {
+  PRIVATE
+  SOLO
+  JOINT
+}
+
 model User {
   id                     String                @id @default(uuid()) @db.Uuid
   email                  String?               @unique
@@ -106,6 +112,7 @@ model Profile {
   id         String   @id @default(uuid()) @db.Uuid
   userId     String   @unique @map("user_id") @db.Uuid
   masthead   String   @unique @db.VarChar(10)
+  bio        String   @default("") @db.VarChar(80)
   issueCount Int      @default(0) @map("issue_count")
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
@@ -305,6 +312,7 @@ model Twin {
   serviceDate    DateTime            @map("service_date") @db.Date
   status         TwinStatus          @default(INVITED)
   acceptedAt     DateTime?           @map("accepted_at")
+  publishedAt    DateTime?           @map("published_at")
   createdAt      DateTime            @default(now()) @map("created_at")
   updatedAt      DateTime            @updatedAt @map("updated_at")
   participations TwinParticipation[]
@@ -319,6 +327,8 @@ model TwinParticipation {
   serviceDate   DateTime        @map("service_date") @db.Date
   role          TwinRole
   choiceColorId String?         @map("choice_color_id") @db.VarChar(32)
+  visibility    TwinVisibility?
+  consentedAt   DateTime?       @map("consented_at")
   twin          Twin            @relation(fields: [twinId], references: [id], onDelete: Cascade)
   user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   choiceColor   Color?          @relation("TwinChoiceColor", fields: [choiceColorId], references: [id], onDelete: Restrict)

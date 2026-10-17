@@ -16,6 +16,7 @@ import { CurrentUser } from '../auth/current-user.decorator.js';
 import { ChooseColorDto } from '../today/dto/choose-color.dto.js';
 import { TwinInviteDto } from './dto/twin-invite.dto.js';
 import { TwinPostDto } from './dto/twin-post.dto.js';
+import { TwinVisibilityDto } from './dto/twin-visibility.dto.js';
 import { TwinDto } from './dto/twin.dto.js';
 import { TwinsService } from './twins.service.js';
 
@@ -93,5 +94,46 @@ export class TwinsController {
     @Body() input: TwinPostDto,
   ): Promise<TwinDto> {
     return this.twinsService.post(user.id, id, input);
+  }
+
+  @Put(':id/visibility')
+  @ApiOperation({ summary: '공개 범위 정하기(private·solo·joint)' })
+  @ApiOkResponse({ type: TwinDto })
+  @ApiBadRequestResponse({ description: 'VALIDATION' })
+  @ApiUnauthorizedResponse({ description: 'AUTH_REQUIRED 또는 TOKEN_EXPIRED' })
+  @ApiNotFoundResponse({ description: 'NOT_FOUND' })
+  @ApiConflictResponse({ description: 'TWIN_STATE' })
+  visibility(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Body() input: TwinVisibilityDto,
+  ): Promise<TwinDto> {
+    return this.twinsService.visibility(user.id, id, input);
+  }
+
+  @Post(':id/consent')
+  @ApiOperation({ summary: '공동 공개에 동의' })
+  @ApiCreatedResponse({ type: TwinDto })
+  @ApiUnauthorizedResponse({ description: 'AUTH_REQUIRED 또는 TOKEN_EXPIRED' })
+  @ApiNotFoundResponse({ description: 'NOT_FOUND' })
+  @ApiConflictResponse({ description: 'TWIN_STATE' })
+  consent(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+  ): Promise<TwinDto> {
+    return this.twinsService.consent(user.id, id);
+  }
+
+  @Post(':id/publish')
+  @ApiOperation({ summary: '공동 표지 발행(두 사람 동의 후)' })
+  @ApiCreatedResponse({ type: TwinDto })
+  @ApiUnauthorizedResponse({ description: 'AUTH_REQUIRED 또는 TOKEN_EXPIRED' })
+  @ApiNotFoundResponse({ description: 'NOT_FOUND' })
+  @ApiConflictResponse({ description: 'TWIN_STATE 또는 TWIN_CONSENT_REQUIRED' })
+  publish(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+  ): Promise<TwinDto> {
+    return this.twinsService.publish(user.id, id);
   }
 }

@@ -28,7 +28,17 @@ export class TwinDto {
   @ApiProperty({ example: '2026-10-18' })
   serviceDate: string;
 
-  @ApiProperty({ enum: ['INVITED', 'CHOOSING', 'POSTING', 'REVEALED'] })
+  @ApiProperty({
+    enum: [
+      'INVITED',
+      'CHOOSING',
+      'POSTING',
+      'REVEALED',
+      'SHARING',
+      'CONSENT_WAITING',
+      'PUBLISHED',
+    ],
+  })
   status: string;
 
   @ApiProperty()
@@ -58,4 +68,25 @@ export class TwinDto {
     description: '두 사람 모두 게시한 뒤에만 응답한다.',
   })
   partnerPost: TwinPostViewDto | null;
+
+  @ApiPropertyOptional({
+    nullable: true,
+    enum: ['private', 'solo', 'joint'],
+  })
+  myVisibility: string | null;
+
+  @ApiPropertyOptional({
+    nullable: true,
+    enum: ['private', 'solo', 'joint'],
+  })
+  partnerVisibility: string | null;
+
+  @ApiProperty()
+  myConsented: boolean;
+
+  @ApiProperty()
+  partnerConsented: boolean;
+
+  @ApiPropertyOptional({ nullable: true, format: 'date-time', type: String })
+  publishedAt: string | null;
 }

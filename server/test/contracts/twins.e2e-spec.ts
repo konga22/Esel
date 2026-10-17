@@ -107,6 +107,36 @@ describe('DEV-17 트윈', () => {
     });
   }
 
+  async function postedTwin(
+    inviter: { token: string; userId: string },
+    invitee: { token: string; userId: string },
+  ) {
+    const accepted = await acceptedTwin(inviter, invitee);
+    await request(app.getHttpServer())
+      .put(`/api/twins/${accepted.body.id}/choice`)
+      .set(auth(inviter.token))
+      .send({ colorId: accepted.body.partnerCandidates[0].id })
+      .expect(200);
+    await request(app.getHttpServer())
+      .put(`/api/twins/${accepted.body.id}/choice`)
+      .set(auth(invitee.token))
+      .send({ colorId: accepted.body.myCandidates[0].id })
+      .expect(200);
+    const inviterMedia = await readyMedia(inviter.userId);
+    const inviteeMedia = await readyMedia(invitee.userId);
+    await request(app.getHttpServer())
+      .post(`/api/twins/${accepted.body.id}/posts`)
+      .set(auth(inviter.token))
+      .send({ mediaId: inviterMedia.id })
+      .expect(201);
+    await request(app.getHttpServer())
+      .post(`/api/twins/${accepted.body.id}/posts`)
+      .set(auth(invitee.token))
+      .send({ mediaId: inviteeMedia.id })
+      .expect(201);
+    return { id: accepted.body.id as string, inviterMedia, inviteeMedia };
+  }
+
   // twins.invite · 접근: user · 응답: TwinDto · 계약: P08
   it('POST /api/twins: 친구를 오늘 트윈에 초대 → 201', async () => {
     const inviter = await signup('invite-a');
@@ -411,53 +441,213 @@ describe('DEV-17 트윈', () => {
     expect(response.body.error.code).toBe('TWIN_STATE');
   });
   // twins.visibility · 접근: member · 응답: TwinDto · 계약: P10
-  it.todo(
-    'PUT /api/twins/:id/visibility: 공개 범위 정하기(private·solo·joint) → 200',
-  );
-  it.todo(
-    'PUT /api/twins/:id/visibility: 로그인 없이 부르면 → 401 AUTH_REQUIRED',
-  );
-  it.todo(
-    'PUT /api/twins/:id/visibility: 보낸 값의 형식이 맞지 않아요 → 400 VALIDATION',
-  );
-  it.todo(
-    'PUT /api/twins/:id/visibility: 참여자가 아니거나 없는 트윈 → 404 NOT_FOUND',
-  );
-  it.todo(
-    'PUT /api/twins/:id/visibility: 지금 단계에서는 할 수 없는 작업이에요 → 409 TWIN_STATE',
-  );
+  it('PUT /api/twins/:id/visibility: 공개 범위 정하기(private·solo·joint) → 200', async () => {
+    const inviter = await signup('visibility-a');
+    const invitee = await signup('visibility-b');
+    const twin = await postedTwin(inviter, invitee);
+    const response = await request(app.getHttpServer())
+      .put(`/api/twins/${twin.id}/visibility`)
+      .set(auth(inviter.token))
+      .send({ visibility: 'solo' })
+      .expect(200);
+    expect(response.body).toMatchObject({
+      status: 'SHARING',
+      myVisibility: 'solo',
+      partnerVisibility: null,
+      myConsented: false,
+      publishedAt: null,
+    });
+  });
+  it('PUT /api/twins/:id/visibility: 로그인 없이 부르면 → 401 AUTH_REQUIRED', async () => {
+    const response = await request(app.getHttpServer())
+      .put(`/api/twins/${randomUUID()}/visibility`)
+      .send({ visibility: 'private' })
+      .expect(401);
+    expect(response.body.error.code).toBe('AUTH_REQUIRED');
+  });
+  it('PUT /api/twins/:id/visibility: 보낸 값의 형식이 맞지 않아요 → 400 VALIDATION', async () => {
+    const user = await signup('visibility-invalid');
+    const response = await request(app.getHttpServer())
+      .put(`/api/twins/${randomUUID()}/visibility`)
+      .set(auth(user.token))
+      .send({ visibility: 'public' })
+      .expect(400);
+    expect(response.body.error.code).toBe('VALIDATION');
+  });
+  it('PUT /api/twins/:id/visibility: 참여자가 아니거나 없는 트윈 → 404 NOT_FOUND', async () => {
+    const user = await signup('visibility-missing');
+    const response = await request(app.getHttpServer())
+      .put(`/api/twins/${randomUUID()}/visibility`)
+      .set(auth(user.token))
+      .send({ visibility: 'private' })
+      .expect(404);
+    expect(response.body.error.code).toBe('NOT_FOUND');
+  });
+  it('PUT /api/twins/:id/visibility: 지금 단계에서는 할 수 없는 작업이에요 → 409 TWIN_STATE', async () => {
+    const inviter = await signup('visibility-state-a');
+    const invitee = await signup('visibility-state-b');
+    const accepted = await acceptedTwin(inviter, invitee);
+    const response = await request(app.getHttpServer())
+      .put(`/api/twins/${accepted.body.id}/visibility`)
+      .set(auth(inviter.token))
+      .send({ visibility: 'joint' })
+      .expect(409);
+    expect(response.body.error.code).toBe('TWIN_STATE');
+  });
   // twins.consent · 접근: member · 응답: TwinDto · 계약: P10
-  it.todo('POST /api/twins/:id/consent: 공동 공개에 동의 → 201');
-  it.todo(
-    'POST /api/twins/:id/consent: 로그인 없이 부르면 → 401 AUTH_REQUIRED',
-  );
-  it.todo(
-    'POST /api/twins/:id/consent: 참여자가 아니거나 없는 트윈 → 404 NOT_FOUND',
-  );
-  it.todo(
-    'POST /api/twins/:id/consent: 지금 단계에서는 할 수 없는 작업이에요 → 409 TWIN_STATE',
-  );
+  it('POST /api/twins/:id/consent: 공동 공개에 동의 → 201', async () => {
+    const inviter = await signup('consent-a');
+    const invitee = await signup('consent-b');
+    const twin = await postedTwin(inviter, invitee);
+    for (const user of [inviter, invitee]) {
+      await request(app.getHttpServer())
+        .put(`/api/twins/${twin.id}/visibility`)
+        .set(auth(user.token))
+        .send({ visibility: 'joint' })
+        .expect(200);
+    }
+    const response = await request(app.getHttpServer())
+      .post(`/api/twins/${twin.id}/consent`)
+      .set(auth(inviter.token))
+      .expect(201);
+    expect(response.body).toMatchObject({
+      status: 'CONSENT_WAITING',
+      myConsented: true,
+      partnerConsented: false,
+    });
+    const changed = await request(app.getHttpServer())
+      .put(`/api/twins/${twin.id}/visibility`)
+      .set(auth(invitee.token))
+      .send({ visibility: 'private' })
+      .expect(200);
+    expect(changed.body).toMatchObject({
+      myVisibility: 'private',
+      myConsented: false,
+      partnerConsented: false,
+    });
+  });
+  it('POST /api/twins/:id/consent: 로그인 없이 부르면 → 401 AUTH_REQUIRED', async () => {
+    const response = await request(app.getHttpServer())
+      .post(`/api/twins/${randomUUID()}/consent`)
+      .expect(401);
+    expect(response.body.error.code).toBe('AUTH_REQUIRED');
+  });
+  it('POST /api/twins/:id/consent: 참여자가 아니거나 없는 트윈 → 404 NOT_FOUND', async () => {
+    const user = await signup('consent-missing');
+    const response = await request(app.getHttpServer())
+      .post(`/api/twins/${randomUUID()}/consent`)
+      .set(auth(user.token))
+      .expect(404);
+    expect(response.body.error.code).toBe('NOT_FOUND');
+  });
+  it('POST /api/twins/:id/consent: 지금 단계에서는 할 수 없는 작업이에요 → 409 TWIN_STATE', async () => {
+    const inviter = await signup('consent-state-a');
+    const invitee = await signup('consent-state-b');
+    const twin = await postedTwin(inviter, invitee);
+    const response = await request(app.getHttpServer())
+      .post(`/api/twins/${twin.id}/consent`)
+      .set(auth(inviter.token))
+      .expect(409);
+    expect(response.body.error.code).toBe('TWIN_STATE');
+  });
   // twins.publish · 접근: member · 응답: TwinDto · 계약: P01, P09, P10
-  it.todo('POST /api/twins/:id/publish: 공동 표지 발행(두 사람 동의 후) → 201');
-  it.todo(
-    'POST /api/twins/:id/publish: 로그인 없이 부르면 → 401 AUTH_REQUIRED',
-  );
-  it.todo(
-    'POST /api/twins/:id/publish: 참여자가 아니거나 없는 트윈 → 404 NOT_FOUND',
-  );
-  it.todo(
-    'POST /api/twins/:id/publish: 지금 단계에서는 할 수 없는 작업이에요 → 409 TWIN_STATE',
-  );
-  it.todo(
-    'POST /api/twins/:id/publish: 두 사람 모두 동의해야 공개할 수 있어요 → 409 TWIN_CONSENT_REQUIRED',
-  );
-  it.todo(
-    '합격 기준(P08): 두 사람 후보 3색 중 겹치는 색은 1개이고, 서로 다른 색을 골라도 됨',
-  );
-  it.todo('합격 기준(P10): 한 사람만 게시한 동안 상대 사진 URL이 응답에 없음');
-  it.todo('합격 기준(P10): joint 공개는 두 사람 consent 전에는 거절');
-  it.todo('합격 기준(P10): 상대 사진을 혼자 공개할 수 없음');
-  it.todo(
-    '합격 기준(P09): 트윈 게시·발행으로는 같은 색 방이 열리지 않고 개인 호수도 그대로',
-  );
+  it('POST /api/twins/:id/publish: 공동 표지 발행(두 사람 동의 후) → 201', async () => {
+    const inviter = await signup('publish-a');
+    const invitee = await signup('publish-b');
+    const twin = await postedTwin(inviter, invitee);
+    for (const user of [inviter, invitee]) {
+      await request(app.getHttpServer())
+        .put(`/api/twins/${twin.id}/visibility`)
+        .set(auth(user.token))
+        .send({ visibility: 'joint' })
+        .expect(200);
+    }
+    for (const user of [inviter, invitee]) {
+      await request(app.getHttpServer())
+        .post(`/api/twins/${twin.id}/consent`)
+        .set(auth(user.token))
+        .expect(201);
+    }
+    const response = await request(app.getHttpServer())
+      .post(`/api/twins/${twin.id}/publish`)
+      .set(auth(inviter.token))
+      .expect(201);
+    expect(response.body).toMatchObject({
+      status: 'PUBLISHED',
+      myConsented: true,
+      partnerConsented: true,
+      publishedAt: expect.any(String),
+    });
+    expect(await prisma.issue.count()).toBe(0);
+    expect(await prisma.userDailyChoice.count()).toBe(0);
+    expect(
+      await prisma.profile.findMany({
+        where: { userId: { in: [inviter.userId, invitee.userId] } },
+        select: { issueCount: true },
+      }),
+    ).toEqual([{ issueCount: 0 }, { issueCount: 0 }]);
+  });
+  it('POST /api/twins/:id/publish: 로그인 없이 부르면 → 401 AUTH_REQUIRED', async () => {
+    const response = await request(app.getHttpServer())
+      .post(`/api/twins/${randomUUID()}/publish`)
+      .expect(401);
+    expect(response.body.error.code).toBe('AUTH_REQUIRED');
+  });
+  it('POST /api/twins/:id/publish: 참여자가 아니거나 없는 트윈 → 404 NOT_FOUND', async () => {
+    const user = await signup('publish-missing');
+    const response = await request(app.getHttpServer())
+      .post(`/api/twins/${randomUUID()}/publish`)
+      .set(auth(user.token))
+      .expect(404);
+    expect(response.body.error.code).toBe('NOT_FOUND');
+  });
+  it('POST /api/twins/:id/publish: 지금 단계에서는 할 수 없는 작업이에요 → 409 TWIN_STATE', async () => {
+    const inviter = await signup('publish-state-a');
+    const invitee = await signup('publish-state-b');
+    const twin = await postedTwin(inviter, invitee);
+    const response = await request(app.getHttpServer())
+      .post(`/api/twins/${twin.id}/publish`)
+      .set(auth(inviter.token))
+      .expect(409);
+    expect(response.body.error.code).toBe('TWIN_STATE');
+  });
+  it('POST /api/twins/:id/publish: 두 사람 모두 동의해야 공개할 수 있어요 → 409 TWIN_CONSENT_REQUIRED', async () => {
+    const inviter = await signup('publish-consent-a');
+    const invitee = await signup('publish-consent-b');
+    const twin = await postedTwin(inviter, invitee);
+    for (const user of [inviter, invitee]) {
+      await request(app.getHttpServer())
+        .put(`/api/twins/${twin.id}/visibility`)
+        .set(auth(user.token))
+        .send({ visibility: 'joint' })
+        .expect(200);
+    }
+    await request(app.getHttpServer())
+      .post(`/api/twins/${twin.id}/consent`)
+      .set(auth(inviter.token))
+      .expect(201);
+    const response = await request(app.getHttpServer())
+      .post(`/api/twins/${twin.id}/publish`)
+      .set(auth(inviter.token))
+      .expect(409);
+    expect(response.body.error.code).toBe('TWIN_CONSENT_REQUIRED');
+    expect(
+      (await prisma.twin.findUniqueOrThrow({ where: { id: twin.id } }))
+        .publishedAt,
+    ).toBeNull();
+  });
+  it('합격 기준(P10): solo 선택 한 명만으로 상대 사진을 공동 공개할 수 없음', async () => {
+    const inviter = await signup('solo-a');
+    const invitee = await signup('solo-b');
+    const twin = await postedTwin(inviter, invitee);
+    await request(app.getHttpServer())
+      .put(`/api/twins/${twin.id}/visibility`)
+      .set(auth(inviter.token))
+      .send({ visibility: 'solo' })
+      .expect(200);
+    expect(
+      (await prisma.twin.findUniqueOrThrow({ where: { id: twin.id } }))
+        .publishedAt,
+    ).toBeNull();
+  });
 });

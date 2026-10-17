@@ -7,6 +7,10 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { ChooseColorDto } from '../today/dto/choose-color.dto.js';
 import { TwinInviteDto } from './dto/twin-invite.dto.js';
 import { TwinPostDto } from './dto/twin-post.dto.js';
+import {
+  TwinVisibilityDto,
+  TwinVisibilityInput,
+} from './dto/twin-visibility.dto.js';
 import { TwinDto, TwinPostViewDto } from './dto/twin.dto.js';
 import { twinCandidateIds } from './twins.rules.js';
 
@@ -167,6 +171,70 @@ export class TwinsService {
     return this.toDto(userId, await this.requireTwin(userId, twinId));
   }
 
+  async visibility(
+    userId: string,
+    twinId: string,
+    input: TwinVisibilityDto,
+  ): Promise<TwinDto> {
+    const twin = await this.requireTwin(userId, twinId);
+    if (twin.publishedAt || !twin.participations.every(({ post }) => post)) {
+      throw new AppException('TWIN_STATE');
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.twinParticipation.updateMany({
+        where: { twinId },
+        data: { consentedAt: null },
+      }),
+      this.prisma.twinParticipation.update({
+        where: { twinId_userId: { twinId, userId } },
+        data: {
+          visibility: input.visibility.toUpperCase() as
+            'PRIVATE' | 'SOLO' | 'JOINT',
+        },
+      }),
+    ]);
+    return this.toDto(userId, await this.requireTwin(userId, twinId));
+  }
+
+  async consent(userId: string, twinId: string): Promise<TwinDto> {
+    const twin = await this.requireTwin(userId, twinId);
+    if (
+      twin.publishedAt ||
+      !twin.participations.every(
+        ({ post, visibility }) => post && visibility === 'JOINT',
+      )
+    ) {
+      throw new AppException('TWIN_STATE');
+    }
+    await this.prisma.twinParticipation.updateMany({
+      where: { twinId, userId, visibility: 'JOINT', consentedAt: null },
+      data: { consentedAt: new Date() },
+    });
+    return this.toDto(userId, await this.requireTwin(userId, twinId));
+  }
+
+  async publish(userId: string, twinId: string): Promise<TwinDto> {
+    const twin = await this.requireTwin(userId, twinId);
+    if (
+      twin.publishedAt ||
+      !twin.participations.every(
+        ({ post, visibility }) => post && visibility === 'JOINT',
+      )
+    ) {
+      throw new AppException('TWIN_STATE');
+    }
+    if (!twin.participations.every(({ consentedAt }) => consentedAt)) {
+      throw new AppException('TWIN_CONSENT_REQUIRED');
+    }
+    const updated = await this.prisma.twin.updateMany({
+      where: { id: twinId, publishedAt: null },
+      data: { publishedAt: new Date() },
+    });
+    if (updated.count !== 1) throw new AppException('TWIN_STATE');
+    return this.toDto(userId, await this.requireTwin(userId, twinId));
+  }
+
   private async requireTwin(
     userId: string,
     twinId: string,
@@ -191,16 +259,28 @@ export class TwinsService {
     const bothChose = twin.participations.every(({ choiceColorId }) =>
       Boolean(choiceColorId),
     );
+    const bothJoint = twin.participations.every(
+      ({ visibility }) => visibility === 'JOINT',
+    );
+    const anyVisibility = twin.participations.some(({ visibility }) =>
+      Boolean(visibility),
+    );
     return {
       id: twin.id,
       serviceDate: this.dateKey(twin.serviceDate),
       status: !accepted
         ? 'INVITED'
-        : bothPosted
-          ? 'REVEALED'
-          : bothChose
-            ? 'POSTING'
-            : 'CHOOSING',
+        : twin.publishedAt
+          ? 'PUBLISHED'
+          : bothPosted && bothJoint
+            ? 'CONSENT_WAITING'
+            : bothPosted && anyVisibility
+              ? 'SHARING'
+              : bothPosted
+                ? 'REVEALED'
+                : bothChose
+                  ? 'POSTING'
+                  : 'CHOOSING',
       invitedByMe: me.role === 'INVITER',
       partner: {
         friendId: partner.userId,
@@ -217,7 +297,19 @@ export class TwinsService {
       myPost: me.post ? this.postDto(me.post) : null,
       partnerPost:
         bothPosted && partner.post ? this.postDto(partner.post) : null,
+      myVisibility: this.visibilityValue(me.visibility),
+      partnerVisibility: this.visibilityValue(partner.visibility),
+      myConsented: Boolean(me.consentedAt),
+      partnerConsented: Boolean(partner.consentedAt),
+      publishedAt: twin.publishedAt?.toISOString() ?? null,
     };
+  }
+
+  private visibilityValue(
+    visibility: 'PRIVATE' | 'SOLO' | 'JOINT' | null,
+  ): TwinVisibilityInput | null {
+    if (!visibility) return null;
+    return TwinVisibilityInput[visibility] as TwinVisibilityInput;
   }
 
   private postDto(post: {
