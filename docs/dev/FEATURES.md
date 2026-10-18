@@ -952,6 +952,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 - `flutter_app/test/features/media/garments_test.dart`
 - `server/test/contracts/issues.e2e-spec.ts`
+- `server/test/contracts/garments.e2e-spec.ts`
 
 **사용자 결정이 필요한 것**
 

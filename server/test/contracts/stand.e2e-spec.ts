@@ -21,7 +21,7 @@ describe('DEV-12 가판대와 같은 색', () => {
   it.todo('GET /api/palette/recommended: 팔레트 추천 탭: 추천하는 사람마다 최신 사진 한 장 → 200');
   it.todo('GET /api/palette/recommended: 로그인 없이 부르면 → 401 AUTH_REQUIRED');
   it.todo('GET /api/palette/recommended: 보낸 값의 형식이 맞지 않아요 → 400 VALIDATION');
-  it.todo('합격 기준(P01): 추천 탭에도 같은 색 잠금이 그대로 적용됨(발행 전 후보 3색 사진은 잠금 규칙대로)');
+  it.todo('합격 기준(P01): 오늘 올리기 전에는 추천·구독 칸에서 내 후보 3색 사진을 뺌(색을 바꿔도 마찬가지)');
   it.todo('합격 기준(P18): 추천 칸에 좋아요·구독자 숫자와 순위가 없음');
   it.todo('GET /api/palette/colors: 팔레트 색상 목록 순서 → 200');
   it.todo('GET /api/palette/colors: 로그인 없이 부르면 → 401 AUTH_REQUIRED');

@@ -1089,7 +1089,8 @@
       ],
       "tests": [
         "flutter_app/test/features/media/garments_test.dart",
-        "server/test/contracts/issues.e2e-spec.ts"
+        "server/test/contracts/issues.e2e-spec.ts",
+        "server/test/contracts/garments.e2e-spec.ts"
       ],
       "openDecisions": [
         "옷 종류 목록 확정",
