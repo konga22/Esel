@@ -490,14 +490,16 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
       return FriendsScreen(
         controller: _sl.friendsController,
         onBack: () => setState(() => _activeScreen = ActiveScreen.main),
+        onOpenTwin: () => setState(() => _activeScreen = ActiveScreen.twin),
       );
     }
 
     // 5. 서브스크린: 트윈 (T1~T10)
     if (_activeScreen == ActiveScreen.twin) {
+      // 트윈은 친구 화면 맨 위 줄에서 연다(10-18). 뒤로 가면 친구 화면.
       return TwinScreen(
         controller: _sl.twinController,
-        onBack: () => setState(() => _activeScreen = ActiveScreen.main),
+        onBack: () => setState(() => _activeScreen = ActiveScreen.friends),
       );
     }
 
