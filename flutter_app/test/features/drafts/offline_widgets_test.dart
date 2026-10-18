@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -244,9 +245,18 @@ void main() {
           ),
         ),
       );
+      // 설정은 기기에 저장한 뒤에 알린다. 고정 100ms만 기다리면 CI 디스크가 느릴 때
+      // 알림 전에 글자 크기를 읽어 가끔 실패했다. 알림이 올 때까지 기다린다.
       await tester.runAsync(() async {
+        final saved = Completer<void>();
+        void done() {
+          if (!saved.isCompleted) saved.complete();
+        }
+
+        library.addListener(done);
         await tester.tap(find.text('큰 글씨'));
-        await Future<void>.delayed(const Duration(milliseconds: 100));
+        await saved.future.timeout(const Duration(seconds: 10));
+        library.removeListener(done);
       });
       await tester.pumpAndSettle();
       expect(library.largeText, isTrue);

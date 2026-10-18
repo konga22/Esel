@@ -86,6 +86,11 @@ void main() {
       expect(find.text('전체'), findsNothing);
       expect(find.byType(CanvasPhoto), findsWidgets);
       await capture(tester, 'palette');
+      await tester.tap(find.byKey(const ValueKey('palette-fan')));
+      await tester.pumpAndSettle();
+      await capture(tester, 'palette-fan');
+      await tester.tap(find.byKey(const ValueKey('palette-fan')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byType(CanvasPhoto).first);
       expect(opened, isNotNull);
       stand.subscriptions = {opened!};
