@@ -52,11 +52,12 @@ class _ShelfScreenState extends State<ShelfScreen> {
   bool _focused = false;
 
   /// 목록은 화면 근처만 그리므로, 누른 장이 그려질 때까지 한 화면씩 내려 본 뒤 맞춘다.
+  /// 횟수 제한 없이 목록 끝까지 간다(오래된 캔버스도 닿게, #24 리뷰). 더 내려가지 않으면 멈춘다.
   Future<void> _scrollToFocus() async {
     if (_focused || widget.focusIssueId == null) return;
     _focused = true;
     await WidgetsBinding.instance.endOfFrame;
-    for (var i = 0; i < 60 && mounted; i++) {
+    while (mounted) {
       final target = _focusKey.currentContext;
       if (target != null && target.mounted) {
         await Scrollable.ensureVisible(target);
@@ -64,14 +65,13 @@ class _ShelfScreenState extends State<ShelfScreen> {
       }
       if (!_scroll.hasClients) return;
       final position = _scroll.position;
-      if (position.pixels >= position.maxScrollExtent) return;
+      final before = position.pixels;
+      if (before >= position.maxScrollExtent) return;
       _scroll.jumpTo(
-        math.min(
-          position.maxScrollExtent,
-          position.pixels + position.viewportDimension,
-        ),
+        math.min(position.maxScrollExtent, before + position.viewportDimension),
       );
       await WidgetsBinding.instance.endOfFrame;
+      if (!_scroll.hasClients || _scroll.position.pixels <= before) return;
     }
   }
 
