@@ -6,7 +6,7 @@ import '../../domain/models/stand_shelf.dart';
 import '../../domain/rules/same_color_rule.dart';
 import 'stand_source.dart';
 
-/// 서버 가판대. 아직 서버가 없어 미구현이다.
+/// 서버 팔레트. 아직 서버가 없어 미구현이다.
 /// 초안 API: `GET /api/stand?date=&color=` → `{access, covers, hiddenCount}`(DEV-12).
 class StandRemoteSource implements StandSource {
   final AppHttpClient http;
@@ -19,11 +19,11 @@ class StandRemoteSource implements StandSource {
     String? viewerId,
     EselPaint? color,
   }) async {
-    throw const NotImplementedFailure('서버 가판대는 아직 연결하지 않았어요.');
+    throw const NotImplementedFailure('서버 팔레트는 아직 연결하지 않았어요.');
   }
 
   @override
   Future<int> sameColorCount(ServiceDate date, EselPaint color) async {
-    throw const NotImplementedFailure('서버 가판대는 아직 연결하지 않았어요.');
+    throw const NotImplementedFailure('서버 팔레트는 아직 연결하지 않았어요.');
   }
 }

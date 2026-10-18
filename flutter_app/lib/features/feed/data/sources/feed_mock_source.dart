@@ -27,7 +27,7 @@ class FeedMockSource implements FeedSource {
           ..sort((a, b) => b.publishedAt.compareTo(a.publishedAt));
     final ordered = [...curated, ...rest];
 
-    // 잠긴 방(오늘 후보 3색, 발행 전)의 표지는 피드로도 새지 않게 뺀다(P01).
+    // 잠긴 방(오늘 후보 3색, 올리기 전)의 표지는 피드로도 새지 않게 뺀다(P01).
     final open = ordered.where((issue) => _isOpen(issue, viewer)).toList();
     final heldBack = open.length < ordered.length;
 

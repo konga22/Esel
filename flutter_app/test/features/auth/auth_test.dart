@@ -110,7 +110,7 @@ void main() {
       );
     });
 
-    test('제호는 이메일에서 만들지 않는다. 창간 때 정한다(P14)', () async {
+    test('사인은 이메일에서 만들지 않는다. 첫 캔버스 때 정한다(P14)', () async {
       await controller.signupWithEmail('x@esel.local', 'esel1234', '');
       expect(controller.currentSession!.masthead, isEmpty);
       expect(await controller.isMastheadAvailable('dana'), isFalse);
@@ -120,7 +120,7 @@ void main() {
       expect(await controller.createProfile('mymag'), isTrue);
       expect(controller.currentSession!.masthead, 'mymag');
       expect(await controller.isMastheadAvailable('mymag'), isFalse);
-      // 한 번 창간한 계정의 제호는 이 흐름으로 바꾸지 않는다.
+      // 한 번 첫 캔버스한 계정의 사인은 이 흐름으로 바꾸지 않는다.
       expect(await controller.createProfile('other'), isFalse);
 
       await controller.logout();

@@ -1,298 +1,259 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../../core/design/tokens.g.dart';
 import '../../../../core/design/typography.dart';
+import '../../../../core/errors/failures.dart';
+import '../../../../core/time/service_date.dart';
 import '../../../../core/ui/esel_paint_asset.dart';
-import '../../../../core/ui/esel_pressable.dart';
-import '../controllers/records_controller.dart';
+import '../../data/sources/records_source.dart';
+import '../../domain/models/server_records.dart';
 
-class MonthlyRecordScreen extends StatelessWidget {
-  final RecordsController controller;
+class MonthlyRecordScreen extends StatefulWidget {
+  final RecordsSource source;
   final VoidCallback onBack;
-
+  final ValueChanged<String> onOpenIssue;
   const MonthlyRecordScreen({
     super.key,
-    required this.controller,
+    required this.source,
     required this.onBack,
+    required this.onOpenIssue,
   });
+  @override
+  State<MonthlyRecordScreen> createState() => _MonthlyRecordScreenState();
+}
 
-  void _showRestoreDialog(BuildContext context, int day) {
-    EselPaint selectedColor = EselPaint.powder;
-
-    showDialog<void>(
-      context: context,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (ctx, setDialogState) {
-            return AlertDialog(
-              backgroundColor: EselTokens.paper,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(EselTokens.radius20),
-              ),
-              title: Text(
-                '9월 $day일의 색 복원',
-                style: EselTypography.headlineSmall,
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '놓친 날의 색을 채워보세요. 복원한 날은 나만 보며, 발행 호수나 피드에는 영향을 주지 않습니다.',
-                    style: EselTypography.bodySmall.copyWith(
-                      color: EselTokens.inkMuted,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text('후보 색상 선택', style: EselTypography.labelSmall),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildColorOption(
-                        EselPaint.powder,
-                        selectedColor,
-                        (c) => setDialogState(() => selectedColor = c),
-                      ),
-                      _buildColorOption(
-                        EselPaint.sage,
-                        selectedColor,
-                        (c) => setDialogState(() => selectedColor = c),
-                      ),
-                      _buildColorOption(
-                        EselPaint.butter,
-                        selectedColor,
-                        (c) => setDialogState(() => selectedColor = c),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  child: Text(
-                    '취소',
-                    style: EselTypography.bodyMedium.copyWith(
-                      color: EselTokens.inkMuted,
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    final success = controller.restoreDay(day, selectedColor);
-                    Navigator.of(ctx).pop();
-                    if (success) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            '9월 $day일의 색이 복원되었습니다. (잔여 ${controller.remainingRestores}회)',
-                          ),
-                          backgroundColor: EselTokens.ink,
-                        ),
-                      );
-                    }
-                  },
-                  child: Text(
-                    '복원하기',
-                    style: EselTypography.bodyMedium.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: EselTokens.ink,
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
+class _MonthlyRecordScreenState extends State<MonthlyRecordScreen> {
+  RecordsSource get source => widget.source;
+  ServerMonthRecords? _records;
+  ServiceDate? _today;
+  DateTime? _month;
+  bool _busy = false;
+  String? _error;
+  @override
+  void initState() {
+    super.initState();
+    _load();
   }
 
-  Widget _buildColorOption(
-    EselPaint key,
-    EselPaint current,
-    ValueChanged<EselPaint> onSelect,
-  ) {
-    final isSelected = key == current;
-    final label = EselPaints.of(key).nameKo;
-    return GestureDetector(
-      onTap: () => onSelect(key),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: isSelected ? EselTokens.ink : Colors.transparent,
-                width: 2,
-              ),
+  Future<void> _load([int delta = 0]) async {
+    if (_busy) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+      _records = null;
+      if (_month != null) {
+        _month = DateTime.utc(_month!.year, _month!.month + delta);
+      }
+    });
+    try {
+      final today = await source.today();
+      if (!mounted) return;
+      final target = _month ?? DateTime.utc(today.year, today.month);
+      _month = target;
+      final key = '${target.year}-${target.month.toString().padLeft(2, '0')}';
+      final records = await source.month(key);
+      if (mounted) {
+        setState(() {
+          _records = records;
+          _today = today;
+          _month = target;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _error = e is Failure ? e.message : '색 기록을 불러오지 못했어요.');
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _restore(ServiceDate date) async {
+    EselPaint? color;
+    String? error;
+    bool saving = false;
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (dialog) => StatefulBuilder(
+        builder: (dialog, update) => AlertDialog(
+          title: Text('${date.shortLabel} 색 복원'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  '사진 없이 나만 보는 색 기록을 채워요. 올리기 호수와 공개 잠금은 바뀌지 않아요. 선택한 날의 후보에 없는 색은 서버에서 거절해요.',
+                ),
+                Wrap(
+                  spacing: 6,
+                  children: [
+                    for (final paint in EselPaint.values)
+                      ChoiceChip(
+                        label: Text(EselPaints.of(paint).nameKo),
+                        selected: color == paint,
+                        onSelected: saving
+                            ? null
+                            : (_) => update(() => color = paint),
+                      ),
+                  ],
+                ),
+                if (error != null) Text(error!),
+              ],
             ),
-            child: EselPaintAsset(paint: key, width: 36),
           ),
-          const SizedBox(height: 4),
-          Text(label, style: EselTypography.caption.copyWith(fontSize: 10)),
-        ],
+          actions: [
+            TextButton(
+              onPressed: saving ? null : () => Navigator.pop(dialog, false),
+              child: const Text('취소'),
+            ),
+            TextButton(
+              onPressed: saving || color == null
+                  ? null
+                  : () async {
+                      update(() {
+                        saving = true;
+                        error = null;
+                      });
+                      try {
+                        await source.restore(date, color!);
+                        if (dialog.mounted) Navigator.pop(dialog, true);
+                      } catch (e) {
+                        if (dialog.mounted) {
+                          update(
+                            () => error = e is Failure
+                                ? e.message
+                                : '복원하지 못했어요. 다시 시도해 주세요.',
+                          );
+                        }
+                      } finally {
+                        if (dialog.mounted) update(() => saving = false);
+                      }
+                    },
+              child: Text(saving ? '저장 중…' : '복원하기'),
+            ),
+          ],
+        ),
       ),
     );
+    if (saved == true && mounted) await _load();
   }
 
   @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, _) {
-        return Scaffold(
-          backgroundColor: EselTokens.paper,
-          body: SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildHeader(),
-                _buildRestoreNotice(),
-                const SizedBox(height: EselTokens.space20),
-                Expanded(child: _buildCalendarGrid(context)),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: EselTokens.space16,
-        vertical: 8,
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(
+      title: const Text('색 달력'),
+      leading: IconButton(
+        tooltip: '뒤로',
+        onPressed: widget.onBack,
+        icon: const Icon(Icons.arrow_back_ios_new),
       ),
-      child: Row(
+      actions: [
+        IconButton(
+          tooltip: '새로고침',
+          onPressed: _busy ? null : () => _load(),
+          icon: const Icon(Icons.refresh),
+        ),
+      ],
+    ),
+    body: SafeArea(
+      child: ListView(
+        padding: const EdgeInsets.all(20),
         children: [
-          EselPressable(
-            onTap: onBack,
-            child: const SizedBox(
-              width: 48,
-              height: 48,
-              child: Icon(
-                Icons.arrow_back_ios_new,
-                size: 20,
-                color: EselTokens.ink,
+          Row(
+            children: [
+              IconButton(
+                tooltip: '이전 달',
+                onPressed: _busy ? null : () => _load(-1),
+                icon: const Icon(Icons.chevron_left),
               ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            '월간 색 기록 · ${controller.monthLabel}',
-            style: EselTypography.headlineSmall.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRestoreNotice() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: EselTokens.space24),
-      padding: const EdgeInsets.all(EselTokens.space14),
-      decoration: BoxDecoration(
-        color: EselTokens.paperWarm,
-        borderRadius: BorderRadius.circular(EselTokens.radius14),
-        border: Border.all(color: EselTokens.borderDefault),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.history_toggle_off, size: 20, color: EselTokens.ink),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              '이번 달 잔여 복원 횟수: ${controller.remainingRestores}회 (월 최대 2회)',
-              style: EselTypography.bodySmall.copyWith(
-                fontWeight: FontWeight.w600,
+              Expanded(
+                child: Text(
+                  _records?.month ?? '색 기록',
+                  textAlign: TextAlign.center,
+                  style: EselTypography.headlineSmall,
+                ),
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCalendarGrid(BuildContext context) {
-    return GridView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: EselTokens.space24),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 7,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 10,
-        childAspectRatio: 0.8,
-      ),
-      itemCount: 30,
-      itemBuilder: (context, idx) {
-        final day = idx + 1;
-        final record = controller.getRecord(day);
-        final canRestore = controller.canRestore(day);
-
-        return GestureDetector(
-          onTap: () {
-            if (canRestore) {
-              _showRestoreDialog(context, day);
-            } else {
-              final reason = controller.getDenialReason(day);
-              if (reason != null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(reason),
-                    duration: const Duration(seconds: 1),
-                  ),
-                );
-              }
-            }
-          },
-          child: Container(
-            decoration: BoxDecoration(
-              color: canRestore ? EselTokens.paperWarm : Colors.transparent,
-              borderRadius: BorderRadius.circular(EselTokens.radius10),
-              border: Border.all(
-                color: canRestore
-                    ? EselTokens.borderDefault
-                    : Colors.transparent,
+              IconButton(
+                tooltip: '다음 달',
+                onPressed:
+                    _busy ||
+                        _month == null ||
+                        (_month!.year == _today?.year &&
+                            _month!.month == _today?.month)
+                    ? null
+                    : () => _load(1),
+                icon: const Icon(Icons.chevron_right),
               ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  '$day',
-                  style: EselTypography.monoSmall.copyWith(
-                    color: record.type == RecordType.future
-                        ? EselTokens.inkSubtle
-                        : EselTokens.ink,
-                    fontWeight: FontWeight.w500,
+            ],
+          ),
+          if (_busy) const Center(child: CircularProgressIndicator()),
+          if (_error != null) ...[
+            Text(_error!),
+            TextButton(onPressed: () => _load(), child: const Text('다시 시도')),
+          ],
+          if (_records case final records?) ...[
+            Text('${records.month} 남은 복원 ${records.remaining}회'),
+            const SizedBox(height: 16),
+            LayoutBuilder(
+              builder: (context, box) => SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: SizedBox(
+                  width: math.max(box.maxWidth, 7 * 48),
+                  child: Wrap(
+                    children: [
+                      for (
+                        var day = 1;
+                        day <=
+                            DateTime.utc(
+                              _month!.year,
+                              _month!.month + 1,
+                              0,
+                            ).day;
+                        day++
+                      )
+                        SizedBox(
+                          width: math.max(box.maxWidth / 7, 48),
+                          child: _day(day),
+                        ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 4),
-                if (record.type == RecordType.published && record.color != null)
-                  EselPaintAsset(paint: record.color!, width: 20)
-                else if (record.type == RecordType.restored &&
-                    record.color != null)
-                  Container(
-                    width: 18,
-                    height: 18,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: EselTokens.ink, width: 2),
-                    ),
-                  )
-                else if (canRestore)
-                  const Icon(Icons.add, size: 16, color: EselTokens.inkSubtle)
-                else
-                  const SizedBox(height: 18),
-              ],
+              ),
             ),
-          ),
-        );
-      },
+            const SizedBox(height: 20),
+            const Text('사진 기록은 표지를, 테두리 링은 나만 보는 복원 기록을 뜻해요.'),
+          ],
+        ],
+      ),
+    ),
+  );
+  Widget _day(int day) {
+    final date = ServiceDate(_month!.year, _month!.month, day);
+    final found = _records!.days.where((v) => v.date == date).firstOrNull;
+    final canRestore =
+        found == null &&
+        _records!.remaining > 0 &&
+        date.isBefore(_today!) &&
+        date.year == _today!.year &&
+        date.month == _today!.month;
+    return TextButton(
+      onPressed: found?.issueId != null
+          ? () => widget.onOpenIssue(found!.issueId!)
+          : canRestore
+          ? () => _restore(date)
+          : null,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('$day'),
+          if (found != null)
+            found.restored
+                ? const Icon(Icons.radio_button_unchecked, size: 20)
+                : EselPaintAsset(paint: found.color, width: 20)
+          else
+            const SizedBox(height: 20),
+        ],
+      ),
     );
   }
 }

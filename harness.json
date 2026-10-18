@@ -4,7 +4,7 @@
   "language": "ko",
   "concept": "cover-sns-personal-magazine",
   "designStatus": "cover-sns-direction-in-review",
-  "updatedAt": "2026-10-15",
+  "updatedAt": "2026-10-18",
   "entrypoints": ["AGENTS.md", "docs/ESEL_HARNESS.md", "CLAUDE.md"],
   "activeDesign": {
     "kind": "claude-design-canvas",
@@ -21,7 +21,7 @@
       {"id": "tokens", "name": "01 디자인 토큰", "files": ["BoardTokens.dc.html"]},
       {"id": "components", "name": "02 컴포넌트", "files": ["BoardComponents.dc.html"]},
       {"id": "cover", "name": "03 화면 · 표지 SNS", "files": ["CoverFeed.dc.html", "CoverNext.dc.html", "CoverSpread.dc.html", "CoverStand.dc.html", "CoverShelf.dc.html", "CoverStandLocked.dc.html", "CoverMake.dc.html", "CoverScroll.dc.html"]},
-      {"id": "join", "name": "03 화면 · 로그인 · 창간", "files": ["JoinScroll.dc.html", "JoinLogin.dc.html", "JoinColor.dc.html", "JoinShoot.dc.html", "JoinName.dc.html", "JoinFace.dc.html", "JoinDone.dc.html"]},
+      {"id": "join", "name": "03 화면 · 로그인 · 첫 캔버스", "files": ["JoinScroll.dc.html", "JoinLogin.dc.html", "JoinColor.dc.html", "JoinShoot.dc.html", "JoinName.dc.html", "JoinFace.dc.html", "JoinDone.dc.html"]},
       {"id": "motion", "name": "04 모션", "files": ["BoardMotion.dc.html"]}
     ],
     "archivePages": ["보관 · 피드 시안", "보관 · 아틀리에", "보관 · 미니멀"],
@@ -37,7 +37,7 @@
     "build": ".codex/temp/prototype/20261011-app-mockup/build.mjs",
     "output": ".codex/temp/prototype/20261011-app-mockup/dist (git 제외)",
     "dataFrom": "activeDesign.library",
-    "covers": ["J1-J7", "C1-C8", "M1", "R1-R5", "F1-F3", "T1-T10", "S1-S6", "A1-A8"],
+    "covers": ["J1-J7", "C1-C8", "M1", "R1-R5", "F1-F3", "T1-T10", "S1-S6", "A1-A8", "CH1", "CL1"],
     "realBackend": false
   },
   "development": {
@@ -59,7 +59,7 @@
     "url": "http://localhost:4177/",
     "port": 4177
   },
-  "nativeApp": {"framework": "flutter", "root": "flutter_app", "routes": "flutter_app/lib/app/routing/app_routes.dart", "source": "flutter_app/lib", "tests": "flutter_app/test", "status": "mock-mode-contracts-p01-p04-p13-p16-tested-design-partial", "demoRun": "flutter run -d <device> --dart-define=ESEL_API_MODE=mock"},
+  "nativeApp": {"framework": "flutter", "root": "flutter_app", "routes": "flutter_app/lib/app/routing/app_routes.dart", "source": "flutter_app/lib", "tests": "flutter_app/test", "status": "unified-art-tool-screens-local-garments-core-server-apis-media-palette-pending", "demoRun": "flutter run -d <device> --dart-define=ESEL_API_MODE=mock"},
   "designTokens": {"paper": "#F9F9FB", "ink": "#292A27", "muted": "#71736C", "hairline": "#E0E1DC", "gutter": "20px", "touch": "48px"},
   "glass": {"background": "rgba(249,249,251,0.58)", "blur": "22px", "saturate": 1.6, "fallback": "#F9F9FB", "use": ["capsule-menu", "login-bar", "login-sheet", "small-logo"]},
   "tokenScale": {
@@ -67,7 +67,7 @@
     "spacing": [4, 8, 12, 16, 20, 24, 32],
     "radius": {"photo": 0, "spreadPhoto": 4, "card": 16, "colorPick": 22, "sheet": 28, "pill": 999},
     "shadow": {"float": "0 10px 28px rgba(0,0,0,0.14)", "miniCover": "0 4px 12px rgba(41,42,39,0.16)", "coverPreview": "0 14px 36px rgba(41,42,39,0.2)"},
-    "size": {"screenWidth": 393, "screenHeight": 852, "touch": 48, "button": 54, "chip": 38, "segment": 36, "capsuleWidth": 196, "capsuleHeight": 60, "loginBar": 66, "gutter": 20, "innerPageText": 18}
+    "size": {"screenWidth": 393, "screenHeight": 852, "touch": 48, "button": 54, "chip": 38, "segment": 36, "capsuleWidth": 260, "capsuleHeight": 60, "loginBar": 66, "gutter": 20, "innerPageText": 18}
   },
   "typography": {
     "masthead": {"family": "Cormorant Garamond", "size": 200, "lineHeight": 0.9, "tracking": "-0.05em", "fit": "min(200, 0.9 * width / (0.47 * letters))"},
@@ -107,11 +107,11 @@
     "mastheadScroll": {"followsCoverDown": true, "smallLogoShowUpPx": 48, "smallLogoHideDownPx": 18, "meltZonePx": 360, "smallScale": 0.14},
     "status": "mock-thresholds-not-final"
   },
-  "sameColorLock": {"purpose": "publish-to-unlock-chain-activation", "beforePublishVisible": 3, "restShownAs": "blurred-spines", "unlocksOn": ["own-publish", "midnight"], "copy": "발행하면 함께 펼쳐집니다", "bannedCopy": ["놓치면 끝", "countdown"], "minors": "no-lock", "lockedRooms": "all-today-candidates", "colorSwitchUnlocks": false, "nonCandidateRooms": "open", "minorDetection": "undecided", "notUnlockedBy": ["color-switch", "confirm", "restore", "twin-publish"], "strengthenedAt": "2026-10-15", "previewPick": "undecided-demo-newest", "decidedAt": "2026-10-05"},
+  "sameColorLock": {"purpose": "publish-to-unlock-chain-activation", "beforePublishVisible": 3, "restShownAs": "blurred-cells", "unlocksOn": ["own-publish", "midnight"], "copy": "올리면 함께 펼쳐집니다", "bannedCopy": ["놓치면 끝", "countdown"], "minors": "no-lock", "lockedRooms": "all-today-candidates", "colorSwitchUnlocks": false, "nonCandidateRooms": "open", "minorDetection": "undecided", "notUnlockedBy": ["color-switch", "confirm", "restore", "twin-publish"], "strengthenedAt": "2026-10-15", "previewPick": "undecided-demo-newest", "decidedAt": "2026-10-05"},
   "publicCounts": {"ownerOnly": ["likes", "subscribers", "reader-line-count", "scrap-count"], "public": ["same-color-count", "issue-number", "reader-line-text"], "rankByIssueOrCounts": false, "popularMix": "internal-signal-only", "decidedAt": "2026-10-05"},
   "authPolicy": {"loggedOutFirstScreen": "today-cover", "previewInnerPages": 2, "loginBarAtPx": 640, "loginBarReplaces": "capsule-menu", "actionsNeedLogin": ["like", "subscribe", "one-line", "scrap", "make"], "realAuth": false},
   "foundingFlow": {"steps": ["color", "shoot", "masthead", "face", "first-issue"], "mastheadPattern": "^[a-z]{2,10}$", "firstIssue": 1, "uniquenessCheck": false},
-  "facePresentation": {"modes": ["plain", "paint", "behind-masthead", "neck-down"], "perIssue": true, "demoFaceBoxes": "macOS Vision, generator/faces.swift", "automaticDetectionInApp": "undecided", "anonymityGuaranteed": false},
+  "facePresentation": {"modes": ["plain", "paint", "behind-masthead", "neck-down"], "crop": ["plain", "behind-masthead", "neck-down"], "paintToggle": true, "paintOffWith": "neck-down", "smallCovers": "scaled-cover", "perIssue": true, "demoFaceBoxes": "macOS Vision, generator/faces.swift", "automaticDetectionInApp": "undecided", "anonymityGuaranteed": false},
   "twinPolicy": {"independentOfPersonal": true, "recommendationsPerPerson": 3, "sharedRecommendations": 1, "independentChoice": true, "realFriendSync": false, "coverSnsDesign": "not-drawn"},
   "twinPublication": {"default": "private", "modes": ["private", "solo", "joint"], "explicitUploadButton": true, "jointRequiresBothConsent": true, "coverSnsDesign": "not-drawn"},
   "motion": {
@@ -145,7 +145,7 @@
     "scripts/capture-mockup.mjs",
     "flutter_app/assets/README.md"
   ],
-  "productContracts": ["P01", "P02", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P13", "P14", "P15", "P16", "P17", "P18"],
+  "productContracts": ["P01", "P02", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P13", "P14", "P15", "P16", "P17", "P18", "P19"],
   "manualChecks": ["V01", "V02", "V03", "V04", "V05", "V06", "V07", "V08", "V09", "V10", "V11", "V12"],
   "notDrawnInCoverSns": ["same-color-unlock-motion", "owner-count-screen", "twin", "monthly-record-restore", "settings", "notifications", "dark-mode"],
   "notImplemented": ["real-auth", "social-login", "server-upload", "friend-sync", "nickname-uniqueness", "on-device-face-detection", "dedicated-share-card"],
@@ -171,7 +171,7 @@
     "docs/design/screens/c2-next.jpg",
     "docs/design/screens/c3-spread.jpg",
     "docs/design/screens/c4-stand.jpg",
-    "docs/design/screens/c5-shelf-spines.jpg",
+    "docs/design/screens/c8-color-list.jpg",
     "docs/design/screens/c5-shelf.jpg",
     "docs/design/screens/c6-make-behind.jpg",
     "docs/design/screens/c6-make-neck.jpg",
@@ -189,5 +189,22 @@
     "docs/design/screens/j5-name.jpg",
     "docs/design/screens/j6-face.jpg",
     "docs/design/screens/j7-first-issue.jpg"
-  ]
+  ],
+  "localContents": {
+    "decisionDate": "2026-10-18",
+    "guide": "docs/flutter/PERIOD_COLLECTIONS.md",
+    "validation": "docs/flutter/CONTENT_VALIDATION.md",
+    "included": [
+      "weekly-dresscode",
+      "same-garment-restyle",
+      "day-week-month-cover-collections"
+    ],
+    "excluded": [
+      "monthly-yearly-best",
+      "public-rankings",
+      "monthly-style-recap"
+    ],
+    "mode": "explicit-existing-mock-mode",
+    "serverConnected": false
+  }
 }

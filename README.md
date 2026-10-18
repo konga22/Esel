@@ -8,7 +8,10 @@
 
 | 보고 싶은 것 | 위치 |
 |---|---|
+| 최신 중간발표 PPT | [콘텐츠 3종·로컬 구현 반영본](docs/presentation/README.md): 9번 슬라이드와 발표자 노트 갱신 |
+| 일·주·월 특집·주간 공개 참여·저장 보완 | [최신 로컬 콘텐츠 안내](docs/flutter/PERIOD_COLLECTIONS.md): 직접 선정·선정 이유·기간별 조회·서버 인계 범위 |
 | 서버 없이 중간발표 시연 실행 | [Flutter 중간발표 안내](docs/flutter/MIDTERM_DEMO.md): 휴대폰 실행 명령·시연 순서·검증 범위 |
+| 두 콘텐츠 로컬 시연·서버 전달안 | [주간 드레스코드 / 같은 옷, 다른 코디](docs/flutter/LOCAL_CONTENTS.md), [검증·목업 점검](docs/flutter/CONTENT_VALIDATION.md) |
 | 디자인 보드 00~04와 화면 | [docs/design](docs/design/README.md): 캔버스 캡처와 값 표 |
 | 기능 개발 가이드 | [docs/dev](docs/dev/README.md): 목업 → 앱·서버 개발 순서, [기능 목록](docs/dev/FEATURES.md), 목업 화면 그림 |
 | 서버 | [server](server/README.md): 실행법, [AI 작업 규칙](server/AGENTS.md), [API 약속](server/api-contract.json), [배움 안내](server/docs/LEARN.md) |

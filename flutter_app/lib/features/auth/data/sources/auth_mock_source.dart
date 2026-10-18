@@ -7,7 +7,7 @@ import 'mock_account_store.dart';
 /// 시연(mock) 인증. 기기 안 계정([MockAccountStore])으로만 확인하고 서버에 보내지 않는다.
 ///
 /// - 이메일 로그인은 가입한 계정만, 그 계정의 비밀번호가 맞을 때만 열린다.
-/// - 제호는 이메일에서 만들지 않는다. 제호가 없는 계정은 창간 흐름으로 간다(P13·P14).
+/// - 사인은 이메일에서 만들지 않는다. 사인이 없는 계정은 첫 캔버스 흐름으로 간다(P13·P14).
 /// - Apple·Google 시연 버튼은 예시 인물이 아니라 이 기기의 시연 계정을 만든다.
 class AuthMockSource {
   final MockAccountStore accounts;
@@ -75,12 +75,12 @@ class AuthMockSource {
     }
     if (masthead.isNotEmpty && !MastheadRule.isValid(masthead)) {
       throw const AuthFailure(
-        '제호는 영문 소문자 2~10자로 정해 주세요.',
+        '사인은 영문 소문자 2~10자로 정해 주세요.',
         code: 'INVALID_MASTHEAD',
       );
     }
     if (masthead.isNotEmpty && await isMastheadTaken(masthead)) {
-      throw const AuthFailure('이미 있는 제호예요.', code: 'MASTHEAD_TAKEN');
+      throw const AuthFailure('이미 있는 사인예요.', code: 'MASTHEAD_TAKEN');
     }
     final account = await accounts.createWithPassword(
       email: email,
@@ -103,30 +103,33 @@ class AuthMockSource {
     return _sessionFor(await accounts.social('apple'));
   }
 
-  /// 창간 때 제호를 정한다(P14). 이미 제호가 있는 계정은 바꾸지 않는다.
+  /// 첫 캔버스 때 사인을 정한다(P14). 이미 사인이 있는 계정은 바꾸지 않는다.
   Future<AuthSession> createProfile(String masthead) async {
     final session = _currentSession;
     if (session == null) throw const AuthFailure('로그인이 필요해요.');
     if (!MastheadRule.isValid(masthead)) {
       throw const AuthFailure(
-        '제호는 영문 소문자 2~10자로 정해 주세요.',
+        '사인은 영문 소문자 2~10자로 정해 주세요.',
         code: 'INVALID_MASTHEAD',
       );
     }
     final account = await accounts.findById(session.userId);
     if (account == null) throw const AuthFailure('다시 로그인해 주세요.');
     if (account.masthead.isNotEmpty) {
-      throw const AuthFailure('이미 창간한 잡지가 있는 계정이에요.', code: 'PROFILE_EXISTS');
+      throw const AuthFailure(
+        '이미 첫 캔버스한 잡지가 있는 계정이에요.',
+        code: 'PROFILE_EXISTS',
+      );
     }
     if (await isMastheadTaken(masthead)) {
-      throw const AuthFailure('이미 있는 제호예요.', code: 'MASTHEAD_TAKEN');
+      throw const AuthFailure('이미 있는 사인예요.', code: 'MASTHEAD_TAKEN');
     }
     return _sessionFor(
       await accounts.update(account.copyWith(masthead: masthead)),
     );
   }
 
-  /// 시연의 중복 검사: 예시 인물과 이 기기의 다른 계정 제호, 앱 이름.
+  /// 시연의 중복 검사: 예시 인물과 이 기기의 다른 계정 사인, 앱 이름.
   Future<bool> isMastheadTaken(String masthead) async {
     if (masthead == 'esel' || demoPersonNamed(masthead) != null) return true;
     return (await accounts.findByMasthead(masthead)) != null;

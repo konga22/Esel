@@ -7,7 +7,7 @@ class MockAccount {
   final String userId;
   final String email;
 
-  /// 개인 잡지 제호(P14). 창간 전에는 비어 있다.
+  /// 스케치북 사인(P14). 첫 캔버스 전에는 비어 있다.
   final String masthead;
   final bool isMinor;
 
@@ -106,7 +106,7 @@ class MockAccountStore {
           loaded[normalize(account.email)] = account;
         }
       } on FormatException {
-        // 깨진 기록은 버리고 새로 시작한다. 발행 기록(기기 보관함)은 그대로다.
+        // 깨진 기록은 버리고 새로 시작한다. 올리기 기록(기기 보관함)은 그대로다.
       }
     }
     return _accounts = loaded;
@@ -159,7 +159,7 @@ class MockAccountStore {
     return account;
   }
 
-  /// 소셜 시연 계정. 처음이면 제호 없이 만든다(→ 창간).
+  /// 소셜 시연 계정. 처음이면 사인 없이 만든다(→ 첫 캔버스).
   Future<MockAccount> social(String provider) async {
     final accounts = await _load();
     final email = '$provider@mock.esel.local';

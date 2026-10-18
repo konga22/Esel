@@ -89,8 +89,8 @@
 {
   "error": {
     "code": "ISSUE_ALREADY_PUBLISHED",
-    "message": "오늘 호는 이미 발행했어요.",
-    "hint": "하루에 한 호만 발행할 수 있어요."
+    "message": "오늘의 캔버스는 이미 올렸어요.",
+    "hint": "하루에 한 캔버스만 올릴 수 있어요."
   }
 }
 ```

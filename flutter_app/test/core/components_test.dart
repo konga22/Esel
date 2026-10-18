@@ -39,7 +39,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: Center(
-              child: EselButton(label: '오늘 호 발행', onTap: () {}),
+              child: EselButton(label: '오늘의 캔버스 올리기', onTap: () {}),
             ),
           ),
         ),

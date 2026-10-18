@@ -1,4 +1,14 @@
+import '../features/stand/domain/models/stand_shelf.dart';
+import '../features/drafts/domain/cover_draft.dart';
+import '../features/drafts/presentation/draft_library_screen.dart';
+import '../features/drafts/presentation/cover_editor_screen.dart';
+import '../features/settings/presentation/device_preferences.dart';
+import '../features/settings/presentation/screens/device_settings_screen.dart';
+import '../core/errors/failures.dart';
 import 'dart:math' as math;
+import '../features/challenges/domain/challenge.dart';
+import '../features/challenges/presentation/challenge_screen.dart';
+import '../features/collections/presentation/collection_screen.dart';
 import 'package:flutter/material.dart';
 import '../core/design/theme.dart';
 import '../core/design/tokens.g.dart';
@@ -9,12 +19,10 @@ import '../core/ui/esel_pressable.dart';
 import '../features/drafts/data/local_library.dart';
 import '../features/issue/domain/models/public_issue.dart';
 import '../features/auth/presentation/screens/login_sheet.dart';
-import '../features/drafts/presentation/device_home_screen.dart';
 import '../features/feed/presentation/screens/feed_screen.dart';
 import '../features/friends/presentation/screens/friends_screen.dart';
 import '../features/intro/presentation/screens/intro_screen.dart';
 import '../features/issue/presentation/widgets/issue_bottom_sheet.dart';
-import '../features/magazine/presentation/screens/my_magazine_screen.dart';
 import '../features/magazine/domain/rules/privacy_rule.dart';
 import '../features/magazine/presentation/screens/shelf_screen.dart';
 import '../features/moderation/presentation/widgets/moderation_sheet.dart';
@@ -47,6 +55,9 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
   AppTab _currentTab = AppTab.feed;
   ActiveScreen _activeScreen = ActiveScreen.main;
   String? _authorShelfOwnerId;
+  StyleChallenge? _pendingChallenge;
+  String? _previousIssueId;
+  String? _contentOwnerId;
 
   // 사용자의 오늘 상태는 TodayController 한 곳에서 계산한다(P01·P04).
   bool get _hasPublishedToday => _sl.todayController.hasPublishedToday;
@@ -57,6 +68,8 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
     super.initState();
     _sl.authController.addListener(_onAuthChanged);
     _sl.todayController.addListener(_onTodayChanged);
+    _sl.reactionsController.addListener(_onTodayChanged);
+    _sl.localLibrary?.addListener(_onTodayChanged);
     WidgetsBinding.instance.addObserver(this);
     _sl.todayController.watchMidnight();
     _onAuthChanged();
@@ -68,10 +81,12 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
     _sl.todayController.stopWatchingMidnight();
     _sl.authController.removeListener(_onAuthChanged);
     _sl.todayController.removeListener(_onTodayChanged);
+    _sl.reactionsController.removeListener(_onTodayChanged);
+    _sl.localLibrary?.removeListener(_onTodayChanged);
     super.dispose();
   }
 
-  /// 앱을 다시 열면 서비스 날짜와 오늘 발행 여부를 다시 계산한다(P04). 백그라운드에서는
+  /// 앱을 다시 열면 서비스 날짜와 오늘 올리기 여부를 다시 계산한다(P04). 백그라운드에서는
   /// 자정 타이머가 늦을 수 있다.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -86,13 +101,28 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
 
   void _onAuthChanged() {
     final session = _sl.authController.currentSession;
-    if (_sl.config.isMock) {
-      _sl.todayController.bindUser(
-        ownerId: session?.userId,
-        isMinor: session?.isMinor ?? false,
-      );
+    _sl.reactionsController.bindUser(session?.userId, _sl.localLibrary);
+    if (_contentOwnerId != session?.userId) {
+      final previousOwner = _contentOwnerId;
+      _contentOwnerId = session?.userId;
+      _pendingChallenge = null;
+      _previousIssueId = null;
+      _sl.magazineController.clear();
+      if (previousOwner != null) {
+        _navigatorKey.currentState?.popUntil((route) => route.isFirst);
+      }
+      if (_activeScreen != ActiveScreen.onboarding) {
+        _activeScreen = ActiveScreen.main;
+      }
     }
-    // 제호 없는 계정은 창간부터(P14). 창간하는 중이면 그 단계를 그대로 둔다.
+
+    _sl.todayController.bindUser(
+      ownerId: session?.userId,
+      isMinor: session?.isMinor ?? false,
+      hasProfile: session?.masthead.isNotEmpty ?? false,
+    );
+
+    // 사인 없는 계정은 첫 캔버스부터(P14). 첫 캔버스를 올리는 중이면 그 단계를 그대로 둔다.
     if (_needsProfile && _activeScreen != ActiveScreen.onboarding) {
       _sl.onboardingController.reset();
       _activeScreen = ActiveScreen.onboarding;
@@ -123,7 +153,7 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
     );
   }
 
-  /// 제호가 없는 계정은 앱을 쓰기 전에 창간한다. 제호를 이메일에서 지어내지 않는다(P14).
+  /// 사인이 없는 계정은 앱을 쓰기 전에 첫 캔버스한다. 사인을 이메일에서 지어내지 않는다(P14).
   bool get _needsProfile {
     final session = _sl.authController.currentSession;
     return session != null && session.masthead.isEmpty;
@@ -132,20 +162,31 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
   bool get _isFounding =>
       _needsProfile || _activeScreen == ActiveScreen.onboarding;
 
-  void _startFounding() {
+  Future<void> _startFounding() async {
+    if (_sl.config.isServer && !_sl.authController.isAuthenticated) {
+      final context = _navigatorKey.currentContext;
+      if (context == null) return;
+      await LoginSheet.show(
+        context,
+        authController: _sl.authController,
+        emailSignUp: true,
+        onLoginSuccess: () {},
+      );
+      if (!_sl.authController.isAuthenticated) return;
+    }
     _sl.onboardingController.reset();
     setState(() => _activeScreen = ActiveScreen.onboarding);
   }
 
-  /// 창간을 멈춘다. 제호 없는 계정이면 로그아웃해서 첫 화면으로 돌아간다.
+  /// 첫 캔버스를 멈춘다. 사인 없는 계정이면 로그아웃해서 첫 화면으로 돌아간다.
   Future<void> _cancelFounding() async {
     if (_needsProfile) await _sl.authController.logout();
     _sl.onboardingController.reset();
     if (mounted) setState(() => _activeScreen = ActiveScreen.main);
   }
 
-  /// 창간하기(P13). 계정이 없으면 계정부터 만들고, 그 계정에 제호를 정한 뒤 창간호(Nº 001)를
-  /// 실제로 발행한다(P04). 이미 창간한 계정으로 들어왔으면 그 잡지를 덮어쓰지 않는다.
+  /// 첫 캔버스 올리기(P13). 계정이 없으면 계정부터 만들고, 그 계정에 사인을 정한 뒤 첫 캔버스(Nº 001)를
+  /// 실제로 올린다(P04). 이미 첫 캔버스한 계정으로 들어왔으면 그 잡지를 덮어쓰지 않는다.
   Future<void> _found(BuildContext context) async {
     final auth = _sl.authController;
     final onboarding = _sl.onboardingController;
@@ -154,8 +195,8 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
       await LoginSheet.show(
         context,
         authController: auth,
-        title: '계정을 만들고 창간해요',
-        lead: '창간호는 이 계정의 내 잡지에 꽂혀요.',
+        title: '계정을 만들고 첫 캔버스해요',
+        lead: '첫 캔버스는 이 계정의 스케치북에 꽂혀요.',
         emailSignUp: true,
         onLoginSuccess: () {},
       );
@@ -163,7 +204,7 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
     }
     if (!_needsProfile) {
       messenger.showSnackBar(
-        const SnackBar(content: Text('이미 창간한 잡지가 있는 계정이에요. 그 잡지로 들어가요.')),
+        const SnackBar(content: Text('이미 첫 캔버스한 잡지가 있는 계정이에요. 그 잡지로 들어가요.')),
       );
       _finishFounding(AppTab.feed);
       return;
@@ -171,25 +212,30 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
     final draft = onboarding.draft;
     if (!await auth.createProfile(draft.masthead)) {
       messenger.showSnackBar(
-        SnackBar(content: Text(auth.errorMessage ?? '제호를 저장하지 못했어요.')),
+        SnackBar(content: Text(auth.errorMessage ?? '사인을 저장하지 못했어요.')),
       );
       return;
     }
     try {
-      final issue = await _sl.todayController.publish(
-        draft.toCover(id: _sl.localLibrary!.newId(), now: _sl.clock.now()),
-      );
+      final cover = draft
+          .toCover(id: _sl.localLibrary!.newId(), now: _sl.clock.now())
+          .copyWith(ownerId: auth.currentSession!.userId);
+      await _sl.localLibrary!.save(cover);
+      final issue = await _sl.todayController.publish(cover);
       final others = await _sl.standController
           .sameColorCount(_sl.todayController.today, issue.color)
           .catchError((Object _) => 0);
       onboarding.markFounded(issue, sameColorCount: others + 1);
+    } on Failure catch (error) {
+      messenger.showSnackBar(SnackBar(content: Text(error.message)));
+      _finishFounding(AppTab.me);
     } on FormatException catch (error) {
       messenger.showSnackBar(SnackBar(content: Text(error.message)));
       _finishFounding(AppTab.me);
     } catch (_) {
       messenger.showSnackBar(
         const SnackBar(
-          content: Text('창간호를 기기에 저장하지 못했어요. 내 잡지에서 오늘 호를 다시 만들어 주세요.'),
+          content: Text('첫 캔버스를 기기에 저장하지 못했어요. 스케치북에서 오늘의 캔버스를 다시 만들어 주세요.'),
         ),
       );
       _finishFounding(AppTab.me);
@@ -212,7 +258,79 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
       title: 'Esel',
       debugShowCheckedModeBanner: false,
       theme: EselTheme.lightTheme,
-      builder: (context, child) => EselPhoneFrame(child: child!),
+      builder: (context, child) => DevicePreferences(
+        library: _sl.localLibrary!,
+        child: EselPhoneFrame(
+          child: AnimatedBuilder(
+            animation: Listenable.merge([
+              _sl.reactionsController,
+              _sl.todayController,
+              _sl.localLibrary!,
+            ]),
+            builder: (context, _) => Column(
+              children: [
+                if (_sl.reactionsController.saveError case final error?)
+                  Material(
+                    color: EselColors.paper,
+                    child: SafeArea(
+                      bottom: false,
+                      child: ListTile(
+                        title: Text(error),
+                        trailing: TextButton(
+                          onPressed: _sl.reactionsController.retrySave,
+                          child: const Text('재시도'),
+                        ),
+                      ),
+                    ),
+                  ),
+                if (_sl.todayController.error case final error?
+                    when _sl.todayController.isRemote &&
+                        _sl.todayController.hasTodayData)
+                  Material(
+                    color: EselColors.paper,
+                    child: SafeArea(
+                      bottom: false,
+                      child: ListTile(
+                        key: const Key('today-refresh-error'),
+                        title: Text(error),
+                        trailing: TextButton(
+                          onPressed: _sl.todayController.loading
+                              ? null
+                              : () => _sl.todayController.reload(),
+                          child: const Text('다시 시도'),
+                        ),
+                      ),
+                    ),
+                  ),
+                if (_sl.todayController.hasTodayData &&
+                    (_sl.todayController.loading ||
+                        _sl.reactionsController.loading))
+                  const LinearProgressIndicator(
+                    minHeight: 2,
+                    semanticsLabel: '요청을 처리하고 있어요.',
+                  ),
+                if (_sl.localLibrary!.loadError case final error?)
+                  Material(
+                    color: EselColors.paper,
+                    child: SafeArea(
+                      bottom: false,
+                      child: ListTile(
+                        title: Text(error),
+                        trailing: TextButton(
+                          onPressed: _sl.localLibrary!.directory == null
+                              ? null
+                              : _sl.localLibrary!.loadForStartup,
+                          child: const Text('다시 읽기'),
+                        ),
+                      ),
+                    ),
+                  ),
+                Expanded(child: child!),
+              ],
+            ),
+          ),
+        ),
+      ),
       home: PopScope(
         canPop:
             !_isFounding &&
@@ -246,12 +364,34 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
   }
 
   Widget _buildRootContent(BuildContext context) {
-    if (_sl.config.isServer) {
-      return DeviceHomeScreen(auth: _sl.authController, http: _sl.httpClient);
-    }
     final auth = _sl.authController;
+    final today = _sl.todayController;
+    if (auth.isAuthenticated && today.isRemote && !today.hasTodayData) {
+      return Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Esel', style: EselTypography.heading(fontSize: 40)),
+                if (today.loading)
+                  const CircularProgressIndicator()
+                else ...[
+                  Text(today.error ?? '오늘의 색을 확인하지 못했어요.'),
+                  TextButton(
+                    onPressed: () => today.reload(),
+                    child: const Text('다시 시도'),
+                  ),
+                  TextButton(onPressed: auth.logout, child: const Text('로그아웃')),
+                ],
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
-    // 1. 창간(J3~J7): "내 잡지 만들기"로 시작했거나, 로그인했지만 제호가 없는 계정(P13·P14)
+    // 1. 첫 캔버스(J3~J7): "스케치북 만들기"로 시작했거나, 로그인했지만 사인이 없는 계정(P13·P14)
     if (_isFounding) {
       final today = _sl.todayController;
       return OnboardingScreen(
@@ -276,10 +416,70 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
       );
     }
 
-    // 3. 서브스크린: 월간 색 기록 (R1~R5)
+    if (_activeScreen == ActiveScreen.collections) {
+      return CollectionScreen(
+        key: ValueKey(auth.currentSession!.userId),
+        ownerId: auth.currentSession!.userId,
+        source: _sl.collectionSource,
+        library: _sl.localLibrary!,
+        viewer: _sl.todayController.viewer,
+        clock: _sl.clock,
+        onBack: () => setState(() => _activeScreen = ActiveScreen.main),
+      );
+    }
+    if (_activeScreen == ActiveScreen.challenges) {
+      return ChallengeScreen(
+        key: ValueKey(auth.currentSession!.userId),
+        ownerId: auth.currentSession!.userId,
+        library: _sl.localLibrary!,
+        source: _sl.challengeSource,
+        clock: _sl.clock,
+        viewer: _sl.todayController.viewer,
+        onBack: () => setState(() => _activeScreen = ActiveScreen.main),
+        onBegin: (challenge, previousId) async {
+          _sl.todayController.refresh();
+          final issue = _sl.todayController.todayIssue;
+          if (issue != null) {
+            await _sl.challengeSource.attach(
+              auth.currentSession!.userId,
+              issue.id,
+              challenge,
+              _sl.clock.today,
+              previousId: previousId,
+            );
+          } else {
+            if (_sl.todayController.hasPublishedToday) {
+              throw const FormatException(
+                '오늘의 캔버스가 삭제되어 참여에 연결할 수 없어요. 다음 올리기일에 참여해 주세요.',
+              );
+            }
+            setState(() {
+              _pendingChallenge = challenge;
+              _previousIssueId = previousId;
+              _activeScreen = ActiveScreen.main;
+              _currentTab = AppTab.publish;
+            });
+          }
+        },
+      );
+    }
+
+    // 3. 서브스크린: 색 달력 (R1~R5)
     if (_activeScreen == ActiveScreen.records) {
       return MonthlyRecordScreen(
-        controller: _sl.recordsController,
+        source: _sl.recordsSource,
+        onOpenIssue: (id) async {
+          try {
+            final issue = await _sl.reactionsController.ownIssue(id);
+            if (context.mounted) _openIssue(context, issue);
+          } on Failure catch (e) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(e.message)));
+            }
+          }
+        },
         onBack: () => setState(() => _activeScreen = ActiveScreen.main),
       );
     }
@@ -304,6 +504,25 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
     if (_activeScreen == ActiveScreen.settings) {
       return SettingsScreen(
         authController: _sl.authController,
+        deviceActions: {
+          '기기 접근성 설정': () => Navigator.push<void>(
+            context,
+            MaterialPageRoute(
+              builder: (_) => DeviceSettingsScreen(library: _sl.localLibrary!),
+            ),
+          ),
+          '기기 초안 · 초안 달력': () => Navigator.push<void>(
+            context,
+            MaterialPageRoute(
+              builder: (_) => DraftLibraryScreen(
+                library: _sl.localLibrary!,
+                ownerId: auth.currentSession!.userId,
+                clock: _sl.clock,
+                onEdit: (draft) => _editDeviceDraft(context, draft),
+              ),
+            ),
+          ),
+        },
         deleteAccount: _deleteAccount,
         onBack: () => setState(() => _activeScreen = ActiveScreen.main),
         onLogoutComplete: () {
@@ -321,17 +540,27 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
       );
     }
 
-    // 7. 서브스크린: 다른 사람의 서가(C5). 누른 사람의 잡지를 연다.
+    // 7. 서브스크린: 다른 사람의 스케치북(C5). 누른 사람의 잡지를 연다.
     final authorShelf = _authorShelfOwnerId;
     if (_activeScreen == ActiveScreen.authorShelf && authorShelf != null) {
-      return ShelfScreen(
-        ownerId: authorShelf,
-        controller: _sl.magazineController,
-        reactionsController: _sl.reactionsController,
-        viewer: _sl.todayController.viewer,
-        viewerId: auth.currentSession?.userId,
-        onSelectIssue: (issue, _) => _openIssue(context, issue),
-        onBack: () => setState(() => _activeScreen = ActiveScreen.main),
+      return Stack(
+        children: [
+          ShelfScreen(
+            ownerId: authorShelf,
+            controller: _sl.magazineController,
+            reactionsController: _sl.reactionsController,
+            viewer: _sl.todayController.viewer,
+            viewerId: auth.currentSession?.userId,
+            onSelectIssue: (issue, _) => _openIssue(context, issue),
+            onBack: () => setState(() => _activeScreen = ActiveScreen.main),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: math.max(34.0, MediaQuery.of(context).padding.bottom),
+            child: Center(child: _buildGlassBottomBar(context)),
+          ),
+        ],
       );
     }
 
@@ -341,7 +570,7 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
       body: Stack(
         children: [
           _buildActiveTabScreen(context),
-          // 디자인: 196×60 캡슐, 가로 가운데, 화면 아래 34(홈 인디케이터가 더 높으면 그 위).
+          // 디자인: 260×60 캡슐, 가로 가운데, 화면 아래 34(홈 인디케이터가 더 높으면 그 위).
           Positioned(
             left: 0,
             right: 0,
@@ -360,10 +589,13 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
   Future<void> _deleteAccount() async {
     final userId = _sl.authController.currentSession?.userId;
     await _sl.authController.deleteAccount();
-    if (userId != null) await _sl.localLibrary?.deleteOwnerData(userId);
+    if (userId != null) {
+      await _sl.localLibrary?.deleteOwnerData(userId);
+      _sl.reactionsController.forgetOwner(userId);
+    }
   }
 
-  /// 다른 사람의 서가로. 내 이름을 누르면 내 서가로 간다.
+  /// 다른 사람의 스케치북으로. 내 이름을 누르면 내 스케치북으로 간다.
   void _openAuthorShelf(String ownerId) {
     setState(() {
       if (ownerId == _sl.authController.currentSession?.userId) {
@@ -376,7 +608,7 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
     });
   }
 
-  /// 펼침면(C3). 반응 숫자는 발행한 본인에게만 보인다(P18).
+  /// 자세히 보기(C3). 반응 숫자는 올린 본인에게만 보인다(P18).
   void _openIssue(BuildContext context, PublicIssue issue) {
     final session = _sl.authController.currentSession;
     IssueBottomSheet.show(
@@ -389,12 +621,7 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
       readerMasthead: session?.masthead ?? '',
       reactionsController: _sl.reactionsController,
       onOpenAuthorShelf: () => _openAuthorShelf(issue.ownerId),
-      onShare: () => ShareSheet.show(
-        context,
-        issueId: issue.id,
-        masthead: issue.masthead,
-        issueNumber: issue.issueLabel,
-      ),
+      onShare: () => _shareIssue(context, issue),
       onReport: () => ModerationSheet.show(
         context,
         authorMasthead: issue.masthead,
@@ -404,6 +631,36 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
     );
   }
 
+  void _editDeviceDraft(BuildContext context, CoverDraft draft) {
+    final account = _sl.authController.currentSession;
+    if (account == null ||
+        draft.ownerId != account.userId ||
+        draft.issueNumber != 0) {
+      return;
+    }
+    Navigator.push<void>(
+      context,
+      MaterialPageRoute(
+        builder: (editorContext) => CoverEditorScreen(
+          library: _sl.localLibrary!,
+          initial: draft,
+          candidates: _sl.todayController.candidates,
+          onClose: () => Navigator.pop(editorContext),
+          onPublish: (value) async {
+            await _sl.todayController.publish(value);
+            if (editorContext.mounted) Navigator.pop(editorContext);
+          },
+        ),
+      ),
+    );
+  }
+
+  void _shareIssue(BuildContext context, PublicIssue issue) => ShareSheet.show(
+    context,
+    issueId: issue.id,
+    masthead: issue.masthead,
+    issueNumber: issue.issueLabel,
+  );
   Widget _buildActiveTabScreen(BuildContext context) {
     final session = _sl.authController.currentSession!;
     final today = _sl.todayController;
@@ -417,6 +674,7 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
           onOpenAuthorShelf: _openAuthorShelf,
           onOpenIssue: (issue) => _openIssue(context, issue),
           onOpenStand: (color) {
+            _sl.standController.selectTab(PaletteTab.colors);
             _sl.standController.select(color);
             setState(() => _currentTab = AppTab.stand);
           },
@@ -424,16 +682,36 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
         );
 
       case AppTab.stand:
+        _sl.standController.preferredColor = today.myColor;
+        _sl.standController.subscriptions =
+            _sl.reactionsController.subscribedOwnerIds;
         return StandScreen(
+          onOpenCollections: _sl.config.isMock
+              ? () => setState(() => _activeScreen = ActiveScreen.collections)
+              : null,
+          onOpenChallenges: _sl.config.isMock
+              ? () => setState(() => _activeScreen = ActiveScreen.challenges)
+              : null,
           controller: _sl.standController,
           viewer: today.viewer,
           viewerId: session.userId,
           onMakeTodayIssue: () => setState(() => _currentTab = AppTab.publish),
-          onSelectCover: (issue) => _openIssue(context, issue),
+          onSelectCover: (issue) => _openAuthorShelf(issue.ownerId),
         );
 
       case AppTab.publish:
+        if (!_sl.localLibrary!.available) {
+          return const Scaffold(
+            body: SafeArea(
+              child: Center(
+                child: Text('기기 보관함을 다시 읽은 뒤 편집해 주세요. 기존 자료는 보존되어 있어요.'),
+              ),
+            ),
+          );
+        }
         return PublishScreen(
+          challengeId: _pendingChallenge?.id,
+          previousIssueId: _previousIssueId,
           library: _sl.localLibrary!,
           ownerId: session.userId,
           masthead: session.masthead,
@@ -441,8 +719,8 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
           hasPublishedToday: _hasPublishedToday,
           candidates: today.candidates,
           publish: today.publish,
-          onPublishSuccess: (_) => setState(() => _currentTab = AppTab.me),
-          onClose: () => setState(() => _currentTab = AppTab.feed),
+          onPublishSuccess: (_) => _closeContentEditor(published: true),
+          onClose: _closeContentEditor,
         );
 
       case AppTab.shelf:
@@ -450,6 +728,7 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
           ownerId: session.userId,
           masthead: session.masthead,
           isOwner: true,
+          onShareIssue: (issue) => _shareIssue(context, issue),
           controller: _sl.magazineController,
           reactionsController: _sl.reactionsController,
           viewer: today.viewer,
@@ -473,25 +752,70 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
         );
 
       case AppTab.me:
-        return MyMagazineScreen(
-          showExtendedFeatures: !_sl.config.isMock,
+        return ShelfScreen(
+          ownerId: session.userId,
           masthead: session.masthead,
-          issueCount: _issueCount,
-          hasPublishedToday: _hasPublishedToday,
-          todayColor: today.myColor,
-          todayIssue: today.todayIssue,
+          isOwner: true,
+          onShareIssue: (issue) => _shareIssue(context, issue),
+          controller: _sl.magazineController,
           reactionsController: _sl.reactionsController,
-          onMakeTodayIssue: () => setState(() => _currentTab = AppTab.publish),
-          onOpenShelf: () => setState(() => _currentTab = AppTab.shelf),
-          onOpenRecords: () =>
-              setState(() => _activeScreen = ActiveScreen.records),
-          onOpenFriends: () =>
-              setState(() => _activeScreen = ActiveScreen.friends),
-          onOpenTwin: () => setState(() => _activeScreen = ActiveScreen.twin),
-          onOpenSettings: () =>
-              setState(() => _activeScreen = ActiveScreen.settings),
+          viewer: today.viewer,
+          viewerId: session.userId,
+          onSelectIssue: (issue, _) => _openIssue(context, issue),
+          onBack: () => setState(() => _currentTab = AppTab.feed),
+          actions: {
+            '오늘의 캔버스 만들기': () => setState(() => _currentTab = AppTab.publish),
+            '오늘의 색': () => _chooseColor(context),
+            '색 달력': () => setState(() => _activeScreen = ActiveScreen.records),
+            if (_sl.config.isMock)
+              '이번 주 주제': () =>
+                  setState(() => _activeScreen = ActiveScreen.challenges),
+            if (_sl.config.isMock)
+              '전시': () =>
+                  setState(() => _activeScreen = ActiveScreen.collections),
+            if (_sl.config.isMock)
+              '친구': () => setState(() => _activeScreen = ActiveScreen.friends),
+            if (_sl.config.isMock)
+              '트윈': () => setState(() => _activeScreen = ActiveScreen.twin),
+            '설정': () => setState(() => _activeScreen = ActiveScreen.settings),
+          },
         );
     }
+  }
+
+  Future<void> _chooseColor(BuildContext context) async {
+    final today = _sl.todayController;
+    final color = await showModalBottomSheet<EselPaint>(
+      context: context,
+      useSafeArea: true,
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const ListTile(title: Text('오늘의 색')),
+          for (final paint in today.candidates)
+            ListTile(
+              title: Text(EselPaints.of(paint).nameKo),
+              leading: EselPaintAsset(paint: paint, width: 40),
+              enabled: !today.hasPublishedToday,
+              onTap: () => Navigator.pop(context, paint),
+            ),
+        ],
+      ),
+    );
+    if (color != null) today.pick(color);
+  }
+
+  void _closeContentEditor({bool published = false}) {
+    setState(() {
+      _activeScreen = _pendingChallenge == null
+          ? ActiveScreen.main
+          : ActiveScreen.challenges;
+      _currentTab = _pendingChallenge != null || published
+          ? AppTab.me
+          : AppTab.feed;
+      _pendingChallenge = null;
+      _previousIssueId = null;
+    });
   }
 
   /// 디자인 "메뉴 캡슐": 내 오늘의 색 물감(52) · Ink 원 48 안의 + · 내 아바타(34).
@@ -508,7 +832,13 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _buildCapsuleItem(
-            '오늘의 색 가판대',
+            '홈',
+            AppTab.feed,
+            context,
+            child: const Icon(Icons.home_outlined, size: 26),
+          ),
+          _buildCapsuleItem(
+            '팔레트',
             AppTab.stand,
             context,
             child: EselPaintAsset(
@@ -517,10 +847,10 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
             ),
           ),
           _buildCapsuleItem(
-            '표지 만들기',
+            '만들기',
             AppTab.publish,
             context,
-            width: 48,
+            width: 62,
             child: Container(
               width: 48,
               height: 48,
@@ -532,7 +862,7 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
             ),
           ),
           _buildCapsuleItem(
-            '내 잡지',
+            '스케치북',
             AppTab.me,
             context,
             child: _buildMyAvatar(),
@@ -542,19 +872,19 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
     );
   }
 
-  /// 내 아바타: 최근 호 사진에서 얼굴이 원을 채우게. 호가 없으면 제호 첫 글자.
+  /// 내 아바타: 최근 호 사진에서 얼굴이 원을 채우게. 호가 없으면 사인 첫 글자.
   Widget _buildMyAvatar() {
     final session = _sl.authController.currentSession;
     final latest = _sl.todayController.issues.firstOrNull;
     final masthead = session?.masthead ?? '';
-    if (latest != null) {
+    if (latest != null && latest.photoPath.isNotEmpty) {
       return FaceAvatar(
         image: localPhotoProvider(latest.photoPath),
         face: FaceBox(latest.faceX, latest.faceY, latest.faceWidth),
         size: 34,
       );
     }
-    // 아바타는 장식이다. 이름은 버튼 라벨("내 잡지")로 읽힌다.
+    // 아바타는 장식이다. 이름은 버튼 라벨("스케치북")로 읽힌다.
     return ExcludeSemantics(
       child: Container(
         width: 34,
@@ -577,9 +907,9 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
     AppTab tab,
     BuildContext context, {
     required Widget child,
-    double width = 60,
+    double width = 62,
   }) {
-    // 앱 목업: 지금 보고 있는 쪽(가판대, 내 잡지·서가) 아래에 4px 먹 점.
+    // 앱 목업: 지금 보고 있는 쪽(팔레트, 스케치북·스케치북) 아래에 4px 먹 점.
     final current =
         _currentTab == tab || (tab == AppTab.me && _currentTab == AppTab.shelf);
     final marked = current && tab != AppTab.publish;
@@ -597,7 +927,10 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
               return;
             }
           }
-          setState(() => _currentTab = tab);
+          setState(() {
+            _activeScreen = ActiveScreen.main;
+            _currentTab = tab;
+          });
         },
         child: SizedBox(
           width: width,

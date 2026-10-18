@@ -1,3 +1,6 @@
+import 'package:flutter/foundation.dart';
+import '../../../core/errors/failures.dart';
+import '../../garments/presentation/garment_editor.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -12,6 +15,7 @@ import '../../media/domain/models/face_layout_mode.dart';
 import '../../media/presentation/cover_preview.dart';
 import '../data/local_library.dart';
 import '../domain/cover_draft.dart';
+import '../../challenges/domain/challenge.dart';
 import '../../settings/presentation/device_preferences.dart';
 
 class CoverEditorScreen extends StatefulWidget {
@@ -39,6 +43,7 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
   final _scroll = ScrollController();
   final _history = <CoverDraft>[];
   bool _busy = false, _dirty = false, _allowPop = false;
+  bool _locatingFace = false;
   @override
   void initState() {
     super.initState();
@@ -51,6 +56,7 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
         );
     _masthead = TextEditingController(text: _draft.masthead);
     _caption = TextEditingController(text: _draft.caption);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _recoverLostPhoto());
   }
 
   @override
@@ -73,7 +79,7 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
     });
   }
 
-  /// 그대로 연출인데 제호를 줄여도 얼굴에 닿는지(P15). 미리보기 표지 360×480 기준.
+  /// 그대로 연출인데 사인을 줄여도 얼굴에 닿는지(P15). 미리보기 표지 360×480 기준.
   bool get _plainTouchesFace =>
       _draft.photoPath.isNotEmpty &&
       CoverPreview.plainMastheadTouchesFace(_draft, const Size(360, 480));
@@ -103,17 +109,7 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
         requestFullMetadata: false,
       );
       if (file == null) return;
-      final path = widget.library.persistent
-          ? await widget.library.importPhoto(file.path)
-          : await widget.library.importPhotoBytes(await file.readAsBytes());
-      if (!mounted) return;
-      await precacheImage(localPhotoProvider(path), context);
-      if (!mounted) return;
-      _history.add(_draft);
-      setState(() {
-        _draft = _draft.copyWith(photoPath: path, faceConfirmed: false);
-        _dirty = true;
-      });
+      await _applyPhoto(file);
     } on PlatformException catch (error) {
       _message(
         error.code.contains('denied')
@@ -126,6 +122,67 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
       _message('사진을 저장하지 못했어요. 기기 저장 공간을 확인해 주세요.');
     } finally {
       if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _applyPhoto(XFile file) async {
+    final path = widget.library.persistent
+        ? await widget.library.importPhoto(file.path)
+        : await widget.library.importPhotoBytes(await file.readAsBytes());
+    if (!mounted) return;
+    await precacheImage(localPhotoProvider(path), context);
+    if (!mounted) return;
+    _history.add(_draft);
+    setState(() {
+      _draft = _draft.copyWith(
+        photoPath: path,
+        faceConfirmed: false,
+        garments: _draft.garments.map((v) => v.at(null, null)).toList(),
+      );
+      _dirty = true;
+    });
+  }
+
+  Future<void> _recoverLostPhoto() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
+    try {
+      final recovered = await ImagePicker().retrieveLostData();
+      if (!mounted || recovered.isEmpty) return;
+      if (recovered.exception != null) {
+        _message('중단된 사진을 읽지 못했어요. 앨범에서 다시 골라 주세요.');
+        return;
+      }
+      final files = recovered.files;
+      if (files == null || files.isEmpty) return;
+      final use = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('중단된 사진 선택을 찾았어요'),
+          content: const Text('현재 초안에 이 사진을 사용할까요? 기존 초안은 확인 없이 덮어쓰지 않아요.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('취소'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('사진 사용'),
+            ),
+          ],
+        ),
+      );
+      if (use == true && mounted) {
+        setState(() => _busy = true);
+        try {
+          await _applyPhoto(files.first);
+        } finally {
+          if (mounted) setState(() => _busy = false);
+        }
+      }
+    } on MissingPluginException {
+      // Android 이외 환경이나 위젯 검사에는 복구 플러그인이 없다.
+    } catch (_) {
+      if (mounted) _message('중단된 사진을 복구하지 못했어요. 앨범에서 다시 골라 주세요.');
     }
   }
 
@@ -158,12 +215,17 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
     }
     setState(() => _busy = true);
     try {
+      if (!await widget.library.photoExists(_draft.photoPath)) {
+        throw const FormatException('사진 파일을 찾을 수 없어요. 앨범에서 다시 골라 주세요.');
+      }
       await widget.onPublish!(_draft);
       if (mounted) setState(() => _dirty = false);
     } on FormatException catch (error) {
       _message(error.message);
+    } on Failure catch (error) {
+      _message(error.message);
     } catch (_) {
-      _message('발행 내용을 기기에 저장하지 못했어요. 다시 시도해 주세요.');
+      _message('올리기 내용을 기기에 저장하지 못했어요. 다시 시도해 주세요.');
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -294,7 +356,7 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
           onPressed: _busy ? null : _close,
           icon: const Icon(Icons.close),
         ),
-        title: Text(widget.onPublish == null ? '표지 만들기' : '오늘 호 만들기'),
+        title: Text(widget.onPublish == null ? '표지 만들기' : '오늘의 캔버스 만들기'),
         actions: [
           IconButton(
             tooltip: '이전 편집으로 되돌리기',
@@ -314,21 +376,43 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
           controller: _scroll,
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           children: [
+            if (_draft.challengeId != null) ...[
+              Text(
+                '${StyleChallenge.resolve(_draft.challengeId)?.title ?? '지난 참여'}에 연결할 오늘의 캔버스',
+              ),
+              const Text('마감되었거나 다른 주제로 바꾸려면 참여만 해제하고 편집을 계속하세요.'),
+              TextButton(
+                onPressed: () => _edit(_draft.copyWith(clearChallenge: true)),
+                child: const Text('콘텐츠 참여만 해제'),
+              ),
+            ],
             Text(
               widget.onPublish == null
-                  ? '초안은 이 기기에만 보관돼요. 발행 전까지 공개되지 않아요.'
-                  : '로컬 시연 · 발행한 호는 이 기기에 저장돼요.',
+                  ? '초안은 이 기기에만 보관돼요. 올리기 전까지 공개되지 않아요.'
+                  : '로컬 시연 · 올린 호는 이 기기에 저장돼요.',
             ),
             const SizedBox(height: 16),
+            if (_locatingFace)
+              const Padding(
+                padding: EdgeInsets.only(bottom: 8),
+                child: Text(
+                  '얼굴 위치 지정 중 · 효과를 숨긴 원본이에요. 사진의 얼굴 가운데를 누르면 효과가 다시 적용돼요.',
+                ),
+              ),
             RepaintBoundary(
               key: _capture,
               child: CoverPreview(
                 draft: _draft,
-                editing: !_draft.faceConfirmed,
-                onFacePosition: (point) => _edit(
-                  _draft.copyWith(faceX: point.dx, faceY: point.dy),
-                  history: false,
-                ),
+                editing: _locatingFace || !_draft.faceConfirmed,
+                locatingFace: _locatingFace,
+                chrome: !_locatingFace,
+                onFacePosition: (point) {
+                  _edit(
+                    _draft.copyWith(faceX: point.dx, faceY: point.dy),
+                    history: false,
+                  );
+                  setState(() => _locatingFace = false);
+                },
               ),
             ),
             const SizedBox(height: 16),
@@ -361,11 +445,21 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
                   FilteringTextInputFormatter.allow(RegExp('[a-z]')),
                 ],
                 decoration: const InputDecoration(
-                  labelText: '제호 · 영문 소문자 2~10자',
+                  labelText: '사인 · 영문 소문자 2~10자',
                   helperText: '초안의 이름이에요. 계정 이름 중복 확인은 로그인 후 가능해요.',
                 ),
                 onChanged: (v) => _edit(_draft.copyWith(masthead: v)),
               ),
+            Text('사인 크기 · ${(_draft.mastheadScale * 100).round()}%'),
+            Slider(
+              key: const Key('draft-masthead-scale'),
+              value: _draft.mastheadScale,
+              min: .5,
+              max: 1.4,
+              onChangeStart: (_) => _history.add(_draft),
+              onChanged: (v) =>
+                  _edit(_draft.copyWith(mastheadScale: v), history: false),
+            ),
             TextField(
               key: const Key('draft-caption'),
               controller: _caption,
@@ -389,6 +483,12 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
                 label: const Text('문구 복사'),
               ),
             ),
+            GarmentEditor(
+              draft: _draft,
+              library: widget.library,
+              onChanged: (items) => _edit(_draft.copyWith(garments: items)),
+            ),
+            const SizedBox(height: 16),
             const Text('초안의 색'),
             const SizedBox(height: 8),
             Wrap(
@@ -410,38 +510,83 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
                   .toList(),
             ),
             const SizedBox(height: 16),
-            const Text('얼굴 연출'),
+            const Text('얼굴 자르기 · 하나만 선택해 주세요'),
             Wrap(
               spacing: 6,
               children:
                   [
                         ('그대로', FaceLayoutMode.original),
-                        ('물감 한 획', FaceLayoutMode.paintStroke),
-                        ('제호 뒤로', FaceLayoutMode.behindLogo),
+                        ('사인 뒤로', FaceLayoutMode.behindLogo),
                         ('목 아래', FaceLayoutMode.belowNeck),
                       ]
                       .map(
                         (item) => ChoiceChip(
                           label: Text(item.$1),
-                          selected: _draft.faceMode == item.$2,
-                          onSelected: (_) => _edit(
-                            _draft.copyWith(
-                              faceMode: item.$2,
-                              faceConfirmed: false,
-                            ),
-                          ),
+                          selected: item.$2 == FaceLayoutMode.original
+                              ? faceCropMode(_draft.effectiveFaceEffects) ==
+                                    FaceLayoutMode.original
+                              : _draft.effectiveFaceEffects.contains(item.$2),
+                          onSelected: (_) {
+                            setState(() => _locatingFace = false);
+                            _edit(
+                              _draft.copyWith(
+                                faceMode: item.$2,
+                                faceEffects: toggleFaceEffect(
+                                  _draft.effectiveFaceEffects,
+                                  item.$2,
+                                ),
+                                faceConfirmed: false,
+                              ),
+                            );
+                          },
                         ),
                       )
                       .toList(),
             ),
+            const SizedBox(height: 8),
+            ChoiceChip(
+              label: const Text('물감 한 획'),
+              selected: _draft.effectiveFaceEffects.contains(
+                FaceLayoutMode.paintStroke,
+              ),
+              onSelected:
+                  faceCropMode(_draft.effectiveFaceEffects) ==
+                      FaceLayoutMode.belowNeck
+                  ? null
+                  : (_) {
+                      setState(() => _locatingFace = false);
+                      _edit(
+                        _draft.copyWith(
+                          faceEffects: toggleFaceEffect(
+                            _draft.effectiveFaceEffects,
+                            FaceLayoutMode.paintStroke,
+                          ),
+                          faceConfirmed: false,
+                        ),
+                      );
+                    },
+            ),
             Text(
-              _draft.faceMode == FaceLayoutMode.belowNeck
-                  ? '목 아래는 턱 아래부터 표지를 채워요. 얼굴 위치는 다른 연출에서 먼저 정해 주세요.'
+              _draft.effectiveFaceEffects.contains(FaceLayoutMode.belowNeck)
+                  ? '목 아래에서는 물감이 꺼지고 선택할 수 없어요. 그대로 또는 사인 뒤로를 고르면 다시 켤 수 있어요.'
                   : '표지에서 얼굴 가운데를 누르거나 움직여 위치를 정해 주세요.',
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() => _locatingFace = !_locatingFace);
+                if (_locatingFace) {
+                  _scroll.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 180),
+                    curve: Curves.easeOut,
+                  );
+                }
+              },
+              child: Text(_locatingFace ? '효과 미리보기로 돌아가기' : '원본에서 얼굴 위치 맞추기'),
             ),
             if (_plainTouchesFace)
               Text(
-                '그대로에서는 제호가 얼굴에 닿아요. 물감 한 획이나 제호 뒤로를 골라 보세요.',
+                '그대로에서는 사인이 얼굴에 닿아요. 물감 한 획이나 사인 뒤로를 골라 보세요.',
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             // 얼굴 크기는 물감 폭(얼굴 폭의 2.15배)과 목 아래 자르기(턱 위치)를 함께 정한다.
@@ -465,11 +610,14 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
               value: _draft.faceConfirmed,
               onChanged: _draft.photoPath.isEmpty
                   ? null
-                  : (v) => _edit(_draft.copyWith(faceConfirmed: v ?? false)),
+                  : (v) {
+                      if (v == true) setState(() => _locatingFace = false);
+                      _edit(_draft.copyWith(faceConfirmed: v ?? false));
+                    },
             ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('흰색 제호'),
+              title: const Text('흰색 사인'),
               subtitle: Text(_draft.whiteTitle ? '흰색' : '잉크색'),
               value: _draft.whiteTitle,
               onChanged: (v) => _edit(_draft.copyWith(whiteTitle: v)),
@@ -483,7 +631,7 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
             if (widget.onPublish != null) ...[
               const SizedBox(height: 12),
               EselButton(
-                label: _busy ? '기기에 저장 중…' : '오늘 호 발행',
+                label: _busy ? '기기에 저장 중…' : '오늘의 캔버스 올리기',
                 enabled: !_busy && _draft.validationError == null,
                 onTap: _publish,
               ),
@@ -498,7 +646,7 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
             ),
             const SizedBox(height: 12),
             if (widget.onPublish == null)
-              const Text('실제 발행은 로그인과 서버 연결 후 가능해요.'),
+              const Text('실제 올리기는 로그인과 서버 연결 후 가능해요.'),
           ],
         ),
       ),

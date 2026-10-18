@@ -11,8 +11,8 @@ import 'photo_ratio_builder.dart';
 ///
 /// - 그대로: object-fit cover(정렬은 [position]).
 /// - 물감 한 획: 그 사람 색 물감이 눈 위를 -10° 기울여 가린다. 폭은 얼굴 폭의 2.15배.
-/// - 제호 뒤로: 사진을 1.9배로 키워 얼굴을 위쪽 17% 높이(제호 자리)로 옮긴다. 제호는
-///   화면이 이 위에 얹어서 얼굴을 덮는다(제호를 옮기지 않는다).
+/// - 사인 뒤로: 사진을 1.9배로 키워 얼굴을 위쪽 17% 높이(사인 자리)로 옮긴다. 사인은
+///   화면이 이 위에 얹어서 얼굴을 덮는다(사인을 옮기지 않는다).
 /// - 목 아래: 턱 아래부터 상자를 채우도록 키우고 자른다.
 class CoverPhoto extends StatelessWidget {
   final ImageProvider image;
@@ -21,6 +21,7 @@ class CoverPhoto extends StatelessWidget {
   final double? photoRatio;
   final FaceBox face;
   final FaceLayoutMode mode;
+  final Set<FaceLayoutMode>? effects;
   final EselPaint paint;
 
   /// object-position. (0.5, 0.5)이 가운데.
@@ -33,6 +34,7 @@ class CoverPhoto extends StatelessWidget {
     this.photoRatio,
     required this.face,
     required this.mode,
+    this.effects,
     required this.paint,
     this.position = const Offset(0.5, 0.5),
     this.semanticLabel,
@@ -68,18 +70,13 @@ class CoverPhoto extends StatelessWidget {
         double below(double dw) =>
             dw * r - (face.y * dw * r + face.width * dw * 0.78);
         final room = below(w);
-        final k = room <= 0
-            ? 4.0
-            : math.min(4.0, math.max(1.0, (h + 2) / room));
+        // 확대 상한/세로 위치 보정으로 턱을 다시 화면 안에 내리지 않는다.
+        // 턱 아래 사진이 전혀 없으면 빈 배경을 남긴다(얼굴을 노출하지 않는다).
+        final k = room <= 0 ? 1.0 : math.max(1.0, (h + 2) / room);
         final dw = w * k;
         final dh = dw * r;
         final chin = face.y * dh + face.width * dw * 0.78;
-        return Rect.fromLTWH(
-          clampX(w / 2 - face.x * dw, dw),
-          clampY(-chin, dh),
-          dw,
-          dh,
-        );
+        return Rect.fromLTWH(clampX(w / 2 - face.x * dw, dw), -chin, dw, dh);
       case FaceLayoutMode.original:
       case FaceLayoutMode.paintStroke:
         final dw = math.max(w, h / r);
@@ -115,7 +112,8 @@ class CoverPhoto extends StatelessWidget {
   Widget _build(double ratio) {
     final widget = this;
     final face = widget.face;
-    final mode = widget.mode;
+    final effects = normalizeFaceEffects(widget.effects ?? {widget.mode});
+    final mode = faceCropMode(effects);
     return LayoutBuilder(
       builder: (context, box) {
         final size = Size(box.maxWidth, box.maxHeight);
@@ -142,7 +140,7 @@ class CoverPhoto extends StatelessWidget {
                       const ColoredBox(color: EselColors.photo),
                 ),
               ),
-              if (mode == FaceLayoutMode.paintStroke)
+              if (effects.contains(FaceLayoutMode.paintStroke))
                 Positioned.fromRect(
                   rect: stroke,
                   child: Transform.rotate(

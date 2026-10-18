@@ -10,7 +10,6 @@ import 'package:esel/features/feed/data/sources/feed_mock_source.dart';
 import 'package:esel/features/feed/data/sources/feed_remote_source.dart';
 import 'package:esel/features/feed/domain/models/feed_page.dart';
 import 'package:esel/features/magazine/data/sources/magazine_mock_source.dart';
-import 'package:esel/features/magazine/data/sources/magazine_remote_source.dart';
 import 'package:esel/features/stand/data/sources/stand_mock_source.dart';
 import 'package:esel/features/stand/data/sources/stand_remote_source.dart';
 import 'package:esel/features/stand/domain/rules/same_color_rule.dart';
@@ -48,7 +47,7 @@ void main() {
       expect(page.sameColorCount(EselPaint.powder), 3);
     });
 
-    test('발행 전에는 잠긴 후보 색 표지가 피드로 새지 않는다(P01)', () async {
+    test('올리기 전에는 잠긴 후보 색 표지가 피드로 새지 않는다(P01)', () async {
       final page = await feed.today(viewer: before, signedIn: true);
       expect(page.heldBack, isTrue);
       expect(page.issues.where((i) => candidates.contains(i.color)), isEmpty);
@@ -79,7 +78,7 @@ void main() {
     });
   });
 
-  group('DEV-03 mock 가판대', () {
+  group('DEV-03 mock 팔레트', () {
     final stand = StandMockSource();
 
     test('잠긴 방은 최신 3장과 개수만, 숨긴 표지의 이름은 오지 않는다', () async {
@@ -99,10 +98,10 @@ void main() {
     });
   });
 
-  group('DEV-03 mock 서가', () {
+  group('DEV-03 mock 스케치북', () {
     final magazines = MagazineMockSource();
 
-    test('누른 사람의 서가가 열리고 호수는 결호 없이 내려간다(P04)', () async {
+    test('누른 사람의 스케치북이 열리고 호수는 결호 없이 내려간다(P04)', () async {
       final lise = await magazines.magazine('demo_lise', viewer: after);
       expect(lise!.masthead, 'lise');
       expect(lise.isMine, isFalse);
@@ -116,7 +115,7 @@ void main() {
       expect(await magazines.magazine('nobody', viewer: after), isNull);
     });
 
-    test('잠긴 오늘 호는 그 사람 서가에서도 보이지 않는다(P01)', () async {
+    test('잠긴 오늘의 캔버스는 그 사람 스케치북에서도 보이지 않는다(P01)', () async {
       final selin = await magazines.magazine('demo_selin', viewer: before);
       expect(selin!.issues.first.date, isNot(today));
       expect(selin.todayColor, isNull);
@@ -126,7 +125,7 @@ void main() {
     });
   });
 
-  test('서버 소스는 아직 미구현이라고 알린다(몰래 mock으로 바꾸지 않음)', () async {
+  test('미구현 피드·팔레트 소스는 몰래 mock으로 바꾸지 않는다', () async {
     const config = AppConfig(apiMode: ApiMode.server);
     final http = StandardHttpClient(
       config: config,
@@ -138,10 +137,6 @@ void main() {
     );
     await expectLater(
       StandRemoteSource(http).shelf(viewer: before),
-      throwsA(isA<NotImplementedFailure>()),
-    );
-    await expectLater(
-      MagazineRemoteSource(http).magazine('demo_lise', viewer: before),
       throwsA(isA<NotImplementedFailure>()),
     );
   });

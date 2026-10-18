@@ -52,7 +52,7 @@ flutter_app/lib/features/<기능>/presentation/  화면(screens)과 상태(contr
 flutter_app/test/                           domain·data·위젯 테스트 (`flutter test`)
 ```
 
-data 계층은 인증(`features/auth/data`), 기기 보관함(`features/drafts/data`), 피드·가판대·서가 소스(`features/{feed,stand,magazine}/data/sources`), 예시 표지(`features/issue/data`)에 있다. 피드·가판대·서가는 소스 인터페이스의 mock 구현을 읽고, 서버 구현은 아직 `NotImplementedFailure`다. 오늘의 색 후보(`features/today/domain/rules/daily_candidates.dart`)는 날짜만으로 정해지는 mock 규칙이다.
+data 계층은 인증(`features/auth/data`), 기기 보관함(`features/drafts/data`), 피드·가판대·서가 소스(`features/{feed,stand,magazine}/data/sources`), 예시 표지(`features/issue/data`)에 있다. 피드·팔레트·스케치북은 동일 화면에서 소스 인터페이스로 데이터를 받는다. 스케치북·오늘의 색·반응·색 기록은 기존 서버 API에 연결했고, 피드·팔레트·사진 업로드·새 발행·착용 정보의 원격 구현은 아직 미완료다([연결 범위](../flutter/CORE_API_CONNECTION.md)). 오늘의 색 후보(`features/today/domain/rules/daily_candidates.dart`)는 mock 모드에서만 날짜로 정하며 서버 모드에서는 API 응답을 쓴다.
 
 | 목업 경로 | 앱 위치(현재) | 화면 |
 |---|---|---|
@@ -60,7 +60,7 @@ data 계층은 인증(`features/auth/data`), 기기 보관함(`features/drafts/d
 | `join-color` … `join-done` | `features/onboarding/.../onboarding_screen.dart` | J3~J7 |
 | `feed` | `features/feed/.../feed_screen.dart` | C1, C2, C7 |
 | `stand`, `same` | `features/stand/.../stand_screen.dart` | C4, C8 |
-| `me`, `reactions` | `features/magazine/.../my_magazine_screen.dart` | M1, A4 |
+| `me`, `reactions` | `features/magazine/.../shelf_screen.dart` | M1, A4 |
 | `spread` | `features/issue/.../issue_bottom_sheet.dart` | C3 |
 | `shelf` | `features/magazine/.../shelf_screen.dart` | C5 |
 | `make` | `features/publishing/.../publish_screen.dart`, 편집 `features/drafts/.../cover_editor_screen.dart` | C6 |
@@ -69,7 +69,7 @@ data 계층은 인증(`features/auth/data`), 기기 보관함(`features/drafts/d
 | `twin*` | `features/twin/.../twin_screen.dart` | T1~T10 |
 | `settings`, `profile`, `notifications`, `account`, `logout`, `delete*` | `features/settings/.../settings_screen.dart` | S1~S6 |
 
-화면 전환은 `app.dart`의 상태(`AppTab`, `ActiveScreen`)로 한다. 라우터 패키지는 승인 없이 추가하지 않는다. 하단 글라스 캡슐(오늘의 색·만들기·내 잡지)은 `app.dart`의 `_buildGlassBottomBar` 한 곳에 둔다. `features/drafts/presentation/device_home_screen.dart`는 서버 모드에서만 보이는 이전 기기 보관함 화면이다. 새 화면이 그 역할을 대체하면 같은 작업에서 정리한다.
+화면 전환은 `app.dart`의 상태(`AppTab`, `ActiveScreen`)로 한다. 라우터 패키지는 승인 없이 추가하지 않는다. 하단 글라스 캡슐은 `app.dart`의 `_buildGlassBottomBar` 한 곳에 둔다. 지금 앱은 홈·팔레트·만들기·스케치북 4칸(260×60)이고, 10-18에 바뀌는 칸 3칸(198×60, 첫 칸이 홈에서는 팔레트·그 밖에서는 홈)으로 정해 DEV-25에서 바꾼다. Server 전용 중복 화면과 이전 기기 홈 화면은 제거했다. 설정의 기기 초안·초안 달력·접근성 설정에서 기존 기기 기능을 연다. 기기 초안은 서버 발행본과 구분하며 로그인한 ownerId의 기록만 편집·삭제한다.
 
 ### 서버 (`server/`)
 
@@ -83,6 +83,10 @@ data 계층은 인증(`features/auth/data`), 기기 보관함(`features/drafts/d
 - 클라이언트 잠금은 보안이 아니다. 피드·가판대·서가·공유 링크·이미지 URL 모두 서버가 같은 권한을 검사한다.
 
 ## 4. 기능 하나를 만드는 순서
+
+2026-10-17 사용자 요청의 DEV-21·22는 [로컬 콘텐츠 안내](../flutter/LOCAL_CONTENTS.md)를 함께 따른다. 서버 연결 전 앱 단계까지만 검증하며 선행 기능 및 서버 전체를 done으로 올리지 않는다. 기존 domain/data/presentation·모드 선택·발행 경로를 재사용한다.
+
+2026-10-18 확장한 DEV-23 일·주·월 표지 특집과 DEV-21 기기 내 공개 참여 목록은 [최신 기간 특집 계약](../flutter/PERIOD_COLLECTIONS.md)을 따른다. 로컬 직접 선정·선정 이유·저장 보완까지이며 서버 운영자의 공식 선정·실제 원격 참여·동기화 완료로 표시하지 않는다.
 
 [기능 목록](FEATURES.md)은 단계 0(기반)부터 7(운영)까지 나뉘어 있다. 단계를 건너뛰지 않는다.
 
@@ -139,7 +143,7 @@ PR을 올리면 [CI](../../.github/workflows/ci.yml)가 하네스·규칙 검사
 | 명령 | 하는 일 |
 |---|---|
 | `npm run dev:docs` | `features.json` → `FEATURES.md`, `harness.json`·생성기 물감 → `flutter_app/lib/core/design/tokens.g.dart` |
-| `npm run mockup:capture` | 목업을 상태별로 찍어 `docs/dev/screens/`에 쓴다(화면 54장, Chrome 필요) |
+| `npm run mockup:capture` | 목업을 상태별로 찍어 `docs/dev/screens/`에 쓴다(화면 60장, Chrome 필요) |
 | `npm run mockup:build` | 목업 다시 만들기 |
 
 목업이나 디자인 값이 바뀌면 이 순서로 다시 만들고 `check:harness`를 돌린다. 기능 목록의 화면은 [화면 등록부](FEATURES.md#화면-등록부)에 있는 ID만 쓸 수 있고, 검사가 목업 경로·그림·계약 연결을 확인한다.

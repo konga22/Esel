@@ -1,10 +1,19 @@
+import '../../../core/time/service_clock.dart';
+import '../../../core/time/service_date.dart';
 import 'package:flutter/material.dart';
 import '../../../core/design/tokens.g.dart';
 import '../data/local_library.dart';
 
 class LocalCalendarScreen extends StatefulWidget {
   final LocalLibrary library;
-  const LocalCalendarScreen({super.key, required this.library});
+  final String ownerId;
+  final ServiceClock clock;
+  const LocalCalendarScreen({
+    super.key,
+    required this.library,
+    required this.ownerId,
+    this.clock = const SystemServiceClock(),
+  });
   @override
   State<LocalCalendarScreen> createState() => _LocalCalendarScreenState();
 }
@@ -14,7 +23,7 @@ class _LocalCalendarScreenState extends State<LocalCalendarScreen> {
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
+    final now = widget.clock.today;
     _month = DateTime(now.year, now.month);
   }
 
@@ -22,7 +31,7 @@ class _LocalCalendarScreenState extends State<LocalCalendarScreen> {
       setState(() => _month = DateTime(_month.year, _month.month + delta));
   @override
   Widget build(BuildContext context) {
-    final today = DateTime.now();
+    final today = widget.clock.today;
     final days = DateTime(_month.year, _month.month + 1, 0).day;
     final offset = _month.weekday % 7;
     return Scaffold(
@@ -30,7 +39,7 @@ class _LocalCalendarScreenState extends State<LocalCalendarScreen> {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          const Text('초안을 마지막으로 편집한 날짜예요. 서버의 발행·복원 기록과는 별도로 보관돼요.'),
+          const Text('초안을 마지막으로 편집한 날짜예요. 서버의 올리기·복원 기록과는 별도로 보관돼요.'),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -75,9 +84,10 @@ class _LocalCalendarScreenState extends State<LocalCalendarScreen> {
               final drafts = widget.library.drafts
                   .where(
                     (d) =>
-                        d.updatedAt.year == date.year &&
-                        d.updatedAt.month == date.month &&
-                        d.updatedAt.day == date.day,
+                        d.ownerId == widget.ownerId &&
+                        d.issueNumber == 0 &&
+                        ServiceDate.of(d.updatedAt) ==
+                            ServiceDate(date.year, date.month, date.day),
                   )
                   .toList();
               return TextButton(

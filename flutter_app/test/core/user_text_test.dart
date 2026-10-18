@@ -59,4 +59,37 @@ void main() {
       contains('<title>Esel</title>'),
     );
   });
+  test('DEV-25 old product words are absent from Dart string literals', () {
+    final old = RegExp(r'가판대|서가|제호|창간|발행|펼침면|내 잡지|오늘 호|주간 드레스코드|월간 색 기록');
+    final literal = RegExp(r"""['"]([^'"\n]*)['"]""");
+    final found = <String>[];
+    for (final file
+        in Directory('lib')
+            .listSync(recursive: true)
+            .whereType<File>()
+            .where((f) => f.path.endsWith('.dart'))) {
+      for (final line in file.readAsLinesSync()) {
+        if (line.trimLeft().startsWith('//')) continue;
+        for (final match in literal.allMatches(line.split('//').first)) {
+          if (old.hasMatch(match[1]!)) found.add('${file.path}: ${match[1]}');
+        }
+      }
+    }
+    expect(found, isEmpty);
+  });
+  test('server screens are removed, sources stay separate', () {
+    final files = Directory(
+      'lib/features',
+    ).listSync(recursive: true).whereType<File>();
+    expect(
+      files.where((f) => RegExp(r'server_.*_screen\.dart$').hasMatch(f.path)),
+      isEmpty,
+    );
+    expect(
+      File(
+        'lib/features/issue/data/sources/issue_remote_source.dart',
+      ).existsSync(),
+      isTrue,
+    );
+  });
 }

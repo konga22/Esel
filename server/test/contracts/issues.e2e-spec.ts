@@ -30,6 +30,19 @@ describe('DEV-09 오늘 호 발행', () => {
   it.todo(
     '합격 기준(P01): 발행하면 오늘 후보 3색 방이 모두 열림(GET /api/stand)',
   );
+  // 10-18 착용 정보(DEV-24, P19): garments[]는 선택 필드
+  it.todo(
+    '합격 기준(P19): garments 없이 보내도 발행됨. 보내면 최대 8개까지 저장하고 응답에 그대로 돌려줌',
+  );
+  it.todo(
+    '합격 기준(P19): garments가 9개 이상이거나 kind가 목록에 없으면 400 VALIDATION, 호는 만들어지지 않음',
+  );
+  it.todo(
+    '합격 기준(P19): garments 항목의 URL·가격 같은 모르는 필드는 거절(whitelist)하고 저장하지 않음',
+  );
+  it.todo(
+    '합격 기준(P19): garmentId로 남의 옷을 고르면 400 VALIDATION(내 옷만 다시 고를 수 있음)',
+  );
 });
 
 describe('DEV-11 펼침면과 독자 한 줄', () => {

@@ -75,7 +75,7 @@ class FriendsController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// [selfMasthead]는 내 제호(나에게는 요청을 보낼 수 없다).
+  /// [selfMasthead]는 내 사인(나에게는 요청을 보낼 수 없다).
   bool sendRequest(String targetMasthead, {String? selfMasthead}) {
     final trimmed = targetMasthead.trim().toLowerCase();
     if (trimmed.isEmpty || trimmed == selfMasthead) return false;

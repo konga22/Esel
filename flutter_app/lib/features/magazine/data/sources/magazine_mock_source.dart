@@ -5,7 +5,7 @@ import '../../../stand/domain/rules/same_color_rule.dart';
 import '../../domain/models/magazine_models.dart';
 import 'magazine_source.dart';
 
-/// 시연 서가: 내 잡지는 이 기기 보관함, 다른 사람은 예시 인물의 지난 호.
+/// 시연 스케치북: 스케치북은 이 기기 보관함, 다른 사람은 예시 인물의 지난 호.
 class MagazineMockSource implements MagazineSource {
   static const int shelfSize = 24;
   final LocalLibrary? Function() _library;
@@ -19,6 +19,7 @@ class MagazineMockSource implements MagazineSource {
     required SameColorViewer viewer,
     String? viewerId,
     String? masthead,
+    String? cursor,
   }) async {
     if (ownerId == viewerId) {
       final drafts = _library()?.issuesFor(ownerId) ?? const [];
@@ -26,7 +27,7 @@ class MagazineMockSource implements MagazineSource {
       return MagazineProfile(
         ownerId: ownerId,
         masthead: masthead ?? (drafts.isEmpty ? '' : drafts.first.masthead),
-        totalIssues: issues.length,
+        totalIssues: _library()?.publicationCount(ownerId)??issues.length,
         todayColor: issues.isNotEmpty && issues.first.date == viewer.today
             ? issues.first.color
             : null,
@@ -45,7 +46,7 @@ class MagazineMockSource implements MagazineSource {
         today: viewer.today,
       );
       if (issue == null) break;
-      // 보는 사람에게 잠긴 오늘 호(후보 색, 발행 전)는 서가에서도 보이지 않는다(P01).
+      // 보는 사람에게 잠긴 오늘의 캔버스(후보 색, 올리기 전)는 스케치북에서도 보이지 않는다(P01).
       final access = SameColorRule.accessFor(
         color: issue.color,
         date: issue.date,

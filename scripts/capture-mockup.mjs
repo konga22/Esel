@@ -21,6 +21,8 @@ const at = (...names) => `stack=[${['feed', ...names].map((n) => { const [name, 
 const scroll = (from, to, step) => `(()=>{const sc=document.querySelector('#scroller');const go=(y)=>{sc.scrollTop=y;sc.dispatchEvent(new Event('scroll'));};const st=${step}*Math.sign(${to}-${from});for(let y=${from};${step}>0&&(st>0?y<=${to}:y>=${to});y+=st)go(y);})();`;
 const twin = (step) => `${IN}S.twin.step='${step}';`;
 const SETUP = {
+  CH1: IN + at('challenges'),
+  CL1: IN + at('collections'),
   J1: '',
   J1b: scroll(0, 1300, 20),
   J2: 'openLogin();',
@@ -30,14 +32,20 @@ const SETUP = {
   J6: "stack=[{name:'intro'},{name:'join-face'}];render();",
   J7: "stack=[{name:'intro'},{name:'join-done'}];render();",
   C1: IN + at(),
-  C2: `${IN}S.feedTab='subs';` + at(),
+  // The dark-photo cover is theo (lilac, one of my candidates), so it can only show once I have posted (P01).
+  C2: `${PUB}S.coverKey='theo';` + at(),
   C3: IN + at('spread:dana'),
   C4: IN + at('stand'),
-  C5: IN + at('shelf:dana'),
-  C5b: `${IN}S.shelfView.dana='spines';` + at('shelf:dana'),
+  C4subs: IN + at('stand:subs'),
+  // Opened from a palette cell, so it belongs to the palette and the capsule's first slot offers home.
+  C5: IN + at('stand', 'shelf:dana'),
+  C5b: IN + at('stand', 'shelf:dana') + "document.querySelector('#scroller').scrollTop=1060;",
   C6: IN + at('make'),
+  C6neck: `${IN}S.me.crop='neck';S.me.paint=false;` + at('make'),
+  C6wear: IN + at('make') + "openGarment(null);S.draft.kind='가방';S.draft.note='빈티지';redrawSheet();",
   C7: IN + at() + scroll(0, 1500, 20) + scroll(1490, 1100, 10),
   C8: IN + at('same'),
+  C8list: `${IN}S.colorList=true;` + at('same'),
   C8b: PUB + at('same'),
   M1: PUB + at('me'),
   A4: PUB + at('me', 'reactions'),
@@ -83,11 +91,13 @@ const out = path.join(root, 'docs/dev/screens');
 fs.mkdirSync(out, { recursive: true });
 const missing = dev.screens.filter((s) => !(s.id in SETUP)).map((s) => s.id);
 if (missing.length) throw new Error(`캡처 방법이 없는 화면: ${missing.join(', ')}`);
-for (const s of dev.screens) {
+const selected = process.env.ESEL_CAPTURE_SCREENS?.split(',');
+const screens = selected ? dev.screens.filter((s) => selected.includes(s.id)) : dev.screens;
+for (const s of screens) {
   const file = path.join(mockup, 'dist', `_cap-${s.id}.html`);
   fs.writeFileSync(file, page.replace('</head>', `${SAFE}</head>`).replace('</body></html>', `<script>${SETUP[s.id]}</script></body></html>`));
   execFileSync(chrome, ['--headless=new', '--disable-gpu', '--allow-file-access-from-files', '--hide-scrollbars', '--force-device-scale-factor=2',
     '--window-size=393,852', '--virtual-time-budget=5000', `--screenshot=${path.join(root, s.image)}`, pathToFileURL(file).href], { stdio: 'ignore' });
   fs.rmSync(file);
 }
-console.log(`목업 화면 캡처 ${dev.screens.length}장: docs/dev/screens`);
+console.log(`목업 화면 캡처 ${screens.length}장: docs/dev/screens`);

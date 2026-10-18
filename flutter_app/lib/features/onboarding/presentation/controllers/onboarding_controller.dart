@@ -5,9 +5,9 @@ import '../../../drafts/domain/cover_draft.dart';
 import '../../domain/models/onboarding_draft.dart';
 import '../../domain/rules/masthead_rule.dart';
 
-/// 창간 흐름(J3~J7)의 상태. 사진은 화면이 기기 보관함에 들여온 경로만 받는다.
+/// 첫 캔버스 흐름(J3~J7)의 상태. 사진은 화면이 기기 보관함에 들여온 경로만 받는다.
 class OnboardingController extends ChangeNotifier {
-  /// 제호를 쓸 수 있는지 묻는다. 확인하지 못하면 null.
+  /// 사인을 쓸 수 있는지 묻는다. 확인하지 못하면 null.
   final Future<bool?> Function(String masthead)? checkMasthead;
 
   OnboardingController({this.checkMasthead});
@@ -61,11 +61,29 @@ class OnboardingController extends ChangeNotifier {
   }
 
   void selectFaceMode(FaceLayoutMode mode) {
-    _draft = _draft.copyWith(faceMode: mode);
+    _draft = _draft.copyWith(
+      faceMode: mode,
+      faceEffects: toggleFaceEffect(_draft.effectiveFaceEffects, mode),
+    );
     notifyListeners();
   }
 
-  /// 표지에서 얼굴 가운데를 누른 자리(표지에 대한 비율).
+  void setMastheadScale(double scale) {
+    _draft = _draft.copyWith(mastheadScale: scale.clamp(.5, 1.4));
+    notifyListeners();
+  }
+
+  void beginFacePlacement() {
+    _draft = _draft.copyWith(facePlaced: false);
+    notifyListeners();
+  }
+
+  void setFaceWidth(double width) {
+    _draft = _draft.copyWith(faceWidth: width.clamp(.05, .45));
+    notifyListeners();
+  }
+
+  /// 원본 사진에서 얼굴 가운데를 누른 자리(사진에 대한 비율).
   void placeFace(Offset point) {
     _draft = _draft.copyWith(
       faceX: point.dx.clamp(0.0, 1.0),
@@ -96,7 +114,7 @@ class OnboardingController extends ChangeNotifier {
       OnboardingStep.color => OnboardingStep.shoot,
       OnboardingStep.shoot => OnboardingStep.name,
       OnboardingStep.name => OnboardingStep.face,
-      // 얼굴 다음(창간호)은 실제로 발행한 뒤 [markFounded]로만 간다.
+      // 얼굴 다음(첫 캔버스)은 실제로 올린 뒤 [markFounded]로만 간다.
       OnboardingStep.face => OnboardingStep.face,
       OnboardingStep.done => OnboardingStep.done,
     };
@@ -110,14 +128,14 @@ class OnboardingController extends ChangeNotifier {
       OnboardingStep.shoot => OnboardingStep.color,
       OnboardingStep.name => OnboardingStep.shoot,
       OnboardingStep.face => OnboardingStep.name,
-      // 창간호를 낸 뒤에는 되돌아가지 않는다.
+      // 첫 캔버스를 낸 뒤에는 되돌아가지 않는다.
       OnboardingStep.done => OnboardingStep.done,
     };
     _draft = _draft.copyWith(step: prev);
     notifyListeners();
   }
 
-  /// 창간호(Nº 001)가 발행됐다. [sameColorCount]는 나를 포함한 오늘 같은 색 인원.
+  /// 첫 캔버스(Nº 001)가 올리기됐다. [sameColorCount]는 나를 포함한 오늘 같은 색 인원.
   void markFounded(CoverDraft issue, {int sameColorCount = 1}) {
     _draft = _draft.copyWith(
       step: OnboardingStep.done,

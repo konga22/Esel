@@ -8,7 +8,7 @@ import '../domain/models/public_issue.dart';
 
 /// 시연(mock) 데이터를 날짜에 맞춰 만든다. 서버가 생기면 이 파일은 쓰지 않는다.
 ///
-/// - 예시 인물은 모두 매일 한 호씩 발행한다고 둔다(결호 없음, P04).
+/// - 예시 인물은 모두 매일 한 호씩 올린다고 둔다(결호 없음, P04).
 /// - 호수는 디자인 시안 날짜(2026-09-06)에 dana가 Nº 038이 되도록 셌다.
 /// - 사진은 사람마다 한 장이라, 지난 호는 얼굴 연출을 바꿔 가며 보여 준다.
 abstract final class DemoIssueCatalog {
@@ -43,7 +43,7 @@ abstract final class DemoIssueCatalog {
     EselPaint.powder,
   ];
 
-  /// 디자인에서 먹 제호를 쓴 표지(위쪽이 밝은 사진).
+  /// 디자인에서 먹 사인을 쓴 표지(위쪽이 밝은 사진).
   static const Set<String> _inkMasthead = {'dana', 'kofi', 'maya', 'leo'};
 
   static const List<FaceLayoutMode> _shelfModes = [
@@ -73,7 +73,7 @@ abstract final class DemoIssueCatalog {
     return _anchorNumber(person) + days;
   }
 
-  /// 그 사람이 그날 낸 호. 창간 전 날짜면 null.
+  /// 그 사람이 그날 낸 호. 첫 캔버스 전 날짜면 null.
   static PublicIssue? issueOf(
     DemoPerson person,
     ServiceDate date, {
@@ -117,9 +117,10 @@ abstract final class DemoIssueCatalog {
       ?issueOf(person, date, today: today ?? date),
   ];
 
-  /// 내가 이 기기에서 발행한 호를 공개 모양으로. 얼굴 위치·폭은 표지에서 정한 값이고,
+  /// 내가 이 기기에서 올린 호를 공개 모양으로. 얼굴 위치·폭은 표지에서 정한 값이고,
   /// 사진 비율은 그릴 때 사진을 읽어 정한다.
   static PublicIssue fromLocal(CoverDraft issue) => PublicIssue(
+    garments: issue.garments,
     id: issue.id,
     ownerId: issue.ownerId,
     masthead: issue.masthead,
@@ -131,6 +132,8 @@ abstract final class DemoIssueCatalog {
     photo: issue.photoPath,
     face: FaceBox(issue.faceX, issue.faceY, issue.faceWidth),
     faceMode: issue.faceMode,
+    faceEffects: issue.effectiveFaceEffects,
+    mastheadScale: issue.mastheadScale,
     caption: issue.caption,
     alt: '${issue.masthead}의 오늘 착장',
     inkMasthead: !issue.whiteTitle,

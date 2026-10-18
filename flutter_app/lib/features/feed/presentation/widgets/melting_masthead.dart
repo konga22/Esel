@@ -4,13 +4,13 @@ import '../../../../core/design/typography.dart';
 import '../../../../core/ui/esel_glass.dart';
 import '../../domain/rules/masthead_melt.dart';
 
-/// 스크롤에 붙어 움직이는 앱 표지 제호 "Esel"과 작은 로고(유리 알약). 표지 피드(C7)와
-/// 비로그인 첫 화면(J1)이 같이 쓴다. 제호는 장식이라 스크린 리더에서 뺀다.
+/// 스크롤에 붙어 움직이는 앱 표지 사인 "Esel"과 작은 로고(유리 알약). 표지 피드(C7)와
+/// 비로그인 첫 화면(J1)이 같이 쓴다. 사인은 장식이라 스크린 리더에서 뺀다.
 class MeltingMasthead extends StatefulWidget {
   /// 표지와 안쪽 지면을 담은 스크롤.
   final ScrollController controller;
 
-  /// 표지 사진 위의 제호 색(먹 또는 흰).
+  /// 표지 사진 위의 사인 색(먹 또는 흰).
   final Color coverColor;
 
   /// 화면 위쪽 기준선(상태 표시줄 아래). 디자인 393×852에서 48.
@@ -137,7 +137,7 @@ class _MeltingMastheadState extends State<MeltingMasthead>
                 ),
               ),
             ),
-            // 제호. 알약 위에서는 0.14배로 줄어 로고가 된다.
+            // 사인. 알약 위에서는 0.14배로 줄어 로고가 된다.
             Positioned(
               left: 0,
               right: 0,

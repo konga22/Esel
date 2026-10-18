@@ -1,15 +1,15 @@
-/// P16 표지 제호의 스크롤 연출. 디자인 생성기 `scroll.mjs`(eselScroll·eselPaint)를 옮겼다.
+/// P16 표지 사인의 스크롤 연출. 디자인 생성기 `scroll.mjs`(eselScroll·eselPaint)를 옮겼다.
 ///
-/// - 표지는 첫 장만. 아래로 내리면 제호가 표지와 함께 올라간다(300px 넘으면 숨김).
+/// - 표지는 첫 장만. 아래로 내리면 사인이 표지와 함께 올라간다(300px 넘으면 숨김).
 /// - 위로 48px 올리면 작은 로고(유리 알약)가 나타나고, 아래로 18px 내리면 숨는다.
-/// - 맨 위 360px 안에서는 작은 로고가 스크롤에 맞춰 커지며 제호 자리로 녹아든다
+/// - 맨 위 360px 안에서는 작은 로고가 스크롤에 맞춰 커지며 사인 자리로 녹아든다
 ///   (크기 0.14 → 1, smoothstep, 알약은 진행 18% 안에 사라짐).
 /// 값은 `harness.json.feedPolicy.mastheadScroll`과 같다.
 enum MastheadMode { cover, float }
 
-/// 한 프레임의 제호·작은 로고 모습.
+/// 한 프레임의 사인·작은 로고 모습.
 class MastheadFrame {
-  /// 제호의 세로 이동(px)과 크기.
+  /// 사인의 세로 이동(px)과 크기.
   final double translateY;
   final double scale;
   final double opacity;
@@ -19,7 +19,7 @@ class MastheadFrame {
   final double pill;
   final double pillShift;
 
-  /// 0이면 표지 위 제호 모습, 1이면 작은 로고 모습(색을 섞는 데 쓴다).
+  /// 0이면 표지 위 사인 모습, 1이면 작은 로고 모습(색을 섞는 데 쓴다).
   final double toLogo;
 
   const MastheadFrame({
@@ -41,10 +41,10 @@ class MastheadMelt {
   static const double hideDown = 18;
   static const double smallScale = 0.14;
 
-  /// 제호 가운데에서 작은 로고 가운데까지(디자인: 제호 top 80 + 90, 알약 top 50 + 23).
+  /// 사인 가운데에서 작은 로고 가운데까지(디자인: 사인 top 80 + 90, 알약 top 50 + 23).
   static const double pillOffset = -97;
 
-  /// 표지 모드에서 제호를 지우는 지점.
+  /// 표지 모드에서 사인을 지우는 지점.
   static const double hideAt = 300;
 
   MastheadMode _mode = MastheadMode.cover;

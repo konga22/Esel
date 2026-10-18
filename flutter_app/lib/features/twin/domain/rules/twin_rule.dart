@@ -6,7 +6,7 @@ enum TwinStage {
   revealed,          // T6 두 표지 공개 (양측 게시 완료)
   visibilityChoice,  // T7 공개 범위 선택
   consentWaiting,    // T8 공동 공개 동의 대기
-  published,         // T10 공동 발행 완료
+  published,         // T10 공동 올리기 완료
   privateOnly,       // T8private 둘만의 기록
   soloOnly,          // T8solo 내 표지만 공개
 }

@@ -4,22 +4,25 @@ import '../../../drafts/data/local_library.dart';
 import '../../../drafts/domain/cover_draft.dart';
 import '../../../drafts/presentation/cover_editor_screen.dart';
 
-/// DEV-03 local adapter. The real server entry point is kept separately.
+/// Shared editor. Publishing is delegated to the selected data source.
 class PublishScreen extends StatefulWidget {
   final String masthead, ownerId;
+  final String? challengeId, previousIssueId;
   final int currentIssueCount;
   final bool hasPublishedToday;
   final ValueChanged<int> onPublishSuccess;
   final VoidCallback onClose;
   final LocalLibrary library;
 
-  /// 오늘의 후보 3색(P17). 이 밖의 색으로는 발행하지 않는다.
+  /// 오늘의 후보 3색(P17). 이 밖의 색으로는 올리지 않는다.
   final List<EselPaint> candidates;
 
-  /// 서비스 날짜로 오늘 호를 발행한다(TodayController.publish).
+  /// 서비스 날짜로 오늘의 캔버스를 올린다(TodayController.publish).
   final Future<CoverDraft> Function(CoverDraft draft) publish;
   const PublishScreen({
     super.key,
+    this.challengeId,
+    this.previousIssueId,
     required this.masthead,
     required this.ownerId,
     required this.currentIssueCount,
@@ -35,10 +38,12 @@ class PublishScreen extends StatefulWidget {
 }
 
 class _PublishScreenState extends State<PublishScreen> {
-  late final CoverDraft _initial;
+  late CoverDraft _initial;
+  late final bool _blockedAtEntry;
   @override
   void initState() {
     super.initState();
+    _blockedAtEntry=widget.hasPublishedToday;
     final drafts = widget.library.drafts.where(
       (d) => d.ownerId == widget.ownerId && d.issueNumber == 0,
     );
@@ -55,11 +60,30 @@ class _PublishScreenState extends State<PublishScreen> {
             color: widget.candidates.first,
             updatedAt: DateTime.now(),
           );
+    final previous = widget.library
+        .issuesFor(widget.ownerId)
+        .where((v) => v.id == widget.previousIssueId)
+        .firstOrNull;
+    if (previous != null && _initial.garments.isEmpty) {
+      _initial = _initial.copyWith(
+        garments: previous.garments
+            .map((v) => v.at(null, null).forColor(false))
+            .toList(),
+      );
+    }
+    if (widget.challengeId != null) {
+      _initial = _initial
+          .copyWith(clearChallenge: true)
+          .copyWith(
+            challengeId: widget.challengeId,
+            previousIssueId: widget.previousIssueId,
+          );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.hasPublishedToday) {
+    if (_blockedAtEntry) {
       return PopScope(
         canPop: false,
         onPopInvokedWithResult: (didPop, _) {
@@ -71,9 +95,9 @@ class _PublishScreenState extends State<PublishScreen> {
               onPressed: widget.onClose,
               icon: const Icon(Icons.close),
             ),
-            title: const Text('오늘 호 만들기'),
+            title: const Text('오늘의 캔버스 만들기'),
           ),
-          body: const Center(child: Text('오늘은 이미 한 호를 발행했어요.')),
+          body: const Center(child: Text('오늘은 이미 한 호를 올렸어요.')),
         ),
       );
     }

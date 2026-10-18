@@ -45,9 +45,9 @@ class ShareSheet extends StatelessWidget {
 
   Future<void> _copyShareLink(BuildContext context) async {
     if (isLocked) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('아직 발행하지 않은 표지는 공유할 수 없어요.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('아직 올리지 않은 표지는 공유할 수 없어요.')));
       Navigator.of(context).pop();
       return;
     }

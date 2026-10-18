@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<title>창간 5 제호</title>
+<title>첫 캔버스 5 사인</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -10,7 +10,7 @@
 <helmet>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&amp;family=DM+Mono:wght@400;500&amp;family=Instrument+Sans:wght@400;500;600&amp;family=Nanum+Myeongjo:wght@400;700&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap" rel="stylesheet">
 <style>
-body{margin:0}
+body{margin:0;word-break:keep-all}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:inherit}
 input{font:inherit;color:inherit}
 a{color:inherit;text-decoration:none}a:hover{color:inherit}
@@ -28,18 +28,18 @@ button:active,a:active{transform:scale(0.97)}
 <div style="width: 393px; height: 852px; box-sizing: border-box; position: relative; overflow: hidden; font-family: 'Esel Dot', 'Instrument Sans', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; padding-top: 54px; background: #F9F9FB; color: #292A27">
 <header style="position: relative; height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 18px 0 6px">
 <a href="JoinShoot.dc.html" aria-label="이전" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 6l-6 6 6 6"></path></svg></a>
-<span style="font-family: 'DM Mono', ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 0.06em">창간 3 / 4</span>
+<span style="font-family: 'DM Mono', ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 0.06em">첫 캔버스 3 / 4</span>
 </header>
 <div aria-hidden="true" style="display: flex; gap: 4px; padding: 0 20px"><span style="flex: 1 1 0; height: 2px; border-radius: 1px; background: #292A27"></span><span style="flex: 1 1 0; height: 2px; border-radius: 1px; background: #292A27"></span><span style="flex: 1 1 0; height: 2px; border-radius: 1px; background: #292A27"></span><span style="flex: 1 1 0; height: 2px; border-radius: 1px; background: #D8D9D3"></span></div>
-<h1 style="margin: 20px 20px 0; font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-size: 30px; font-weight: 400; line-height: 1.2">잡지 이름을 정해요</h1>
+<h1 style="margin: 20px 20px 0; font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-size: 30px; font-weight: 400; line-height: 1.2">사인을 정해요</h1>
 <div style="position: absolute; left: 66.5px; top: 166px; width: 260px; height: 386px; overflow: hidden; background: #EDEEEA; color: #292A27; box-shadow: 0 14px 36px rgba(41, 42, 39, 0.2)">
 <img src="/_blob/0d2c5aca03c0e210cd888e2094c78869" alt="카멜 코트와 페도라 착장" style="display: block; width: 260px; height: 386px; object-fit: cover; object-position: 50% 50%">
 <span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 0; height: 45%; background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0))"></span>
-<span aria-hidden="true" style="position: absolute; left: 10px; right: 10px; top: 8px; color: #FFFFFF; display: flex; justify-content: space-between; font-family: 'DM Mono', ui-monospace, Menlo, monospace; font-size: 8px; letter-spacing: 0.06em"><span>ESEL</span><span>Nº 001 · 창간호</span></span>
+<span aria-hidden="true" style="position: absolute; left: 10px; right: 10px; top: 8px; color: #FFFFFF; display: flex; justify-content: space-between; font-family: 'DM Mono', ui-monospace, Menlo, monospace; font-size: 8px; letter-spacing: 0.06em"><span>ESEL</span><span>Nº 001 · 첫 캔버스</span></span>
 <span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 20px; text-align: center; font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-size: {{mastPx}}; line-height: 0.9; letter-spacing: -0.05em; padding-right: 4px; white-space: nowrap; color: #FFFFFF">{{mastText}}</span>
 </div>
 <div style="position: absolute; left: 20px; right: 20px; top: 572px; display: flex; flex-direction: column">
-<label for="mast-name" style="font-size: 12px; line-height: 16px; color: #71736C">영문 닉네임 · 표지 제호가 돼요</label>
+<label for="mast-name" style="font-size: 12px; line-height: 16px; color: #71736C">영문 닉네임 · 표지 사인이 돼요</label>
 <input id="mast-name" type="text" value="{{name}}" onChange="{{onName}}" maxlength="10" autocomplete="off" autocapitalize="none" spellcheck="false" style="height: 52px; box-sizing: border-box; padding: 0; border: 0; border-bottom: 1.5px solid #292A27; border-radius: 0; background: transparent; font-family: 'Esel Dot', 'Cormorant Garamond', 'Nanum Myeongjo', AppleMyungjo, Georgia, serif; font-size: 28px">
 <p style="margin: 8px 0 0; font-size: 13px; color: #71736C">{{hint}}</p>
 </div>

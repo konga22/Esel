@@ -27,7 +27,7 @@ class FeedController extends ChangeNotifier {
   bool get isLoading => _loading;
   String? get errorMessage => _error;
 
-  /// 보는 사람이 바뀌면(로그인·발행·자정·구독) 다시 받는다.
+  /// 보는 사람이 바뀌면(로그인·올리기·자정·구독) 다시 받는다.
   void configure({
     required SameColorViewer viewer,
     required bool signedIn,
@@ -40,7 +40,7 @@ class FeedController extends ChangeNotifier {
     _viewer = viewer;
     _signedIn = signedIn;
     _subscribed = Set.of(subscribedOwnerIds);
-    if (changed || _page == null) load();
+    if (changed || (_page == null && !_loading && _error == null)) load();
   }
 
   void switchTab(FeedTab tab) {
@@ -53,6 +53,7 @@ class FeedController extends ChangeNotifier {
     final viewer = _viewer;
     if (viewer == null) return;
     final request = ++_request;
+    _page = null;
     _loading = true;
     _error = null;
     notifyListeners();
