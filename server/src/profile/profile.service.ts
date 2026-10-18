@@ -35,7 +35,7 @@ export class ProfileService {
     try {
       return await this.prisma.profile.create({
         data: { userId, masthead: input.masthead },
-        select: { id: true, masthead: true, issueCount: true },
+        select: { id: true, masthead: true, bio: true, issueCount: true },
       });
     } catch (error) {
       if (

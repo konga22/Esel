@@ -11,6 +11,7 @@ import {
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiCreatedResponse,
+  ApiConflictResponse,
   ApiExtraModels,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -29,6 +30,7 @@ import { AddLineDto } from './dto/add-line.dto.js';
 import { ReaderLinePageDto } from './dto/reader-line-page.dto.js';
 import { ReaderLinePublicDto } from './dto/reader-line-public.dto.js';
 import { ReactionStateDto } from './dto/reaction-state.dto.js';
+import { PublishIssueDto } from './dto/publish-issue.dto.js';
 import { IssuesService } from './issues.service.js';
 
 @ApiTags('issues')
@@ -37,6 +39,21 @@ import { IssuesService } from './issues.service.js';
 @Controller('issues')
 export class IssuesController {
   constructor(private readonly issuesService: IssuesService) {}
+
+  @Post()
+  @ApiOperation({ summary: '오늘 호 발행(하루 한 번, 호수 +1)' })
+  @ApiCreatedResponse({ type: IssueOwnerDto })
+  @ApiBadRequestResponse({ description: 'VALIDATION' })
+  @ApiUnauthorizedResponse({ description: 'AUTH_REQUIRED 또는 TOKEN_EXPIRED' })
+  @ApiConflictResponse({
+    description: 'ISSUE_ALREADY_PUBLISHED 또는 MEDIA_NOT_READY',
+  })
+  publish(
+    @CurrentUser() user: AuthUser,
+    @Body() input: PublishIssueDto,
+  ): Promise<IssueOwnerDto> {
+    return this.issuesService.publish(user.id, input);
+  }
 
   @Get(':id')
   @ApiOperation({ summary: '표지 펼쳐 보기(주인이면 숫자 포함)' })

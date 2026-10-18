@@ -13,13 +13,23 @@ import type { AuthUser } from '../auth/auth-user.js';
 import { CurrentUser } from '../auth/current-user.decorator.js';
 import { ChooseColorDto } from './dto/choose-color.dto.js';
 import { TodayDto } from './dto/today.dto.js';
+import { TodayCoverPublicDto } from './dto/today-cover-public.dto.js';
 import { TodayService } from './today.service.js';
+import { Public } from '../common/public.decorator.js';
 
 @ApiTags('today')
 @ApiBearerAuth()
 @Controller('today')
 export class TodayController {
   constructor(private readonly todayService: TodayService) {}
+
+  @Public()
+  @Get('cover')
+  @ApiOperation({ summary: '비로그인용 오늘의 표지와 안쪽 2쪽' })
+  @ApiOkResponse({ type: TodayCoverPublicDto })
+  cover(): Promise<TodayCoverPublicDto> {
+    return this.todayService.cover();
+  }
 
   @Get()
   @ApiOperation({ summary: '오늘의 날짜, 후보 3색, 내 선택, 발행 여부' })

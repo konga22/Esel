@@ -95,6 +95,7 @@ describe('DEV-06 창간', () => {
     expect(response.body).toEqual({
       id: expect.any(String),
       masthead: 'selin',
+      bio: '',
       issueCount: 0,
     });
     expect(
