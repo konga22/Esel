@@ -44,7 +44,7 @@ npm run start:dev
 
 ## 현재 구현된 API
 
-`api-contract.json` 기준 라우트 43개가 구현되어 있습니다. 이 중 사진 전송·조회 방식이 구현 중인 미디어 2개는 `doing`이고, 계약 완료는 41/59개(69.5%)입니다.
+`api-contract.json` 기준 라우트 45개가 구현되어 있습니다. 계약 완료는 45/61개(73.8%)이고 진행 중(`doing`)인 계약은 없습니다.
 
 | 방법 | 주소 | 하는 일 |
 |---|---|---|
@@ -58,7 +58,9 @@ npm run start:dev
 | `GET` | `/api/mastheads/:name/availability` | 영문 소문자 2~10자 제호의 형식·중복 확인 |
 | `POST` | `/api/profile` | 제호를 확정해 내 잡지 프로필 생성 |
 | `POST` | `/api/media` | JPEG·PNG·HEIC 파일 업로드 준비 |
-| `POST` | `/api/media/:id/complete` | 실제 파일 형식·크기·이미지 정보를 검사해 업로드 완료 |
+| `PUT` | `/api/media/:id/file` | 준비한 사진을 서버 영구 디스크에 스트리밍 업로드 |
+| `POST` | `/api/media/:id/complete` | 실제 파일 형식·크기를 검사하고 480px 썸네일을 만들어 업로드 완료 |
+| `GET` | `/api/media/:id?size=original\|thumb` | 호·트윈 공개 권한을 확인해 원본 또는 썸네일 전송 |
 | `GET` | `/api/me/notifications` | 내 알림 설정 조회(저장 전 기본값은 모두 `true`) |
 | `PUT` | `/api/me/notifications` | 내 알림 설정 저장·변경 |
 | `GET` | `/api/issues/:id` | 공개 가능한 호 조회(소유자에게만 반응 수 포함) |
@@ -130,9 +132,11 @@ Invoke-RestMethod -Method Get `
 
 프로필 생성은 `{ "masthead": "selin" }`처럼 영문 소문자 2~10자를 받습니다. 한 계정은 프로필을 하나만 만들 수 있고, 제호 unique 제약으로 동시에 같은 이름을 요청해도 한 명만 성공합니다.
 
-미디어는 준비와 완료를 분리합니다. 준비 요청은 `{ "mimeType": "image/png", "sizeBytes": 12345 }`를 받고 `id`, `storageKey`, 허용 형식과 크기만 반환하며 서버 컴퓨터의 실제 경로는 노출하지 않습니다. 개발 환경에서 파일을 저장한 뒤 완료 API를 호출하면 서버가 선언값을 믿지 않고 실제 파일 시그니처와 15MB 제한을 다시 검사하며 PNG·JPEG는 가로·세로도 기록합니다. 완료는 `PENDING` 자산에만 허용됩니다. PostgreSQL에는 파일 바이트가 아니라 저장 키와 메타데이터만 둡니다.
+미디어는 준비·파일 전송·완료를 분리합니다. 준비 요청은 `{ "mimeType": "image/png", "sizeBytes": 12345 }`를 받고 `id`, `uploadUrl`, 허용 형식과 크기만 반환하며 서버 컴퓨터의 실제 경로와 `storageKey`는 노출하지 않습니다. 앱은 Bearer 토큰과 준비 때 선언한 `Content-Type`으로 `uploadUrl`에 원본 바이트를 `PUT`하고, 이후 완료 API를 호출합니다. 업로드와 완료는 소유자의 `PENDING` 자산에만 허용되며 서버는 스트리밍 중에도 15MB 제한을 적용합니다. 완료 단계에서는 선언값을 믿지 않고 실제 파일 시그니처와 크기를 다시 검사하고 PNG·JPEG의 가로·세로를 기록합니다. PostgreSQL에는 파일 바이트가 아니라 저장 키와 메타데이터만 둡니다.
 
-현재 `MEDIA_STORAGE_ROOT`와 Docker named volume `esel-media-data`를 쓰는 **로컬 개발용 저장 방식**입니다. Flutter 기기가 파일을 보낼 업로드 URL은 아직 없으므로 두 미디어 API의 계약 상태는 `doing`입니다. 실제 앱 연결 전에는 자체 호스팅 S3 호환 스토리지 같은 운영 저장소와 업로드 URL 방식을 결정해야 하며, 이를 정하지 않은 상태에서 별도 업로드 API를 임의로 추가하지 않았습니다.
+파일은 `MEDIA_STORAGE_ROOT`에 저장하고 Docker에서는 재시작 뒤에도 남는 named volume `esel-media-data`를 `/app/data/media`에 연결합니다. JPEG·PNG 완료 시 `sharp`로 최대 480×480 JPEG 썸네일을 미리 만들며, `GET /api/media/:id?size=thumb`으로 요청합니다. 조회할 때도 매번 호의 같은 색 잠금과 트윈 공개 범위를 검사하고 권한이 없거나 미완료 상태이면 `404`로 숨깁니다. 현재 응답은 사용자별 권한이 달라질 수 있어 `Cache-Control: private, no-store`입니다. 차단·호 삭제 API와 DB 모델은 아직 `DEV-20`의 `todo`이므로, 그 단계에서는 이미지 조회에도 차단 판정을 연결하고 삭제 시 원본·썸네일·DB 메타데이터를 함께 제거해야 합니다.
+
+HEIC 원본은 현재 허용하고 실제 시그니처도 검사하지만 JPEG 썸네일 생성은 보장하지 않습니다. iPhone 앱에서 JPEG로 바꿔 올릴지 서버에 HEIC 변환기를 둘지는 관혁이와 정한 뒤 계약을 갱신합니다. 외부 S3·R2는 쓰지 않으므로 배포 환경에는 컨테이너 재배포 뒤에도 보존되는 영구 디스크가 반드시 필요합니다.
 
 알림 설정은 `enabled`, `newIssue`, `reactions` 세 boolean을 모두 보냅니다. 아직 저장한 적이 없는 계정의 GET은 모두 `true`를 반환하지만 조회만으로 DB 행을 만들지는 않습니다.
 
@@ -164,7 +168,7 @@ Invoke-RestMethod -Method Get `
 docker compose up -d --build api
 ```
 
-Android 에뮬레이터는 호스트 PC를 `10.0.2.2`로 부릅니다. Flutter 앱의 서버 모드에는 인증·사인 확인·프로필 생성·오늘의 색·표지 조회/반응/독자 한 줄·스케치북/구독·내 반응·월간 기록/복원을 연결했다. 실행과 검증 범위는 [Flutter 핵심 API 안내](../docs/flutter/CORE_API_CONNECTION.md)를 따른다. 알림 설정·미디어 업로드·새 발행·피드·팔레트 추천 등은 전체 앱 연결을 완료한 것이 아니다. 현재 미디어 API는 서버 내부 경로를 노출하지 않고 업로드 URL도 제공하지 않으며 호 응답도 파일 URL을 제공하지 않으므로, 운영 저장소 결정 뒤 앱 업로드와 이미지 표시를 연결해야 한다.
+Android 에뮬레이터는 호스트 PC를 `10.0.2.2`로 부릅니다. Flutter 앱의 서버 모드에는 인증·사인 확인·프로필 생성·오늘의 색·표지 조회/반응/독자 한 줄·스케치북/구독·내 반응·월간 기록/복원을 연결했다. 실행과 검증 범위는 [Flutter 핵심 API 안내](../docs/flutter/CORE_API_CONNECTION.md)를 따른다. 알림 설정·미디어 업로드·새 발행·피드·팔레트 추천 등은 전체 앱 연결을 완료한 것이 아니다. 서버의 미디어 업로드·조회 API는 준비됐지만 Flutter가 아직 `uploadUrl`로 파일을 보내고 호·트윈의 미디어 ID를 이미지 URL로 조합하는 연결 작업은 남아 있다.
 
 ```powershell
 cd flutter_app
