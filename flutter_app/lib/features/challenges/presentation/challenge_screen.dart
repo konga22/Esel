@@ -123,7 +123,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
           return date != null && date.isBefore(widget.clock.today);
         }).toList();
         if (past.isEmpty) {
-          _message('지난 날짜의 발행 표지가 아직 없어요. 오늘 호를 남긴 뒤 다음 날 참여해 보세요.');
+          _message('지난 날짜의 올린 표지가 아직 없어요. 오늘의 캔버스를 남긴 뒤 다음 날 참여해 보세요.');
           return;
         }
         if (!mounted) return;
@@ -168,9 +168,12 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                             '${issue.publishedOn} · Nº ${issue.issueNumber}',
                           ),
                           subtitle: Text(
-                            issue.caption.isEmpty
-                                ? issue.masthead
-                                : issue.caption,
+                            [
+                              issue.caption.isEmpty
+                                  ? issue.masthead
+                                  : issue.caption,
+                              ...issue.garments.map((g) => g.label),
+                            ].join(' · '),
                           ),
                           onTap: () => Navigator.pop(ctx, issue.id),
                         ),
@@ -223,7 +226,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: EselColors.paper,
     appBar: AppBar(
-      title: const Text('이번 주의 착장'),
+      title: const Text('이번 주 주제'),
       leading: IconButton(
         tooltip: '이전 화면',
         onPressed: _busy ? null : widget.onBack,
@@ -238,7 +241,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
           Text('옷을 입는 작은 이유', style: EselTypography.heading(fontSize: 30)),
           const SizedBox(height: 12),
           const Text(
-            '오늘 후보 3색과 함께, 내 잡지에 새로운 이야기를 남겨요.\n로컬 시연 · 이 기기에 저장된 공개 참여 표지를 함께 봐요. 서버 사용자 목록은 아니에요.',
+            '오늘 후보 3색과 함께, 스케치북에 새로운 이야기를 남겨요.\n로컬 시연 · 이 기기에 저장된 공개 참여 표지를 함께 봐요. 서버 사용자 목록은 아니에요.',
           ),
           for (final challenge in _challenges) ...[
             const SizedBox(height: 24),
@@ -277,9 +280,9 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
               ),
             ),
             if (_expanded == challenge.id) ...[
-              const Text('같은 색 공개 규칙을 적용한 기기 내 기록이에요. 잠긴 색은 발행 후 확인할 수 있어요.'),
+              const Text('같은 색 공개 규칙을 적용한 기기 내 기록이에요. 잠긴 색은 올리기 후 확인할 수 있어요.'),
               if ((_participants[challenge.id] ?? []).isEmpty)
-                const Text('지금 볼 수 있는 참여 표지가 없어요. 오늘 호로 첫 기록을 남겨 보세요.'),
+                const Text('지금 볼 수 있는 참여 표지가 없어요. 오늘의 캔버스로 첫 기록을 남겨 보세요.'),
               for (final issue in _participants[challenge.id] ?? <CoverDraft>[])
                 _cover(issue),
             ],
@@ -294,7 +297,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
             const Center(child: CircularProgressIndicator())
           else if (_entries!.isEmpty)
             const Text(
-              '첫 참여를 기다리고 있어요. 오늘 발행한 호도 연결할 수 있어요.\n호수는 늘어나지 않아요. 한 호에는 한 가지 참여를 연결해요.',
+              '첫 참여를 기다리고 있어요. 오늘 올린 호도 연결할 수 있어요.\n호수는 늘어나지 않아요. 한 호에는 한 가지 참여를 연결해요.',
             )
           else
             for (final entry in _entries!) ...[
@@ -324,7 +327,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
               _cover(entry),
               TextButton(
                 onPressed: _busy ? null : () => _detach(entry),
-                child: const Text('이 호의 참여 해제 · 발행본은 유지'),
+                child: const Text('이 호의 참여 해제 · 올리기본은 유지'),
               ),
               const Divider(),
             ],

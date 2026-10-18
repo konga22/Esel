@@ -40,7 +40,7 @@ void main() {
   );
 
   group('DEV-02 P01 같은 색 방(2026-10-15 규칙)', () {
-    test('발행 전에는 후보 3색 방이 모두 최신 3장 + 개수만', () {
+    test('올리기 전에는 후보 3색 방이 모두 최신 3장 + 개수만', () {
       for (final color in candidates) {
         final res = room(color);
         expect(res.access, SameColorRoomAccess.preview, reason: '$color');
@@ -50,10 +50,10 @@ void main() {
         expect(res.visibleCoverIds, isNot(contains('c3')));
         expect(SameColorRule.isLockedToday(color, before), isTrue);
       }
-      expect(SameColorRule.bannerMessage, '발행하면 함께 펼쳐집니다');
+      expect(SameColorRule.bannerMessage, '올리면 함께 펼쳐집니다');
     });
 
-    test('후보가 아닌 9색 방은 발행 전에도 열려 있다', () {
+    test('후보가 아닌 9색 방은 올리기 전에도 열려 있다', () {
       for (final color in EselPaint.values.where(
         (c) => !candidates.contains(c),
       )) {
@@ -65,7 +65,7 @@ void main() {
       }
     });
 
-    test('오늘 발행하면 모든 방이 열린다', () {
+    test('오늘 올리면 모든 방이 열린다', () {
       const published = SameColorViewer(
         today: today,
         candidates: candidates,

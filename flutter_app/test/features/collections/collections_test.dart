@@ -71,7 +71,7 @@ void main() {
     expect(ServiceDate.of(DateTime.utc(2026, 10, 17, 15)), today);
   });
 
-  test('발행본 삭제·저장소 재시작 후에도 하루 한 호와 누적 호수를 보존한다', () async {
+  test('올리기본 삭제·저장소 재시작 후에도 하루 한 호와 누적 호수를 보존한다', () async {
     final dir = Directory.systemTemp.createTempSync('esel-ledger-');
     addTearDown(() => dir.deleteSync(recursive: true));
     final lib = LocalLibrary(dir);
@@ -96,7 +96,7 @@ void main() {
     expect(reopened.publicationCount('alice'), 3);
   });
 
-  test('특집은 공개 필터 후 기간별로 선정하며 계정·이유·삭제·재시작을 보존한다', () async {
+  test('전시은 공개 필터 후 기간별로 선정하며 계정·이유·삭제·재시작을 보존한다', () async {
     final dir = Directory.systemTemp.createTempSync('esel-curation-');
     addTearDown(() => dir.deleteSync(recursive: true));
     final lib = LocalLibrary(dir);
@@ -160,7 +160,7 @@ void main() {
     expect(reopened.hasPublishedOn('alice', today), isFalse);
   });
 
-  test('주간 참여자 조회도 공개 필터가 먼저이며 오늘 발행 후 열린다', () async {
+  test('주간 참여자 조회도 공개 필터가 먼저이며 오늘 올리기 후 열린다', () async {
     final lib = LocalLibrary.inMemory();
     final challenge = StyleChallenge.forWeek(today).first;
     final issue = await lib.publish(
@@ -194,7 +194,7 @@ void main() {
     expect(topics, {'가방으로 포인트', '겹쳐 입기', '데님', '비 오는 날'});
   });
 
-  test('반응 계정 전환·재시작: 구독·좋아요·스크랩·독자 한 줄이 섞이지 않는다', () async {
+  test('반응 계정 전환·재시작: 구독·좋아요·스크랩·한 줄이 섞이지 않는다', () async {
     final dir = Directory.systemTemp.createTempSync('esel-reactions-');
     addTearDown(() => dir.deleteSync(recursive: true));
     final lib = LocalLibrary(dir);
@@ -225,7 +225,7 @@ void main() {
     expect(again.isLiked('issue'), isFalse);
   });
 
-  test('반응 저장 실패는 재시도 가능하며 원격 특집은 로컬로 전환하지 않는다', () async {
+  test('반응 저장 실패는 재시도 가능하며 원격 전시은 로컬로 전환하지 않는다', () async {
     final lib = FailingReactions();
     final reactions = ReactionsController()..bindUser('alice', lib);
     reactions.toggleLike('issue');

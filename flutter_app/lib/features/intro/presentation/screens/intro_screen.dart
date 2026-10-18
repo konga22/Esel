@@ -81,7 +81,7 @@ class _IntroScreenState extends State<IntroScreen> {
     );
   }
 
-  /// 비로그인 독자의 반응·구독·스크랩·펼쳐 보기는 모두 로그인부터(P12).
+  /// 비로그인 독자의 반응·구독·스크랩·자세히 보기는 모두 로그인부터(P12).
   PageActions get _loginFirst => PageActions(
     liked: false,
     scrapped: false,
@@ -107,7 +107,22 @@ class _IntroScreenState extends State<IntroScreen> {
           backgroundColor: EselColors.paper,
           body: Stack(
             children: [
-              if (page == null || cover == null)
+              if (widget.feedController.errorMessage case final error?)
+                Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(error),
+                      TextButton(
+                        onPressed: () => widget.feedController.load(),
+                        child: const Text('다시 시도'),
+                      ),
+                    ],
+                  ),
+                )
+              else if (page != null && cover == null)
+                const Center(child: Text('아직 볼 수 있는 캔버스가 없어요.'))
+              else if (page == null || cover == null)
                 const Center(child: CircularProgressIndicator(strokeWidth: 2))
               else
                 ListView(
@@ -163,21 +178,26 @@ class _IntroScreenState extends State<IntroScreen> {
   }
 
   /// 디자인 "로그인 바": 좌우 16, 높이 66, 모서리 33, 안쪽 8, Glass.
-  /// 로그인(Ink 1.5px 테두리) : 내 잡지 만들기(Ink 채움) = 1 : 1.35, 버튼 높이 50.
+  /// 로그인(Ink 1.5px 테두리) : 스케치북 만들기(Ink 채움) = 1 : 1.35, 버튼 높이 50.
   /// 640px 지나면 translateY(140%) → 0(360ms drawer)으로 올라오고 200ms에 나타난다.
   /// 동작 줄이기에서는 제자리에서 나타나기만 한다.
   Widget _buildLoginBar(BuildContext context) {
+    final visible =
+        _showLoginBar ||
+        widget.feedController.errorMessage != null ||
+        (widget.feedController.page != null &&
+            widget.feedController.page!.cover == null);
     final calm = MediaQuery.disableAnimationsOf(context);
     return IgnorePointer(
-      ignoring: !_showLoginBar,
+      ignoring: !visible,
       child: ExcludeSemantics(
-        excluding: !_showLoginBar,
+        excluding: !visible,
         child: AnimatedSlide(
-          offset: _showLoginBar || calm ? Offset.zero : const Offset(0, 1.4),
+          offset: visible || calm ? Offset.zero : const Offset(0, 1.4),
           duration: EselMotion.loginBar,
           curve: EselMotion.drawer,
           child: AnimatedOpacity(
-            opacity: _showLoginBar ? 1 : 0,
+            opacity: visible ? 1 : 0,
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeOut,
             child: EselGlass(
@@ -199,7 +219,7 @@ class _IntroScreenState extends State<IntroScreen> {
                   Expanded(
                     flex: 135,
                     child: _buildLoginBarButton(
-                      '내 잡지 만들기',
+                      '스케치북 만들기',
                       filled: true,
                       onTap: widget.onStartJoin,
                     ),
@@ -253,8 +273,8 @@ class _TeaserEnd extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final title = remainingPages > 0
-        ? '오늘 호는 아직\n${koreanCount(remainingPages)} 쪽이 더 남았어요.'
-        : '오늘 호는\n여기까지 읽었어요.';
+        ? '오늘의 캔버스는 아직\n${koreanCount(remainingPages)} 쪽이 더 남았어요.'
+        : '오늘의 캔버스는\n여기까지 읽었어요.';
     return SizedBox(
       height: 430,
       child: Stack(
@@ -299,7 +319,7 @@ class _TeaserEnd extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  '로그인하면 끝까지 읽고, 내 잡지도 만들 수 있어요.',
+                  '로그인하면 끝까지 읽고, 스케치북도 만들 수 있어요.',
                   textAlign: TextAlign.center,
                   style: EselTypography.body(
                     fontSize: 14,

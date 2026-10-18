@@ -58,7 +58,7 @@ void main() {
       await tester.tap(
         find.descendant(
           of: find.byType(LoginSheet),
-          matching: find.text('내 잡지 만들기'),
+          matching: find.text('스케치북 만들기'),
         ),
       );
       await tester.pumpAndSettle();

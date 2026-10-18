@@ -36,7 +36,7 @@ void main() {
       expect(stroke.width / (face.width * photo.width), closeTo(2.15, 1e-9));
     });
 
-    test('제호 뒤로: 제호를 옮기지 않고 사진을 1.9배 키워 얼굴을 제호 높이로', () {
+    test('사인 뒤로: 사인을 옮기지 않고 사진을 1.9배 키워 얼굴을 사인 높이로', () {
       final zoom = rect(FaceLayoutMode.behindLogo);
       expect(zoom.width, closeTo(448, 1)); // crop(…, 1.9, …)
       expect(zoom.left, closeTo(-118, 1));
@@ -87,7 +87,7 @@ void main() {
       expect(neck.bottom, lessThanOrEqualTo(0));
     });
 
-    test('그대로: 얼굴이 위에 있으면 제호를 줄이고, 그래도 닿으면 알린다', () {
+    test('그대로: 얼굴이 위에 있으면 사인을 줄이고, 그래도 닿으면 알린다', () {
       CoverDraft draft(double faceY) => CoverDraft(
         id: 'd',
         photoPath: 'p.png',
@@ -101,7 +101,7 @@ void main() {
       expect(high, lessThan(low));
       expect(CoverPreview.plainMastheadTouchesFace(draft(.6), cover), isFalse);
       expect(CoverPreview.plainMastheadTouchesFace(draft(.08), cover), isTrue);
-      // 다른 연출에서는 줄이지 않는다(제호 뒤로는 제호가 얼굴을 덮는 연출이다).
+      // 다른 연출에서는 줄이지 않는다(사인 뒤로는 사인이 얼굴을 덮는 연출이다).
       expect(
         CoverPreview.plainMastheadSize(
           draft(.08).copyWith(faceMode: FaceLayoutMode.behindLogo),

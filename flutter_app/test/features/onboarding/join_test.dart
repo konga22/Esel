@@ -10,15 +10,15 @@ import 'package:esel/features/auth/data/sources/mock_account_store.dart';
 import 'package:esel/features/auth/presentation/screens/email_login_view.dart';
 import 'package:esel/features/drafts/data/local_library.dart';
 import 'package:esel/features/intro/presentation/screens/intro_screen.dart';
-import 'package:esel/features/magazine/presentation/screens/my_magazine_screen.dart';
+import 'package:esel/features/magazine/presentation/screens/shelf_screen.dart';
 import 'package:esel/features/media/presentation/cover_preview.dart';
 import 'package:esel/features/onboarding/domain/models/onboarding_draft.dart';
 import 'package:esel/features/onboarding/presentation/controllers/onboarding_controller.dart';
 import 'package:esel/features/onboarding/presentation/screens/onboarding_screen.dart';
 
 void main() {
-  group('DEV-06 창간 규칙(P13·P14)', () {
-    test('제호는 비어 있게 시작하고 예시 인물 이름으로 채우지 않는다', () {
+  group('DEV-06 첫 캔버스 규칙(P13·P14)', () {
+    test('사인은 비어 있게 시작하고 예시 인물 이름으로 채우지 않는다', () {
       final c = OnboardingController();
       expect(c.draft.masthead, isEmpty);
       expect(c.draft.masthead, isNot('dana'));
@@ -26,7 +26,7 @@ void main() {
       expect(c.canProceed(), isFalse);
     });
 
-    test('제호는 소문자만 남기고 10자에서 멈추며, 확인된 이름만 다음으로', () async {
+    test('사인은 소문자만 남기고 10자에서 멈추며, 확인된 이름만 다음으로', () async {
       final taken = {'dana', 'selin'};
       final c = OnboardingController(
         checkMasthead: (name) async => !taken.contains(name),
@@ -54,7 +54,7 @@ void main() {
       expect(c.canProceed(), isFalse);
     });
 
-    test('얼굴 위치를 정하기 전에는 창간할 수 없다(P11)', () {
+    test('얼굴 위치를 정하기 전에는 첫 캔버스할 수 없다(P11)', () {
       final c = OnboardingController()
         ..selectColor(EselPaint.camel)
         ..nextStep()
@@ -67,7 +67,7 @@ void main() {
       expect(c.canProceed(), isFalse);
       c.placeFace(const Offset(.5, .3));
       expect(c.canProceed(), isTrue);
-      // 창간호는 실제로 발행한 뒤에만 열린다.
+      // 첫 캔버스는 실제로 올린 뒤에만 열린다.
       c.nextStep();
       expect(c.currentStep, OnboardingStep.face);
       c.selectFaceMode(FaceLayoutMode.belowNeck);
@@ -86,11 +86,11 @@ void main() {
     });
   });
 
-  group('DEV-06 창간 → 창간호 Nº 001', () {
+  group('DEV-06 첫 캔버스 → 첫 캔버스 Nº 001', () {
     // 서울 2026-10-15 정오.
     final clock = ManualServiceClock(DateTime.utc(2026, 10, 15, 3));
 
-    testWidgets('로그인 전 창간: 색 → 사진 → 제호 → 얼굴 → 계정 → Nº 001이 내 잡지에', (
+    testWidgets('로그인 전 첫 캔버스: 색 → 사진 → 사인 → 얼굴 → 계정 → Nº 001이 스케치북에', (
       tester,
     ) async {
       tester.view.physicalSize = const Size(480, 1000);
@@ -112,12 +112,12 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(IntroScreen), findsOneWidget);
 
-      // J1 로그인 바의 "내 잡지 만들기"로 창간을 시작한다.
+      // J1 로그인 바의 "스케치북 만들기"로 첫 캔버스를 시작한다.
       final intro = tester.state(find.byType(IntroScreen));
       expect(intro, isNotNull);
       (tester.widget<IntroScreen>(find.byType(IntroScreen))).onStartJoin();
       await tester.pumpAndSettle();
-      expect(find.text('창간 1 / 4'), findsOneWidget);
+      expect(find.text('첫 캔버스 1 / 4'), findsOneWidget);
       expect(find.text('${today.today.label} 오늘의 색'), findsOneWidget);
 
       // J3: 오늘 후보 중 두 번째 색.
@@ -126,16 +126,16 @@ void main() {
       await tester.pump();
       await tester.tap(find.textContaining('찍기'));
       await tester.pumpAndSettle();
-      expect(find.text('창간 2 / 4'), findsOneWidget);
+      expect(find.text('첫 캔버스 2 / 4'), findsOneWidget);
 
       // J4: 촬영은 기기 카메라라 테스트에서는 사진 경로만 넣는다.
       sl.onboardingController
         ..setPhoto('founding.png')
         ..nextStep();
       await tester.pumpAndSettle();
-      expect(find.text('창간 3 / 4'), findsOneWidget);
+      expect(find.text('첫 캔버스 3 / 4'), findsOneWidget);
 
-      // J5: 제호. 예시 인물 이름은 이미 있는 이름이다.
+      // J5: 사인. 예시 인물 이름은 이미 있는 이름이다.
       final field = find.byKey(const Key('founding-masthead'));
       expect(tester.widget<TextField>(field).controller!.text, isEmpty);
       await tester.enterText(field, 'Dana');
@@ -153,12 +153,12 @@ void main() {
       await tester.pump();
       await tester.tap(find.text('다음'));
       await tester.pumpAndSettle();
-      expect(find.text('창간 4 / 4'), findsOneWidget);
+      expect(find.text('첫 캔버스 4 / 4'), findsOneWidget);
 
-      // 제호 뒤로 + 물감은 가능하지만 목 아래를 선택하면 물감은 꺼진다.
+      // 사인 뒤로 + 물감은 가능하지만 목 아래를 선택하면 물감은 꺼진다.
       for (final label in [
         '물감 한 획 · 오늘의 색으로 가려요',
-        '제호 뒤로 · 이름 뒤에 숨겨요',
+        '사인 뒤로 · 이름 뒤에 숨겨요',
         '목 아래 · 옷만 보여요',
       ]) {
         await tester.ensureVisible(find.bySemanticsLabel(label));
@@ -195,8 +195,8 @@ void main() {
       expect(sl.onboardingController.draft.effectiveFaceEffects, {
         FaceLayoutMode.belowNeck,
       });
-      await tester.ensureVisible(find.bySemanticsLabel('제호 뒤로 · 이름 뒤에 숨겨요'));
-      await tester.tap(find.bySemanticsLabel('제호 뒤로 · 이름 뒤에 숨겨요'));
+      await tester.ensureVisible(find.bySemanticsLabel('사인 뒤로 · 이름 뒤에 숨겨요'));
+      await tester.tap(find.bySemanticsLabel('사인 뒤로 · 이름 뒤에 숨겨요'));
       await tester.pump();
       await tester.ensureVisible(paint);
       await tester.tap(paint);
@@ -208,11 +208,11 @@ void main() {
             .effectiveFaceEffects,
         {FaceLayoutMode.paintStroke, FaceLayoutMode.behindLogo},
       );
-      await tester.tap(find.text('창간하기'));
+      await tester.tap(find.text('첫 캔버스 올리기'));
       await tester.pumpAndSettle();
 
       // 계정이 없으니 계정 만들기(이메일 가입)부터.
-      expect(find.text('계정을 만들고 창간해요'), findsOneWidget);
+      expect(find.text('계정을 만들고 첫 캔버스해요'), findsOneWidget);
       await tester.tap(find.text('이메일로 계속하기'));
       await tester.pumpAndSettle();
       expect(find.text('이메일로 가입하기'), findsOneWidget);
@@ -234,10 +234,13 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
       await tester.pumpAndSettle();
 
-      // J7 창간호.
-      expect(find.text('창간을 축하해요'), findsOneWidget);
-      expect(find.text('minakim의 첫 호가\n오늘 가판대에 올라갔어요.'), findsOneWidget);
-      expect(find.text('Nº 001 · 창간호 · ${today.today.label}'), findsOneWidget);
+      // J7 첫 캔버스.
+      expect(find.text('첫 캔버스를 축하해요'), findsOneWidget);
+      expect(find.text('minakim의 첫 호가\n오늘 팔레트에 올라갔어요.'), findsOneWidget);
+      expect(
+        find.text('Nº 001 · 첫 캔버스 · ${today.today.label}'),
+        findsOneWidget,
+      );
       final session = sl.authController.currentSession!;
       expect(session.masthead, 'minakim');
       final issues = library.issuesFor(session.userId);
@@ -253,12 +256,12 @@ void main() {
       expect(issues.single.publishedOn, today.today.key);
       expect(today.hasPublishedToday, isTrue);
 
-      // 내 잡지에 1호가 보인다. 같은 날 두 번째 발행은 없다.
-      await tester.tap(find.text('내 잡지 보기'));
+      // 스케치북에 1호가 보인다. 같은 날 두 번째 올리기는 없다.
+      await tester.tap(find.text('스케치북 보기'));
       await tester.pumpAndSettle();
-      expect(find.byType(MyMagazineScreen), findsOneWidget);
-      expect(find.text('총 1호 발행 · 결호 없음'), findsOneWidget);
-      expect(find.text('오늘 호 발행 완료'), findsOneWidget);
+      expect(find.byType(ShelfScreen), findsOneWidget);
+      expect(find.textContaining('캔버스 1장'), findsOneWidget);
+      expect(find.text('내 캔버스의 반응 보기'), findsOneWidget);
       await expectLater(
         today.publish(issues.single.copyWith(issueNumber: 0)),
         throwsFormatException,
@@ -267,7 +270,7 @@ void main() {
     });
   });
 
-  testWidgets('창간 화면 J4: 촬영으로 고른 사진을 받으면 제호 단계로', (tester) async {
+  testWidgets('첫 캔버스 화면 J4: 촬영으로 고른 사진을 받으면 사인 단계로', (tester) async {
     tester.view.physicalSize = const Size(480, 1000);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);

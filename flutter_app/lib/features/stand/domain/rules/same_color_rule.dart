@@ -9,7 +9,7 @@ enum SameColorRoomAccess {
 
 /// 같은 색 방을 보는 사람의 오늘 상태(P01).
 ///
-/// 2026-10-15 결정: 발행 전에는 그날 나의 후보 3색 방이 모두 미리보기다. 그중 무엇을 골랐는지,
+/// 2026-10-15 결정: 올리기 전에는 그날 나의 후보 3색 방이 모두 미리보기다. 그중 무엇을 골랐는지,
 /// 몇 번 바꿨는지는 넣지 않는다. 그래서 색을 바꿔도 어떤 방도 열리지 않는다.
 class SameColorViewer {
   /// 서비스 날짜(Asia/Seoul).
@@ -18,7 +18,7 @@ class SameColorViewer {
   /// 오늘 나의 후보 3색(P17).
   final List<EselPaint> candidates;
 
-  /// 오늘 나의 개인 발행이 있는지. 색 확정·복원·트윈 게시는 여기에 넣지 않는다(P03, P09).
+  /// 오늘 나의 개인 올리기이 있는지. 색 확정·복원·트윈 게시는 여기에 넣지 않는다(P03, P09).
   final bool hasPublishedToday;
 
   /// 미성년자는 잠금이 없다.
@@ -57,7 +57,7 @@ class SameColorViewer {
   );
 }
 
-/// 방에 꽂힌 표지 하나. 규칙은 id와 발행 시각만 본다.
+/// 방에 꽂힌 표지 하나. 규칙은 id와 올리기 시각만 본다.
 class RoomCover {
   final String id;
   final DateTime publishedAt;
@@ -89,7 +89,7 @@ class SameColorRoom {
 /// P01·P02 같은 색 방 공개 규칙. 기준 구현은 social-state.js의 sameColorRoom.
 class SameColorRule {
   static const int previewCount = 3;
-  static const String bannerMessage = '발행하면 함께 펼쳐집니다';
+  static const String bannerMessage = '올리면 함께 펼쳐집니다';
 
   static SameColorRoomAccess accessFor({
     required EselPaint color,
@@ -106,7 +106,7 @@ class SameColorRule {
         : SameColorRoomAccess.open;
   }
 
-  /// 가판대 칩의 자물쇠. 오늘 발행 전, 나의 후보 3색에 모두 붙는다.
+  /// 팔레트 칩의 자물쇠. 오늘 올리기 전, 나의 후보 3색에 모두 붙는다.
   static bool isLockedToday(EselPaint color, SameColorViewer viewer) =>
       accessFor(color: color, date: viewer.today, viewer: viewer) ==
       SameColorRoomAccess.preview;

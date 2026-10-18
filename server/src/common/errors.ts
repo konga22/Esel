@@ -43,18 +43,18 @@ export const APP_ERRORS = {
   },
   PROFILE_EXISTS: {
     status: HttpStatus.CONFLICT,
-    message: '이미 잡지를 만들었어요.',
-    hint: '내 잡지에서 이어 주세요.',
+    message: '이미 스케치북을 만들었어요.',
+    hint: '스케치북에서 이어 주세요.',
   },
   CHOICE_LOCKED: {
     status: HttpStatus.CONFLICT,
-    message: '오늘 호를 발행해서 색을 바꿀 수 없어요.',
+    message: '오늘의 캔버스를 올려서 색을 바꿀 수 없어요.',
     hint: '내일 새 색을 골라 주세요.',
   },
   ISSUE_ALREADY_PUBLISHED: {
     status: HttpStatus.CONFLICT,
-    message: '오늘 호는 이미 발행했어요.',
-    hint: '하루에 한 호만 발행할 수 있어요.',
+    message: '오늘의 캔버스는 이미 올렸어요.',
+    hint: '하루에 한 캔버스만 올릴 수 있어요.',
   },
   MEDIA_NOT_READY: {
     status: HttpStatus.CONFLICT,
@@ -119,7 +119,7 @@ export const APP_ERRORS = {
   SHARE_NOT_PUBLIC: {
     status: HttpStatus.UNPROCESSABLE_ENTITY,
     message: '공개된 표지만 공유할 수 있어요.',
-    hint: '발행하거나 공동 공개에 동의한 뒤 공유해 주세요.',
+    hint: '올리거나 공동 공개에 동의한 뒤 공유해 주세요.',
   },
   RATE_LIMITED: {
     status: HttpStatus.TOO_MANY_REQUESTS,

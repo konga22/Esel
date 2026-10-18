@@ -73,7 +73,7 @@ class TwinScreen extends StatelessWidget {
     if (stage == TwinStage.revealed || stage == TwinStage.consentWaiting) {
       return _buildRevealedView(context);
     } else if (stage == TwinStage.published) {
-      return _buildDoneView('공동 발행 완료', '두 사람의 표지가 우리들의 한 호로 공동 발행되었습니다.');
+      return _buildDoneView('공동 올리기 완료', '두 사람의 표지가 우리들의 한 호로 공동 올라가었습니다.');
     } else if (stage == TwinStage.privateOnly) {
       return _buildDoneView(
         '둘만의 기록으로 저장',
@@ -102,7 +102,7 @@ class TwinScreen extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            '공동 발행 시 두 사람의 동의가 필요합니다.',
+            '공동 올리기 시 두 사람의 동의가 필요합니다.',
             style: EselTypography.bodySmall.copyWith(
               color: EselTokens.inkMuted,
             ),
@@ -191,12 +191,12 @@ class TwinScreen extends StatelessWidget {
       return Column(
         children: [
           Text(
-            '상대방의 동의가 완료되었습니다. 공동 발행에 동의하시겠습니까?',
+            '상대방의 동의가 완료되었습니다. 공동 올리기에 동의하시겠습니까?',
             style: EselTypography.caption,
           ),
           const SizedBox(height: 12),
           EselButton(
-            label: '동의하고 공동 발행하기',
+            label: '동의하고 공동 올리기',
             isPrimary: true,
             onTap: controller.giveConsent,
           ),

@@ -92,7 +92,11 @@
       "tests": [
         "flutter_app/test/core/components_test.dart",
         "flutter_app/test/core/phone_frame_test.dart",
-        "flutter_app/test/app/capsule_test.dart"
+        "flutter_app/test/app/capsule_test.dart",
+        "flutter_app/test/app/server_editor_retention_test.dart",
+        "flutter_app/test/app/startup_storage_error_test.dart",
+        "flutter_app/test/features/drafts/library_recovery_test.dart",
+        "flutter_app/test/features/drafts/photo_recovery_test.dart"
       ],
       "openDecisions": [],
       "status": "doing"
@@ -551,6 +555,7 @@
         "DEV-10"
       ],
       "client": [
+        "Flutter 공통 팔레트: 추천·색상·구독, 3열 모자이크, 타인 스케치북 이동. 로컬은 공개 규칙 적용 후 구성하며 비후보 색은 고정 물감 순서. 서버 추천·색 순서 API는 미연결",
         "10-18: 화면 이름은 팔레트. 탭은 추천 · 색상 · 구독(\"전체\" 없음), 인스타 돋보기 탭 크기의 작은 3열 격자(두 줄마다 세로로 긴 칸 하나)",
         "색상 탭은 색 선택 버튼을 누르면 목록이 아래로 펼쳐짐. 내 후보 3색(발행 전 자물쇠)이 먼저, 나머지는 서버가 준 순서(오늘 많이 고른 순). 숫자는 그리지 않음",
         "격자 칸을 누르면 그 사람의 스케치북(DEV-13)으로",
@@ -594,9 +599,11 @@
         "DEV-10"
       ],
       "client": [
+        "본인·타인과 로컬·서버 모두 ShelfScreen 하나: 프로필·세로 사진·구독·cursor. 실제 사진 URL이 없어 서버 사진 영역은 준비 중 표시",
         "호수는 결호 없이 내려감",
         "구독자 수는 보여 주지 않음",
-        "서버 모드 사인 기반 스케치북·cursor 페이지·구독 연결. 서버 공개 필터 응답만 표시"
+        "서버 모드 사인 기반 스케치북·cursor 페이지·구독 연결. 서버 공개 필터 응답만 표시",
+        "추가 조회 실패 시 목록·cursor 유지 후 해당 페이지 재시도. 본인 목록에는 자기 반응 대신 공유"
       ],
       "server": [
         "GET /api/magazines/{masthead}: 지난 호 목록(공개분)",
@@ -611,7 +618,8 @@
         "server/test/contracts/magazines.e2e-spec.ts",
         "flutter_app/test/features/server/core_api_test.dart",
         "flutter_app/test/features/server/core_api_widgets_test.dart",
-        "flutter_app/test/features/server/core_api_live_test.dart"
+        "flutter_app/test/features/server/core_api_live_test.dart",
+        "flutter_app/test/features/server/review_regressions_test.dart"
       ],
       "openDecisions": [],
       "status": "doing"
@@ -649,7 +657,8 @@
         "server/test/contracts/me.e2e-spec.ts",
         "flutter_app/test/features/server/core_api_test.dart",
         "flutter_app/test/features/server/core_api_widgets_test.dart",
-        "flutter_app/test/features/server/core_api_live_test.dart"
+        "flutter_app/test/features/server/core_api_live_test.dart",
+        "flutter_app/test/features/server/review_regressions_test.dart"
       ],
       "openDecisions": [],
       "status": "doing"
@@ -1059,6 +1068,7 @@
         "DEV-09"
       ],
       "client": [
+        "Garment·CoverDraft 선택 필드, 기기 내 계정별 옷 목록·재사용·태그 위치·상세 목록 연결 완료. 원격 garments DTO/API는 미합의·미구현",
         "오늘의 캔버스 만들기에 '착용 정보 더하기': 옷 종류 칩(코트·니트·셔츠·바지·치마·원피스·신발·가방·액세서리), 이름이나 브랜드(선택), 메모 칩(빈티지·물려받음·직접 만듦·오래 입음), 오늘의 색 옷 표시",
         "사진을 눌러 태그 점 위치를 정함(선택). 한 장에 최대 8개",
         "자세히 보기에서 태그 점을 누르면 그 옷 줄로, 사진 오른쪽 아래 '착용 n' 알약",
@@ -1082,9 +1092,10 @@
       ],
       "openDecisions": [
         "옷 종류 목록 확정",
-        "브랜드 이름 자동완성 여부(외부 데이터 없이)"
+        "브랜드 이름 자동완성 여부(외부 데이터 없이)",
+        "이름 필드에 가격·URL 문자열을 입력할 때 거절할 범위(현재는 안내만 표시)"
       ],
-      "status": "todo"
+      "status": "doing"
     },
     {
       "id": "DEV-25",
@@ -1105,6 +1116,7 @@
         "DEV-01"
       ],
       "client": [
+        "Flutter 화면 용어·4칸 260×60 캡슐 반영, 문구 검사·캡슐 크기와 48px 터치 테스트. 코드/API 식별자 유지",
         "화면에 보이는 문구만 바꾼다: 가판대→팔레트, 내 잡지·서가→스케치북, 오늘 호→오늘의 캔버스, 발행→올리기, 창간→첫 캔버스, 제호→사인, 펼쳐 보기→자세히 보기, 독자 한 줄→한 줄, 특집→전시, 주간 드레스코드→이번 주 주제, 월간 색 기록→색 달력",
         "하단 캡슐 4칸(홈·팔레트·만들기·스케치북), 260×60·칸 62·터치 48, 지금 화면 아래 4px 점(만들기는 점 없음). 이 작업에서 harness.json tokenScale.size.capsuleWidth를 196 → 260으로 바꾸고 npm run dev:docs, 캡슐 테스트도 함께 고친다",
         "비로그인 로그인 바 문구도 같은 단어로"
@@ -1121,7 +1133,7 @@
         "flutter_app/test/app/capsule_test.dart"
       ],
       "openDecisions": [],
-      "status": "todo"
+      "status": "done"
     }
   ]
 }

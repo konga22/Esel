@@ -77,13 +77,9 @@ void main() {
     );
 
     await tester.pump();
-    await tester.tap(find.bySemanticsLabel('오늘의 색 가판대'));
+    await tester.tap(find.bySemanticsLabel('스케치북'));
     await tester.pumpAndSettle();
-    await tester.tap(find.bySemanticsLabel('카멜'));
-    await tester.pumpAndSettle();
-
-    // 내 표지.
-    await tester.tap(find.bySemanticsLabel('ownmag의 표지 보기'));
+    await tester.tap(find.text('내 캔버스의 반응 보기'));
     await tester.pumpAndSettle();
     expect(find.byType(IssueBottomSheet), findsOneWidget);
     expect(
@@ -98,7 +94,12 @@ void main() {
     await tester.pumpAndSettle();
 
     // 남의 표지(이름이 같은 사람이 있어도 id로 가른다).
-    await tester.tap(find.bySemanticsLabel('selin의 표지 보기'));
+    await tester.tap(find.bySemanticsLabel('팔레트'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('palette-cover-selin-2026-09-06')),180);
+    await tester.tap(find.byKey(const ValueKey('palette-cover-selin-2026-09-06')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('자세히 보기').first);
     await tester.pumpAndSettle();
     expect(find.byType(IssueBottomSheet), findsOneWidget);
     expect(find.textContaining('나에게만 보여요'), findsNothing);

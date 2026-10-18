@@ -1,3 +1,6 @@
+import '../../domain/models/public_issue.dart';
+import '../../../media/domain/models/face_box.dart';
+import '../../../media/domain/models/face_layout_mode.dart';
 import '../../../../core/design/tokens.g.dart';
 import '../../../../core/network/http_client.dart';
 import '../../../../core/time/service_date.dart';
@@ -24,6 +27,34 @@ ServerIssue parseServerIssue(Map<String, dynamic> value) => ServerIssue(
 class IssueRemoteSource {
   final AppHttpClient http;
   IssueRemoteSource(this.http);
+  Future<PublicIssue> read(PublicIssue reference) =>
+      readId(reference.id, ownerId: reference.ownerId);
+  Future<PublicIssue> readId(String id, {required String ownerId}) async {
+    final value = await issue(id);
+    return PublicIssue(
+      id: value.id,
+      ownerId: ownerId,
+      masthead: value.masthead,
+      issueNumber: value.number,
+      date: value.date,
+      publishedAt: value.publishedAt,
+      timeLabel: '',
+      color: value.color,
+      photo: '',
+      face: const FaceBox(.5, .3, .16),
+      faceMode: switch (value.faceMode) {
+        'PAINT' => FaceLayoutMode.paintStroke,
+        'BEHIND_MASTHEAD' => FaceLayoutMode.behindLogo,
+        'NECK_DOWN' => FaceLayoutMode.belowNeck,
+        _ => FaceLayoutMode.original,
+      },
+      caption: value.caption,
+      alt: '사진 제공 준비 중',
+      liked: value.liked,
+      scrapped: value.scrapped,
+    );
+  }
+
   String _path(String id) => '/issues/${Uri.encodeComponent(id)}';
   Future<ServerIssue> issue(String id) async =>
       parseServerIssue(await http.get(_path(id)));

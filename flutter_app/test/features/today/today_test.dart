@@ -46,7 +46,7 @@ void main() {
       expect(today.today, const ServiceDate(2026, 10, 16));
     });
 
-    test('하루 두 번째 발행은 거절되고, 자정이 지나면 다음 호를 낼 수 있다', () async {
+    test('하루 두 번째 올리기는 거절되고, 자정이 지나면 다음 호를 낼 수 있다', () async {
       final first = await today.publish(draft());
       expect(first.issueNumber, 1);
       expect(first.publishedOn, '2026-10-15');
@@ -63,7 +63,7 @@ void main() {
       expect(library.issuesFor('owner-a').map((d) => d.issueNumber), [2, 1]);
     });
 
-    test('편집하는 사이 자정이 지나면 발행 직전에 새 날짜로 계산한다', () async {
+    test('편집하는 사이 자정이 지나면 올리기 직전에 새 날짜로 계산한다', () async {
       await today.publish(draft());
       clock.advance(const Duration(hours: 2)); // 서울 10-16 01:00, refresh 없이
       final newDay = DailyCandidates.forDate(const ServiceDate(2026, 10, 16));
@@ -72,7 +72,7 @@ void main() {
       expect(next.issueNumber, 2);
     });
 
-    test('오늘 후보가 아닌 색으로는 발행하지 않는다(P17)', () async {
+    test('오늘 후보가 아닌 색으로는 올리지 않는다(P17)', () async {
       final outside = EselPaint.values.firstWhere(
         (c) => !today.candidates.contains(c),
       );

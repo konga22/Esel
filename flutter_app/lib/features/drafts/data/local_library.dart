@@ -1,3 +1,4 @@
+import '../../garments/domain/garment.dart';
 import 'dart:convert';
 import '../../challenges/domain/challenge.dart';
 import 'dart:io';
@@ -15,7 +16,9 @@ const String memoryPhotoPrefix = 'memory:';
 
 /// photoPath가 기기 파일이든 메모리 사진이든 같은 방식으로 그린다.
 ImageProvider localPhotoProvider(String photoPath) =>
-    photoPath.startsWith(memoryPhotoPrefix)
+    photoPath.startsWith('assets/')
+    ? AssetImage(photoPath)
+    : photoPath.startsWith(memoryPhotoPrefix)
     ? MemoryImage(LocalLibrary._memoryPhotos[photoPath] ?? Uint8List(0))
     : FileImage(File(photoPath));
 
@@ -24,6 +27,29 @@ class LocalLibrary extends ChangeNotifier {
   final Directory? directory;
   LocalLibrary(Directory this.directory);
   LocalLibrary.inMemory() : directory = null;
+  LocalLibrary.unavailable() : directory = null {
+    loadError = '기기 보관함을 열지 못했어요. 기존 자료는 보존되어 있어요. 앱을 다시 시작해 주세요.';
+  }
+  String? loadError;
+  bool get available => loadError == null;
+  Future<void> loadForStartup() async {
+    try {
+      await load();
+      loadError = null;
+    } catch (_) {
+      _drafts.clear();
+      _publicationLedger.clear();
+      _reactionRecords.clear();
+      _featureRecords.clear();
+      _personalRecords.clear();
+      loadError = '기기 보관함을 읽지 못했어요. 기존 파일은 보존되어 있어요. 다시 읽기를 시도해 주세요.';
+    }
+    notifyListeners();
+  }
+
+  void _ensureAvailable() {
+    if (loadError != null) throw FormatException(loadError!);
+  }
 
   static final Map<String, Uint8List> _memoryPhotos = {};
 
@@ -49,7 +75,7 @@ class LocalLibrary extends ChangeNotifier {
       );
     }
     final library = LocalLibrary(directory);
-    await library.load();
+    await library.loadForStartup();
     return library;
   }
 
@@ -87,6 +113,7 @@ class LocalLibrary extends ChangeNotifier {
         'publicationLedger',
         'reactionRecords',
         'featureRecords',
+        'personalRecords',
       ])
         key: {
           for (final entry in (data[key] as Map? ?? {}).entries)
@@ -104,12 +131,59 @@ class LocalLibrary extends ChangeNotifier {
   final Map<String, Map<String, int>> _publicationLedger = {};
   final Map<String, Map<String, dynamic>> _reactionRecords = {};
   final Map<String, Map<String, dynamic>> _featureRecords = {};
+  final Map<String, Map<String, dynamic>> _personalRecords = {};
   Map<String, dynamic> reactionsFor(String owner) => Map<String, dynamic>.from(
     jsonDecode(jsonEncode(_reactionRecords[owner] ?? {})) as Map,
   );
   Map<String, dynamic> featuresFor(String owner) => Map<String, dynamic>.from(
     jsonDecode(jsonEncode(_featureRecords[owner] ?? {})) as Map,
   );
+
+  /// 본인의 기록에서 같은 옷 ID를 재사용한다. 다른 계정의 옷은 섞지 않는다.
+  List<Garment> garmentsFor(String owner) => {
+    for (final entry
+        in ((_personalRecords[owner]?['garments'] as Map?) ?? {}).entries)
+      entry.key as String: Garment.fromJson(
+        Map<String, dynamic>.from(entry.value as Map),
+      ),
+    for (final draft in _drafts.where((d) => d.ownerId == owner))
+      for (final garment in draft.garments) garment.id: garment,
+  }.values.map((g) => g.at(null, null).forColor(false)).toList();
+
+  Map<String, String> restoredColorsFor(String owner) =>
+      Map<String, String>.from(
+        _personalRecords[owner]?['restored'] as Map? ?? {},
+      );
+  Future<void> restoreColor(String owner, ServiceDate day, String color) =>
+      _change(() {
+        if (owner.isEmpty) throw const FormatException('로그인이 필요해요.');
+        final data = Map<String, dynamic>.from(_personalRecords[owner] ?? {});
+        final restored = restoredColorsFor(owner);
+        if (restored.containsKey(day.key) || hasPublishedOn(owner, day)) {
+          throw const FormatException('이미 기록한 날짜예요.');
+        }
+        if (restored.keys
+                .where((v) => v.startsWith(day.key.substring(0, 7)))
+                .length >=
+            2) {
+          throw const FormatException('이달의 복원 기회를 모두 사용했어요.');
+        }
+        restored[day.key] = color;
+        data['restored'] = restored;
+        _personalRecords[owner] = data;
+      });
+  void _rememberGarments(CoverDraft draft) {
+    if (draft.ownerId.isEmpty) return;
+    final data = Map<String, dynamic>.from(
+      _personalRecords[draft.ownerId] ?? {},
+    );
+    data['garments'] = {
+      ...?(data['garments'] as Map?),
+      for (final item in draft.garments) item.id: item.toJson(),
+    };
+    _personalRecords[draft.ownerId] = data;
+  }
+
   Future<void> saveReactions(String owner, Map<String, dynamic> data) {
     if (owner.isEmpty) throw const FormatException('로그인이 필요해요.');
     final copy = Map<String, dynamic>.from(jsonDecode(jsonEncode(data)) as Map);
@@ -188,7 +262,7 @@ class LocalLibrary extends ChangeNotifier {
           item.key as String: (item.value as num).toInt(),
       };
     }
-    // 이전 저장본도 발행 이력을 지우지 않고 이어받는다.
+    // 이전 저장본도 올리기 이력을 지우지 않고 이어받는다.
     for (final issue in _drafts.where(
       (d) => d.issueNumber > 0 && d.publishedOn != null,
     )) {
@@ -197,6 +271,12 @@ class LocalLibrary extends ChangeNotifier {
       if (issue.issueNumber > previous) {
         ledger[issue.publishedOn!] = issue.issueNumber;
       }
+    }
+    _personalRecords.clear();
+    for (final entry in (data['personalRecords'] as Map? ?? {}).entries) {
+      _personalRecords[entry.key as String] = Map<String, dynamic>.from(
+        entry.value as Map,
+      );
     }
     _reactionRecords.clear();
     _featureRecords.clear();
@@ -213,6 +293,7 @@ class LocalLibrary extends ChangeNotifier {
   }
 
   Future<void> _persist() async {
+    _ensureAvailable();
     final directory = this.directory;
     if (directory == null) return;
     final data = jsonEncode({
@@ -221,6 +302,7 @@ class LocalLibrary extends ChangeNotifier {
       'publicationLedger': _publicationLedger,
       'reactionRecords': _reactionRecords,
       'featureRecords': _featureRecords,
+      'personalRecords': _personalRecords,
       'reduceMotion': reduceMotion,
       'reduceTransparency': reduceTransparency,
       'largeText': largeText,
@@ -235,6 +317,7 @@ class LocalLibrary extends ChangeNotifier {
 
   Future<void> _change(void Function() change) {
     final result = _queue.then((_) async {
+      _ensureAvailable();
       final oldDrafts = List<CoverDraft>.of(_drafts);
       final oldLedger = {
         for (final e in _publicationLedger.entries)
@@ -242,6 +325,9 @@ class LocalLibrary extends ChangeNotifier {
       };
       final oldReactions = Map<String, Map<String, dynamic>>.of(
         _reactionRecords,
+      );
+      final oldPersonal = Map<String, Map<String, dynamic>>.from(
+        jsonDecode(jsonEncode(_personalRecords)) as Map,
       );
       final oldFeatures = Map<String, Map<String, dynamic>>.of(_featureRecords);
       final oldSettings = [
@@ -267,6 +353,9 @@ class LocalLibrary extends ChangeNotifier {
         _reactionRecords
           ..clear()
           ..addAll(oldReactions);
+        _personalRecords
+          ..clear()
+          ..addAll(oldPersonal);
         _featureRecords
           ..clear()
           ..addAll(oldFeatures);
@@ -286,6 +375,7 @@ class LocalLibrary extends ChangeNotifier {
     return _change(() {
       _drafts.removeWhere((d) => d.id == draft.id);
       _drafts.insert(0, draft.copyWith(updatedAt: DateTime.now()));
+      _rememberGarments(draft);
     });
   }
 
@@ -303,8 +393,8 @@ class LocalLibrary extends ChangeNotifier {
     await _deletePhotos(removed.map((d) => d.photoPath));
   }
 
-  /// 계정 탈퇴: 그 사람의 초안·발행한 호·사진 파일, 그리고 내보낸 표지 이미지(exports/)와
-  /// 어느 초안도 쓰지 않는 사진(창간·편집하다 그만둔 사진)까지 지운다. 사진첩 원본은 그대로다.
+  /// 계정 탈퇴: 그 사람의 초안·올린 호·사진 파일, 그리고 내보낸 표지 이미지(exports/)와
+  /// 어느 초안도 쓰지 않는 사진(첫 캔버스·편집하다 그만둔 사진)까지 지운다. 사진첩 원본은 그대로다.
   Future<void> deleteOwnerData(String ownerId) async {
     final removed = _drafts.where((d) => d.ownerId == ownerId).toList();
     final removedIds = removed.map((d) => d.id).toSet();
@@ -313,6 +403,7 @@ class LocalLibrary extends ChangeNotifier {
       _publicationLedger.remove(ownerId);
       _reactionRecords.remove(ownerId);
       _featureRecords.remove(ownerId);
+      _personalRecords.remove(ownerId);
       for (var i = 0; i < _drafts.length; i++) {
         if (removedIds.contains(_drafts[i].previousIssueId)) {
           _drafts[i] = _drafts[i].copyWith(clearChallenge: true);
@@ -378,17 +469,18 @@ class LocalLibrary extends ChangeNotifier {
     final day = on.key;
     late CoverDraft issue;
     await _change(() {
+      _rememberGarments(draft);
       final existing = issuesFor(ownerId);
       final stored = _drafts.where((d) => d.id == draft.id).firstOrNull;
       if (stored != null &&
           (stored.issueNumber > 0 ||
               (stored.ownerId.isNotEmpty && stored.ownerId != ownerId))) {
-        throw const FormatException('이미 발행했거나 다른 계정의 표지는 발행할 수 없어요.');
+        throw const FormatException('이미 올렸거나 다른 계정의 표지는 올릴 수 없어요.');
       }
       if (!PublishRule.canPublishToday(
         hasPublishedToday: hasPublishedOn(ownerId, on),
       )) {
-        throw const FormatException('오늘은 이미 한 호를 발행했어요.');
+        throw const FormatException('오늘은 이미 한 호를 올렸어요.');
       }
       if (draft.challengeId != null) {
         final challenge = StyleChallenge.resolve(draft.challengeId);
@@ -433,7 +525,7 @@ class LocalLibrary extends ChangeNotifier {
     final index = _drafts.indexWhere(
       (d) => d.id == issueId && d.ownerId == ownerId && d.issueNumber > 0,
     );
-    if (index < 0) throw const FormatException('내 발행 표지를 찾지 못했어요.');
+    if (index < 0) throw const FormatException('내 올린 표지를 찾지 못했어요.');
     final issue = _drafts[index];
     challenge.validate(
       today: today,
@@ -482,6 +574,7 @@ class LocalLibrary extends ChangeNotifier {
       : File(path).exists();
 
   Future<String> importPhoto(String path) async {
+    _ensureAvailable();
     final source = File(path);
     if (await source.length() > maxPhotoBytes) {
       throw const FormatException('사진은 15MB 이하로 골라 주세요.');
@@ -491,6 +584,7 @@ class LocalLibrary extends ChangeNotifier {
 
   /// 웹은 고른 사진을 파일 경로가 아니라 바이트로만 받을 수 있다.
   Future<String> importPhotoBytes(Uint8List source) async {
+    _ensureAvailable();
     if (source.length > maxPhotoBytes) {
       throw const FormatException('사진은 15MB 이하로 골라 주세요.');
     }

@@ -58,8 +58,8 @@ void main() {
     );
     await tester.pumpWidget(screen(true));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('주간 드레스코드 참여 표지 보기'), 200);
-    await tester.tap(find.text('주간 드레스코드 참여 표지 보기'));
+    await tester.scrollUntilVisible(find.text('이번 주 주제 참여 표지 보기'), 200);
+    await tester.tap(find.text('이번 주 주제 참여 표지 보기'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.text('bob · 2026-10-18 · Nº 1'), 200);
     expect(find.text('bob · 2026-10-18 · Nº 1'), findsOneWidget);
@@ -67,7 +67,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('bob · 2026-10-18 · Nº 1'), findsNothing);
   });
-  testWidgets('특집 화면: 기간 선택·직접 선정·이유·해제·뒤로가기', (tester) async {
+  testWidgets('전시 화면: 기간 선택·직접 선정·이유·해제·뒤로가기', (tester) async {
     tester.view.physicalSize = const Size(480, 1000);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -88,18 +88,18 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('일간 표지 특집'), findsOneWidget);
-    await tester.tap(find.text('공개 표지 골라 특집 편집'));
+    expect(find.text('일간 표지 전시'), findsOneWidget);
+    await tester.tap(find.text('공개 표지 골라 전시 편집'));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('이 표지를 특집에 담기'), 250);
-    await tester.tap(find.text('이 표지를 특집에 담기'));
+    await tester.scrollUntilVisible(find.text('이 표지를 전시에 담기'), 250);
+    await tester.tap(find.text('이 표지를 전시에 담기'));
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const Key('collection-reason')),
       '차분한 색 조합을 소개해요',
     );
-    await tester.ensureVisible(find.text('특집에 저장'));
-    await tester.tap(find.text('특집에 저장'));
+    await tester.ensureVisible(find.text('전시에 저장'));
+    await tester.tap(find.text('전시에 저장'));
     await tester.pumpAndSettle();
     expect(
       (await source.selected(
@@ -109,12 +109,12 @@ void main() {
       )).single.reason,
       '차분한 색 조합을 소개해요',
     );
-    await tester.scrollUntilVisible(find.text('특집 보기로 돌아가기'), -250);
-    await tester.tap(find.text('특집 보기로 돌아가기'));
+    await tester.scrollUntilVisible(find.text('전시 보기로 돌아가기'), -250);
+    await tester.tap(find.text('전시 보기로 돌아가기'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.text('선정 이유 · 차분한 색 조합을 소개해요'), 250);
-    await tester.scrollUntilVisible(find.text('특집에서 빼기 · 발행본 유지'), 200);
-    await tester.tap(find.text('특집에서 빼기 · 발행본 유지'));
+    await tester.scrollUntilVisible(find.text('전시에서 빼기 · 올리기본 유지'), 200);
+    await tester.tap(find.text('전시에서 빼기 · 올리기본 유지'));
     await tester.pumpAndSettle();
     expect(
       await source.selected(
@@ -128,7 +128,7 @@ void main() {
     await tester.scrollUntilVisible(find.text('주간'), -250);
     await tester.tap(find.text('주간'));
     await tester.pumpAndSettle();
-    expect(find.text('주간 표지 특집'), findsOneWidget);
+    expect(find.text('주간 표지 전시'), findsOneWidget);
     await tester.tap(find.byTooltip('뒤로'));
     expect(back, isTrue);
     expect(tester.takeException(), isNull);

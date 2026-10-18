@@ -117,7 +117,7 @@ void main() {
       expect(tester.getSize(option).height, 54, reason: label);
     }
     expect(find.text('처음이라면'), findsOneWidget);
-    expect(find.text('내 잡지 만들기'), findsOneWidget);
+    expect(find.text('스케치북 만들기'), findsOneWidget);
   });
 
   testWidgets('login sheet turns solid on a white screen', (tester) async {
@@ -127,7 +127,7 @@ void main() {
     final glass = tester.widget<EselGlass>(sheetGlass());
     expect(glass.solid, isTrue);
     expect(backdropIn(sheetGlass()), findsNothing);
-    // 창간으로 갈 곳이 없으면 "처음이라면" 줄을 숨긴다.
+    // 첫 캔버스로 갈 곳이 없으면 "처음이라면" 줄을 숨긴다.
     expect(find.text('처음이라면'), findsNothing);
   });
 
@@ -194,7 +194,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(controller.isAuthenticated, isTrue);
-    // 예시 인물(dana)이 아니라 이 기기의 시연 계정이고, 처음이라 제호가 없다(→ 창간).
+    // 예시 인물(dana)이 아니라 이 기기의 시연 계정이고, 처음이라 사인이 없다(→ 첫 캔버스).
     expect(controller.currentSession!.userId, 'mock_apple');
     expect(controller.currentSession!.masthead, isEmpty);
     expect(successes, 1);
@@ -208,7 +208,7 @@ void main() {
     var joins = 0;
     await openSheet(tester, onStartJoin: () => joins++);
 
-    await tester.tap(find.text('내 잡지 만들기'));
+    await tester.tap(find.text('스케치북 만들기'));
     await tester.pumpAndSettle();
 
     expect(joins, 1);

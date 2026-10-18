@@ -9,7 +9,7 @@ class StyleChallenge {
   const StyleChallenge(this.start, {this.restyle = false});
   ServiceDate get end => start.addDays(7);
   String get id => '${start.key}:${restyle ? 'restyle' : 'weekly'}';
-  String get title => restyle ? '같은 옷, 다른 코디' : '주간 드레스코드';
+  String get title => restyle ? '같은 옷, 다른 코디' : '이번 주 주제';
   String get topic => restyle
       ? '지난 표지 속 옷을 다르게 입어 봐요'
       : ['가방으로 포인트', '겹쳐 입기', '데님', '비 오는 날'][(start.startsAt
@@ -60,7 +60,7 @@ class StyleChallenge {
     }
     final published = ServiceDate.tryParse(issue.publishedOn);
     if (published != null && published != today) {
-      throw const FormatException('오늘 발행한 표지로 참여해 주세요.');
+      throw const FormatException('오늘 올린 표지로 참여해 주세요.');
     }
     if (!restyle && previousId != null) {
       throw const FormatException('이 주제에는 비교 표지가 필요하지 않아요.');
@@ -77,7 +77,7 @@ class StyleChallenge {
           .firstOrNull;
       final date = ServiceDate.tryParse(previous?.publishedOn);
       if (date == null || !date.isBefore(today)) {
-        throw const FormatException('내 지난 날짜의 발행 표지를 골라 주세요.');
+        throw const FormatException('내 지난 날짜의 올린 표지를 골라 주세요.');
       }
     }
   }

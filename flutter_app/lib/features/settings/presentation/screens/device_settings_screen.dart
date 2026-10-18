@@ -51,7 +51,7 @@ class DeviceSettingsScreen extends StatelessWidget {
               builder: (ctx) => AlertDialog(
                 title: const Text('이 기기에 보관돼요'),
                 content: const Text(
-                  '초안과 편집한 사진은 앱 전용 공간에 저장돼요. 앱 삭제나 기기 초기화 전에 표지 이미지 내보내기로 필요한 사진을 보관해 주세요. 서버 발행과 동기화는 별도 기능이에요.',
+                  '초안과 편집한 사진은 앱 전용 공간에 저장돼요. 앱 삭제나 기기 초기화 전에 표지 이미지 내보내기로 필요한 사진을 보관해 주세요. 서버 올리기과 동기화는 별도 기능이에요.',
                 ),
                 actions: [
                   TextButton(

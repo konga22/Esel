@@ -9,19 +9,19 @@ import 'email_login_view.dart';
 import '../../../../core/config/app_config.dart';
 
 /// 디자인 "J2 로그인": 어둡게 덮은 화면 위 Glass 시트, 위쪽 모서리 28.
-/// Apple · Google · 이메일, 처음이라면 → 내 잡지 만들기, 약관 안내.
+/// Apple · Google · 이메일, 처음이라면 → 스케치북 만들기, 약관 안내.
 class LoginSheet extends StatefulWidget {
   final AuthController authController;
   final VoidCallback onLoginSuccess;
   final VoidCallback? onCancel;
 
-  /// "처음이라면 → 내 잡지 만들기"(창간, J3). 없으면 그 줄을 숨긴다.
+  /// "처음이라면 → 스케치북 만들기"(첫 캔버스, J3). 없으면 그 줄을 숨긴다.
   final VoidCallback? onStartJoin;
 
   /// 뒤에 사진이 없는 흰 화면에서 열면 true. 디자인의 "Glass 대체" 단색.
   final bool solid;
 
-  /// 창간 끝에서 계정을 만들 때는 제목·안내를 바꾸고, 이메일은 가입 화면으로 연다.
+  /// 첫 캔버스 끝에서 계정을 만들 때는 제목·안내를 바꾸고, 이메일은 가입 화면으로 연다.
   final String title;
   final String lead;
   final bool emailSignUp;
@@ -237,7 +237,7 @@ class _LoginSheetState extends State<LoginSheet> {
             ),
           ],
 
-          // 4. 처음이라면 → 내 잡지 만들기
+          // 4. 처음이라면 → 스케치북 만들기
           if (widget.onStartJoin != null) ...[
             const SizedBox(height: 18),
             Row(
@@ -261,7 +261,7 @@ class _LoginSheetState extends State<LoginSheet> {
             ),
             const SizedBox(height: 12),
             EselPressable(
-              semanticsLabel: '내 잡지 만들기',
+              semanticsLabel: '스케치북 만들기',
               onTap: () {
                 Navigator.of(context).pop();
                 widget.onStartJoin!();
@@ -271,7 +271,7 @@ class _LoginSheetState extends State<LoginSheet> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('내 잡지 만들기', style: EselTypography.label(fontSize: 16)),
+                    Text('스케치북 만들기', style: EselTypography.label(fontSize: 16)),
                     const SizedBox(width: 6),
                     const Icon(
                       Icons.arrow_forward,

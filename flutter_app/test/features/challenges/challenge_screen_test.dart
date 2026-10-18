@@ -58,7 +58,7 @@ void main() {
       await tester.scrollUntilVisible(find.text('지난 표지 골라 참여하기'), -200);
       await tester.tap(find.text('지난 표지 골라 참여하기'));
       await tester.pumpAndSettle();
-      expect(find.textContaining('지난 날짜의 발행 표지가 아직 없어요.'), findsOneWidget);
+      expect(find.textContaining('지난 날짜의 올린 표지가 아직 없어요.'), findsOneWidget);
       expect(began, 0);
       expect(tester.takeException(), isNull);
     },
@@ -119,14 +119,14 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
-      find.text('오늘 호 발행'),
+      find.text('오늘의 캔버스 올리기'),
       300,
       scrollable: find.byType(Scrollable).first,
     );
-    await tester.ensureVisible(find.text('오늘 호 발행'));
+    await tester.ensureVisible(find.text('오늘의 캔버스 올리기'));
     await tester.pumpAndSettle();
     await tester.runAsync(() async {
-      await tester.tap(find.text('오늘 호 발행'));
+      await tester.tap(find.text('오늘의 캔버스 올리기'));
       await Future<void>.delayed(const Duration(milliseconds: 30));
     });
     await tester.pumpAndSettle();

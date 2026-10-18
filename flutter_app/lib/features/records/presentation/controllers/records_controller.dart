@@ -3,7 +3,7 @@ import '../../../../core/design/tokens.g.dart';
 import '../../domain/rules/restore_rule.dart';
 
 enum RecordType {
-  published, // 사진으로 발행한 날
+  published, // 사진으로 올린 날
   restored, // 테두리 링으로 복원한 날
   empty, // 비어있는 날
   future, // 미래 날짜
@@ -47,7 +47,7 @@ class RecordsController extends ChangeNotifier {
       if (day > _today.day) {
         _daysMap[day] = DayRecord(day: day, type: RecordType.future);
       } else if (day == 1 || day == 2 || day == 5 || day == 6) {
-        // 과거 발행된 날
+        // 과거 올린 날
         _daysMap[day] = DayRecord(
           day: day,
           type: RecordType.published,

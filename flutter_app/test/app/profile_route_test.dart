@@ -29,7 +29,7 @@ void main() {
     addTearDown(tester.view.reset);
   }
 
-  testWidgets('제호 없는 첫 로그인은 창간으로 가고, 멈추면 로그아웃된다(P13·P14)', (tester) async {
+  testWidgets('사인 없는 첫 로그인은 첫 캔버스로 가고, 멈추면 로그아웃된다(P13·P14)', (tester) async {
     usePhone(tester);
     final auth = ServiceLocator().authController;
     await tester.runAsync(
@@ -48,7 +48,7 @@ void main() {
     expect(find.byType(IntroScreen), findsOneWidget);
   });
 
-  testWidgets('제호를 정한 계정은 바로 표지 피드로 들어간다', (tester) async {
+  testWidgets('사인을 정한 계정은 바로 표지 피드로 들어간다', (tester) async {
     usePhone(tester);
     final auth = ServiceLocator().authController;
     await tester.runAsync(

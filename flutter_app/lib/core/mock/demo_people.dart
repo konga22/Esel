@@ -14,7 +14,7 @@ class DemoPerson {
   final double faceWidth;
   final EselPaint color;
 
-  /// 발행 시각 표기(`오전 8:12`). 안쪽 지면 머리에 그대로 쓴다.
+  /// 올리기 시각 표기(`오전 8:12`). 안쪽 지면 머리에 그대로 쓴다.
   final String time;
   final String caption;
 

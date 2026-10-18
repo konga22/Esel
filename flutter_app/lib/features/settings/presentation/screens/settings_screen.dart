@@ -8,6 +8,7 @@ import '../../../auth/presentation/controllers/auth_controller.dart';
 class SettingsScreen extends StatefulWidget {
   final AuthController authController;
   final VoidCallback onBack;
+  final Map<String, VoidCallback> deviceActions;
   final VoidCallback onLogoutComplete;
   final VoidCallback onDeleteComplete;
 
@@ -21,6 +22,7 @@ class SettingsScreen extends StatefulWidget {
     required this.onLogoutComplete,
     required this.onDeleteComplete,
     this.deleteAccount,
+    this.deviceActions = const {},
   });
 
   @override
@@ -210,16 +212,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
         vertical: 12,
       ),
       children: [
+        for (final action in widget.deviceActions.entries)
+          _buildMenuTile(
+            Icons.phone_android,
+            action.key,
+            '이 기기에 보관된 자료와 설정',
+            action.value,
+          ),
         _buildMenuTile(
           Icons.person_outline,
           '프로필 편집',
-          '제호, 한 줄 소개',
+          '사인, 한 줄 소개',
           () => setState(() => _activeView = 1),
         ),
         _buildMenuTile(
           Icons.notifications_outlined,
           '알림 설정',
-          '새 호 발행, 반응 알림',
+          '새 호 올리기, 반응 알림',
           () => setState(() => _activeView = 2),
         ),
         _buildMenuTile(
@@ -290,13 +299,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 제호 변경·금칙어 정책은 아직 정하지 않았다(사용자 결정). 바꾸는 척하지 않는다.
+          // 사인 변경·금칙어 정책은 아직 정하지 않았다(사용자 결정). 바꾸는 척하지 않는다.
           TextField(
             controller: _mastheadController,
             enabled: false,
             decoration: InputDecoration(
-              labelText: '제호',
-              helperText: '창간 때 정한 이름이에요. 바꾸는 방법은 아직 정하지 않았어요.',
+              labelText: '사인',
+              helperText: '첫 캔버스 때 정한 이름이에요. 바꾸는 방법은 아직 정하지 않았어요.',
               filled: true,
               fillColor: EselTokens.paperWarm,
               border: OutlineInputBorder(

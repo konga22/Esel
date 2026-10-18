@@ -26,7 +26,7 @@ abstract class CollectionSource {
   Future<void> remove(String owner, CollectionPeriod period, String issueId);
 }
 
-/// 로컬 편집 권한은 로그인한 본인의 특집에만 적용. 서버 운영자 권한으로 간주하지 않는다.
+/// 로컬 편집 권한은 로그인한 본인의 전시에만 적용. 서버 운영자 권한으로 간주하지 않는다.
 class LocalCollectionSource implements CollectionSource {
   final LocalLibrary? Function() library;
   LocalCollectionSource(this.library);
@@ -73,7 +73,7 @@ class LocalCollectionSource implements CollectionSource {
     final text = validateSelectionReason(reason);
     final issues = await available(owner, viewer, period);
     if (!issues.any((issue) => issue.id == issueId)) {
-      throw const FormatException('이 기간에 공개된 발행 표지만 선정할 수 있어요.');
+      throw const FormatException('이 기간에 공개된 올린 표지만 선정할 수 있어요.');
     }
     await _store.selectFeature(owner, period.key, issueId, text);
   }
@@ -85,7 +85,7 @@ class LocalCollectionSource implements CollectionSource {
 
 class RemoteCollectionSource implements CollectionSource {
   Never _pending() =>
-      throw const NotImplementedFailure('표지 특집 서버는 아직 연결하지 않았어요.');
+      throw const NotImplementedFailure('표지 전시 서버는 아직 연결하지 않았어요.');
   @override
   Future<List<CoverDraft>> available(
     String owner,

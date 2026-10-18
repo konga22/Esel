@@ -1,8 +1,175 @@
+import '../../../../core/errors/failures.dart';
+import '../../../issue/data/sources/issue_remote_source.dart';
+import '../../../issue/domain/models/public_issue.dart';
+import '../../../issue/data/demo_issue_catalog.dart';
+import '../../../magazine/data/sources/magazine_remote_source.dart';
 import 'package:flutter/foundation.dart';
 import '../../../drafts/data/local_library.dart';
 import '../../domain/models/reaction_state.dart';
 
 class ReactionsController extends ChangeNotifier {
+  final IssueRemoteSource? remote;
+  final MagazineRemoteSource? remoteMagazine;
+  ReactionsController({this.remote, this.remoteMagazine});
+  bool get isRemote => remote != null;
+  bool loading = false;
+  int _pendingCount = 0, _generation = 0;
+  final Map<String, String?> _lineCursors = {};
+  final Map<String, OwnerReactionStats> _stats = {};
+  Future<void> Function()? _retry;
+  String? _retryOwner;
+  void seedSubscription(String key, bool selected) {
+    selected ? _subscribedOwners.add(key) : _subscribedOwners.remove(key);
+  }
+
+  void seedIssue(PublicIssue issue) {
+    if (issue.liked != null) {
+      issue.liked!
+          ? _likedIssueIds.add(issue.id)
+          : _likedIssueIds.remove(issue.id);
+    }
+    if (issue.scrapped != null) {
+      issue.scrapped!
+          ? _scrappedIssueIds.add(issue.id)
+          : _scrappedIssueIds.remove(issue.id);
+    }
+  }
+
+  Future<void> _run(Future<void> Function() work) {
+    final owner = _owner, generation = _generation;
+    _pendingCount++;
+    loading = true;
+    notifyListeners();
+    final pending = _pending.then((_) async {
+      if (owner != _owner || generation != _generation) return;
+      saveError = null;
+      _retry = work;
+      _retryOwner = owner;
+      try {
+        await work();
+        if (owner == _owner && generation == _generation) {
+          saveError = null;
+          _retry = null;
+        }
+      } catch (e) {
+        if (owner == _owner && generation == _generation) {
+          saveError = e is Failure ? e.message : '반응을 저장하지 못했어요. 다시 시도해 주세요.';
+        }
+      } finally {
+        if (owner == _owner && generation == _generation) {
+          _pendingCount--;
+          loading = _pendingCount > 0;
+          notifyListeners();
+        }
+      }
+    });
+    _pending = pending;
+    return pending;
+  }
+
+  Future<void> _refreshStats(String id, int generation) async {
+    if (generation != _generation || !_stats.containsKey(id)) return;
+    final stats = await remote!.ownerReactions(id);
+    if (generation != _generation) return;
+    _stats[id] = OwnerReactionStats(
+      readCount: null,
+      likeCount: stats.likes,
+      scrapCount: stats.scraps,
+      readerLineCount: stats.lines,
+    );
+  }
+
+  Future<PublicIssue> loadDetails(
+    PublicIssue reference, {
+    bool owner = false,
+  }) async {
+    if (!isRemote) return reference;
+    final account = _owner, generation = _generation;
+    final issue = await remote!.read(reference);
+    final lines = await remote!.lines(issue.id);
+    final stats = owner ? await remote!.ownerReactions(issue.id) : null;
+    if (account != _owner || generation != _generation) {
+      throw const AuthFailure('계정이 변경됐어요. 다시 열어 주세요.');
+    }
+    seedIssue(issue);
+    _readerLinesMap[issue.id] = lines.items;
+    _lineCursors[issue.id] = lines.nextCursor;
+    if (stats != null) {
+      _stats[issue.id] = OwnerReactionStats(
+        readCount: null,
+        likeCount: stats.likes,
+        scrapCount: stats.scraps,
+        readerLineCount: stats.lines,
+      );
+    }
+    notifyListeners();
+    return issue;
+  }
+
+  Future<PublicIssue> ownIssue(String id) async {
+    final account = _owner;
+    if (account == null) throw const AuthFailure('로그인이 필요해요.');
+    if (isRemote) {
+      final value = await remote!.readId(id, ownerId: account);
+      if (account != _owner) throw const AuthFailure('계정이 변경됐어요.');
+      return value;
+    }
+    final value = _library
+        ?.issuesFor(account)
+        .where((v) => v.id == id)
+        .firstOrNull;
+    if (value == null) throw const NotFoundFailure('캔버스를 찾지 못했어요.');
+    return DemoIssueCatalog.fromLocal(value);
+  }
+
+  bool hasMoreLines(String id) => _lineCursors[id] != null;
+  Future<void> moreLines(String id) => _run(() async {
+    final account = _owner;
+    final page = await remote!.lines(id, cursor: _lineCursors[id]);
+    if (account != _owner) return;
+    _readerLinesMap[id] = {
+      for (final v in [...getReaderLines(id), ...page.items]) v.id: v,
+    }.values.toList();
+    _lineCursors[id] = page.nextCursor;
+  });
+  Future<bool> submitReaderLine({
+    required String issueId,
+    required String text,
+    required String authorMasthead,
+  }) async {
+    if (!isRemote) {
+      return addReaderLine(
+        issueId: issueId,
+        text: text,
+        authorMasthead: authorMasthead,
+      );
+    }
+    if (text.trim().isEmpty || text.trim().runes.length > 60) {
+      return false;
+    }
+    var saved = false;
+    final generation = _generation;
+    await _run(() async {
+      final account = _owner;
+      await remote!.addLine(issueId, text);
+      if (account != _owner || generation != _generation) return;
+      saved = true;
+      // 저장된 댓글을 재전송하지 않고 조회만 다시 시도한다.
+      Future<void> refresh() async {
+        final page = await remote!.lines(issueId);
+        if (account == _owner && generation == _generation) {
+          _readerLinesMap[issueId] = page.items;
+          _lineCursors[issueId] = page.nextCursor;
+        }
+        await _refreshStats(issueId, generation);
+      }
+
+      _retry = refresh;
+      await refresh();
+    });
+    return saved;
+  }
+
   LocalLibrary? _library;
   String? _owner;
   String? saveError;
@@ -11,6 +178,14 @@ class ReactionsController extends ChangeNotifier {
   Future<void> get whenSaved => _pending;
   void bindUser(String? owner, LocalLibrary? library) {
     if (_owner == owner && identical(_library, library)) return;
+    _generation++;
+    _pendingCount = 0;
+    if (isRemote) _pending = Future.value();
+    _stats.clear();
+    _lineCursors.clear();
+    _retry = null;
+    _retryOwner = null;
+    loading = false;
     _owner = owner;
     _library = library;
     _likedIssueIds.clear();
@@ -19,6 +194,8 @@ class ReactionsController extends ChangeNotifier {
     _readerLinesMap.clear();
     saveError = null;
     final data = owner == null
+        ? <String, dynamic>{}
+        : isRemote
         ? <String, dynamic>{}
         : _cache[owner] ?? library?.reactionsFor(owner) ?? {};
     _likedIssueIds.addAll((data['likes'] as List? ?? []).cast<String>());
@@ -63,7 +240,14 @@ class ReactionsController extends ChangeNotifier {
         });
   }
 
-  void retrySave() => _persist();
+  void retrySave() {
+    if (isRemote) {
+      if (_retryOwner == _owner && _retry != null) _run(_retry!);
+    } else {
+      _persist();
+    }
+  }
+
   void forgetOwner(String owner) {
     _cache.remove(owner);
     if (_owner == owner) bindUser(null, _library);
@@ -83,6 +267,28 @@ class ReactionsController extends ChangeNotifier {
   Set<String> get subscribedOwnerIds => Set.unmodifiable(_subscribedOwners);
 
   void toggleLike(String issueId) {
+    if (isRemote) {
+      final generation = _generation;
+      _run(() async {
+        final enabled = !isLiked(issueId);
+        final account = _owner;
+        final value = await remote!.setReaction(
+          issueId,
+          like: true,
+          enabled: enabled,
+        );
+        if (account == _owner && generation == _generation) {
+          value.liked
+              ? _likedIssueIds.add(issueId)
+              : _likedIssueIds.remove(issueId);
+          value.scrapped
+              ? _scrappedIssueIds.add(issueId)
+              : _scrappedIssueIds.remove(issueId);
+        }
+        await _refreshStats(issueId, generation);
+      });
+      return;
+    }
     if (_likedIssueIds.contains(issueId)) {
       _likedIssueIds.remove(issueId);
     } else {
@@ -93,6 +299,28 @@ class ReactionsController extends ChangeNotifier {
   }
 
   void toggleScrap(String issueId) {
+    if (isRemote) {
+      final generation = _generation;
+      _run(() async {
+        final enabled = !isScrapped(issueId);
+        final account = _owner;
+        final value = await remote!.setReaction(
+          issueId,
+          like: false,
+          enabled: enabled,
+        );
+        if (account == _owner && generation == _generation) {
+          value.liked
+              ? _likedIssueIds.add(issueId)
+              : _likedIssueIds.remove(issueId);
+          value.scrapped
+              ? _scrappedIssueIds.add(issueId)
+              : _scrappedIssueIds.remove(issueId);
+        }
+        await _refreshStats(issueId, generation);
+      });
+      return;
+    }
     if (_scrappedIssueIds.contains(issueId)) {
       _scrappedIssueIds.remove(issueId);
     } else {
@@ -103,6 +331,18 @@ class ReactionsController extends ChangeNotifier {
   }
 
   void toggleSubscription(String ownerId) {
+    if (isRemote) {
+      final generation = _generation;
+      _run(() async {
+        final enabled = !isSubscribed(ownerId);
+        final account = _owner;
+        final value = await remoteMagazine!.subscribe(ownerId, enabled);
+        if (account == _owner && generation == _generation) {
+          seedSubscription(ownerId, value);
+        }
+      });
+      return;
+    }
     if (_subscribedOwners.contains(ownerId)) {
       _subscribedOwners.remove(ownerId);
     } else {
@@ -121,6 +361,7 @@ class ReactionsController extends ChangeNotifier {
     required String text,
     required String authorMasthead,
   }) {
+    if (isRemote) return false;
     final trimmed = text.trim();
     if (trimmed.isEmpty || trimmed.length > 60) {
       return false;
@@ -140,9 +381,18 @@ class ReactionsController extends ChangeNotifier {
     return true;
   }
 
-  /// 발행한 본인에게만 보여 주는 숫자(P18). mock에는 다른 독자가 없어서 이 기기에서
+  /// 올린 본인에게만 보여 주는 숫자(P18). mock에는 다른 독자가 없어서 이 기기에서
   /// 남긴 반응만 센다(예시 숫자를 지어내지 않는다). 읽은 사람 수는 서버가 생기면 받는다.
   OwnerReactionStats getOwnerStats(String issueId) {
+    if (isRemote) {
+      return _stats[issueId] ??
+          const OwnerReactionStats(
+            readCount: 0,
+            likeCount: 0,
+            scrapCount: 0,
+            readerLineCount: 0,
+          );
+    }
     return OwnerReactionStats(
       readCount: 0,
       likeCount: isLiked(issueId) ? 1 : 0,

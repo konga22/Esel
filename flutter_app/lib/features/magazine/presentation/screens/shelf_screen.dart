@@ -1,33 +1,27 @@
 import 'package:flutter/material.dart';
 import '../../../../core/design/tokens.g.dart';
 import '../../../../core/design/typography.dart';
-import '../../../../core/ui/esel_cover_mini.dart';
 import '../../../../core/ui/esel_paint_asset.dart';
-import '../../../../core/ui/esel_pressable.dart';
 import '../../../drafts/domain/cover_draft.dart';
 import '../../../issue/domain/models/public_issue.dart';
-import '../../../issue/presentation/issue_photo.dart';
-import '../../../media/presentation/cover_photo.dart';
-import '../../../media/presentation/cover_preview.dart';
+import '../../../issue/presentation/canvas_photo.dart';
 import '../../../reactions/presentation/controllers/reactions_controller.dart';
 import '../../../stand/domain/rules/same_color_rule.dart';
 import '../controllers/magazine_controller.dart';
 
-/// C5 서가(개인 잡지). 누른 사람의 잡지를 연다. 구독자 수 같은 숫자는 없다(P18).
-/// 지난 호는 결호 없이 하나씩 내려가고(P04), 표지/책등으로 본다.
+/// C5·M1 공통 스케치북. 서버/로컬에 따라 다른 화면을 만들지 않는다.
 class ShelfScreen extends StatefulWidget {
   final String ownerId;
-
-  /// 아직 호가 없는 내 잡지의 이름.
   final String? masthead;
   final bool isOwner;
   final MagazineController controller;
   final ReactionsController reactionsController;
   final SameColorViewer viewer;
   final String? viewerId;
-  final void Function(PublicIssue issue, CoverDraft? local) onSelectIssue;
+  final void Function(PublicIssue, CoverDraft?) onSelectIssue;
   final VoidCallback onBack;
-
+  final ValueChanged<PublicIssue>? onShareIssue;
+  final Map<String, VoidCallback> actions;
   const ShelfScreen({
     super.key,
     required this.ownerId,
@@ -36,424 +30,301 @@ class ShelfScreen extends StatefulWidget {
     required this.viewer,
     required this.onSelectIssue,
     required this.onBack,
+    this.onShareIssue,
     this.viewerId,
     this.masthead,
     this.isOwner = false,
+    this.actions = const {},
   });
-
   @override
   State<ShelfScreen> createState() => _ShelfScreenState();
 }
 
 class _ShelfScreenState extends State<ShelfScreen> {
-  MagazineController get controller => widget.controller;
-
-  void _configure() => controller.configure(
+  MagazineProfile? _last;
+  void _configure() => widget.controller.configure(
     ownerId: widget.ownerId,
     viewer: widget.viewer,
     viewerId: widget.viewerId,
     masthead: widget.masthead,
   );
+  void _profileChanged() {
+    final profile = widget.controller.profile;
+    if (profile != null && !identical(profile, _last)) {
+      _last = profile;
+      if (profile.subscribed != null) {
+        widget.reactionsController.seedSubscription(
+          profile.ownerId,
+          profile.subscribed!,
+        );
+      }
+      for (final issue in profile.issues) {
+        widget.reactionsController.seedIssue(issue);
+      }
+    }
+  }
 
   @override
   void initState() {
     super.initState();
+    widget.controller.addListener(_profileChanged);
+    _configure();
+    _profileChanged();
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_profileChanged);
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(ShelfScreen old) {
+    super.didUpdateWidget(old);
+    if (old.controller != widget.controller) {
+      old.controller.removeListener(_profileChanged);
+      widget.controller.addListener(_profileChanged);
+      _last = null;
+    }
     _configure();
   }
 
   @override
-  void didUpdateWidget(ShelfScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    _configure();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: Listenable.merge([controller, widget.reactionsController]),
-      builder: (context, _) {
-        final profile = controller.profile;
-        return Scaffold(
-          backgroundColor: EselColors.paper,
-          body: SafeArea(
-            bottom: false,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildTopBar(),
-                Expanded(
-                  child: profile == null
-                      ? _buildStatus()
-                      : ListView(
-                          padding: const EdgeInsets.only(bottom: 120),
-                          children: [
-                            _buildHeader(profile),
-                            _buildShelfTitle(),
-                            const SizedBox(height: 8),
-                            if (profile.issues.isEmpty)
-                              _buildEmpty()
-                            else if (controller.viewMode ==
-                                ShelfViewMode.spines)
-                              _buildSpines(profile)
-                            else
-                              _buildCovers(profile),
-                          ],
-                        ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildTopBar() {
-    return SizedBox(
-      height: 48,
-      child: Row(
-        children: [
-          const SizedBox(width: 6),
-          EselPressable(
-            semanticsLabel: '뒤로',
-            onTap: widget.onBack,
-            child: const SizedBox(
-              width: 48,
-              height: 48,
-              child: Icon(
-                Icons.arrow_back_ios_new,
-                size: 20,
-                color: EselColors.ink,
-              ),
-            ),
-          ),
-          const Spacer(),
-          Text(
-            'ESEL · 개인 잡지',
-            style: EselTypography.meta(color: EselColors.ink),
-          ),
-          const SizedBox(width: 18),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatus() {
-    final error = controller.errorMessage;
-    return Center(
-      child: error == null
-          ? const CircularProgressIndicator(strokeWidth: 2)
-          : Padding(
-              padding: const EdgeInsets.all(24),
-              child: Text(
-                error,
-                textAlign: TextAlign.center,
-                style: EselTypography.body(color: EselColors.muted),
-              ),
-            ),
-    );
-  }
-
-  Widget _buildHeader(MagazineProfile profile) {
-    final subscribed = widget.reactionsController.isSubscribed(profile.ownerId);
-    final today = profile.todayColor;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Semantics(
-            header: true,
-            label: '${profile.masthead}의 잡지',
-            child: ExcludeSemantics(
-              child: FittedBox(
-                alignment: Alignment.centerLeft,
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  profile.masthead,
-                  maxLines: 1,
-                  style: EselTypography.name(
-                    fontSize: 92,
-                  ).copyWith(height: 0.95, letterSpacing: -0.03 * 92),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 14),
-          Row(
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: Listenable.merge([
+      widget.controller,
+      widget.reactionsController,
+    ]),
+    builder: (context, _) {
+      final profile = widget.controller.profile;
+      final first = profile?.issues.firstOrNull;
+      return Scaffold(
+        backgroundColor: EselColors.paper,
+        body: SafeArea(
+          bottom: false,
+          child: ListView(
+            padding: const EdgeInsets.only(bottom: 130),
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Row(
                   children: [
-                    if (today != null)
-                      Row(
-                        children: [
-                          EselPaintAsset(paint: today, width: 52),
-                          const SizedBox(width: 6),
-                          Text(
-                            '오늘은 ${EselPaints.of(today).nameKo}',
-                            style: EselTypography.body(fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    Text(
-                      '${profile.totalIssues}호 발행',
-                      style: EselTypography.body(
-                        fontSize: 14,
-                        color: EselColors.muted,
-                      ),
+                    IconButton(
+                      tooltip: '뒤로',
+                      onPressed: widget.onBack,
+                      icon: const Icon(Icons.arrow_back_ios_new),
+                    ),
+                    const Spacer(),
+                    const Text('ESEL · 스케치북'),
+                    IconButton(
+                      tooltip: '새로고침',
+                      onPressed: () => widget.controller.load(),
+                      icon: const Icon(Icons.refresh),
                     ),
                   ],
                 ),
               ),
-              if (!widget.isOwner)
-                EselPressable(
-                  semanticsLabel: subscribed ? '구독 중' : '구독',
-                  onTap: () => widget.reactionsController.toggleSubscription(
-                    profile.ownerId,
-                  ),
-                  child: Container(
-                    height: 44,
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: subscribed ? Colors.transparent : EselColors.ink,
-                      borderRadius: BorderRadius.circular(22),
-                      border: subscribed
-                          ? Border.all(color: EselColors.ink, width: 1.5)
-                          : null,
-                    ),
-                    child: Text(
-                      subscribed ? '구독 중' : '구독',
-                      style: EselTypography.label(
-                        fontSize: 15,
-                        color: subscribed ? EselColors.ink : EselColors.paper,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildShelfTitle() {
-    final spines = controller.viewMode == ShelfViewMode.spines;
-    Widget toggle(String label, bool active) => EselPressable(
-      semanticsLabel: '$label로 보기',
-      onTap: active ? null : controller.toggleViewMode,
-      child: SizedBox(
-        height: 44,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Center(
-            child: Text(
-              label,
-              style: EselTypography.label(
-                fontSize: 14,
-                fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-                color: active ? EselColors.ink : EselColors.muted,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 14, 20, 10),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: EselColors.ink, width: 2)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text('지난 호', style: EselTypography.heading(fontSize: 21)),
-          ),
-          toggle('표지', !spines),
-          toggle('책등', spines),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmpty() => Padding(
-    padding: const EdgeInsets.fromLTRB(20, 32, 20, 0),
-    child: Text(
-      widget.isOwner
-          ? '아직 발행한 호가 없어요. 오늘 호를 만들면 첫 호가 여기에 꽂혀요.'
-          : '아직 보여 줄 호가 없어요.',
-      textAlign: TextAlign.center,
-      style: EselTypography.body(color: EselColors.muted),
-    ),
-  );
-
-  Widget _buildCovers(MagazineProfile profile) {
-    return LayoutBuilder(
-      builder: (context, box) {
-        final w = ((box.maxWidth - 40 - 2 * 8) / 3).floorToDouble();
-        final h = (w * 166 / 113).roundToDouble();
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final issue in profile.issues)
-                SizedBox(
-                  width: w,
+              if (widget.controller.isLoading)
+                const Center(child: CircularProgressIndicator()),
+              if (widget.controller.errorMessage case final error?)
+                Padding(
+                  padding: const EdgeInsets.all(20),
                   child: Column(
                     children: [
-                      _cover(profile, issue, w, h),
-                      SizedBox(
-                        height: 26,
-                        child: Row(
-                          children: [
-                            Text(
-                              issue.issueLabel,
-                              style: EselTypography.meta(
-                                fontSize: 11,
-                                color: EselColors.ink,
-                              ),
-                            ),
-                            const Spacer(),
-                            Container(
-                              width: 22,
-                              height: 4,
-                              decoration: BoxDecoration(
-                                color: EselPaints.of(issue.color).color,
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                          ],
-                        ),
+                      Text(error),
+                      TextButton(
+                        onPressed: () => widget.controller.load(),
+                        child: const Text('다시 시도'),
                       ),
                     ],
                   ),
                 ),
+              if (profile != null) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 28,
+                            backgroundColor: EselColors.photo,
+                            child: Text(
+                              profile.masthead.isEmpty
+                                  ? 'E'
+                                  : profile.masthead[0].toUpperCase(),
+                              style: EselTypography.name(fontSize: 30),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              profile.masthead,
+                              style: EselTypography.name(fontSize: 64),
+                              maxLines: 2,
+                            ),
+                          ),
+                          if (!widget.isOwner)
+                            OutlinedButton(
+                              onPressed: () => widget.reactionsController
+                                  .toggleSubscription(profile.ownerId),
+                              child: Text(
+                                widget.reactionsController.isSubscribed(
+                                      profile.ownerId,
+                                    )
+                                    ? '구독중'
+                                    : '구독',
+                              ),
+                            ),
+                        ],
+                      ),
+                      if (profile.bio.isNotEmpty) Text(profile.bio),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 8,
+                        children: [
+                          if (profile.todayColor != null)
+                            EselPaintAsset(
+                              paint: profile.todayColor!,
+                              width: 36,
+                            ),
+                          Text(
+                            '${profile.todayColor == null ? '오늘의 색은 아직 없어요' : '오늘은 ${EselPaints.of(profile.todayColor!).nameKo}'} · 캔버스 ${profile.totalIssues}장',
+                          ),
+                        ],
+                      ),
+                      if (widget.isOwner)
+                        Wrap(
+                          spacing: 8,
+                          children: [
+                            if (first != null)
+                              TextButton(
+                                onPressed: () => widget.onSelectIssue(
+                                  first,
+                                  profile.localCovers[first.id],
+                                ),
+                                child: const Text('내 캔버스의 반응 보기'),
+                              ),
+                            for (final entry in widget.actions.entries)
+                              TextButton(
+                                onPressed: entry.value,
+                                child: Text(entry.key),
+                              ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
+                if (profile.issues.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Text('아직 볼 수 있는 캔버스가 없어요.'),
+                  ),
+                for (final issue in profile.issues) ...[
+                  InkWell(
+                    onTap: () => widget.onSelectIssue(
+                      issue,
+                      profile.localCovers[issue.id],
+                    ),
+                    child: AspectRatio(
+                      aspectRatio: 3 / 4,
+                      child: CanvasPhoto(issue: issue),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Wrap(
+                                spacing: 8,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  Text(
+                                    '${issue.issueLabel} · ${issue.date.shortLabel}',
+                                  ),
+                                  EselPaintAsset(paint: issue.color, width: 28),
+                                ],
+                              ),
+                            ),
+                            if (widget.isOwner)
+                              IconButton(
+                                tooltip: '공유',
+                                onPressed: widget.onShareIssue == null
+                                    ? null
+                                    : () => widget.onShareIssue!(issue),
+                                icon: const Icon(Icons.ios_share),
+                              )
+                            else ...[
+                              IconButton(
+                                tooltip: '좋아요',
+                                onPressed: () => widget.reactionsController
+                                    .toggleLike(issue.id),
+                                icon: Icon(
+                                  widget.reactionsController.isLiked(issue.id)
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                ),
+                              ),
+                              IconButton(
+                                tooltip: '자세히 보기',
+                                onPressed: () => widget.onSelectIssue(
+                                  issue,
+                                  profile.localCovers[issue.id],
+                                ),
+                                icon: const Icon(Icons.chat_bubble_outline),
+                              ),
+                              IconButton(
+                                tooltip: '저장',
+                                onPressed: () => widget.reactionsController
+                                    .toggleScrap(issue.id),
+                                icon: Icon(
+                                  widget.reactionsController.isScrapped(
+                                        issue.id,
+                                      )
+                                      ? Icons.bookmark
+                                      : Icons.bookmark_border,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        Text(
+                          issue.caption,
+                          style: EselTypography.body(fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                if (widget.controller.moreError case final message?)
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(message, key: const Key('magazine-more-error')),
+                  ),
+                if (profile.nextCursor != null)
+                  TextButton(
+                    onPressed: widget.controller.isLoadingMore
+                        ? null
+                        : () => widget.controller.load(more: true),
+                    child: Text(
+                      widget.controller.moreError != null
+                          ? '더 보기 다시 시도'
+                          : widget.controller.isLoadingMore
+                          ? '불러오는 중…'
+                          : '이전 캔버스 더 보기',
+                    ),
+                  ),
+              ],
             ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _cover(
-    MagazineProfile profile,
-    PublicIssue issue,
-    double w,
-    double h,
-  ) {
-    final local = profile.localCovers[issue.id];
-    final label = '${issue.issueLabel} 표지 보기';
-    if (local != null) {
-      return EselPressable(
-        semanticsLabel: label,
-        onTap: () => widget.onSelectIssue(issue, local),
-        child: SizedBox(
-          width: w,
-          height: h,
-          child: FittedBox(
-            fit: BoxFit.cover,
-            clipBehavior: Clip.hardEdge,
-            child: SizedBox(
-              width: 360,
-              height: 480,
-              child: CoverPreview(draft: local),
-            ),
           ),
         ),
       );
-    }
-    return EselCoverMini(
-      author: issue.masthead,
-      masthead: issue.masthead,
-      photo: issuePhotoProvider(issue.photo),
-      alt: issue.alt,
-      width: w,
-      height: h,
-      showAuthor: false,
-      semanticsLabel: label,
-      photoChild: CoverPhoto(
-        image: issuePhotoProvider(issue.photo),
-        photoRatio: issue.photoRatio,
-        face: issue.face,
-        mode: issue.faceMode,
-        effects: issue.faceEffects,
-        paint: issue.color,
-        semanticLabel: issue.alt,
-      ),
-      onTap: () => widget.onSelectIssue(issue, null),
-    );
-  }
-
-  Widget _buildSpines(MagazineProfile profile) {
-    const dark = {
-      EselPaint.burgundy,
-      EselPaint.olive,
-      EselPaint.charcoal,
-      EselPaint.cobalt,
-      EselPaint.terracotta,
-    };
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Wrap(
-        spacing: 5,
-        runSpacing: 18,
-        children: [
-          for (final issue in profile.issues)
-            EselPressable(
-              semanticsLabel:
-                  '${issue.issueLabel} · ${EselPaints.of(issue.color).nameKo} · ${issue.date.shortLabel}',
-              onTap: () =>
-                  widget.onSelectIssue(issue, profile.localCovers[issue.id]),
-              child: Container(
-                width: 22,
-                height: 196,
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                decoration: BoxDecoration(
-                  color: EselPaints.of(issue.color).color,
-                  border: const Border(
-                    right: BorderSide(color: Color(0x1F000000)),
-                    left: BorderSide(color: Color(0x59FFFFFF)),
-                  ),
-                ),
-                child: ExcludeSemantics(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      RotatedBox(
-                        quarterTurns: 1,
-                        child: Text(
-                          profile.masthead,
-                          maxLines: 1,
-                          style: EselTypography.spineOwner(
-                            color: dark.contains(issue.color)
-                                ? Colors.white
-                                : EselColors.ink,
-                          ),
-                        ),
-                      ),
-                      RotatedBox(
-                        quarterTurns: 1,
-                        child: Text(
-                          issue.issueLabel,
-                          style: EselTypography.spineIssue(
-                            color: dark.contains(issue.color)
-                                ? Colors.white
-                                : EselColors.ink,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
+    },
+  );
 }

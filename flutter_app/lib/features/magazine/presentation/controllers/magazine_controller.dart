@@ -6,7 +6,7 @@ import '../../domain/models/magazine_models.dart';
 
 export '../../domain/models/magazine_models.dart';
 
-/// 서가 상태. 데이터는 [MagazineSource](mock 또는 서버)에서만 받는다.
+/// 스케치북 상태. 데이터는 [MagazineSource](mock 또는 서버)에서만 받는다.
 class MagazineController extends ChangeNotifier {
   final MagazineSource source;
 
@@ -15,7 +15,10 @@ class MagazineController extends ChangeNotifier {
   ShelfViewMode _viewMode = ShelfViewMode.covers;
   MagazineProfile? _profile;
   bool _loading = false;
-  String? _error;
+  String? _error, _moreError;
+  bool _loadingMore = false;
+  String? get moreError => _moreError;
+  bool get isLoadingMore => _loadingMore;
   String? _ownerId;
   SameColorViewer? _viewer;
   String? _viewerId;
@@ -26,9 +29,19 @@ class MagazineController extends ChangeNotifier {
   bool get isLoading => _loading;
   String? get errorMessage => _error;
 
-  /// 지금 보고 있는 잡지. 다른 사람의 서가로 바뀌는 중이면 null.
+  /// 지금 보고 있는 잡지. 다른 사람의 스케치북으로 바뀌는 중이면 null.
   MagazineProfile? get profile =>
       _profile?.ownerId == _ownerId ? _profile : null;
+
+  void clear() {
+    _request++;
+    _profile = null;
+    _ownerId = null;
+    _error = null;
+    _moreError = null;
+    _loadingMore = false;
+    _loading = false;
+  }
 
   void toggleViewMode() {
     _viewMode = _viewMode == ShelfViewMode.covers
@@ -52,15 +65,22 @@ class MagazineController extends ChangeNotifier {
     _viewer = viewer;
     _viewerId = viewerId;
     _masthead = masthead;
-    if (changed || _profile == null) load();
+    if (changed || (_profile == null && !_loading && _error == null)) load();
   }
 
-  Future<void> load() async {
+  Future<void> load({bool more = false}) async {
     final ownerId = _ownerId;
     final viewer = _viewer;
     if (ownerId == null || viewer == null) return;
+    if (more && (_loading || _loadingMore || _profile?.nextCursor == null)) {
+      return;
+    }
     final request = ++_request;
-    _loading = true;
+    final previous = _profile;
+    _loading = !more;
+    _loadingMore = more;
+    _moreError = null;
+    if (!more) _profile = null;
     _error = null;
     notifyListeners();
     try {
@@ -69,18 +89,49 @@ class MagazineController extends ChangeNotifier {
         viewer: viewer,
         viewerId: _viewerId,
         masthead: _masthead,
+        cursor: more ? previous?.nextCursor : null,
       );
       if (request != _request) return;
-      _profile = profile;
-      if (profile == null) _error = '이 잡지를 찾지 못했어요.';
-    } on Failure catch (failure) {
+      _profile = !more || profile == null || previous == null
+          ? profile
+          : MagazineProfile(
+              ownerId: profile.ownerId,
+              masthead: profile.masthead,
+              totalIssues: profile.totalIssues,
+              isMine: profile.isMine,
+              todayColor: profile.todayColor,
+              nextCursor: profile.nextCursor,
+              subscribed: profile.subscribed,
+              bio: profile.bio,
+              issues: {
+                for (final v in [...previous.issues, ...profile.issues])
+                  v.id: v,
+              }.values.toList(),
+              localCovers: {...previous.localCovers, ...profile.localCovers},
+            );
+      if (profile == null) {
+        if (more) {
+          _profile = previous;
+          _moreError = '다음 캔버스를 불러오지 못했어요.';
+        } else {
+          _error = '이 스케치북을 찾지 못했어요.';
+        }
+      }
+    } catch (failure) {
       if (request != _request) return;
-      _error = failure.message;
-    } catch (_) {
-      if (request != _request) return;
-      _error = '서가를 불러오지 못했어요. 다시 시도해 주세요.';
+      final message = failure is Failure
+          ? failure.message
+          : '스케치북을 불러오지 못했어요. 다시 시도해 주세요.';
+      if (more) {
+        _profile = previous;
+        _moreError = message;
+      } else {
+        _profile = null;
+        _error = message;
+      }
     }
     _loading = false;
+    _loadingMore = false;
     notifyListeners();
   }
 }

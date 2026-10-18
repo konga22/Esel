@@ -16,15 +16,15 @@ import '../controllers/onboarding_controller.dart';
 /// 사진을 골라 기기 보관함에 들이고 그 경로를 돌려준다. 취소하면 null.
 typedef PickFoundingPhoto = Future<String?> Function(ImageSource source);
 
-/// 창간 J3~J7: 색 → 촬영 → 제호 → 얼굴 → 창간호(P13).
+/// 첫 캔버스 J3~J7: 색 → 촬영 → 사인 → 얼굴 → 첫 캔버스(P13).
 ///
-/// 한 화면에 결정 하나, 각 단계에 뒤로가기. 창간하기를 누르면 [onFound]가 계정·제호를
-/// 정하고 Nº 001을 실제로 발행한 뒤 [OnboardingController.markFounded]로 J7을 연다.
+/// 한 화면에 결정 하나, 각 단계에 뒤로가기. 첫 캔버스 올리기를 누르면 [onFound]가 계정·사인을
+/// 정하고 Nº 001을 실제로 올린 뒤 [OnboardingController.markFounded]로 J7을 연다.
 class OnboardingScreen extends StatefulWidget {
   final OnboardingController controller;
   final VoidCallback onCancel;
 
-  /// 계정을 확인하고 제호를 정한 뒤 창간호를 발행한다.
+  /// 계정을 확인하고 사인을 정한 뒤 첫 캔버스를 올린다.
   final Future<void> Function() onFound;
   final VoidCallback onOpenFeed;
   final VoidCallback onOpenMyMagazine;
@@ -190,7 +190,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // ───────── J3 창간호의 색
+  // ───────── J3 첫 캔버스의 색
 
   Widget _buildColor(OnboardingDraft draft) {
     final picked = _colorOf(draft);
@@ -207,7 +207,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         Semantics(
           header: true,
           child: Text(
-            '창간호는\n어떤 색으로 할까요?',
+            '첫 캔버스는\n어떤 색으로 할까요?',
             style: EselTypography.heading(fontSize: 36).copyWith(height: 1.2),
           ),
         ),
@@ -373,7 +373,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // ───────── J5 제호
+  // ───────── J5 사인
 
   Widget _buildName(OnboardingDraft draft) {
     final shown = draft.masthead.isEmpty ? 'esel' : draft.masthead;
@@ -391,7 +391,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         Semantics(
           header: true,
           child: Text(
-            '잡지 이름을 정해요',
+            '사인을 정해요',
             style: EselTypography.heading(fontSize: 30).copyWith(height: 1.2),
           ),
         ),
@@ -411,7 +411,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   top: 8,
                   child: _MetaRow(
                     left: 'ESEL',
-                    right: 'Nº 001 · 창간호',
+                    right: 'Nº 001 · 첫 캔버스',
                     fontSize: 8,
                   ),
                 ),
@@ -431,17 +431,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
         ),
         const SizedBox(height: 18),
-        Text('잡지 이름 크기 · ${(draft.mastheadScale * 100).round()}%'),
+        Text('사인 크기 · ${(draft.mastheadScale * 100).round()}%'),
         Slider(
           key: const Key('founding-masthead-scale'),
           value: draft.mastheadScale,
           min: .5,
           max: 1.4,
-          semanticFormatterCallback: (v) => '잡지 이름 크기 ${(v * 100).round()}퍼센트',
+          semanticFormatterCallback: (v) => '사인 크기 ${(v * 100).round()}퍼센트',
           onChanged: _c.setMastheadScale,
         ),
         Text(
-          '영문 닉네임 · 표지 제호가 돼요',
+          '영문 닉네임 · 표지 사인이 돼요',
           style: EselTypography.body(fontSize: 12, color: EselColors.muted),
         ),
         TextField(
@@ -545,7 +545,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           children: [
             for (final (mode, title, sub) in const [
               (FaceLayoutMode.original, '그대로', '얼굴을 보여요'),
-              (FaceLayoutMode.behindLogo, '제호 뒤로', '이름 뒤에 숨겨요'),
+              (FaceLayoutMode.behindLogo, '사인 뒤로', '이름 뒤에 숨겨요'),
               (FaceLayoutMode.belowNeck, '목 아래', '옷만 보여요'),
             ])
               _FaceCard(
@@ -603,7 +603,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ),
         if (draft.effectiveFaceEffects.contains(FaceLayoutMode.belowNeck))
           const Text(
-            '목 아래에서는 물감이 꺼지고 선택할 수 없어요. 물감을 쓰려면 그대로 또는 제호 뒤로를 골라 주세요. 옷이 부족하면 다른 사진을 골라 주세요.',
+            '목 아래에서는 물감이 꺼지고 선택할 수 없어요. 물감을 쓰려면 그대로 또는 사인 뒤로를 골라 주세요. 옷이 부족하면 다른 사진을 골라 주세요.',
           ),
         const Text('얼굴 연출이 익명화를 보장하지는 않아요.'),
       ],
@@ -611,8 +611,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         _locatingFace
             ? '위치 조정 취소'
             : _busy
-            ? '창간하는 중…'
-            : '창간하기',
+            ? '첫 캔버스를 올리는 중…'
+            : '첫 캔버스 올리기',
         enabled: _locatingFace || _c.canProceed(),
         onTap: _locatingFace
             ? () => setState(() => _locatingFace = false)
@@ -621,7 +621,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // ───────── J7 창간호
+  // ───────── J7 첫 캔버스
 
   Widget _buildDone(OnboardingDraft draft) {
     final issue = draft.issue!;
@@ -643,7 +643,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 top: top + 4,
                 child: _MetaRow(
                   left: 'ESEL',
-                  right: 'Nº 001 · 창간호 · ${widget.today.label}',
+                  right: 'Nº 001 · 첫 캔버스 · ${widget.today.label}',
                   fontSize: 12,
                 ),
               ),
@@ -666,12 +666,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      '창간을 축하해요',
+                      '첫 캔버스를 축하해요',
                       style: EselTypography.meta(color: Colors.white),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '${issue.masthead}의 첫 호가\n오늘 가판대에 올라갔어요.',
+                      '${issue.masthead}의 첫 호가\n오늘 팔레트에 올라갔어요.',
                       style: EselTypography.heading(
                         fontSize: 30,
                         color: Colors.white,
@@ -709,13 +709,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                     const SizedBox(height: 6),
                     EselPressable(
-                      semanticsLabel: '내 잡지 보기',
+                      semanticsLabel: '스케치북 보기',
                       onTap: widget.onOpenMyMagazine,
                       child: SizedBox(
                         height: 48,
                         child: Center(
                           child: Text(
-                            '내 잡지 보기',
+                            '스케치북 보기',
                             style: EselTypography.label(
                               fontSize: 15,
                               color: Colors.white,
@@ -788,7 +788,7 @@ class _StepHeader extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              Text('창간 $step / 4', style: EselTypography.meta(color: fg)),
+              Text('첫 캔버스 $step / 4', style: EselTypography.meta(color: fg)),
               const SizedBox(width: 18),
             ],
           ),

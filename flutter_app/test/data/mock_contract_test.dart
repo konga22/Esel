@@ -47,7 +47,7 @@ void main() {
       expect(page.sameColorCount(EselPaint.powder), 3);
     });
 
-    test('발행 전에는 잠긴 후보 색 표지가 피드로 새지 않는다(P01)', () async {
+    test('올리기 전에는 잠긴 후보 색 표지가 피드로 새지 않는다(P01)', () async {
       final page = await feed.today(viewer: before, signedIn: true);
       expect(page.heldBack, isTrue);
       expect(page.issues.where((i) => candidates.contains(i.color)), isEmpty);
@@ -78,7 +78,7 @@ void main() {
     });
   });
 
-  group('DEV-03 mock 가판대', () {
+  group('DEV-03 mock 팔레트', () {
     final stand = StandMockSource();
 
     test('잠긴 방은 최신 3장과 개수만, 숨긴 표지의 이름은 오지 않는다', () async {
@@ -98,10 +98,10 @@ void main() {
     });
   });
 
-  group('DEV-03 mock 서가', () {
+  group('DEV-03 mock 스케치북', () {
     final magazines = MagazineMockSource();
 
-    test('누른 사람의 서가가 열리고 호수는 결호 없이 내려간다(P04)', () async {
+    test('누른 사람의 스케치북이 열리고 호수는 결호 없이 내려간다(P04)', () async {
       final lise = await magazines.magazine('demo_lise', viewer: after);
       expect(lise!.masthead, 'lise');
       expect(lise.isMine, isFalse);
@@ -115,7 +115,7 @@ void main() {
       expect(await magazines.magazine('nobody', viewer: after), isNull);
     });
 
-    test('잠긴 오늘 호는 그 사람 서가에서도 보이지 않는다(P01)', () async {
+    test('잠긴 오늘의 캔버스는 그 사람 스케치북에서도 보이지 않는다(P01)', () async {
       final selin = await magazines.magazine('demo_selin', viewer: before);
       expect(selin!.issues.first.date, isNot(today));
       expect(selin.todayColor, isNull);

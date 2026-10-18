@@ -1,11 +1,17 @@
+import 'records_source.dart';
+import '../../../today/data/sources/today_remote_source.dart';
 import '../../../../core/design/tokens.g.dart';
 import '../../../../core/network/http_client.dart';
 import '../../../../core/time/service_date.dart';
 import '../../domain/models/server_records.dart';
 
-class RecordsRemoteSource {
+class RecordsRemoteSource implements RecordsSource {
+  @override
+  Future<ServiceDate> today() async =>
+      (await TodayRemoteSource(http).today()).date;
   final AppHttpClient http;
   RecordsRemoteSource(this.http);
+  @override
   Future<ServerMonthRecords> month(String key) async {
     final data = await http.get('/me/records', queryParams: {'month': key});
     return ServerMonthRecords(
@@ -25,6 +31,7 @@ class RecordsRemoteSource {
     );
   }
 
+  @override
   Future<void> restore(ServiceDate date, EselPaint color) async {
     await http.post(
       '/me/records/${date.key}/restore',

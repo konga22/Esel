@@ -38,7 +38,7 @@ class CollectionPeriod {
         CollectionUnit.day => '일간',
         CollectionUnit.week => '주간',
         CollectionUnit.month => '월간',
-      }} 표지 특집';
+      }} 표지 전시';
   String get label => '${start.label} ~ ${end.addDays(-1).label}';
   bool contains(CoverDraft issue) {
     final day = ServiceDate.tryParse(issue.publishedOn);

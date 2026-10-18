@@ -52,7 +52,7 @@ flutter_app/lib/features/<기능>/presentation/  화면(screens)과 상태(contr
 flutter_app/test/                           domain·data·위젯 테스트 (`flutter test`)
 ```
 
-data 계층은 인증(`features/auth/data`), 기기 보관함(`features/drafts/data`), 피드·가판대·서가 소스(`features/{feed,stand,magazine}/data/sources`), 예시 표지(`features/issue/data`)에 있다. 피드·가판대·서가는 소스 인터페이스의 mock 구현을 읽고, 서버 구현은 아직 `NotImplementedFailure`다. 오늘의 색 후보(`features/today/domain/rules/daily_candidates.dart`)는 날짜만으로 정해지는 mock 규칙이다.
+data 계층은 인증(`features/auth/data`), 기기 보관함(`features/drafts/data`), 피드·가판대·서가 소스(`features/{feed,stand,magazine}/data/sources`), 예시 표지(`features/issue/data`)에 있다. 피드·팔레트·스케치북은 동일 화면에서 소스 인터페이스로 데이터를 받는다. 스케치북·오늘의 색·반응·색 기록은 기존 서버 API에 연결했고, 피드·팔레트·사진 업로드·새 발행·착용 정보의 원격 구현은 아직 미완료다([연결 범위](../flutter/CORE_API_CONNECTION.md)). 오늘의 색 후보(`features/today/domain/rules/daily_candidates.dart`)는 mock 모드에서만 날짜로 정하며 서버 모드에서는 API 응답을 쓴다.
 
 | 목업 경로 | 앱 위치(현재) | 화면 |
 |---|---|---|
@@ -60,7 +60,7 @@ data 계층은 인증(`features/auth/data`), 기기 보관함(`features/drafts/d
 | `join-color` … `join-done` | `features/onboarding/.../onboarding_screen.dart` | J3~J7 |
 | `feed` | `features/feed/.../feed_screen.dart` | C1, C2, C7 |
 | `stand`, `same` | `features/stand/.../stand_screen.dart` | C4, C8 |
-| `me`, `reactions` | `features/magazine/.../my_magazine_screen.dart` | M1, A4 |
+| `me`, `reactions` | `features/magazine/.../shelf_screen.dart` | M1, A4 |
 | `spread` | `features/issue/.../issue_bottom_sheet.dart` | C3 |
 | `shelf` | `features/magazine/.../shelf_screen.dart` | C5 |
 | `make` | `features/publishing/.../publish_screen.dart`, 편집 `features/drafts/.../cover_editor_screen.dart` | C6 |
@@ -69,7 +69,7 @@ data 계층은 인증(`features/auth/data`), 기기 보관함(`features/drafts/d
 | `twin*` | `features/twin/.../twin_screen.dart` | T1~T10 |
 | `settings`, `profile`, `notifications`, `account`, `logout`, `delete*` | `features/settings/.../settings_screen.dart` | S1~S6 |
 
-화면 전환은 `app.dart`의 상태(`AppTab`, `ActiveScreen`)로 한다. 라우터 패키지는 승인 없이 추가하지 않는다. 하단 글라스 캡슐(지금 앱은 오늘의 색·만들기·내 잡지 3칸, DEV-25에서 홈·팔레트·만들기·스케치북 4칸으로)은 `app.dart`의 `_buildGlassBottomBar` 한 곳에 둔다. `features/drafts/presentation/device_home_screen.dart`는 서버 모드에서만 보이는 이전 기기 보관함 화면이다. 새 화면이 그 역할을 대체하면 같은 작업에서 정리한다.
+화면 전환은 `app.dart`의 상태(`AppTab`, `ActiveScreen`)로 한다. 라우터 패키지는 승인 없이 추가하지 않는다. 하단 글라스 캡슐은 홈·팔레트·만들기·스케치북 4칸, 260×60이며 `app.dart`의 `_buildGlassBottomBar` 한 곳에 둔다. Server 전용 중복 화면과 이전 기기 홈 화면은 제거했다. 설정의 기기 초안·초안 달력·접근성 설정에서 기존 기기 기능을 연다. 기기 초안은 서버 발행본과 구분하며 로그인한 ownerId의 기록만 편집·삭제한다.
 
 ### 서버 (`server/`)
 
