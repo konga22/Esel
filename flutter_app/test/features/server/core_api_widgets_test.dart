@@ -56,8 +56,10 @@ class ScreenHttp extends AppHttpClient {
     Map<String, dynamic>? body,
   }) => send('PATCH', path, body);
   @override
-  Future<Map<String, dynamic>> delete(String path) =>
-      send('DELETE', path, null);
+  Future<Map<String, dynamic>> delete(
+    String path, {
+    Map<String, dynamic>? body,
+  }) => send('DELETE', path, body);
 }
 
 Widget records(ScreenHttp http) => MonthlyRecordScreen(
