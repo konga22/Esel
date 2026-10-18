@@ -93,11 +93,19 @@ void main() {
     Navigator.of(tester.element(find.byType(IssueBottomSheet))).pop();
     await tester.pumpAndSettle();
 
-    // 남의 표지(이름이 같은 사람이 있어도 id로 가른다).
+    // 남의 표지(이름이 같은 사람이 있어도 id로 가른다). 내 스케치북의 캡슐 첫 칸은 홈이라
+    // 홈을 거쳐 팔레트로 간다.
+    await tester.tap(find.bySemanticsLabel('홈'));
+    await tester.pumpAndSettle();
     await tester.tap(find.bySemanticsLabel('팔레트'));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.byKey(const ValueKey('palette-cover-selin-2026-09-06')),180);
-    await tester.tap(find.byKey(const ValueKey('palette-cover-selin-2026-09-06')));
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('palette-cover-selin-2026-09-06')),
+      180,
+    );
+    await tester.tap(
+      find.byKey(const ValueKey('palette-cover-selin-2026-09-06')),
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('자세히 보기').first);
     await tester.pumpAndSettle();
