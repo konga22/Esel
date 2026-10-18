@@ -4,6 +4,8 @@ import 'package:esel/features/feed/data/sources/feed_mock_source.dart';
 import 'package:esel/features/feed/domain/rules/masthead_melt.dart';
 import 'package:esel/features/feed/presentation/controllers/feed_controller.dart';
 import 'package:esel/features/feed/presentation/screens/feed_screen.dart';
+import 'package:esel/features/feed/presentation/widgets/feed_pages.dart';
+import 'package:esel/features/issue/presentation/canvas_photo.dart';
 import 'package:esel/features/reactions/presentation/controllers/reactions_controller.dart';
 import 'package:esel/features/stand/domain/rules/same_color_rule.dart';
 import 'package:esel/features/today/domain/rules/daily_candidates.dart';
@@ -128,5 +130,79 @@ void main() {
     await tester.pumpAndSettle();
     expect(scroll.offset, 0);
     semantics.dispose();
+  });
+
+  testWidgets('DEV-21·DEV-23 이번 주 주제·전시는 홈 피드 사이 카드로, 없으면 그리지 않는다', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(393, 852);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final today = DailyCandidates.demoDate;
+    final viewer = SameColorViewer(
+      today: today,
+      candidates: DailyCandidates.forDate(today),
+      hasPublishedToday: true,
+      isMinor: false,
+    );
+    final opened = <String>[];
+    Future<void> pumpFeed({required bool withCards}) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: FeedScreen(
+            feedController: FeedController(FeedMockSource()),
+            reactionsController: ReactionsController(),
+            viewer: viewer,
+            onOpenAuthorShelf: (_) {},
+            onOpenIssue: (_) {},
+            onOpenStand: (_) {},
+            onMakeTodayIssue: () {},
+            challenge: withCards
+                ? FeedFeature(
+                    eyebrow: '이번 주 주제',
+                    title: '가방으로 포인트',
+                    sub: '서울 월~일',
+                    onTap: () => opened.add('challenge'),
+                  )
+                : null,
+            collection: withCards
+                ? FeedFeature(
+                    eyebrow: '이번 주의 전시',
+                    title: '고른 이유가 있는 캔버스',
+                    sub: '순위나 숫자 없이',
+                    onTap: () => opened.add('collection'),
+                  )
+                : null,
+          ),
+        ),
+      );
+      await tester.pump();
+    }
+
+    await pumpFeed(withCards: true);
+    final card = find.byKey(const ValueKey('feed-feature-이번 주 주제'));
+    await tester.scrollUntilVisible(
+      card,
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(
+      find.descendant(of: card, matching: find.byType(CanvasPhoto)),
+      findsNWidgets(3),
+    );
+    await tester.tap(find.text('가방으로 포인트'));
+    expect(opened, ['challenge']);
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('feed-feature-이번 주의 전시')),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('고른 이유가 있는 캔버스'));
+    expect(opened, ['challenge', 'collection']);
+
+    await pumpFeed(withCards: false);
+    await tester.drag(find.byType(ListView), const Offset(0, -6000));
+    await tester.pump();
+    expect(find.byType(FeatureCard), findsNothing);
   });
 }

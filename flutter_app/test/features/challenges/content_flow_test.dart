@@ -62,10 +62,20 @@ void main() {
       sl.todayController.refresh();
       await tester.runAsync(() => sl.todayController.publish(draft('today')));
       await tester.pumpAndSettle();
+      // 이번 주 주제는 마이페이지에서 빠지고 홈 피드 카드로 왔다(10-18).
       await tester.tap(find.bySemanticsLabel('스케치북'));
       await tester.pumpAndSettle();
-      final entry = find.text('이번 주 주제');
-      await tester.scrollUntilVisible(entry, 180);
+      await tester.tap(find.bySemanticsLabel('홈'));
+      await tester.pumpAndSettle();
+      final entry = find.byKey(const ValueKey('feed-feature-이번 주 주제'));
+      await tester.scrollUntilVisible(
+        entry,
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      // 화면 아래 끝이면 캡슐에 가리므로 카드를 위쪽으로 올려서 누른다.
+      Scrollable.ensureVisible(tester.element(entry), alignment: 0.2);
+      await tester.pumpAndSettle();
       await tester.tap(entry);
       await tester.pumpAndSettle();
       final begin = find.text('지난 표지 골라 참여하기');

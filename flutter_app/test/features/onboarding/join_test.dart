@@ -10,7 +10,7 @@ import 'package:esel/features/auth/data/sources/mock_account_store.dart';
 import 'package:esel/features/auth/presentation/screens/email_login_view.dart';
 import 'package:esel/features/drafts/data/local_library.dart';
 import 'package:esel/features/intro/presentation/screens/intro_screen.dart';
-import 'package:esel/features/magazine/presentation/screens/shelf_screen.dart';
+import 'package:esel/features/magazine/presentation/screens/my_page_screen.dart';
 import 'package:esel/features/media/presentation/cover_preview.dart';
 import 'package:esel/features/onboarding/domain/models/onboarding_draft.dart';
 import 'package:esel/features/onboarding/presentation/controllers/onboarding_controller.dart';
@@ -262,9 +262,18 @@ void main() {
       // 스케치북에 1호가 보인다. 같은 날 두 번째 올리기는 없다.
       await tester.tap(find.text('스케치북 보기'));
       await tester.pumpAndSettle();
-      expect(find.byType(ShelfScreen), findsOneWidget);
-      expect(find.textContaining('캔버스 1장'), findsOneWidget);
-      expect(find.text('내 캔버스의 반응 보기'), findsOneWidget);
+      expect(find.byType(MyPageScreen), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('my-stat-canvases')),
+          matching: find.text('1'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(ValueKey('my-canvas-${issues.single.id}')),
+        findsOneWidget,
+      );
       await expectLater(
         today.publish(issues.single.copyWith(issueNumber: 0)),
         throwsFormatException,

@@ -22,6 +22,10 @@ class FeedScreen extends StatefulWidget {
   final void Function(EselPaint color) onOpenStand;
   final VoidCallback onMakeTodayIssue;
 
+  /// 이번 주 주제·전시 카드. 없는 모드(서버)에서는 null이라 카드를 그리지 않는다.
+  final FeedFeature? challenge;
+  final FeedFeature? collection;
+
   const FeedScreen({
     super.key,
     required this.feedController,
@@ -31,6 +35,8 @@ class FeedScreen extends StatefulWidget {
     required this.onOpenIssue,
     required this.onOpenStand,
     required this.onMakeTodayIssue,
+    this.challenge,
+    this.collection,
   });
 
   @override
@@ -142,6 +148,20 @@ class _FeedScreenState extends State<FeedScreen> {
                               candidates: widget.viewer.candidates,
                               onMakeTodayIssue: widget.onMakeTodayIssue,
                             ),
+                          // 목업처럼 다섯째 장 뒤에 주제, 열째 장 뒤에 전시. 장이 적으면 끝에.
+                          for (final (at, feature) in [
+                            (4, widget.challenge),
+                            (9, widget.collection),
+                          ])
+                            if (feature != null &&
+                                i == math.min(at, page.innerPages.length - 1))
+                              FeatureCard(
+                                key: ValueKey(
+                                  'feed-feature-${feature.eyebrow}',
+                                ),
+                                feature: feature,
+                                photos: _photosAround(page.innerPages, i),
+                              ),
                         ],
                         const SizedBox(height: 110),
                       ],
@@ -160,6 +180,13 @@ class _FeedScreenState extends State<FeedScreen> {
       },
     );
   }
+
+  /// 카드 사진 석 장: 카드 뒤에 올 지면부터, 모자라면 앞 지면에서. 피드에 이미 있는 것이라
+  /// 내가 지금 볼 수 있는 사진이다(P01).
+  List<PublicIssue> _photosAround(List<PublicIssue> pages, int index) => [
+    ...pages.skip(index + 1),
+    ...pages.take(index + 1).toList().reversed,
+  ].where((issue) => issue.photo.isNotEmpty).take(3).toList();
 
   /// 전체 / 구독. 선택한 쪽 아래에 1.5px 밑줄.
   Widget _tabs(Color color) => const SizedBox.shrink();

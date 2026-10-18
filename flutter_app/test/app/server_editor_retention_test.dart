@@ -156,7 +156,9 @@ void main() {
       expect(find.text('전시'), findsNothing);
       await tester.tap(find.bySemanticsLabel('스케치북'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('설정'));
+      await tester.tap(find.byKey(const ValueKey('my-menu')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('설정과 계정'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('기기 접근성 설정'));
       await tester.pumpAndSettle();

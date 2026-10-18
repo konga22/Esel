@@ -10,10 +10,14 @@ class FriendsScreen extends StatelessWidget {
   final FriendsController controller;
   final VoidCallback onBack;
 
+  /// 트윈은 마이페이지에서 빠지고 친구 화면 맨 위 줄로 온다(10-18 X4-1).
+  final VoidCallback? onOpenTwin;
+
   const FriendsScreen({
     super.key,
     required this.controller,
     required this.onBack,
+    this.onOpenTwin,
   });
 
   void _showAddFriendSheet(BuildContext context) {
@@ -111,6 +115,21 @@ class FriendsScreen extends StatelessWidget {
                       horizontal: EselTokens.space24,
                     ),
                     children: [
+                      if (onOpenTwin != null) ...[
+                        ListTile(
+                          key: const Key('friends-twin'),
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(Icons.people_outline, size: 26),
+                          title: Text('트윈', style: EselTypography.labelLarge),
+                          subtitle: Text(
+                            '친구와 같은 날 한 장씩, 두 사람의 표지',
+                            style: EselTypography.bodySmall,
+                          ),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: onOpenTwin,
+                        ),
+                        const SizedBox(height: EselTokens.space24),
+                      ],
                       if (requests.isNotEmpty) ...[
                         Text(
                           '받은 친구 요청 (${requests.length})',

@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../../core/design/tokens.g.dart';
 import '../../../../core/design/typography.dart';
@@ -22,6 +23,9 @@ class ShelfScreen extends StatefulWidget {
   final VoidCallback onBack;
   final ValueChanged<PublicIssue>? onShareIssue;
   final Map<String, VoidCallback> actions;
+
+  /// 마이페이지 격자에서 누른 캔버스. 세로 목록을 열면서 그 장까지 내려 준다.
+  final String? focusIssueId;
   const ShelfScreen({
     super.key,
     required this.ownerId,
@@ -35,6 +39,7 @@ class ShelfScreen extends StatefulWidget {
     this.masthead,
     this.isOwner = false,
     this.actions = const {},
+    this.focusIssueId,
   });
   @override
   State<ShelfScreen> createState() => _ShelfScreenState();
@@ -42,6 +47,34 @@ class ShelfScreen extends StatefulWidget {
 
 class _ShelfScreenState extends State<ShelfScreen> {
   MagazineProfile? _last;
+  final GlobalKey _focusKey = GlobalKey();
+  final ScrollController _scroll = ScrollController();
+  bool _focused = false;
+
+  /// 목록은 화면 근처만 그리므로, 누른 장이 그려질 때까지 한 화면씩 내려 본 뒤 맞춘다.
+  /// 횟수 제한 없이 목록 끝까지 간다(오래된 캔버스도 닿게, #24 리뷰). 더 내려가지 않으면 멈춘다.
+  Future<void> _scrollToFocus() async {
+    if (_focused || widget.focusIssueId == null) return;
+    _focused = true;
+    await WidgetsBinding.instance.endOfFrame;
+    while (mounted) {
+      final target = _focusKey.currentContext;
+      if (target != null && target.mounted) {
+        await Scrollable.ensureVisible(target);
+        return;
+      }
+      if (!_scroll.hasClients) return;
+      final position = _scroll.position;
+      final before = position.pixels;
+      if (before >= position.maxScrollExtent) return;
+      _scroll.jumpTo(
+        math.min(position.maxScrollExtent, before + position.viewportDimension),
+      );
+      await WidgetsBinding.instance.endOfFrame;
+      if (!_scroll.hasClients || _scroll.position.pixels <= before) return;
+    }
+  }
+
   void _configure() => widget.controller.configure(
     ownerId: widget.ownerId,
     viewer: widget.viewer,
@@ -75,6 +108,7 @@ class _ShelfScreenState extends State<ShelfScreen> {
   @override
   void dispose() {
     widget.controller.removeListener(_profileChanged);
+    _scroll.dispose();
     super.dispose();
   }
 
@@ -98,11 +132,19 @@ class _ShelfScreenState extends State<ShelfScreen> {
     builder: (context, _) {
       final profile = widget.controller.profile;
       final first = profile?.issues.firstOrNull;
+      // 첫 장이면 이미 보이니 내리지 않는다(머리의 뒤로 버튼이 가려지지 않게).
+      if (profile != null) {
+        if (profile.issues.firstOrNull?.id == widget.focusIssueId) {
+          _focused = true;
+        }
+        _scrollToFocus();
+      }
       return Scaffold(
         backgroundColor: EselColors.paper,
         body: SafeArea(
           bottom: false,
           child: ListView(
+            controller: _scroll,
             padding: const EdgeInsets.only(bottom: 130),
             children: [
               Padding(
@@ -224,6 +266,7 @@ class _ShelfScreenState extends State<ShelfScreen> {
                   ),
                 for (final issue in profile.issues) ...[
                   InkWell(
+                    key: issue.id == widget.focusIssueId ? _focusKey : null,
                     onTap: () => widget.onSelectIssue(
                       issue,
                       profile.localCovers[issue.id],

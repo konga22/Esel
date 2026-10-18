@@ -1,0 +1,339 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:esel/app/app.dart';
+import 'package:esel/app/bootstrap/app_bootstrap.dart';
+import 'package:esel/app/dependencies/service_locator.dart';
+import 'package:esel/core/config/app_config.dart';
+import 'package:esel/core/design/tokens.g.dart';
+import 'package:esel/core/time/service_clock.dart';
+import 'package:esel/core/ui/esel_paint_asset.dart';
+import 'package:esel/core/ui/esel_pressable.dart';
+import 'package:esel/features/auth/data/sources/mock_account_store.dart';
+import 'package:esel/features/drafts/data/local_library.dart';
+import 'package:esel/features/drafts/domain/cover_draft.dart';
+import 'package:esel/features/friends/presentation/screens/friends_screen.dart';
+import 'package:esel/features/magazine/presentation/screens/my_page_screen.dart';
+import 'package:esel/features/magazine/presentation/screens/shelf_screen.dart';
+import 'package:esel/features/records/presentation/screens/monthly_record_screen.dart';
+import 'package:esel/features/settings/presentation/screens/settings_screen.dart';
+import 'package:esel/features/twin/presentation/screens/twin_screen.dart';
+import 'package:esel/features/stand/domain/rules/same_color_rule.dart';
+import 'package:esel/features/records/domain/models/server_records.dart';
+import 'package:esel/features/reactions/presentation/controllers/reactions_controller.dart';
+import 'package:esel/features/magazine/presentation/controllers/magazine_controller.dart';
+import 'package:esel/features/magazine/data/sources/magazine_mock_source.dart';
+import 'package:esel/features/today/domain/rules/daily_candidates.dart';
+import 'package:esel/core/time/service_date.dart';
+
+void main() {
+  // 서비스 로케이터는 한 번만 준비된다. 테스트는 위에서부터 이어진다(첫 테스트에서 오늘 올림).
+  late ServiceLocator sl;
+  late ManualServiceClock clock;
+  setUpAll(() async {
+    AppConfig.current = const AppConfig(apiMode: ApiMode.mock);
+    clock = ManualServiceClock(DateTime.utc(2026, 9, 6, 3));
+    await AppBootstrap.setup(
+      localLibrary: LocalLibrary.inMemory(),
+      clock: clock,
+      accountVault: InMemoryMockAccountVault(),
+    );
+    sl = ServiceLocator();
+    await sl.authController.signupWithEmail(
+      'own@esel.local',
+      'esel1234',
+      'ownmag',
+    );
+  });
+
+  group('DEV-14 마이페이지 X4-1', () {
+    Future<void> openMyPage(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(480, 1000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const EselApp());
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byWidgetPredicate(
+          (w) => w is EselPressable && w.semanticsLabel == '스케치북',
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(MyPageScreen), findsOneWidget);
+    }
+
+    Future<void> publish(WidgetTester tester) async {
+      await tester.runAsync(
+        () => sl.todayController.publish(
+          CoverDraft(
+            id: 'own-1',
+            photoPath: 'own.png',
+            masthead: 'ownmag',
+            color: EselPaint.camel,
+            faceConfirmed: true,
+            updatedAt: clock.now(),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('머리·숫자 줄·오늘 줄. 주제·전시·친구·트윈·설정 버튼은 첫 화면에 없다', (tester) async {
+      await openMyPage(tester);
+      expect(find.text('MY SKETCHBOOK'), findsOneWidget);
+      expect(find.byKey(const ValueKey('my-menu')), findsOneWidget);
+      for (final key in ['canvases', 'subscriptions', 'friends']) {
+        expect(find.byKey(ValueKey('my-stat-$key')), findsOneWidget);
+      }
+      // 구독자 수는 아직 데이터가 없어 칸을 만들지 않는다.
+      expect(find.text('구독자'), findsNothing);
+      for (final gone in ['이번 주 주제', '전시', '트윈', '설정', '내 캔버스의 반응 보기']) {
+        expect(find.text(gone), findsNothing, reason: gone);
+      }
+      // 아직 올리지 않았으면 오늘 줄.
+      expect(find.byKey(const ValueKey('my-today-color')), findsOneWidget);
+
+      await publish(tester);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('my-today-color')), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('my-stat-canvases')),
+          matching: find.text('1'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('격자 칸을 누르면 세로 목록, 뒤로 가면 마이페이지', (tester) async {
+      await openMyPage(tester);
+      await tester.tap(find.byKey(const ValueKey('my-canvas-own-1')));
+      await tester.pumpAndSettle();
+      final shelf = tester.widget<ShelfScreen>(find.byType(ShelfScreen));
+      expect(shelf.focusIssueId, 'own-1');
+      expect(shelf.isOwner, isTrue);
+      expect(find.text('내 캔버스의 반응 보기'), findsOneWidget);
+      await tester.tap(find.byTooltip('뒤로'));
+      await tester.pumpAndSettle();
+      expect(find.byType(MyPageScreen), findsOneWidget);
+    });
+
+    testWidgets('색 달력 탭은 이번 달, 전체 달력은 색 달력 화면으로', (tester) async {
+      await openMyPage(tester);
+      await tester.tap(find.byKey(const ValueKey('my-tab-calendar')));
+      await tester.pumpAndSettle();
+      expect(find.text('9월의 색'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('my-day-6')),
+          matching: find.byType(EselPaintAsset),
+        ),
+        findsOneWidget,
+      );
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('my-open-records')),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(find.byKey(const ValueKey('my-open-records')));
+      await tester.pumpAndSettle();
+      expect(find.byType(MonthlyRecordScreen), findsOneWidget);
+    });
+
+    testWidgets('#24 리뷰: 전체 색 달력에서 복원한 날이 마이페이지 달력에도 보이고, 다녀와도 탭이 유지된다', (
+      tester,
+    ) async {
+      final day = const ServiceDate(2026, 9, 5);
+      await tester.runAsync(
+        () => sl.recordsSource.restore(day, DailyCandidates.forDate(day).first),
+      );
+      await openMyPage(tester);
+      await tester.tap(find.byKey(const ValueKey('my-tab-calendar')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('my-day-5-restored')), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('my-open-records')),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(find.byKey(const ValueKey('my-open-records')));
+      await tester.pumpAndSettle();
+      expect(find.byType(MonthlyRecordScreen), findsOneWidget);
+      await tester.tap(find.byTooltip('뒤로'));
+      await tester.pumpAndSettle();
+      expect(find.byType(MyPageScreen), findsOneWidget);
+      expect(find.text('9월의 색'), findsOneWidget);
+      // 다음 테스트를 위해 내 캔버스 탭으로 돌려 둔다.
+      await tester.tap(find.byKey(const ValueKey('my-tab-canvases')));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('저장함은 내가 저장했고 지금 볼 수 있는 캔버스만', (tester) async {
+      await openMyPage(tester);
+      await tester.tap(find.byKey(const ValueKey('my-tab-saved')));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('저장한 캔버스가 없어요'), findsOneWidget);
+
+      sl.reactionsController.toggleScrap('kofi-2026-09-05');
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('my-saved-kofi-2026-09-05')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('my-saved-ama-2026-09-05')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('≡ 메뉴: 프로필 편집은 프로필로 바로, 뒤로는 마이페이지. 설정과 계정은 설정 메뉴', (
+      tester,
+    ) async {
+      await openMyPage(tester);
+      await tester.tap(find.byKey(const ValueKey('my-menu')));
+      await tester.pumpAndSettle();
+      expect(find.text('프로필 편집'), findsOneWidget);
+      expect(find.text('내 스케치북 공유'), findsOneWidget);
+      expect(find.text('설정과 계정'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('my-menu-edit')));
+      await tester.pumpAndSettle();
+      expect(find.byType(SettingsScreen), findsOneWidget);
+      expect(find.text('프로필 편집'), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.arrow_back_ios_new));
+      await tester.pumpAndSettle();
+      expect(find.byType(MyPageScreen), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('my-menu')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('my-menu-settings')));
+      await tester.pumpAndSettle();
+      expect(find.text('나의 설정'), findsOneWidget);
+    });
+
+    testWidgets('친구 · 트윈 숫자 → 친구 화면, 트윈은 친구 화면 맨 위 줄', (tester) async {
+      await openMyPage(tester);
+      await tester.tap(find.byKey(const ValueKey('my-stat-friends')));
+      await tester.pumpAndSettle();
+      expect(find.byType(FriendsScreen), findsOneWidget);
+      await tester.tap(find.byKey(const Key('friends-twin')));
+      await tester.pumpAndSettle();
+      expect(find.byType(TwinScreen), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.arrow_back_ios_new));
+      await tester.pumpAndSettle();
+      expect(find.byType(FriendsScreen), findsOneWidget);
+    });
+  });
+
+  testWidgets('#24 리뷰: 전체 구독 수를 모르면(서버) 구독 숫자 칸을 숨긴다', (tester) async {
+    tester.view.physicalSize = const Size(480, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    Future<void> pumpPage(int? subscriptions) => tester.pumpWidget(
+      MaterialApp(
+        home: MyPageScreen(
+          ownerId: 'demo_dana',
+          masthead: 'dana',
+          controller: MagazineController(MagazineMockSource()),
+          reactionsController: ReactionsController(),
+          viewer: const SameColorViewer.reader(DailyCandidates.demoDate),
+          avatar: const SizedBox.shrink(),
+          todayColor: EselPaint.camel,
+          publishedToday: true,
+          subscriptionCount: subscriptions,
+          monthRecords: (month) async => ServerMonthRecords(month, 2, const []),
+          onOpenCanvas: (_) {},
+          onOpenSaved: (_) {},
+          onMakeToday: () {},
+          onChooseColor: () {},
+          onOpenRecords: () {},
+          onOpenSubscriptions: () {},
+          onEditProfile: () {},
+          onShare: () {},
+          onOpenSettings: () {},
+        ),
+      ),
+    );
+    await pumpPage(null);
+    expect(find.byKey(const ValueKey('my-stat-subscriptions')), findsNothing);
+    expect(find.byKey(const ValueKey('my-stat-canvases')), findsOneWidget);
+    await pumpPage(3);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('my-stat-subscriptions')),
+        matching: find.text('3'),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets(
+    '#24 재리뷰: 마이페이지를 연 채 9월→10월이 되면 10월 기록을 새로 읽고, 기다리는 동안 9월 표시를 그리지 않는다',
+    (tester) async {
+      tester.view.physicalSize = const Size(480, 1000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final calls = <String>[];
+      final october = Completer<ServerMonthRecords>();
+      Future<ServerMonthRecords> month(String key) {
+        calls.add(key);
+        if (key == '2026-09') {
+          return Future.value(
+            ServerMonthRecords(key, 1, const [
+              ServerDayRecord(
+                date: ServiceDate(2026, 9, 5),
+                color: EselPaint.coral,
+                restored: true,
+                issueId: null,
+              ),
+            ]),
+          );
+        }
+        return october.future;
+      }
+
+      final controller = MagazineController(MagazineMockSource());
+      final reactions = ReactionsController();
+      Widget page(ServiceDate today) => MaterialApp(
+        home: MyPageScreen(
+          ownerId: 'demo_dana',
+          masthead: 'dana',
+          controller: controller,
+          reactionsController: reactions,
+          viewer: SameColorViewer.reader(today),
+          avatar: const SizedBox.shrink(),
+          todayColor: EselPaint.camel,
+          publishedToday: true,
+          initialTab: MyPageTab.calendar,
+          monthRecords: month,
+          onOpenCanvas: (_) {},
+          onOpenSaved: (_) {},
+          onMakeToday: () {},
+          onChooseColor: () {},
+          onOpenRecords: () {},
+          onOpenSubscriptions: () {},
+          onEditProfile: () {},
+          onShare: () {},
+          onOpenSettings: () {},
+        ),
+      );
+
+      await tester.pumpWidget(page(const ServiceDate(2026, 9, 30)));
+      await tester.pumpAndSettle();
+      expect(find.text('9월의 색'), findsOneWidget);
+      expect(find.byKey(const ValueKey('my-day-5-restored')), findsOneWidget);
+
+      // 같은 화면(State)에 서울 날짜만 10월 1일로 바뀐다.
+      await tester.pumpWidget(page(const ServiceDate(2026, 10, 1)));
+      await tester.pump();
+      expect(calls, ['2026-09', '2026-10']);
+      expect(find.byKey(const ValueKey('my-day-5-restored')), findsNothing);
+      expect(find.text('10월의 색'), findsNothing); // 아직 받는 중
+
+      october.complete(ServerMonthRecords('2026-10', 2, const []));
+      await tester.pumpAndSettle();
+      expect(find.text('10월의 색'), findsOneWidget);
+      expect(find.byKey(const ValueKey('my-day-5-restored')), findsNothing);
+      expect(calls, ['2026-09', '2026-10']);
+    },
+  );
+}

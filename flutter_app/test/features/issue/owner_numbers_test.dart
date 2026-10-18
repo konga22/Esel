@@ -79,6 +79,9 @@ void main() {
     await tester.pump();
     await tester.tap(find.bySemanticsLabel('스케치북'));
     await tester.pumpAndSettle();
+    // 마이페이지 격자 → 세로 목록 → 반응 보기.
+    await tester.tap(find.byKey(const ValueKey('my-canvas-own-1')));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('내 캔버스의 반응 보기'));
     await tester.pumpAndSettle();
     expect(find.byType(IssueBottomSheet), findsOneWidget);
