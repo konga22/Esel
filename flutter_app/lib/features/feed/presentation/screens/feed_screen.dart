@@ -10,9 +10,9 @@ import '../controllers/feed_controller.dart';
 import '../widgets/feed_pages.dart';
 import '../widgets/melting_masthead.dart';
 
-/// C1·C7 표지 피드. 표지는 첫 장만(P16): 제호 "Esel"은 첫 장에만 크게 있고, 내리면 표지와
-/// 함께 올라가며, 위로 48px 올리면 작은 로고, 맨 위 360px에서 제호로 녹아든다.
-/// 그 아래는 제호 없는 안쪽 지면이다. 반응 숫자는 그리지 않는다(P18).
+/// C1·C7 표지 피드. 표지는 첫 장만(P16): 사인 "Esel"은 첫 장에만 크게 있고, 내리면 표지와
+/// 함께 올라가며, 위로 48px 올리면 작은 로고, 맨 위 360px에서 사인로 녹아든다.
+/// 그 아래는 사인 없는 안쪽 지면이다. 반응 숫자는 그리지 않는다(P18).
 class FeedScreen extends StatefulWidget {
   final FeedController feedController;
   final ReactionsController reactionsController;
@@ -162,45 +162,7 @@ class _FeedScreenState extends State<FeedScreen> {
   }
 
   /// 전체 / 구독. 선택한 쪽 아래에 1.5px 밑줄.
-  Widget _tabs(Color color) {
-    final fc = widget.feedController;
-    Widget tab(String label, FeedTab value) {
-      final on = fc.currentTab == value;
-      return Semantics(
-        selected: on,
-        child: EselPressable(
-          semanticsLabel: label,
-          onTap: () {
-            fc.switchTab(value);
-            if (_scroll.hasClients) _scroll.jumpTo(0);
-          },
-          child: Opacity(
-            opacity: on ? 1 : 0.78,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(label, style: TextStyle(color: color)),
-                  const SizedBox(height: 3),
-                  Container(
-                    height: 1.5,
-                    width: 26,
-                    color: on ? color : Colors.transparent,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [tab('전체', FeedTab.all), tab('구독', FeedTab.subscribed)],
-    );
-  }
+  Widget _tabs(Color color) => const SizedBox.shrink();
 
   /// 처음 받는 중, 오류, 또는 구독 탭이 비었을 때. 탭은 그대로 둔다.
   Widget _buildEmpty(FeedPage? page, double chromeTop) {
@@ -209,7 +171,7 @@ class _FeedScreenState extends State<FeedScreen> {
     if (page == null) {
       message = fc.errorMessage ?? '';
     } else if (fc.currentTab == FeedTab.subscribed) {
-      message = '구독한 잡지의 오늘 호가 아직 없어요.\n표지에서 이름 옆 구독을 눌러 보세요.';
+      message = '구독한 잡지의 오늘의 캔버스가 아직 없어요.\n표지에서 이름 옆 구독을 눌러 보세요.';
     } else {
       message = '오늘의 표지가 아직 없어요. 잠시 뒤 다시 열어 주세요.';
     }

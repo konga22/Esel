@@ -49,11 +49,13 @@ class EselPaintAsset extends StatelessWidget {
       children: [
         imageWidget,
         const SizedBox(width: 8.0),
-        Text(
-          info.nameKo,
-          style:
-              labelStyle ??
-              EselTypography.label(fontSize: 14.0, color: EselColors.ink),
+        Flexible(
+          child: Text(
+            info.nameKo,
+            style:
+                labelStyle ??
+                EselTypography.label(fontSize: 14.0, color: EselColors.ink),
+          ),
         ),
       ],
     );

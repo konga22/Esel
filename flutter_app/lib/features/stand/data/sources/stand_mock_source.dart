@@ -7,7 +7,7 @@ import '../../domain/models/stand_shelf.dart';
 import '../../domain/rules/same_color_rule.dart';
 import 'stand_source.dart';
 
-/// 시연 가판대: 예시 인물의 오늘 표지 + 이 기기에서 내가 오늘 낸 호.
+/// 시연 팔레트: 예시 인물의 오늘 표지 + 이 기기에서 내가 오늘 낸 호.
 class StandMockSource implements StandSource {
   final LocalLibrary? Function() _library;
 

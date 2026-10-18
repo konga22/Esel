@@ -46,7 +46,7 @@ class AuthController extends ChangeNotifier {
       _errorMessage = error.message;
       return false;
     } catch (_) {
-      _errorMessage = '제호를 저장하지 못했어요. 다시 시도해 주세요.';
+      _errorMessage = '사인을 저장하지 못했어요. 다시 시도해 주세요.';
       return false;
     } finally {
       _isLoading = false;
@@ -54,7 +54,7 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  /// 창간 제호가 쓸 수 있는지. 확인하지 못하면 null.
+  /// 첫 캔버스 사인이 쓸 수 있는지. 확인하지 못하면 null.
   Future<bool?> isMastheadAvailable(String masthead) async {
     try {
       return await _repository.isMastheadAvailable(masthead);

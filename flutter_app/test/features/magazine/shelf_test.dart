@@ -8,7 +8,7 @@ import 'package:esel/features/stand/domain/rules/same_color_rule.dart';
 import 'package:esel/features/today/domain/rules/daily_candidates.dart';
 
 void main() {
-  testWidgets('DEV-13 누른 사람의 서가가 열린다(예시 seul 고정 아님)', (tester) async {
+  testWidgets('DEV-13 누른 사람의 스케치북이 열린다(예시 seul 고정 아님)', (tester) async {
     tester.view.physicalSize = const Size(480, 1000);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -35,8 +35,8 @@ void main() {
     await open('demo_kofi');
     expect(find.text('kofi'), findsWidgets);
     expect(find.text('seul'), findsNothing);
-    expect(find.textContaining('호 발행'), findsOneWidget);
-    // 남의 서가에 구독자 수 같은 숫자는 없다(P18).
+    expect(find.textContaining('캔버스 '), findsOneWidget);
+    // 남의 스케치북에 구독자 수 같은 숫자는 없다(P18).
     expect(find.textContaining('구독자'), findsNothing);
 
     await open('demo_lise');
@@ -47,6 +47,6 @@ void main() {
     await tester.tap(find.text('구독'));
     await tester.pump();
     expect(reactions.isSubscribed('demo_lise'), isTrue);
-    expect(find.text('구독 중'), findsOneWidget);
+    expect(find.text('구독중'), findsOneWidget);
   });
 }

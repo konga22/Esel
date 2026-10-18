@@ -86,7 +86,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
       });
     } catch (_) {
       if (mounted && request == _request) {
-        setState(() => _error = '특집을 불러오지 못했어요. 다시 시도해 주세요.');
+        setState(() => _error = '전시을 불러오지 못했어요. 다시 시도해 주세요.');
       }
     }
   }
@@ -143,7 +143,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('특집에서 빼지 못했어요. 다시 시도해 주세요.')),
+          const SnackBar(content: Text('전시에서 빼지 못했어요. 다시 시도해 주세요.')),
         );
       }
     } finally {
@@ -171,7 +171,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
         icon: const Icon(Icons.arrow_back),
         tooltip: '뒤로',
       ),
-      title: const Text('표지 특집'),
+      title: const Text('표지 전시'),
     ),
     body: SafeArea(
       child: ListView(
@@ -180,7 +180,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
           Text(_period.title, style: EselTypography.heading(fontSize: 30)),
           const SizedBox(height: 8),
           const Text(
-            '일·주·월의 착장을 이유와 함께 소개해요.\n내가 엮는 로컬 특집 · 기기의 공개 발행 기록만 사용해요. 서버 운영자의 공식 선정이나 공개 발행은 아니에요.',
+            '일·주·월의 착장을 이유와 함께 소개해요.\n내가 엮는 로컬 전시 · 기기의 공개 올리기 기록만 사용해요. 서버 운영자의 공식 선정이나 공개 올리기는 아니에요.',
           ),
           const SizedBox(height: 12),
           Wrap(
@@ -225,7 +225,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
             onPressed: _busy
                 ? null
                 : () => setState(() => _editing = !_editing),
-            child: Text(_editing ? '특집 보기로 돌아가기' : '공개 표지 골라 특집 편집'),
+            child: Text(_editing ? '전시 보기로 돌아가기' : '공개 표지 골라 전시 편집'),
           ),
           if (_error != null) ...[
             Text(_error!),
@@ -235,7 +235,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
           else if (_editing) ...[
             if (_available.isEmpty)
               const Text(
-                '이 기간에 볼 수 있는 발행 표지가 없어요. 먼저 착장을 발행하거나 지난 기간을 골라 보세요.',
+                '이 기간에 볼 수 있는 올린 표지가 없어요. 먼저 착장을 올리거나 지난 기간을 골라 보세요.',
               ),
             for (final issue in _available) ...[
               const SizedBox(height: 24),
@@ -253,7 +253,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
                 child: Text(
                   _selected!.any((e) => e.issue.id == issue.id)
                       ? '선정 이유 수정'
-                      : '이 표지를 특집에 담기',
+                      : '이 표지를 전시에 담기',
                 ),
               ),
             ],
@@ -277,7 +277,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
                   ),
                   TextButton(
                     onPressed: _busy ? null : () => _remove(entry),
-                    child: const Text('특집에서 빼기 · 발행본 유지'),
+                    child: const Text('전시에서 빼기 · 올리기본 유지'),
                   ),
                 ],
               ),
@@ -346,7 +346,7 @@ class _SelectionReasonSheetState extends State<_SelectionReasonSheet> {
           decoration: const InputDecoration(labelText: '선정 이유'),
         ),
         EselButton(
-          label: '특집에 저장',
+          label: '전시에 저장',
           onTap: () {
             try {
               Navigator.pop(context, validateSelectionReason(text.text));

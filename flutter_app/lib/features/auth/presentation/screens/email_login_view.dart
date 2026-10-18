@@ -10,7 +10,7 @@ class EmailLoginView extends StatefulWidget {
   final VoidCallback onBack;
   final VoidCallback onSuccess;
 
-  /// 처음부터 회원가입 화면으로 연다(창간 끝의 계정 만들기).
+  /// 처음부터 회원가입 화면으로 연다(첫 캔버스 끝의 계정 만들기).
   final bool startInSignUp;
 
   const EmailLoginView({

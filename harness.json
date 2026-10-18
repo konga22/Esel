@@ -59,7 +59,7 @@
     "url": "http://localhost:4177/",
     "port": 4177
   },
-  "nativeApp": {"framework": "flutter", "root": "flutter_app", "routes": "flutter_app/lib/app/routing/app_routes.dart", "source": "flutter_app/lib", "tests": "flutter_app/test", "status": "local-demo-and-core-server-apis-connected-media-pending-design-partial", "demoRun": "flutter run -d <device> --dart-define=ESEL_API_MODE=mock"},
+  "nativeApp": {"framework": "flutter", "root": "flutter_app", "routes": "flutter_app/lib/app/routing/app_routes.dart", "source": "flutter_app/lib", "tests": "flutter_app/test", "status": "unified-art-tool-screens-local-garments-core-server-apis-media-palette-pending", "demoRun": "flutter run -d <device> --dart-define=ESEL_API_MODE=mock"},
   "designTokens": {"paper": "#F9F9FB", "ink": "#292A27", "muted": "#71736C", "hairline": "#E0E1DC", "gutter": "20px", "touch": "48px"},
   "glass": {"background": "rgba(249,249,251,0.58)", "blur": "22px", "saturate": 1.6, "fallback": "#F9F9FB", "use": ["capsule-menu", "login-bar", "login-sheet", "small-logo"]},
   "tokenScale": {
@@ -67,7 +67,7 @@
     "spacing": [4, 8, 12, 16, 20, 24, 32],
     "radius": {"photo": 0, "spreadPhoto": 4, "card": 16, "colorPick": 22, "sheet": 28, "pill": 999},
     "shadow": {"float": "0 10px 28px rgba(0,0,0,0.14)", "miniCover": "0 4px 12px rgba(41,42,39,0.16)", "coverPreview": "0 14px 36px rgba(41,42,39,0.2)"},
-    "size": {"screenWidth": 393, "screenHeight": 852, "touch": 48, "button": 54, "chip": 38, "segment": 36, "capsuleWidth": 196, "capsuleHeight": 60, "loginBar": 66, "gutter": 20, "innerPageText": 18}
+    "size": {"screenWidth": 393, "screenHeight": 852, "touch": 48, "button": 54, "chip": 38, "segment": 36, "capsuleWidth": 260, "capsuleHeight": 60, "loginBar": 66, "gutter": 20, "innerPageText": 18}
   },
   "typography": {
     "masthead": {"family": "Cormorant Garamond", "size": 200, "lineHeight": 0.9, "tracking": "-0.05em", "fit": "min(200, 0.9 * width / (0.47 * letters))"},

@@ -3,8 +3,8 @@ import '../design/tokens.g.dart';
 import '../design/typography.dart';
 import 'esel_pressable.dart';
 
-/// 디자인 "작은 표지"(생성기 miniCover): 가판대·서가에 꽂히는 표지.
-/// 사진 위 가운데 제호, 아래 40% 그림자 위에 이름(세리프 이탤릭). 모서리 없음, 그림자 하나.
+/// 디자인 "작은 표지"(생성기 miniCover): 팔레트·스케치북에 꽂히는 표지.
+/// 사진 위 가운데 사인, 아래 40% 그림자 위에 이름(세리프 이탤릭). 모서리 없음, 그림자 하나.
 class EselCoverMini extends StatelessWidget {
   final String author;
   final String masthead;
@@ -16,10 +16,10 @@ class EselCoverMini extends StatelessWidget {
   final double height;
   final VoidCallback? onTap;
 
-  /// 제호 색. 위쪽이 밝은 사진은 먹.
+  /// 사인 색. 위쪽이 밝은 사진은 먹.
   final Color mastheadColor;
 
-  /// 이름을 숨기려면 false(서가에서는 이름 대신 Nº를 아래에 따로 쓴다).
+  /// 이름을 숨기려면 false(스케치북에서는 이름 대신 Nº를 아래에 따로 쓴다).
   final bool showAuthor;
 
   /// 스크린 리더가 읽는 이름. 기본은 "{이름}의 표지 보기".

@@ -1,3 +1,5 @@
+import '../../../../core/time/service_date.dart';
+import '../canvas_photo.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/design/tokens.g.dart';
 import '../../../../core/design/typography.dart';
@@ -5,13 +7,13 @@ import '../../../../core/ui/esel_paint_asset.dart';
 import '../../../../core/ui/esel_pressable.dart';
 import '../../../reactions/presentation/controllers/reactions_controller.dart';
 import '../../domain/models/public_issue.dart';
-import '../issue_photo.dart';
+import '../../../../core/errors/failures.dart';
 
 class IssueBottomSheet extends StatefulWidget {
   final PublicIssue issue;
   final bool isOwner;
 
-  /// 한 줄을 남기는 사람(로그인한 나)의 제호.
+  /// 한 줄을 남기는 사람(로그인한 나)의 사인.
   final String readerMasthead;
   final ReactionsController reactionsController;
   final VoidCallback onOpenAuthorShelf;
@@ -63,6 +65,41 @@ class IssueBottomSheet extends StatefulWidget {
 }
 
 class _IssueBottomSheetState extends State<IssueBottomSheet> {
+  late PublicIssue _issue;
+  bool _loading = false;
+  String? _error, _selectedGarment;
+  final _garmentKeys = <String, GlobalKey>{};
+  @override
+  void initState() {
+    super.initState();
+    _issue = widget.issue;
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final issue = await widget.reactionsController.loadDetails(
+        widget.issue,
+        owner: widget.isOwner,
+      );
+      if (mounted) setState(() => _issue = issue);
+    } catch (e) {
+      if (mounted) {
+        setState(
+          () => _error = e is Failure
+              ? e.message
+              : '상세 내용을 불러오지 못했어요. 다시 시도해 주세요.',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
   final _lineTextController = TextEditingController();
 
   @override
@@ -71,13 +108,13 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
     super.dispose();
   }
 
-  void _submitReaderLine() {
-    final text = _lineTextController.text;
-    final success = widget.reactionsController.addReaderLine(
-      issueId: widget.issue.id,
-      text: text,
+  Future<void> _submitReaderLine() async {
+    final success = await widget.reactionsController.submitReaderLine(
+      issueId: _issue.id,
+      text: _lineTextController.text,
       authorMasthead: widget.readerMasthead,
     );
+    if (!mounted) return;
     if (success) {
       _lineTextController.clear();
       FocusScope.of(context).unfocus();
@@ -90,16 +127,28 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
       animation: widget.reactionsController,
       builder: (context, _) {
         final rc = widget.reactionsController;
-        final isLiked = rc.isLiked(widget.issue.id);
-        final isScrapped = rc.isScrapped(widget.issue.id);
-        final readerLines = rc.getReaderLines(widget.issue.id);
+        final isLiked = rc.isLiked(_issue.id);
+        final isScrapped = rc.isScrapped(_issue.id);
+        final readerLines = rc.getReaderLines(_issue.id);
 
-        return Container(
-          decoration: const BoxDecoration(
-            color: EselTokens.paper,
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(EselTokens.radius24),
+        if (_loading) return const Center(child: CircularProgressIndicator());
+        if (_error != null) {
+          return Material(
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(_error!),
+                  TextButton(onPressed: _load, child: const Text('다시 시도')),
+                ],
+              ),
             ),
+          );
+        }
+        return Material(
+          color: EselTokens.paper,
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(EselTokens.radius24),
           ),
           child: Column(
             children: [
@@ -113,16 +162,53 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
                     _buildSpreadHeader(),
                     const SizedBox(height: EselTokens.space20),
                     _buildTwoPhotos(),
+                    for (final item in _issue.garments)
+                      Material(
+                        key: _garmentKeys.putIfAbsent(
+                          item.id,
+                          () => GlobalKey(),
+                        ),
+                        color: _selectedGarment == item.id
+                            ? EselColors.photo
+                            : Colors.transparent,
+                        child: ListTile(
+                          leading: item.todayColor
+                              ? EselPaintAsset(paint: _issue.color, width: 32)
+                              : const Icon(Icons.checkroom),
+                          title: Text(item.label),
+                          subtitle: Text(
+                            [
+                              item.kind,
+                              item.note,
+                            ].where((v) => v.isNotEmpty).join(' · '),
+                          ),
+                          selected: _selectedGarment == item.id,
+                          onTap: () =>
+                              setState(() => _selectedGarment = item.id),
+                        ),
+                      ),
                     const SizedBox(height: EselTokens.space20),
                     _buildCaptionAndActions(isLiked, isScrapped),
                     const SizedBox(height: EselTokens.space20),
                     if (widget.isOwner) _buildOwnerStatsCard(rc),
                     const SizedBox(height: EselTokens.space24),
                     _buildReaderLinesSection(readerLines),
+                    if (rc.hasMoreLines(_issue.id))
+                      TextButton(
+                        onPressed: rc.loading
+                            ? null
+                            : () => rc.moreLines(_issue.id),
+                        child: const Text('한 줄 더 보기'),
+                      ),
                     const SizedBox(height: EselTokens.space40),
                   ],
                 ),
               ),
+              if (rc.saveError != null)
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Text(rc.saveError!),
+                ),
               _buildInputBar(),
             ],
           ),
@@ -159,7 +245,7 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
           child: Row(
             children: [
               Text(
-                widget.issue.masthead,
+                _issue.masthead,
                 style: EselTypography.headlineSmall.copyWith(
                   fontWeight: FontWeight.w600,
                   color: EselTokens.ink,
@@ -176,9 +262,9 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
         ),
         Row(
           children: [
-            EselPaintAsset(paint: widget.issue.color, width: 24),
+            EselPaintAsset(paint: _issue.color, width: 24),
             const SizedBox(width: 8),
-            Text(widget.issue.issueLabel, style: EselTypography.monoSmall),
+            Text(_issue.issueLabel, style: EselTypography.monoSmall),
             const SizedBox(width: 12),
             EselPressable(
               onTap: widget.onReport,
@@ -198,51 +284,22 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
     );
   }
 
-  /// 펼침면 사진 2장: 표지 사진과 같은 사진의 디테일(디자인 C3).
-  Widget _buildTwoPhotos() {
-    final photo = issuePhotoProvider(widget.issue.photo);
-    Widget frame(Widget child) => Expanded(
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(EselRadius.spreadPhoto),
-        child: child,
-      ),
-    );
-    return SizedBox(
-      height: 280,
-      child: Row(
-        children: [
-          frame(
-            Image(
-              image: photo,
-              fit: BoxFit.cover,
-              height: double.infinity,
-              semanticLabel: widget.issue.alt,
-              errorBuilder: (_, _, _) =>
-                  const ColoredBox(color: EselColors.photo),
-            ),
-          ),
-          const SizedBox(width: 8),
-          frame(
-            ClipRect(
-              child: Transform.scale(
-                scale: 2.6,
-                alignment: const Alignment(0.1, 0.6),
-                child: Image(
-                  image: photo,
-                  fit: BoxFit.cover,
-                  height: double.infinity,
-                  width: double.infinity,
-                  semanticLabel: '${widget.issue.alt}의 디테일',
-                  errorBuilder: (_, _, _) =>
-                      const ColoredBox(color: EselColors.photo),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  /// 자세히 보기 사진 2장: 표지 사진과 같은 사진의 디테일(디자인 C3).
+  Widget _buildTwoPhotos() => AspectRatio(
+    aspectRatio: 3 / 4,
+    child: CanvasPhoto(
+      issue: _issue,
+      tags: true,
+      selected: _selectedGarment,
+      onTag: (id) {
+        setState(() => _selectedGarment = id);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final context = _garmentKeys[id]?.currentContext;
+          if (context != null) Scrollable.ensureVisible(context, alignment: .4);
+        });
+      },
+    ),
+  );
 
   Widget _buildCaptionAndActions(bool isLiked, bool isScrapped) {
     return Row(
@@ -250,7 +307,7 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
       children: [
         Expanded(
           child: Text(
-            widget.issue.caption,
+            _issue.caption,
             style: EselTypography.bodyLarge.copyWith(height: 1.5),
           ),
         ),
@@ -258,8 +315,7 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
         Row(
           children: [
             EselPressable(
-              onTap: () =>
-                  widget.reactionsController.toggleLike(widget.issue.id),
+              onTap: () => widget.reactionsController.toggleLike(_issue.id),
               child: AnimatedScale(
                 scale: isLiked ? 1.15 : 1.0,
                 duration: const Duration(milliseconds: 160),
@@ -275,8 +331,7 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
               ),
             ),
             EselPressable(
-              onTap: () =>
-                  widget.reactionsController.toggleScrap(widget.issue.id),
+              onTap: () => widget.reactionsController.toggleScrap(_issue.id),
               child: SizedBox(
                 width: 44,
                 height: 44,
@@ -306,7 +361,7 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
   }
 
   Widget _buildOwnerStatsCard(ReactionsController rc) {
-    final stats = rc.getOwnerStats(widget.issue.id);
+    final stats = rc.getOwnerStats(_issue.id);
     return Container(
       padding: const EdgeInsets.all(EselTokens.space16),
       decoration: BoxDecoration(
@@ -340,7 +395,7 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
             children: [
               _buildStatItem('좋아요', stats.likeCount.toString()),
               _buildStatItem('스크랩', stats.scrapCount.toString()),
-              _buildStatItem('독자 한 줄', stats.readerLineCount.toString()),
+              _buildStatItem('한 줄', stats.readerLineCount.toString()),
             ],
           ),
         ],
@@ -369,7 +424,7 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '독자 한 줄 (${readerLines.length})',
+          '한 줄 (${readerLines.length})',
           style: EselTypography.labelLarge.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -379,7 +434,7 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),
             child: Text(
-              '첫 독자 한 줄을 남겨보세요.',
+              '첫 한 줄을 남겨보세요.',
               style: EselTypography.bodySmall.copyWith(
                 color: EselTokens.inkSubtle,
               ),
@@ -408,7 +463,7 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
                           ),
                         ),
                         Text(
-                          '방금 전',
+                          ServiceDate.of(line.createdAt).shortLabel,
                           style: EselTypography.caption.copyWith(
                             color: EselTokens.inkSubtle,
                           ),
@@ -445,7 +500,7 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
               controller: _lineTextController,
               maxLength: 60,
               decoration: InputDecoration(
-                hintText: '이 호에 독자 한 줄 남기기...',
+                hintText: '이 호에 한 줄 남기기...',
                 counterText: '',
                 filled: true,
                 fillColor: EselTokens.paperWarm,
@@ -462,6 +517,8 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
           ),
           const SizedBox(width: 8),
           EselPressable(
+            semanticsLabel: '한 줄 남기기',
+            enabled: !widget.reactionsController.loading,
             onTap: _submitReaderLine,
             child: Container(
               width: 44,

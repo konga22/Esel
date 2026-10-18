@@ -93,7 +93,7 @@ class ModerationSheet extends StatelessWidget {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      '$authorMasthead 님을 차단했습니다. 피드와 가판대에서 제외됩니다.',
+                      '$authorMasthead 님을 차단했습니다. 피드와 팔레트에서 제외됩니다.',
                     ),
                   ),
                 );

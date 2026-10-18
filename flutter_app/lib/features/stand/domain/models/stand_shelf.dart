@@ -2,7 +2,9 @@ import '../../../../core/design/tokens.g.dart';
 import '../../../issue/domain/models/public_issue.dart';
 import '../rules/same_color_rule.dart';
 
-/// 가판대 한 칸(전체 또는 한 색)을 보는 결과. 잠긴 표지는 이름·사진 없이 개수만 온다(P01).
+/// 팔레트 한 칸(전체 또는 한 색)을 보는 결과. 잠긴 표지는 이름·사진 없이 개수만 온다(P01).
+enum PaletteTab { recommended, colors, subscriptions }
+
 class StandShelf {
   /// null이면 전체.
   final EselPaint? color;

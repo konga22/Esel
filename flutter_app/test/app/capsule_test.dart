@@ -37,7 +37,7 @@ void main() {
   Finder backdropIn(Finder capsule) =>
       find.descendant(of: capsule, matching: find.byType(BackdropFilter));
 
-  testWidgets('menu capsule is 196x60 glass over the photo feed', (
+  testWidgets('menu capsule is 260x60 glass over the photo feed', (
     tester,
   ) async {
     usePhone(tester);
@@ -47,12 +47,12 @@ void main() {
 
     final capsule = find.byKey(const Key('menu-capsule'));
     expect(capsule, findsOneWidget);
-    expect(tester.getSize(capsule), const Size(196, 60));
+    expect(tester.getSize(capsule), const Size(260, 60));
     expect(tester.widget<EselGlass>(capsule).solid, isFalse);
     expect(backdropIn(capsule), findsOneWidget);
-    expect(find.bySemanticsLabel('오늘의 색 가판대'), findsOneWidget);
-    expect(find.bySemanticsLabel('표지 만들기'), findsOneWidget);
-    expect(find.bySemanticsLabel('내 잡지'), findsOneWidget);
+    expect(find.bySemanticsLabel('팔레트'), findsOneWidget);
+    expect(find.bySemanticsLabel('만들기'), findsOneWidget);
+    expect(find.bySemanticsLabel('스케치북'), findsOneWidget);
     semantics.dispose();
   });
 
@@ -63,38 +63,39 @@ void main() {
     final semantics = tester.ensureSemantics();
     await tester.pumpWidget(const EselApp());
     await tester.pumpAndSettle();
-    await tester.tap(find.bySemanticsLabel('오늘의 색 가판대'));
+    await tester.tap(find.bySemanticsLabel('팔레트'));
     await tester.pumpAndSettle();
 
     final capsule = find.byKey(const Key('menu-capsule'));
-    expect(tester.getSize(capsule), const Size(196, 60));
+    expect(tester.getSize(capsule), const Size(260, 60));
     expect(tester.widget<EselGlass>(capsule).solid, isTrue);
     expect(backdropIn(capsule), findsNothing);
     semantics.dispose();
   });
 
-  testWidgets('지금 보는 쪽(가판대·내 잡지) 아래에 점, 세 항목 모두 48 이상', (tester) async {
+  testWidgets('지금 보는 쪽(팔레트·스케치북) 아래에 점, 네 항목 모두 48 이상', (tester) async {
     usePhone(tester);
     final semantics = tester.ensureSemantics();
     await tester.pumpWidget(const EselApp());
     await tester.pumpAndSettle();
     Finder dot(String tab) => find.byKey(ValueKey('capsule-dot-$tab'));
 
-    // 피드에서는 점이 없다.
+    // 홈에도 현재 위치 점이 있다.
+    expect(dot('feed'), findsOneWidget);
     expect(dot('stand'), findsNothing);
     expect(dot('me'), findsNothing);
-    for (final label in ['오늘의 색 가판대', '표지 만들기', '내 잡지']) {
+    for (final label in ['홈', '팔레트', '만들기', '스케치북']) {
       final size = tester.getSize(find.bySemanticsLabel(label));
       expect(size.width, greaterThanOrEqualTo(48));
       expect(size.height, greaterThanOrEqualTo(48));
     }
 
-    await tester.tap(find.bySemanticsLabel('오늘의 색 가판대'));
+    await tester.tap(find.bySemanticsLabel('팔레트'));
     await tester.pumpAndSettle();
     expect(dot('stand'), findsOneWidget);
     expect(dot('me'), findsNothing);
 
-    await tester.tap(find.bySemanticsLabel('내 잡지'));
+    await tester.tap(find.bySemanticsLabel('스케치북'));
     await tester.pumpAndSettle();
     expect(dot('me'), findsOneWidget);
     expect(dot('stand'), findsNothing);

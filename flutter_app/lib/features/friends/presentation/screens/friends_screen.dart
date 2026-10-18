@@ -48,7 +48,7 @@ class FriendsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                '친구의 제호(영문 닉네임)를 입력해 주세요.',
+                '친구의 사인(영문 닉네임)를 입력해 주세요.',
                 style: EselTypography.bodySmall.copyWith(
                   color: EselTokens.inkMuted,
                 ),

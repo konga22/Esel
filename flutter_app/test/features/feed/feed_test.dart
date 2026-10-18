@@ -9,7 +9,7 @@ import 'package:esel/features/stand/domain/rules/same_color_rule.dart';
 import 'package:esel/features/today/domain/rules/daily_candidates.dart';
 
 void main() {
-  group('DEV-10 P16 제호 녹아들기(scroll.mjs와 같은 값)', () {
+  group('DEV-10 P16 사인 녹아들기(scroll.mjs와 같은 값)', () {
     MastheadMelt scrolled(List<double> path) {
       final melt = MastheadMelt();
       for (final y in path) {
@@ -18,7 +18,7 @@ void main() {
       return melt;
     }
 
-    test('내리면 제호가 표지와 함께 올라가고 300px 넘으면 사라진다', () {
+    test('내리면 사인이 표지와 함께 올라가고 300px 넘으면 사라진다', () {
       final melt = scrolled([0, 120]);
       expect(melt.mode, MastheadMode.cover);
       expect(melt.frame().translateY, -120);
@@ -46,7 +46,7 @@ void main() {
       expect(melt.frame().pill, 0);
     });
 
-    test('맨 위 360px 안에서는 작은 로고가 커지며 제호로 녹아든다', () {
+    test('맨 위 360px 안에서는 작은 로고가 커지며 사인로 녹아든다', () {
       final melt = scrolled([0, 1500, 1400, 360]);
       expect(melt.mode, MastheadMode.float);
       expect(melt.frame().scale, closeTo(MastheadMelt.smallScale, 1e-9));
@@ -74,7 +74,7 @@ void main() {
     });
   });
 
-  testWidgets('DEV-10 표지는 첫 장만: Esel 제호는 하나, 안쪽 지면은 제호 없이 각자 색 이름', (
+  testWidgets('DEV-10 표지는 첫 장만: Esel 사인은 하나, 안쪽 지면은 사인 없이 각자 색 이름', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(393, 852);
@@ -107,12 +107,12 @@ void main() {
     expect(find.text('Esel'), findsOneWidget);
     expect(find.text('Nº 249 · 2026. 9. 6.'), findsOneWidget);
     expect(find.text('파우더 블루 · 같은 색 3명'), findsOneWidget);
-    // 안쪽 지면(ama 버터, lise 버건디 …)은 제호 없이 자기 색 이름.
+    // 안쪽 지면(ama 버터, lise 버건디 …)은 사인 없이 자기 색 이름.
     await tester.drag(find.byType(ListView), const Offset(0, -900));
     await tester.pump();
     expect(find.text('ama'), findsOneWidget);
     expect(find.text('버터'), findsOneWidget);
-    expect(find.text('Esel'), findsOneWidget, reason: '제호는 스크롤 레이어 하나뿐');
+    expect(find.text('Esel'), findsOneWidget, reason: '사인은 스크롤 레이어 하나뿐');
 
     // 한참 내렸다가 위로 올리면 작은 로고, 누르면 맨 위로.
     final list = tester.widget<ListView>(find.byType(ListView));

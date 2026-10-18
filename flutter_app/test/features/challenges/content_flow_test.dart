@@ -62,9 +62,9 @@ void main() {
       sl.todayController.refresh();
       await tester.runAsync(() => sl.todayController.publish(draft('today')));
       await tester.pumpAndSettle();
-      await tester.tap(find.bySemanticsLabel('내 잡지'));
+      await tester.tap(find.bySemanticsLabel('스케치북'));
       await tester.pumpAndSettle();
-      final entry = find.text('이번 주의 착장 · 내 참여 표지');
+      final entry = find.text('이번 주 주제');
       await tester.scrollUntilVisible(entry, 180);
       await tester.tap(entry);
       await tester.pumpAndSettle();

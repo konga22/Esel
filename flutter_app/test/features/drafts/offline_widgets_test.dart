@@ -149,7 +149,7 @@ void main() {
       expect(tester.widget<TextField>(name).controller!.text, '');
       for (final mode in [
         ('물감 한 획', FaceLayoutMode.paintStroke),
-        ('제호 뒤로', FaceLayoutMode.behindLogo),
+        ('사인 뒤로', FaceLayoutMode.behindLogo),
         ('목 아래', FaceLayoutMode.belowNeck),
         ('그대로', FaceLayoutMode.original),
       ]) {

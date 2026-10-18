@@ -4,7 +4,7 @@ import '../../../issue/domain/models/public_issue.dart';
 
 enum FeedTab { all, subscribed }
 
-/// 오늘의 표지 피드 한 번 받은 것. 첫 호가 표지(제호 Esel), 나머지는 안쪽 지면이다(P16).
+/// 오늘의 표지 피드 한 번 받은 것. 첫 호가 표지(사인 Esel), 나머지는 안쪽 지면이다(P16).
 class FeedPage {
   final ServiceDate date;
 
@@ -12,13 +12,13 @@ class FeedPage {
   final int appIssueNumber;
   final List<PublicIssue> issues;
 
-  /// 오늘 발행 전이라 잠긴 같은 색(후보 3색) 표지를 뺐는지(P01). 안내를 한 번 넣는다.
+  /// 오늘 올리기 전이라 잠긴 같은 색(후보 3색) 표지를 뺐는지(P01). 안내를 한 번 넣는다.
   final bool heldBack;
 
   /// 비로그인이라 받지 않은 안쪽 지면 수(P12, 2쪽까지만 받음).
   final int pagesForMembers;
 
-  /// 오늘 색별 발행 인원(같은 색 인원, 공개 숫자 P18).
+  /// 오늘 색별 올리기 인원(같은 색 인원, 공개 숫자 P18).
   final Map<EselPaint, int> sameColorCounts;
 
   const FeedPage({

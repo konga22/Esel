@@ -30,7 +30,7 @@ class _LocalCalendarScreenState extends State<LocalCalendarScreen> {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          const Text('초안을 마지막으로 편집한 날짜예요. 서버의 발행·복원 기록과는 별도로 보관돼요.'),
+          const Text('초안을 마지막으로 편집한 날짜예요. 서버의 올리기·복원 기록과는 별도로 보관돼요.'),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

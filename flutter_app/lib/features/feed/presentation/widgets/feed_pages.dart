@@ -1,3 +1,4 @@
+import '../../../issue/presentation/canvas_photo.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/design/tokens.g.dart';
 import '../../../../core/design/typography.dart';
@@ -32,7 +33,7 @@ class PageActions {
   });
 }
 
-/// C1·J1 오늘의 표지(피드의 첫 장). 큰 제호 "Esel"은 화면이 스크롤 레이어로 따로 얹는다(P16).
+/// C1·J1 오늘의 표지(피드의 첫 장). 큰 사인 "Esel"은 화면이 스크롤 레이어로 따로 얹는다(P16).
 class TodayCover extends StatelessWidget {
   final PublicIssue issue;
   final int sameColorCount;
@@ -154,7 +155,7 @@ class TodayCover extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 EselPressable(
-                  semanticsLabel: '${info.nameKo} · 같은 색 $sameColorCount명 가판대',
+                  semanticsLabel: '${info.nameKo} · 같은 색 $sameColorCount명 팔레트',
                   onTap: actions.onOpenStand,
                   child: SizedBox(
                     height: 44,
@@ -190,7 +191,7 @@ class TodayCover extends StatelessWidget {
                       ),
                       _Stat(
                         icon: Icons.chat_bubble_outline,
-                        label: '독자 한 줄',
+                        label: '한 줄',
                         color: white,
                         onTap: actions.onOpenSpread,
                       ),
@@ -205,7 +206,7 @@ class TodayCover extends StatelessWidget {
                       ),
                       const Spacer(),
                       EselPressable(
-                        semanticsLabel: '펼쳐 보기',
+                        semanticsLabel: '자세히 보기',
                         onTap: actions.onOpenSpread,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -213,7 +214,7 @@ class TodayCover extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                '펼쳐 보기',
+                                '자세히 보기',
                                 style: EselTypography.label(color: white),
                               ),
                               const SizedBox(width: 4),
@@ -238,7 +239,7 @@ class TodayCover extends StatelessWidget {
   }
 }
 
-/// C7 안쪽 지면. 제호 없이 쪽 번호·시각, 전체 폭 사진(500), 이름 줄, 캡션 한 줄.
+/// C7 안쪽 지면. 사인 없이 쪽 번호·시각, 전체 폭 사진(500), 이름 줄, 캡션 한 줄.
 class InnerPage extends StatelessWidget {
   final PublicIssue issue;
 
@@ -276,15 +277,9 @@ class InnerPage extends StatelessWidget {
             onTap: actions.onOpenSpread,
             child: SizedBox(
               height: 500,
-              child: CoverPhoto(
-                image: issuePhotoProvider(issue.photo),
-                photoRatio: issue.photoRatio,
-                face: issue.face,
-                mode: issue.faceMode,
-                effects: issue.faceEffects,
-                paint: issue.color,
-                position: const Offset(0.5, 0.3),
-                semanticLabel: issue.alt,
+              child: CanvasPhoto(
+                issue: issue,
+                onTag: (_) => actions.onOpenSpread(),
               ),
             ),
           ),
@@ -340,7 +335,7 @@ class InnerPage extends StatelessWidget {
   }
 }
 
-/// 발행 전에는 오늘 후보 색 표지가 피드에서 빠졌다는 안내(P01). 한 번만 넣는다.
+/// 올리기 전에는 오늘 후보 색 표지가 피드에서 빠졌다는 안내(P01). 한 번만 넣는다.
 /// 손실 문구·카운트다운은 쓰지 않는다.
 class HeldBackNotice extends StatelessWidget {
   final List<EselPaint> candidates;
@@ -368,19 +363,19 @@ class HeldBackNotice extends StatelessWidget {
           const Icon(Icons.lock_outline, size: 20, color: EselColors.ink),
           const SizedBox(height: 6),
           Text(
-            '발행하면 함께 펼쳐집니다',
+            '올리면 함께 펼쳐집니다',
             textAlign: TextAlign.center,
             style: EselTypography.heading(fontSize: 22).copyWith(height: 1.2),
           ),
           const SizedBox(height: 4),
           Text(
-            '오늘의 $names 표지는 오늘 호를 발행하면 여기에 함께 꽂혀요.',
+            '오늘의 $names 표지는 오늘의 캔버스를 올리면 여기에 함께 꽂혀요.',
             textAlign: TextAlign.center,
             style: EselTypography.body(fontSize: 13, color: EselColors.muted),
           ),
           const SizedBox(height: 12),
           EselPressable(
-            semanticsLabel: '오늘 호 만들기',
+            semanticsLabel: '오늘의 캔버스 만들기',
             onTap: onMakeTodayIssue,
             child: Container(
               height: 48,
@@ -395,7 +390,7 @@ class HeldBackNotice extends StatelessWidget {
                   const Icon(Icons.add, size: 18, color: EselColors.paper),
                   const SizedBox(width: 6),
                   Text(
-                    '오늘 호 만들기',
+                    '오늘의 캔버스 만들기',
                     style: EselTypography.label(
                       fontSize: 15,
                       color: EselColors.paper,

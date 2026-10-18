@@ -58,18 +58,25 @@ class MagazineRemoteSource implements MagazineSource {
     required SameColorViewer viewer,
     String? viewerId,
     String? masthead,
+    String? cursor,
   }) async {
     final mine = ownerId == viewerId;
     final name = masthead ?? ownerId;
     if (!mine && !RegExp(r'^[a-z]{2,10}$').hasMatch(name)) {
       throw const RuleFailure('서버 스케치북은 사용자 ID 대신 사인으로 열어 주세요.');
     }
-    final result = await page(mine: mine, masthead: name);
+    final result = await page(mine: mine, masthead: name, cursor: cursor);
     final issues = [
       if (result.today != null) result.today!,
       ...result.page.items,
     ];
     return MagazineProfile(
+      todayColor: issues
+          .where((v) => v.date == viewer.today)
+          .firstOrNull
+          ?.color,
+      nextCursor: result.page.nextCursor,
+      subscribed: result.subscribed,
       ownerId: ownerId,
       masthead: result.masthead,
       totalIssues: result.issueCount,
@@ -77,6 +84,8 @@ class MagazineRemoteSource implements MagazineSource {
       issues: issues
           .map(
             (v) => PublicIssue(
+              liked: v.liked,
+              scrapped: v.scrapped,
               id: v.id,
               ownerId: ownerId,
               masthead: v.masthead,

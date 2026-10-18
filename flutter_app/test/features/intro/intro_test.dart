@@ -66,15 +66,15 @@ void main() {
         const Rect.fromLTRB(16, 852 - 34 - 66, 393 - 16, 852 - 34),
       );
 
-      // 로그인 : 내 잡지 만들기 = 1 : 1.35, 버튼 높이 50.
+      // 로그인 : 스케치북 만들기 = 1 : 1.35, 버튼 높이 50.
       final login = tester.getSize(barButton('로그인'));
-      final join = tester.getSize(barButton('내 잡지 만들기'));
+      final join = tester.getSize(barButton('스케치북 만들기'));
       expect(login.height, 50);
       expect(join.height, 50);
       expect(join.width / login.width, closeTo(1.35, 0.001));
 
       await tester.tap(inBar('로그인'));
-      await tester.tap(inBar('내 잡지 만들기'));
+      await tester.tap(inBar('스케치북 만들기'));
       expect(logins, 1);
       expect(joins, 1);
     });
@@ -126,11 +126,11 @@ void main() {
       await tester.pumpAndSettle();
 
       // 예시 인물 27명 중 표지 + 안쪽 2쪽을 뺀 24쪽.
-      expect(find.text('오늘 호는 아직\n스물네 쪽이 더 남았어요.'), findsOneWidget);
-      expect(find.text('로그인하면 끝까지 읽고, 내 잡지도 만들 수 있어요.'), findsOneWidget);
+      expect(find.text('오늘의 캔버스는 아직\n스물네 쪽이 더 남았어요.'), findsOneWidget);
+      expect(find.text('로그인하면 끝까지 읽고, 스케치북도 만들 수 있어요.'), findsOneWidget);
       expect(find.byType(OutlinedButton), findsNothing);
       expect(find.byType(ElevatedButton), findsNothing);
-      expect(find.text('내 잡지 만들기'), findsOneWidget, reason: '로그인 바의 것 하나');
+      expect(find.text('스케치북 만들기'), findsOneWidget, reason: '로그인 바의 것 하나');
     });
   });
 }

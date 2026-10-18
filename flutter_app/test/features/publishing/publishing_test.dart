@@ -6,7 +6,7 @@ import 'package:esel/features/publishing/domain/rules/publish_rule.dart';
 
 void main() {
   group('DEV-09 P04 하루 한 호, 결호 없는 호수', () {
-    test('규칙: 같은 날 두 번째는 거절, 호수는 발행으로만 1씩', () {
+    test('규칙: 같은 날 두 번째는 거절, 호수는 올리기로만 1씩', () {
       expect(PublishRule.canPublishToday(hasPublishedToday: true), isFalse);
       expect(PublishRule.canPublishToday(hasPublishedToday: false), isTrue);
       expect(PublishRule.nextIssueNumber(0), 1);
@@ -15,7 +15,7 @@ void main() {
       expect(PublishRule.formatIssueNumber(249), 'Nº 249');
     });
 
-    test('기기 보관함 발행이 이 규칙을 그대로 따른다', () async {
+    test('기기 보관함 올리기이 이 규칙을 그대로 따른다', () async {
       final library = LocalLibrary.inMemory();
       addTearDown(library.dispose);
       CoverDraft draft(String id) => CoverDraft(

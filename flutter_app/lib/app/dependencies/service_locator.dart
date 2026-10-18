@@ -1,3 +1,7 @@
+import '../../features/today/data/sources/today_remote_source.dart';
+import '../../features/issue/data/sources/issue_remote_source.dart';
+import '../../features/records/data/sources/records_source.dart';
+import '../../features/records/data/sources/records_remote_source.dart';
 import 'package:flutter/foundation.dart';
 import '../../features/challenges/data/challenge_source.dart';
 import '../../features/collections/data/collection_source.dart';
@@ -51,6 +55,7 @@ class ServiceLocator {
   late final StandController standController;
   late final MagazineController magazineController;
   late final RecordsController recordsController;
+  late final RecordsSource recordsSource;
   late final FriendsController friendsController;
   late final TwinController twinController;
 
@@ -85,12 +90,19 @@ class ServiceLocator {
     );
 
     authController = AuthController(authRepository);
-    todayController = TodayController(clock: clock);
+    todayController = TodayController(
+      clock: clock,
+      remote: config.isMock ? null : TodayRemoteSource(httpClient),
+      remoteMagazine: config.isMock ? null : MagazineRemoteSource(httpClient),
+    );
     onboardingController = OnboardingController(
       checkMasthead: authController.isMastheadAvailable,
     );
-    reactionsController = ReactionsController();
-    // 피드·가판대·서가도 ESEL_API_MODE 하나로 mock과 서버 소스를 바꾼다(DEV-03).
+    reactionsController = ReactionsController(
+      remote: config.isMock ? null : IssueRemoteSource(httpClient),
+      remoteMagazine: config.isMock ? null : MagazineRemoteSource(httpClient),
+    );
+    // 피드·팔레트·스케치북도 ESEL_API_MODE 하나로 mock과 서버 소스를 바꾼다(DEV-03).
     // 서버 소스는 아직 미구현이라 부르면 "아직 연결하지 않았어요"로 끝난다.
     LocalLibrary? library() => localLibrary;
     challengeSource = config.isMock
@@ -113,6 +125,13 @@ class ServiceLocator {
           : MagazineRemoteSource(httpClient),
     );
     recordsController = RecordsController();
+    recordsSource = config.isMock
+        ? LocalRecordsSource(
+            library,
+            () => authController.currentSession?.userId,
+            clock,
+          )
+        : RecordsRemoteSource(httpClient);
     friendsController = FriendsController();
     twinController = TwinController();
   }

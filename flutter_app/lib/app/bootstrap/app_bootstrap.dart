@@ -13,11 +13,10 @@ class AppBootstrap {
       serviceClock: clock,
       accountVault: accountVault,
     );
-    if (ServiceLocator().config.isMock) {
-      ServiceLocator().localLibrary =
-          localLibrary ?? await LocalLibrary.open(mock: true);
-      ServiceLocator().todayController.library = ServiceLocator().localLibrary;
-    }
+    ServiceLocator().localLibrary =
+        localLibrary ??
+        await LocalLibrary.open(mock: ServiceLocator().config.isMock);
+    ServiceLocator().todayController.library = ServiceLocator().localLibrary;
     await ServiceLocator().authController.restoreSession();
   }
 }

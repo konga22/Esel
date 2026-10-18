@@ -11,11 +11,17 @@ void main() {
   group('DEV-02 P08~P10 Twin Rule Tests', () {
     test('partner photo is concealed until both have posted', () {
       expect(
-        TwinRule.canRevealPartnerPhoto(hasUserPosted: true, hasPartnerPosted: false),
+        TwinRule.canRevealPartnerPhoto(
+          hasUserPosted: true,
+          hasPartnerPosted: false,
+        ),
         isFalse,
       );
       expect(
-        TwinRule.canRevealPartnerPhoto(hasUserPosted: true, hasPartnerPosted: true),
+        TwinRule.canRevealPartnerPhoto(
+          hasUserPosted: true,
+          hasPartnerPosted: true,
+        ),
         isTrue,
       );
     });
@@ -70,7 +76,7 @@ void main() {
       expect(twin.visiblePartnerPhoto, isNotNull);
     });
 
-    test('트윈 게시는 개인 호수·오늘 발행·같은 색 잠금에 닿지 않는다(P09)', () {
+    test('트윈 게시는 개인 호수·오늘 올리기·같은 색 잠금에 닿지 않는다(P09)', () {
       final today = TodayController(
         clock: ManualServiceClock(DateTime.utc(2026, 9, 6, 3)),
       )..library = LocalLibrary.inMemory();

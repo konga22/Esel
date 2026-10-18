@@ -66,35 +66,29 @@ void main() {
 
   Finder lockIcons() => find.byIcon(Icons.lock_outline);
 
-  group('DEV-12 가판대 · 같은 색 잠금(P01)', () {
-    testWidgets('발행 전에는 후보 3색 칩 모두에 자물쇠, 그 방은 3장과 흐린 책등', (tester) async {
+  group('DEV-12 팔레트 · 같은 색 잠금(P01)', () {
+    testWidgets('올리기 전에는 후보 3색 칩 모두에 자물쇠, 그 방은 3장과 흐린 책등', (tester) async {
       final stand = StandController(StandMockSource(library: () => library));
       await pumpStand(tester, stand);
 
-      expect(find.text('가판대'), findsOneWidget);
+      expect(find.text('팔레트'), findsOneWidget);
       expect(today.candidates, hasLength(3));
-      // 칩의 자물쇠는 후보 3색에만.
+      await tester.tap(find.byKey(const ValueKey('palette-colors')));
+      await tester.pumpAndSettle();
       expect(lockIcons(), findsNWidgets(3));
-      for (final color in today.candidates) {
-        expect(
-          find.bySemanticsLabel(
-            '${EselPaints.of(color).nameKo} · 오늘 발행 전이라 세 장만 먼저 보여요',
-          ),
-          findsOneWidget,
-        );
-      }
-
+      await tester.tap(find.text('카멜').last);
+      await tester.pumpAndSettle();
       // 카멜 방: 오늘 카멜 표지 4장 중 최신 3장만, 1장은 이름 없이 개수만.
       stand.select(EselPaint.camel);
       await tester.pump();
-      expect(find.text('발행하면 함께 펼쳐집니다'), findsOneWidget);
-      expect(find.text('오늘의 카멜 · 4명'), findsOneWidget);
-      expect(find.text('먼저 3장'), findsOneWidget);
+      expect(find.text('올리면 함께 펼쳐집니다'), findsOneWidget);
+      expect(stand.tiles, hasLength(3));
+      expect(stand.shelf!.hiddenCount, 1);
       for (final name in ['mara', 'selin', 'noor']) {
         expect(find.text(name), findsOneWidget);
       }
       expect(find.text('leo'), findsNothing);
-      expect(find.textContaining('카멜 표지 1장이 더 있어요.'), findsOneWidget);
+      expect(find.textContaining('1장이 더 있어요'), findsOneWidget);
       expect(find.textContaining('놓치면'), findsNothing);
     });
 
@@ -122,7 +116,9 @@ void main() {
       expect(today.myColor, EselPaint.camel);
       stand.select(EselPaint.camel);
       await tester.pump();
-      expect(lockIcons(), findsNWidgets(3 + 1)); // 칩 3개 + 잠긴 방 안내
+      await tester.tap(find.byKey(const ValueKey('palette-colors')));
+      await tester.pumpAndSettle();
+      expect(lockIcons(), findsNWidgets(3));
     });
 
     test('초안 저장(확정)만으로는 열리지 않는다(P03)', () async {
@@ -134,7 +130,7 @@ void main() {
       );
     });
 
-    testWidgets('오늘 발행하면 모든 방이 열린다', (tester) async {
+    testWidgets('오늘 올리면 모든 방이 열린다', (tester) async {
       final stand = StandController(StandMockSource(library: () => library));
       await pumpStand(tester, stand);
       await tester.runAsync(() => today.publish(draft(EselPaint.lilac)));
@@ -146,7 +142,7 @@ void main() {
       expect(lockIcons(), findsNothing);
       stand.select(EselPaint.camel);
       await tester.pump();
-      expect(find.text('발행하면 함께 펼쳐집니다'), findsNothing);
+      expect(find.text('올리면 함께 펼쳐집니다'), findsNothing);
       for (final name in ['mara', 'selin', 'noor', 'leo']) {
         expect(find.text(name), findsOneWidget);
       }
@@ -177,7 +173,7 @@ void main() {
       }
     });
 
-    testWidgets('후보가 아닌 색은 발행 전에도 열려 있다', (tester) async {
+    testWidgets('후보가 아닌 색은 올리기 전에도 열려 있다', (tester) async {
       final stand = StandController(StandMockSource(library: () => library));
       await pumpStand(tester, stand);
       final open = EselPaint.values.firstWhere(
@@ -188,7 +184,7 @@ void main() {
       final shelf = stand.shelf!;
       expect(shelf.isPreview, isFalse);
       expect(shelf.hiddenCount, 0);
-      expect(find.text('발행하면 함께 펼쳐집니다'), findsNothing);
+      expect(find.text('올리면 함께 펼쳐집니다'), findsNothing);
     });
 
     testWidgets('전체 칸에는 잠긴 후보 색 표지가 꽂히지 않는다', (tester) async {
