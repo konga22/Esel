@@ -24,10 +24,19 @@ describe('DEV-17 트윈', () => {
   afterAll(async () => app.close());
 
   async function cleanup() {
-    await prisma.twin.deleteMany();
-    await prisma.user.deleteMany({
+    const users = await prisma.user.findMany({
       where: { email: { endsWith: '@twins.e2e.test' } },
+      select: { id: true },
     });
+    const userIds = users.map(({ id }) => id);
+    const twins = await prisma.twin.findMany({
+      where: { participations: { some: { userId: { in: userIds } } } },
+      select: { id: true },
+    });
+    await prisma.twin.deleteMany({
+      where: { id: { in: twins.map(({ id }) => id) } },
+    });
+    await prisma.user.deleteMany({ where: { id: { in: userIds } } });
   }
 
   async function signup(label: string) {
@@ -383,8 +392,15 @@ describe('DEV-17 트윈', () => {
     expect(second.body.status).toBe('REVEALED');
     expect(second.body.myPost.media.id).toBe(inviteeMedia.id);
     expect(second.body.partnerPost.media.id).toBe(inviterMedia.id);
-    expect(await prisma.issue.count()).toBe(0);
-    expect(await prisma.userDailyChoice.count()).toBe(0);
+    const participantIds = [inviter.userId, invitee.userId];
+    expect(
+      await prisma.issue.count({ where: { authorId: { in: participantIds } } }),
+    ).toBe(0);
+    expect(
+      await prisma.userDailyChoice.count({
+        where: { userId: { in: participantIds } },
+      }),
+    ).toBe(0);
   });
   it('POST /api/twins/:id/posts: 로그인 없이 부르면 → 401 AUTH_REQUIRED', async () => {
     const response = await request(app.getHttpServer())

@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ColorDto } from '../../today/dto/color.dto.js';
 import { IssueMediaDto } from './issue-media.dto.js';
+import { IssueGarmentDto } from './issue-garment.dto.js';
 
 export class IssuePublicDto {
   @ApiProperty({ format: 'uuid' })
@@ -29,6 +30,9 @@ export class IssuePublicDto {
 
   @ApiProperty({ enum: ['PLAIN', 'PAINT', 'BEHIND_MASTHEAD', 'NECK_DOWN'] })
   faceMode: string;
+
+  @ApiProperty({ type: IssueGarmentDto, isArray: true })
+  garments: IssueGarmentDto[];
 
   @ApiProperty({ description: '요청한 사용자가 좋아요를 눌렀는지' })
   liked: boolean;

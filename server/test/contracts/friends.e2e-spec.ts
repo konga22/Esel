@@ -243,8 +243,27 @@ describe('DEV-16 친구', () => {
       masthead: sender.masthead,
       friendsSince: expect.any(String),
     });
-    expect(await prisma.friendRequest.count()).toBe(0);
-    expect(await prisma.friendship.count()).toBe(1);
+    const participantIds = [sender.userId, receiver.userId];
+    expect(
+      await prisma.friendRequest.count({
+        where: {
+          OR: [
+            { senderId: { in: participantIds } },
+            { receiverId: { in: participantIds } },
+          ],
+        },
+      }),
+    ).toBe(0);
+    expect(
+      await prisma.friendship.count({
+        where: {
+          OR: [
+            { userAId: { in: participantIds } },
+            { userBId: { in: participantIds } },
+          ],
+        },
+      }),
+    ).toBe(1);
   });
   it('POST /api/friends/requests/:id/accept: 로그인 없이 부르면 → 401 AUTH_REQUIRED', async () => {
     const response = await request(app.getHttpServer())

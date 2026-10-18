@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Prisma } from '../generated/prisma/client.js';
 import { AppException } from '../common/app-exception.js';
 import { serviceDate } from '../common/service-date.js';
+import { isWriteConflict } from '../prisma/is-write-conflict.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { dailyCandidateIds } from '../today/today.rules.js';
 import { IssueOwnerDto } from './dto/issue-owner.dto.js';
@@ -11,6 +13,7 @@ import { AddLineDto } from './dto/add-line.dto.js';
 import { ReaderLinePageDto } from './dto/reader-line-page.dto.js';
 import { ReaderLinePublicDto } from './dto/reader-line-public.dto.js';
 import { ReaderLineRateLimiter } from './reader-line-rate-limiter.js';
+import { PublishIssueDto } from './dto/publish-issue.dto.js';
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -22,6 +25,137 @@ export class IssuesService {
     private readonly config: ConfigService,
     private readonly readerLineRateLimiter: ReaderLineRateLimiter,
   ) {}
+
+  async publish(
+    userId: string,
+    input: PublishIssueDto,
+  ): Promise<IssueOwnerDto> {
+    this.validateGarmentPositions(input);
+    const key = serviceDate(
+      new Date(),
+      this.config.getOrThrow<string>('SERVICE_TIME_ZONE'),
+    );
+    const date = new Date(`${key}T00:00:00.000Z`);
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      try {
+        const issueId = await this.prisma.$transaction(
+          async (tx) => {
+            const [existing, profile, choice, media] = await Promise.all([
+              tx.issue.findUnique({
+                where: {
+                  authorId_serviceDate: { authorId: userId, serviceDate: date },
+                },
+                select: { id: true },
+              }),
+              tx.profile.findUnique({
+                where: { userId },
+                select: { issueCount: true },
+              }),
+              tx.userDailyChoice.findUnique({
+                where: {
+                  userId_serviceDate: { userId, serviceDate: date },
+                },
+                select: { id: true, colorId: true },
+              }),
+              tx.mediaAsset.findUnique({
+                where: { id: input.mediaId },
+                select: {
+                  id: true,
+                  ownerId: true,
+                  status: true,
+                  issue: { select: { id: true } },
+                  twinPost: { select: { twinId: true } },
+                },
+              }),
+            ]);
+            if (existing) throw new AppException('ISSUE_ALREADY_PUBLISHED');
+            if (!profile || !choice) {
+              throw new AppException('VALIDATION', {
+                colorId: ['오늘의 색을 먼저 골라 주세요.'],
+              });
+            }
+            if (
+              !media ||
+              media.ownerId !== userId ||
+              media.status !== 'READY' ||
+              media.issue ||
+              media.twinPost
+            ) {
+              throw new AppException('MEDIA_NOT_READY');
+            }
+
+            const garmentLinks = [];
+            for (const [position, item] of (input.garments ?? []).entries()) {
+              const garment = item.garmentId
+                ? await tx.garment.findUnique({
+                    where: { id: item.garmentId },
+                    select: { id: true, ownerId: true },
+                  })
+                : await tx.garment.create({
+                    data: {
+                      ownerId: userId,
+                      kind: item.kind,
+                      name: item.name ?? '',
+                      note: item.note ?? '',
+                    },
+                    select: { id: true, ownerId: true },
+                  });
+              if (!garment || garment.ownerId !== userId) {
+                throw new AppException('VALIDATION', {
+                  garmentId: ['내 옷만 다시 고를 수 있어요.'],
+                });
+              }
+              garmentLinks.push({
+                garmentId: garment.id,
+                position: position + 1,
+                todayColor: item.todayColor ?? false,
+                x: item.x,
+                y: item.y,
+              });
+            }
+
+            const updatedProfile = await tx.profile.update({
+              where: { userId },
+              data: { issueCount: { increment: 1 } },
+              select: { issueCount: true },
+            });
+            const issue = await tx.issue.create({
+              data: {
+                authorId: userId,
+                serviceDate: date,
+                issueNumber: updatedProfile.issueCount,
+                colorId: choice.colorId,
+                mediaId: media.id,
+                caption: input.caption,
+                faceMode: input.faceMode,
+                garments: { create: garmentLinks },
+              },
+              select: { id: true },
+            });
+            await tx.userDailyChoice.update({
+              where: { id: choice.id },
+              data: { lockedAt: new Date() },
+            });
+            return issue.id;
+          },
+          { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+        );
+        return (await this.get(userId, issueId)) as IssueOwnerDto;
+      } catch (error) {
+        if (isWriteConflict(error) && attempt < 4) continue;
+        if (
+          isWriteConflict(error) ||
+          (error instanceof Prisma.PrismaClientKnownRequestError &&
+            error.code === 'P2002')
+        ) {
+          throw new AppException('ISSUE_ALREADY_PUBLISHED');
+        }
+        throw error;
+      }
+    }
+    throw new AppException('ISSUE_ALREADY_PUBLISHED');
+  }
 
   async get(
     userId: string,
@@ -43,6 +177,10 @@ export class IssuesService {
         },
         likes: { where: { userId }, select: { userId: true } },
         scraps: { where: { userId }, select: { userId: true } },
+        garments: {
+          include: { garment: true },
+          orderBy: { position: 'asc' },
+        },
         _count: { select: { likes: true, scraps: true, readerLines: true } },
       },
     });
@@ -63,6 +201,15 @@ export class IssuesService {
       media: issue.media,
       caption: issue.caption,
       faceMode: issue.faceMode,
+      garments: issue.garments.map(({ garment, todayColor, x, y }) => ({
+        garmentId: garment.id,
+        kind: garment.kind,
+        name: garment.name,
+        note: garment.note,
+        todayColor,
+        x,
+        y,
+      })),
       liked: issue.likes.length > 0,
       scrapped: issue.scraps.length > 0,
     };
@@ -77,6 +224,7 @@ export class IssuesService {
       media: result.media,
       caption: result.caption,
       faceMode: result.faceMode,
+      garments: result.garments,
       liked: result.liked,
       scrapped: result.scrapped,
       likeCount: issue._count.likes,
@@ -129,6 +277,7 @@ export class IssuesService {
       media: issue.media,
       caption: issue.caption,
       faceMode: issue.faceMode,
+      garments: issue.garments,
       liked: issue.liked,
       scrapped: issue.scrapped,
     };
@@ -212,6 +361,25 @@ export class IssuesService {
       }),
     ]);
     return { liked: Boolean(like), scrapped: Boolean(scrap) };
+  }
+
+  private validateGarmentPositions(input: PublishIssueDto): void {
+    const ids = new Set<string>();
+    for (const garment of input.garments ?? []) {
+      if ((garment.x === undefined) !== (garment.y === undefined)) {
+        throw new AppException('VALIDATION', {
+          garments: ['사진 위 위치는 x와 y를 함께 보내 주세요.'],
+        });
+      }
+      if (garment.garmentId) {
+        if (ids.has(garment.garmentId)) {
+          throw new AppException('VALIDATION', {
+            garments: ['같은 옷은 한 호에 한 번만 넣을 수 있어요.'],
+          });
+        }
+        ids.add(garment.garmentId);
+      }
+    }
   }
 
   async assertVisible(userId: string, issueId: string) {

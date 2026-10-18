@@ -8,5 +8,6 @@
   "prisma/migrations/20261018014500_add_restored_colors/migration.sql": "cf953b83a7db778b447c7600f9240e77abb2daacbf92bc32a09ce7d55859ae36",
   "prisma/migrations/20261018030000_add_friendships/migration.sql": "20bf4a2fd201c2dc61c2ac602913fbc362aeac9ef8f7d19bba5d8ebde7315f68",
   "prisma/migrations/20261018043000_add_twins/migration.sql": "66708cf7c5b9149741301aeb6c24570736a7879d5514ac89a886075b810e0097",
-  "prisma/migrations/20261018060000_complete_twins_and_account/migration.sql": "16155074d58301fe30fe6bf12e439787baee07ecdb14693008469d8dff2a5088"
+  "prisma/migrations/20261018060000_complete_twins_and_account/migration.sql": "16155074d58301fe30fe6bf12e439787baee07ecdb14693008469d8dff2a5088",
+  "prisma/migrations/20261018080000_add_garments/migration.sql": "e43ad3865658262e8b2415c26d3e78d79ef6e74b433fe1fc529f204fb989a2fd"
 }

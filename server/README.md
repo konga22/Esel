@@ -44,7 +44,7 @@ npm run start:dev
 
 ## 현재 구현된 API
 
-`api-contract.json` 기준 라우트 45개가 구현되어 있습니다. 계약 완료는 45/61개(73.8%)이고 진행 중(`doing`)인 계약은 없습니다.
+`api-contract.json` 기준 라우트 50개가 구현되어 있습니다. 계약 완료는 50/61개(82.0%)이고 진행 중(`doing`)인 계약은 없습니다.
 
 | 방법 | 주소 | 하는 일 |
 |---|---|---|
@@ -61,6 +61,11 @@ npm run start:dev
 | `PUT` | `/api/media/:id/file` | 준비한 사진을 서버 영구 디스크에 스트리밍 업로드 |
 | `POST` | `/api/media/:id/complete` | 실제 파일 형식·크기를 검사하고 480px 썸네일을 만들어 업로드 완료 |
 | `GET` | `/api/media/:id?size=original\|thumb` | 호·트윈 공개 권한을 확인해 원본 또는 썸네일 전송 |
+| `POST` | `/api/issues` | 업로드 완료 사진과 선택 착용 정보로 오늘 호 발행 |
+| `GET` | `/api/feed` | 공개 가능한 구독·추천 호를 최신순 cursor 피드로 조회 |
+| `GET` | `/api/stand?colorId=…` | 날짜·색별 팔레트 방과 후보색 최신 3장 미리보기 조회 |
+| `GET` | `/api/palette/recommended` | 아직 구독하지 않은 사람별 최신 공개 사진 한 장 조회 |
+| `GET` | `/api/palette/colors` | 발행 전 후보 3색을 먼저 두고 잠금 상태를 포함한 색 목록 조회 |
 | `GET` | `/api/me/notifications` | 내 알림 설정 조회(저장 전 기본값은 모두 `true`) |
 | `PUT` | `/api/me/notifications` | 내 알림 설정 저장·변경 |
 | `GET` | `/api/issues/:id` | 공개 가능한 호 조회(소유자에게만 반응 수 포함) |
@@ -137,6 +142,12 @@ Invoke-RestMethod -Method Get `
 파일은 `MEDIA_STORAGE_ROOT`에 저장하고 Docker에서는 재시작 뒤에도 남는 named volume `esel-media-data`를 `/app/data/media`에 연결합니다. JPEG·PNG 완료 시 `sharp`로 최대 480×480 JPEG 썸네일을 미리 만들며, `GET /api/media/:id?size=thumb`으로 요청합니다. 조회할 때도 매번 호의 같은 색 잠금과 트윈 공개 범위를 검사하고 권한이 없거나 미완료 상태이면 `404`로 숨깁니다. 현재 응답은 사용자별 권한이 달라질 수 있어 `Cache-Control: private, no-store`입니다. 차단·호 삭제 API와 DB 모델은 아직 `DEV-20`의 `todo`이므로, 그 단계에서는 이미지 조회에도 차단 판정을 연결하고 삭제 시 원본·썸네일·DB 메타데이터를 함께 제거해야 합니다.
 
 HEIC 원본은 현재 허용하고 실제 시그니처도 검사하지만 JPEG 썸네일 생성은 보장하지 않습니다. iPhone 앱에서 JPEG로 바꿔 올릴지 서버에 HEIC 변환기를 둘지는 관혁이와 정한 뒤 계약을 갱신합니다. 외부 S3·R2는 쓰지 않으므로 배포 환경에는 컨테이너 재배포 뒤에도 보존되는 영구 디스크가 반드시 필요합니다.
+
+오늘 호 발행은 `POST /api/issues` 한 트랜잭션 안에서 오늘의 선택 색 확인, READY 상태인 내 사진 연결, 호 생성, `issueCount` 증가, 선택 색 잠금을 함께 처리합니다. 같은 사용자의 같은 서비스 날짜에는 DB unique 제약이 있어 동시 요청도 한 호만 성공합니다. `garments`는 없어도 되고 최대 8개이며, 새 옷은 `garments`, 호에서의 순서·태그 좌표·오늘의 색 표시는 `issue_garments`에 나눠 저장합니다. URL·가격처럼 DTO에 없는 필드는 전역 whitelist가 `400 VALIDATION`으로 거절합니다.
+
+홈 피드는 미래 호와 발행 전 사용자의 오늘 후보 3색 호를 먼저 제외한 뒤 최신순 cursor 페이지를 만듭니다. 구독한 사람의 호에는 `SUBSCRIPTION`, 그 밖에는 `RECOMMENDED` 출처만 표시하고 반응 숫자·순위는 공개하지 않습니다. 인기 혼합에 사용할 내부 신호가 아직 정해지지 않아 현재는 이미 본 페이지가 다시 정렬되지 않는 최신순만 사용합니다.
+
+팔레트 색상 방은 오늘 후보색이면서 내가 아직 발행하지 않았을 때 최신 3장과 `hiddenCount`만 보내고, 발행 후·비후보색·지난 날짜는 전체 cursor 목록을 엽니다. 미래 날짜는 `closed`와 빈 목록으로 답합니다. 추천 탭은 같은 색을 골랐다면 그 색을 우선 조건으로 삼고, 자신과 이미 구독한 사람을 제외한 뒤 사람별 최신 공개 사진 한 장만 반환합니다. 색상 목록의 선택 인원 수는 정렬에만 쓰며 응답에는 넣지 않습니다. 미성년자 판별 방법은 아직 결정되지 않아 일반 잠금 예외는 구현하지 않았습니다.
 
 알림 설정은 `enabled`, `newIssue`, `reactions` 세 boolean을 모두 보냅니다. 아직 저장한 적이 없는 계정의 GET은 모두 `true`를 반환하지만 조회만으로 DB 행을 만들지는 않습니다.
 
