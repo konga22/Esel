@@ -1,6 +1,7 @@
 'use strict';
 // Esel app mockup: every screen of the design in one tappable page.
-// Structure follows the 10-18 decision: home feed, palette (explore), make, sketchbook, in a four-slot capsule.
+// Structure follows the 10-18 decision: home feed, palette (explore), make, sketchbook, in a three-slot capsule whose
+// first slot swaps between palette (on home) and home (everywhere else).
 // Screen words are art tools (harness §1 table); route and state names keep the code names (feed, stand, same, shelf, me, spread, make).
 // Photos, face boxes and the twelve colours come from the canvas generator (injected as ESEL_DATA at build time).
 // Nothing is saved or sent: state lives in memory and resets on reload.
@@ -254,8 +255,8 @@ ${bottom ? `<div class="bottom-bar">${bottom}</div>` : ''}
 const row = ({ go, act, title, sub = '', lead = '', chev = true, attrs = '' }) => `<button type="button" class="row" ${go ? `data-go="${go}"` : ''} ${act ? `data-act="${act}"` : ''} ${attrs}>${lead}<span class="t"><b>${title}</b>${sub ? `<span>${sub}</span>` : ''}</span>${chev ? `<span class="chev">${icon('right', 20)}</span>` : ''}</button>`;
 // Palette and sketchbook are tab roots when they sit right above home; only deeper copies get a back button.
 const isTabRoot = () => stack.length <= 2;
-// The capsule marks the tab the current screen belongs to: the nearest home, palette or sketchbook below it in the stack.
-// So someone's sketchbook opened from the palette keeps the palette dot. Making a canvas is a modal step and never marked.
+// The place the current screen belongs to: the nearest home, palette or sketchbook below it in the stack.
+// So someone's sketchbook opened from the palette still belongs to the palette (and the capsule offers home).
 function activeTab() {
   for (let i = stack.length - 1; i >= 0; i--) {
     const n = stack[i].name;
@@ -265,14 +266,16 @@ function activeTab() {
   }
   return 'feed';
 }
-// Glass capsule, four slots (10-18): home · palette (my paint of the day) · make (+) · my sketchbook (my avatar).
+// Glass capsule, three slots (10-18): a swap slot · make (+) · my sketchbook (my avatar).
+// The swap slot offers the other place: palette (my paint of the day) on home, home in the palette or my sketchbook.
+// Only my sketchbook gets the 4px dot; the swap slot shows where you can go, and making a canvas is a modal step.
 function capsule(cur) {
-  const slot = (tab, label, inner) => `<button type="button" class="slot" data-tab="${tab}" aria-label="${label}"${cur === tab ? ' aria-current="page"' : ''}>${inner}</button>`;
+  const slot = (tab, label, inner, here = false) => `<button type="button" class="slot" data-tab="${tab}" aria-label="${label}"${here ? ' aria-current="page"' : ''}>${inner}</button>`;
+  const swap = cur === 'feed' ? slot('stand', '팔레트', paintImg(S.me.color, 52)) : slot('feed', '홈', icon('home', 24, 1.7));
   return `<nav class="capsule glass" aria-label="주요 화면">
-${slot('feed', '홈', icon('home', 24, 1.7))}
-${slot('stand', '팔레트', paintImg(S.me.color, 52))}
+${swap}
 <span class="make-slot"><button type="button" class="make" data-tab="make" aria-label="오늘의 캔버스 만들기">${icon('plus', 22, 2)}</button></span>
-${slot('me', '내 스케치북', avatar(ME, 34))}
+${slot('me', '내 스케치북', avatar(ME, 34), cur === 'me')}
 </nav>`;
 }
 // Reactions carry no numbers on someone else's canvas; the owner sees their own counts (P18).

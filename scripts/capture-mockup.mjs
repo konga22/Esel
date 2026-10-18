@@ -37,7 +37,7 @@ const SETUP = {
   C3: IN + at('spread:dana'),
   C4: IN + at('stand'),
   C4subs: IN + at('stand:subs'),
-  // Opened from a palette cell, so the capsule keeps the palette dot.
+  // Opened from a palette cell, so it belongs to the palette and the capsule's first slot offers home.
   C5: IN + at('stand', 'shelf:dana'),
   C5b: IN + at('stand', 'shelf:dana') + "document.querySelector('#scroller').scrollTop=1060;",
   C6: IN + at('make'),
