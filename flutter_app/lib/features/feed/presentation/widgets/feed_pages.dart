@@ -507,3 +507,99 @@ class _Shade extends StatelessWidget {
     );
   }
 }
+
+/// 홈 피드 사이 카드로 오는 이번 주 주제·전시(10-18, 마이페이지에서 빠졌다).
+class FeedFeature {
+  final String eyebrow;
+  final String title;
+  final String sub;
+  final VoidCallback onTap;
+  const FeedFeature({
+    required this.eyebrow,
+    required this.title,
+    required this.sub,
+    required this.onTap,
+  });
+}
+
+/// 흰 카드: 작은 머리말, 세리프 제목, 한 줄 설명, 사진 석 장(지금 내가 볼 수 있는 것만, P01).
+class FeatureCard extends StatelessWidget {
+  final FeedFeature feature;
+  final List<PublicIssue> photos;
+  const FeatureCard({super.key, required this.feature, required this.photos});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(18, 8, 18, 26),
+    child: EselPressable(
+      semanticsLabel: '${feature.eyebrow} · ${feature.title}',
+      onTap: feature.onTap,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: const Color(0xFFECECE8)),
+        ),
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(feature.eyebrow, style: EselTypography.meta(fontSize: 11)),
+                const SizedBox(height: 4),
+                Padding(
+                  padding: const EdgeInsets.only(right: 28),
+                  child: Text(
+                    feature.title,
+                    style: EselTypography.heading(fontSize: 26),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  feature.sub,
+                  style: EselTypography.body(
+                    fontSize: 13,
+                    color: EselColors.muted,
+                  ),
+                ),
+                if (photos.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  // 목업은 104×138 석 장. 좁은 폭에서는 같은 비율로 줄인다.
+                  Row(
+                    children: [
+                      for (var i = 0; i < 3; i++) ...[
+                        if (i > 0) const SizedBox(width: 6),
+                        Flexible(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 104),
+                            child: AspectRatio(
+                              aspectRatio: 104 / 138,
+                              child: i < photos.length
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(4),
+                                      child: ExcludeSemantics(
+                                        child: CanvasPhoto(issue: photos[i]),
+                                      ),
+                                    )
+                                  : const SizedBox.shrink(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ],
+            ),
+            const Positioned(
+              top: 0,
+              right: 0,
+              child: Icon(Icons.arrow_forward, size: 18),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}

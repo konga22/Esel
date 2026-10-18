@@ -25,6 +25,7 @@ import '../features/intro/presentation/screens/intro_screen.dart';
 import '../features/issue/presentation/widgets/issue_bottom_sheet.dart';
 import '../features/magazine/domain/rules/privacy_rule.dart';
 import '../features/magazine/presentation/screens/shelf_screen.dart';
+import '../features/feed/presentation/widgets/feed_pages.dart';
 import '../features/moderation/presentation/widgets/moderation_sheet.dart';
 import '../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../features/publishing/presentation/screens/publish_screen.dart';
@@ -679,6 +680,25 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
             setState(() => _currentTab = AppTab.stand);
           },
           onMakeTodayIssue: () => setState(() => _currentTab = AppTab.publish),
+          // 주제·전시는 아직 이 기기 안의 기능이라 목업 모드에서만 카드를 낸다.
+          challenge: _sl.config.isMock
+              ? FeedFeature(
+                  eyebrow: '이번 주 주제',
+                  title: StyleChallenge.forWeek(today.viewer.today).first.topic,
+                  sub: '서울 월~일 · 오늘 후보 색과 함께, 새 옷 없이도',
+                  onTap: () =>
+                      setState(() => _activeScreen = ActiveScreen.challenges),
+                )
+              : null,
+          collection: _sl.config.isMock
+              ? FeedFeature(
+                  eyebrow: '이번 주의 전시',
+                  title: '고른 이유가 있는 캔버스',
+                  sub: '오늘 · 이번 주 · 이달 · 순위나 숫자 없이',
+                  onTap: () =>
+                      setState(() => _activeScreen = ActiveScreen.collections),
+                )
+              : null,
         );
 
       case AppTab.stand:
