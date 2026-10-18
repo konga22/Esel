@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:esel/app/app.dart';
@@ -264,4 +265,75 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets(
+    '#24 재리뷰: 마이페이지를 연 채 9월→10월이 되면 10월 기록을 새로 읽고, 기다리는 동안 9월 표시를 그리지 않는다',
+    (tester) async {
+      tester.view.physicalSize = const Size(480, 1000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final calls = <String>[];
+      final october = Completer<ServerMonthRecords>();
+      Future<ServerMonthRecords> month(String key) {
+        calls.add(key);
+        if (key == '2026-09') {
+          return Future.value(
+            ServerMonthRecords(key, 1, const [
+              ServerDayRecord(
+                date: ServiceDate(2026, 9, 5),
+                color: EselPaint.coral,
+                restored: true,
+                issueId: null,
+              ),
+            ]),
+          );
+        }
+        return october.future;
+      }
+
+      final controller = MagazineController(MagazineMockSource());
+      final reactions = ReactionsController();
+      Widget page(ServiceDate today) => MaterialApp(
+        home: MyPageScreen(
+          ownerId: 'demo_dana',
+          masthead: 'dana',
+          controller: controller,
+          reactionsController: reactions,
+          viewer: SameColorViewer.reader(today),
+          avatar: const SizedBox.shrink(),
+          todayColor: EselPaint.camel,
+          publishedToday: true,
+          initialTab: MyPageTab.calendar,
+          monthRecords: month,
+          onOpenCanvas: (_) {},
+          onOpenSaved: (_) {},
+          onMakeToday: () {},
+          onChooseColor: () {},
+          onOpenRecords: () {},
+          onOpenSubscriptions: () {},
+          onEditProfile: () {},
+          onShare: () {},
+          onOpenSettings: () {},
+        ),
+      );
+
+      await tester.pumpWidget(page(const ServiceDate(2026, 9, 30)));
+      await tester.pumpAndSettle();
+      expect(find.text('9월의 색'), findsOneWidget);
+      expect(find.byKey(const ValueKey('my-day-5-restored')), findsOneWidget);
+
+      // 같은 화면(State)에 서울 날짜만 10월 1일로 바뀐다.
+      await tester.pumpWidget(page(const ServiceDate(2026, 10, 1)));
+      await tester.pump();
+      expect(calls, ['2026-09', '2026-10']);
+      expect(find.byKey(const ValueKey('my-day-5-restored')), findsNothing);
+      expect(find.text('10월의 색'), findsNothing); // 아직 받는 중
+
+      october.complete(ServerMonthRecords('2026-10', 2, const []));
+      await tester.pumpAndSettle();
+      expect(find.text('10월의 색'), findsOneWidget);
+      expect(find.byKey(const ValueKey('my-day-5-restored')), findsNothing);
+      expect(calls, ['2026-09', '2026-10']);
+    },
+  );
 }

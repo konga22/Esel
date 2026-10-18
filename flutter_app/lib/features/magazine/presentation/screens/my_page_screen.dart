@@ -88,16 +88,26 @@ class _MyPageScreenState extends State<MyPageScreen> {
   MagazineProfile? _last;
   Future<ServerMonthRecords>? _month;
 
+  /// [_month]를 어떤 계정·어느 달로 읽었는지. 서울 월 경계를 지나거나 계정이 바뀌면 다시 읽는다(#24 재리뷰).
+  String? _monthFor;
+
   String get _monthKey {
     final today = widget.viewer.today;
     return '${today.year}-${today.month.toString().padLeft(2, '0')}';
   }
 
+  /// 지금 계정·이번 달의 월별 기록. 같은 키면 이미 받은 것을 다시 쓴다.
+  Future<ServerMonthRecords> _records() {
+    final key = '${widget.ownerId}|$_monthKey';
+    if (_month == null || _monthFor != key) {
+      _monthFor = key;
+      _month = widget.monthRecords(_monthKey);
+    }
+    return _month!;
+  }
+
   void _select(MyPageTab tab) {
-    setState(() {
-      _tab = tab;
-      if (tab == MyPageTab.calendar) _month ??= widget.monthRecords(_monthKey);
-    });
+    setState(() => _tab = tab);
     widget.onTabChanged?.call(tab);
   }
 
@@ -124,7 +134,6 @@ class _MyPageScreenState extends State<MyPageScreen> {
     widget.controller.addListener(_profileChanged);
     _configure();
     _profileChanged();
-    if (_tab == MyPageTab.calendar) _month = widget.monthRecords(_monthKey);
   }
 
   @override
@@ -486,7 +495,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
   /// 올린 날은 그날 색 물감, 복원한 날은 그 색 테두리 동그라미, 지난 빈 날은 빈 동그라미, 오늘은 테두리.
   /// 색 복원은 색 달력 화면에서 한다.
   Widget _calendar() => FutureBuilder<ServerMonthRecords>(
-    future: _month,
+    future: _records(),
     builder: (context, snapshot) {
       if (snapshot.hasError) {
         return Padding(
@@ -495,23 +504,29 @@ class _MyPageScreenState extends State<MyPageScreen> {
             children: [
               const Text('색 기록을 불러오지 못했어요.'),
               TextButton(
-                onPressed: () =>
-                    setState(() => _month = widget.monthRecords(_monthKey)),
+                onPressed: () => setState(() => _monthFor = null),
                 child: const Text('다시 시도'),
               ),
             ],
           ),
         );
       }
-      final records = snapshot.data;
-      if (records == null) {
+      // 새 달을 기다리는 동안 FutureBuilder는 이전 달 응답을 들고 있다. 그 값은 그리지 않는다.
+      final records = snapshot.connectionState == ConnectionState.done
+          ? snapshot.data
+          : null;
+      if (records == null || records.month != _monthKey) {
         return const Padding(
           padding: EdgeInsets.all(40),
           child: Center(child: CircularProgressIndicator()),
         );
       }
       final today = widget.viewer.today;
-      final days = {for (final day in records.days) day.date.day: day};
+      final days = {
+        for (final day in records.days)
+          if (day.date.year == today.year && day.date.month == today.month)
+            day.date.day: day,
+      };
       final first = DateTime.utc(today.year, today.month, 1);
       final count = DateTime.utc(today.year, today.month + 1, 0).day;
       final lead = first.weekday % 7; // 일요일 시작
