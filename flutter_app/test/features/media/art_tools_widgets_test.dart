@@ -160,6 +160,7 @@ void main() {
             todayColor: EselPaint.camel,
             publishedToday: false,
             friendCount: 3,
+            subscriptionCount: 12,
             // 캡처용 이번 달 기록: 9일만 색 복원, 18일(오늘)은 아직.
             monthRecords: (month) async => ServerMonthRecords(month, 1, [
               for (var day = 1; day < 18; day++)

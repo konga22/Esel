@@ -27,6 +27,10 @@ class MyPageScreen extends StatefulWidget {
   /// 친구 수. 친구 기능이 없는 모드(서버)에서는 null이고 숫자 칸을 숨긴다.
   final int? friendCount;
 
+  /// 내가 구독한 사람 수. 전체 집계를 받을 수 없는 모드(서버)에서는 null이고 숫자 칸을 숨긴다.
+  /// 서버 모드의 구독 집합은 방문한 스케치북으로만 채워져 실제보다 적기 때문이다(#24 리뷰).
+  final int? subscriptionCount;
+
   /// 월별 색 기록(발행 + 색 복원). 전체 색 달력과 같은 소스를 쓴다. 인자는 `2026-09` 형식.
   final Future<ServerMonthRecords> Function(String month) monthRecords;
 
@@ -68,6 +72,7 @@ class MyPageScreen extends StatefulWidget {
     required this.onOpenSettings,
     required this.monthRecords,
     this.friendCount,
+    this.subscriptionCount,
     this.initialTab = MyPageTab.canvases,
     this.onTabChanged,
     this.savedIssues,
@@ -288,12 +293,13 @@ class _MyPageScreenState extends State<MyPageScreen> {
               child: Row(
                 children: [
                   _stat('canvases', '${profile?.totalIssues ?? 0}', '캔버스'),
-                  _stat(
-                    'subscriptions',
-                    '${widget.reactionsController.subscribedOwnerIds.length}',
-                    '구독',
-                    onTap: widget.onOpenSubscriptions,
-                  ),
+                  if (widget.subscriptionCount != null)
+                    _stat(
+                      'subscriptions',
+                      '${widget.subscriptionCount}',
+                      '구독',
+                      onTap: widget.onOpenSubscriptions,
+                    ),
                   if (widget.friendCount != null)
                     _stat(
                       'friends',

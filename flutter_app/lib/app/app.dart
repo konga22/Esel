@@ -783,6 +783,10 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
           friendCount: _sl.config.isMock
               ? _sl.friendsController.friends.length
               : null,
+          // 서버 모드는 내 전체 구독 수를 아직 받지 않는다. 방문한 스케치북으로만 채운 숫자는 숨긴다.
+          subscriptionCount: _sl.config.isMock
+              ? _sl.reactionsController.subscribedOwnerIds.length
+              : null,
           monthRecords: _sl.recordsSource.month,
           initialTab: _myTab,
           onTabChanged: (tab) => _myTab = tab,

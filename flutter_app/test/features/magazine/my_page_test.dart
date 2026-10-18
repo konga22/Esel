@@ -17,6 +17,11 @@ import 'package:esel/features/magazine/presentation/screens/shelf_screen.dart';
 import 'package:esel/features/records/presentation/screens/monthly_record_screen.dart';
 import 'package:esel/features/settings/presentation/screens/settings_screen.dart';
 import 'package:esel/features/twin/presentation/screens/twin_screen.dart';
+import 'package:esel/features/stand/domain/rules/same_color_rule.dart';
+import 'package:esel/features/records/domain/models/server_records.dart';
+import 'package:esel/features/reactions/presentation/controllers/reactions_controller.dart';
+import 'package:esel/features/magazine/presentation/controllers/magazine_controller.dart';
+import 'package:esel/features/magazine/data/sources/magazine_mock_source.dart';
 import 'package:esel/features/today/domain/rules/daily_candidates.dart';
 import 'package:esel/core/time/service_date.dart';
 
@@ -216,5 +221,47 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(FriendsScreen), findsOneWidget);
     });
+  });
+
+  testWidgets('#24 리뷰: 전체 구독 수를 모르면(서버) 구독 숫자 칸을 숨긴다', (tester) async {
+    tester.view.physicalSize = const Size(480, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    Future<void> pumpPage(int? subscriptions) => tester.pumpWidget(
+      MaterialApp(
+        home: MyPageScreen(
+          ownerId: 'demo_dana',
+          masthead: 'dana',
+          controller: MagazineController(MagazineMockSource()),
+          reactionsController: ReactionsController(),
+          viewer: const SameColorViewer.reader(DailyCandidates.demoDate),
+          avatar: const SizedBox.shrink(),
+          todayColor: EselPaint.camel,
+          publishedToday: true,
+          subscriptionCount: subscriptions,
+          monthRecords: (month) async => ServerMonthRecords(month, 2, const []),
+          onOpenCanvas: (_) {},
+          onOpenSaved: (_) {},
+          onMakeToday: () {},
+          onChooseColor: () {},
+          onOpenRecords: () {},
+          onOpenSubscriptions: () {},
+          onEditProfile: () {},
+          onShare: () {},
+          onOpenSettings: () {},
+        ),
+      ),
+    );
+    await pumpPage(null);
+    expect(find.byKey(const ValueKey('my-stat-subscriptions')), findsNothing);
+    expect(find.byKey(const ValueKey('my-stat-canvases')), findsOneWidget);
+    await pumpPage(3);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('my-stat-subscriptions')),
+        matching: find.text('3'),
+      ),
+      findsOneWidget,
+    );
   });
 }
