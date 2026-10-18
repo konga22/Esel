@@ -4,15 +4,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:esel/core/design/tokens.g.dart';
 import 'package:esel/core/time/service_date.dart';
 import 'package:esel/features/drafts/data/local_library.dart';
 import 'package:esel/features/drafts/domain/cover_draft.dart';
+import 'package:esel/features/feed/data/sources/feed_mock_source.dart';
+import 'package:esel/features/feed/presentation/controllers/feed_controller.dart';
+import 'package:esel/features/feed/presentation/screens/feed_screen.dart';
+import 'package:esel/features/feed/presentation/widgets/feed_pages.dart';
 import 'package:esel/features/garments/presentation/garment_editor.dart';
+import 'package:esel/features/today/domain/rules/daily_candidates.dart';
 import 'package:esel/features/issue/data/demo_issue_catalog.dart';
 import 'package:esel/features/issue/presentation/canvas_photo.dart';
 import 'package:esel/features/issue/presentation/widgets/issue_bottom_sheet.dart';
 import 'package:esel/features/magazine/data/sources/magazine_mock_source.dart';
+import 'package:esel/features/magazine/data/sources/magazine_source.dart';
 import 'package:esel/features/magazine/presentation/controllers/magazine_controller.dart';
+import 'package:esel/features/magazine/presentation/screens/my_page_screen.dart';
 import 'package:esel/features/magazine/presentation/screens/shelf_screen.dart';
 import 'package:esel/features/reactions/presentation/controllers/reactions_controller.dart';
 import 'package:esel/features/stand/data/sources/stand_mock_source.dart';
@@ -126,6 +134,109 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+  testWidgets('DEV-14 마이페이지 X4-1 세 탭 화면과 ≡ 메뉴 항목', (tester) async {
+    phone(tester);
+    const viewer = SameColorViewer.reader(ServiceDate(2026, 10, 18));
+    // 캡처용: 예시 인물 dana의 지난 호를 내 스케치북처럼 채운다.
+    final magazine = MagazineController(_DemoAsMine());
+    addTearDown(magazine.dispose);
+    final reactions = ReactionsController();
+    addTearDown(reactions.dispose);
+    final saved = DemoIssueCatalog.issuesOn(
+      const ServiceDate(2026, 10, 17),
+    ).take(4).toList();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: RepaintBoundary(
+          key: const ValueKey('capture'),
+          child: MyPageScreen(
+            ownerId: 'demo_dana',
+            masthead: 'dana',
+            controller: magazine,
+            reactionsController: reactions,
+            viewer: viewer,
+            avatar: const CircleAvatar(backgroundColor: Color(0xFFE9E9E6)),
+            todayColor: EselPaint.camel,
+            publishedToday: false,
+            friendCount: 3,
+            savedIssues: () => saved,
+            onOpenCanvas: (_) {},
+            onOpenSaved: (_) {},
+            onMakeToday: () {},
+            onChooseColor: () {},
+            onOpenRecords: () {},
+            onOpenSubscriptions: () {},
+            onOpenFriends: () {},
+            onEditProfile: () {},
+            onShare: () {},
+            onOpenSettings: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(CanvasPhoto), findsWidgets);
+    await capture(tester, 'my-page');
+    await tester.tap(find.byKey(const ValueKey('my-tab-calendar')));
+    await tester.pumpAndSettle();
+    await capture(tester, 'my-page-calendar');
+    await tester.tap(find.byKey(const ValueKey('my-tab-saved')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(ValueKey('my-saved-${saved.first.id}')), findsOneWidget);
+    await capture(tester, 'my-page-saved');
+    await tester.tap(find.byKey(const ValueKey('my-menu')));
+    await tester.pumpAndSettle();
+    // 시트는 캡처 영역 밖(오버레이)에 뜬다. 항목만 확인한다.
+    for (final label in ['프로필 편집', '내 스케치북 공유', '설정과 계정']) {
+      expect(find.text(label), findsOneWidget);
+    }
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('DEV-21 홈 피드 사이 이번 주 주제 카드', (tester) async {
+    phone(tester);
+    const today = ServiceDate(2026, 9, 6);
+    final viewer = SameColorViewer(
+      today: today,
+      candidates: DailyCandidates.forDate(today),
+      hasPublishedToday: true,
+      isMinor: false,
+    );
+    final feed = FeedController(FeedMockSource());
+    addTearDown(feed.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: RepaintBoundary(
+          key: const ValueKey('capture'),
+          child: FeedScreen(
+            feedController: feed,
+            reactionsController: ReactionsController(),
+            viewer: viewer,
+            onOpenAuthorShelf: (_) {},
+            onOpenIssue: (_) {},
+            onOpenStand: (_) {},
+            onMakeTodayIssue: () {},
+            challenge: FeedFeature(
+              eyebrow: '이번 주 주제',
+              title: '가방으로 포인트',
+              sub: '서울 월~일 · 오늘 후보 색과 함께, 새 옷 없이도',
+              onTap: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final card = find.byKey(const ValueKey('feed-feature-이번 주 주제'));
+    await tester.scrollUntilVisible(
+      card,
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    Scrollable.ensureVisible(tester.element(card), alignment: 0.3);
+    await tester.pumpAndSettle();
+    await capture(tester, 'feed-feature');
+    expect(tester.takeException(), isNull);
+  });
   testWidgets('DEV-24 edit clothing, place tag and open matching detail row', (
     tester,
   ) async {
@@ -219,4 +330,17 @@ void main() {
     await capture(tester, 'garment-detail');
     expect(tester.takeException(), isNull);
   });
+}
+
+class _DemoAsMine implements MagazineSource {
+  final MagazineMockSource _inner = MagazineMockSource();
+
+  @override
+  Future<MagazineProfile?> magazine(
+    String ownerId, {
+    required SameColorViewer viewer,
+    String? viewerId,
+    String? masthead,
+    String? cursor,
+  }) => _inner.magazine(ownerId, viewer: viewer, cursor: cursor);
 }

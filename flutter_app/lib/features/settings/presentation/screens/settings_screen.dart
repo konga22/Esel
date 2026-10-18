@@ -15,6 +15,9 @@ class SettingsScreen extends StatefulWidget {
   /// 계정과 이 기기의 모든 호·사진·내보낸 이미지를 지운다. 없으면 계정만 지운다.
   final Future<void> Function()? deleteAccount;
 
+  /// 마이페이지 ≡ → 프로필 편집으로 바로 열 때. 뒤로 가면 설정 메뉴가 아닌 마이페이지로 돌아간다.
+  final bool openProfile;
+
   const SettingsScreen({
     super.key,
     required this.authController,
@@ -23,6 +26,7 @@ class SettingsScreen extends StatefulWidget {
     required this.onDeleteComplete,
     this.deleteAccount,
     this.deviceActions = const {},
+    this.openProfile = false,
   });
 
   @override
@@ -30,8 +34,8 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  int _activeView =
-      0; // 0: S1 Menu, 1: S2 Profile, 2: S3 Notification, 3: S4 Account
+  // 0: S1 Menu, 1: S2 Profile, 2: S3 Notification, 3: S4 Account
+  late int _activeView = widget.openProfile ? 1 : 0;
   bool _notificationsEnabled = true;
   bool _issueNotify = true;
   bool _reactionNotify = true;
@@ -164,7 +168,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           EselPressable(
             onTap: () {
-              if (_activeView != 0) {
+              if (_activeView != 0 && !widget.openProfile) {
                 setState(() => _activeView = 0);
               } else {
                 widget.onBack();

@@ -49,4 +49,32 @@ void main() {
     expect(reactions.isSubscribed('demo_lise'), isTrue);
     expect(find.text('구독중'), findsOneWidget);
   });
+
+  testWidgets('DEV-14 마이페이지 격자에서 누른 장까지 세로 목록이 내려 준다', (tester) async {
+    tester.view.physicalSize = const Size(480, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ShelfScreen(
+          ownerId: 'demo_kofi',
+          controller: MagazineController(MagazineMockSource()),
+          reactionsController: ReactionsController(),
+          viewer: const SameColorViewer.reader(DailyCandidates.demoDate),
+          focusIssueId: 'kofi-2026-09-02',
+          onSelectIssue: (_, _) {},
+          onBack: () {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final focused = find.byWidgetPredicate(
+      (w) => w is InkWell && w.key is GlobalKey,
+    );
+    expect(focused, findsOneWidget);
+    final top = tester.getTopLeft(focused).dy;
+    expect(top, inInclusiveRange(0, 1000 - 1));
+    // 뒤로 버튼이 있는 머리는 위로 지나갔다.
+    expect(find.byTooltip('뒤로'), findsNothing);
+  });
 }

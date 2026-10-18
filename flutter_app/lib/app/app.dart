@@ -24,8 +24,11 @@ import '../features/friends/presentation/screens/friends_screen.dart';
 import '../features/intro/presentation/screens/intro_screen.dart';
 import '../features/issue/presentation/widgets/issue_bottom_sheet.dart';
 import '../features/magazine/domain/rules/privacy_rule.dart';
+import '../features/magazine/presentation/screens/my_page_screen.dart';
 import '../features/magazine/presentation/screens/shelf_screen.dart';
 import '../features/feed/presentation/widgets/feed_pages.dart';
+import '../features/issue/data/demo_issue_catalog.dart';
+import '../features/stand/domain/rules/same_color_rule.dart';
 import '../features/moderation/presentation/widgets/moderation_sheet.dart';
 import '../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../features/publishing/presentation/screens/publish_screen.dart';
@@ -37,7 +40,6 @@ import '../features/settings/presentation/screens/settings_screen.dart';
 import 'dependencies/service_locator.dart';
 import 'routing/app_routes.dart';
 import '../features/media/domain/models/face_box.dart';
-import '../features/media/presentation/cover_preview.dart';
 import '../features/media/presentation/face_avatar.dart';
 import '../core/design/typography.dart';
 
@@ -56,6 +58,12 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
   AppTab _currentTab = AppTab.feed;
   ActiveScreen _activeScreen = ActiveScreen.main;
   String? _authorShelfOwnerId;
+
+  /// 마이페이지 격자에서 누른 캔버스. 세로 목록(AppTab.shelf)이 그 장까지 내려 준다.
+  String? _shelfFocusId;
+
+  /// 마이페이지 ≡ → 프로필 편집이면 설정을 프로필 화면으로 바로 연다.
+  bool _settingsProfile = false;
   StyleChallenge? _pendingChallenge;
   String? _previousIssueId;
   String? _contentOwnerId;
@@ -506,7 +514,9 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
     // 6. 서브스크린: 설정 (S1~S6)
     if (_activeScreen == ActiveScreen.settings) {
       return SettingsScreen(
+        key: ValueKey('settings-$_settingsProfile'),
         authController: _sl.authController,
+        openProfile: _settingsProfile,
         deviceActions: {
           '기기 접근성 설정': () => Navigator.push<void>(
             context,
@@ -742,6 +752,8 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
 
       case AppTab.shelf:
         return ShelfScreen(
+          key: ValueKey('my-shelf-$_shelfFocusId'),
+          focusIssueId: _shelfFocusId,
           ownerId: session.userId,
           masthead: session.masthead,
           isOwner: true,
@@ -750,54 +762,84 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
           reactionsController: _sl.reactionsController,
           viewer: today.viewer,
           viewerId: session.userId,
-          onSelectIssue: (issue, local) {
-            if (local == null) {
-              _openIssue(context, issue);
-              return;
-            }
-            Navigator.push<void>(
-              context,
-              MaterialPageRoute(
-                builder: (_) => Scaffold(
-                  appBar: AppBar(title: Text(issue.issueLabel)),
-                  body: Center(child: CoverPreview(draft: local)),
-                ),
-              ),
-            );
-          },
+          // 내 캔버스 세로 목록에서 누르면 자세히 보기(반응 숫자는 나만, P18).
+          onSelectIssue: (issue, _) => _openIssue(context, issue),
           onBack: () => setState(() => _currentTab = AppTab.me),
         );
 
       case AppTab.me:
-        return ShelfScreen(
+        return MyPageScreen(
           ownerId: session.userId,
           masthead: session.masthead,
-          isOwner: true,
-          onShareIssue: (issue) => _shareIssue(context, issue),
           controller: _sl.magazineController,
           reactionsController: _sl.reactionsController,
           viewer: today.viewer,
-          viewerId: session.userId,
-          onSelectIssue: (issue, _) => _openIssue(context, issue),
-          onBack: () => setState(() => _currentTab = AppTab.feed),
-          actions: {
-            '오늘의 캔버스 만들기': () => setState(() => _currentTab = AppTab.publish),
-            '오늘의 색': () => _chooseColor(context),
-            '색 달력': () => setState(() => _activeScreen = ActiveScreen.records),
-            if (_sl.config.isMock)
-              '이번 주 주제': () =>
-                  setState(() => _activeScreen = ActiveScreen.challenges),
-            if (_sl.config.isMock)
-              '전시': () =>
-                  setState(() => _activeScreen = ActiveScreen.collections),
-            if (_sl.config.isMock)
-              '친구': () => setState(() => _activeScreen = ActiveScreen.friends),
-            if (_sl.config.isMock)
-              '트윈': () => setState(() => _activeScreen = ActiveScreen.twin),
-            '설정': () => setState(() => _activeScreen = ActiveScreen.settings),
+          avatar: _buildMyAvatar(size: 80),
+          todayColor: today.myColor,
+          publishedToday: today.hasPublishedToday,
+          friendCount: _sl.config.isMock
+              ? _sl.friendsController.friends.length
+              : null,
+          savedIssues: _sl.config.isMock
+              ? () => _demoSaved(today.viewer)
+              : null,
+          onOpenCanvas: (issue) => setState(() {
+            _shelfFocusId = issue.id;
+            _currentTab = AppTab.shelf;
+          }),
+          onOpenSaved: (issue) => _openIssue(context, issue),
+          onMakeToday: () => setState(() => _currentTab = AppTab.publish),
+          onChooseColor: () => _chooseColor(context),
+          onOpenRecords: () =>
+              setState(() => _activeScreen = ActiveScreen.records),
+          onOpenSubscriptions: () {
+            _sl.standController.selectTab(PaletteTab.subscriptions);
+            setState(() => _currentTab = AppTab.stand);
           },
+          onOpenFriends: _sl.config.isMock
+              ? () => setState(() => _activeScreen = ActiveScreen.friends)
+              : null,
+          onEditProfile: () => setState(() {
+            _settingsProfile = true;
+            _activeScreen = ActiveScreen.settings;
+          }),
+          onShare: () => _shareSketchbook(context),
+          onOpenSettings: () => setState(() {
+            _settingsProfile = false;
+            _activeScreen = ActiveScreen.settings;
+          }),
         );
     }
+  }
+
+  /// 목업 모드 저장함: 최근 2주 예시 캔버스 중 내가 저장했고 지금 볼 수 있는 것(P01).
+  /// 서버 모드는 GET /me/scraps가 생기면 연결한다(DEV-14).
+  List<PublicIssue> _demoSaved(SameColorViewer viewer) => [
+    for (var back = 0; back < 14; back++)
+      for (final issue in DemoIssueCatalog.issuesOn(
+        viewer.today.addDays(-back),
+        today: viewer.today,
+      ))
+        if (_sl.reactionsController.isScrapped(issue.id) &&
+            SameColorRule.accessFor(
+                  color: issue.color,
+                  date: issue.date,
+                  viewer: viewer,
+                ) ==
+                SameColorRoomAccess.open)
+          issue,
+  ];
+
+  /// 내 스케치북 공유. 스케치북 공개 링크가 아직 없어서 가장 최근 캔버스를 공유한다.
+  void _shareSketchbook(BuildContext context) {
+    final latest = _sl.magazineController.profile?.issues.firstOrNull;
+    if (latest == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('캔버스를 올리면 스케치북을 공유할 수 있어요.')),
+      );
+      return;
+    }
+    _shareIssue(context, latest);
   }
 
   Future<void> _chooseColor(BuildContext context) async {
@@ -895,7 +937,7 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
   }
 
   /// 내 아바타: 최근 호 사진에서 얼굴이 원을 채우게. 호가 없으면 사인 첫 글자.
-  Widget _buildMyAvatar() {
+  Widget _buildMyAvatar({double size = 34}) {
     final session = _sl.authController.currentSession;
     final latest = _sl.todayController.issues.firstOrNull;
     final masthead = session?.masthead ?? '';
@@ -903,14 +945,14 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
       return FaceAvatar(
         image: localPhotoProvider(latest.photoPath),
         face: FaceBox(latest.faceX, latest.faceY, latest.faceWidth),
-        size: 34,
+        size: size,
       );
     }
     // 아바타는 장식이다. 이름은 버튼 라벨("스케치북")로 읽힌다.
     return ExcludeSemantics(
       child: Container(
-        width: 34,
-        height: 34,
+        width: size,
+        height: size,
         alignment: Alignment.center,
         decoration: const BoxDecoration(
           color: Color(0xFFE9E9E6),
@@ -918,7 +960,7 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
         ),
         child: Text(
           masthead.isEmpty ? 'E' : masthead[0].toUpperCase(),
-          style: EselTypography.name(fontSize: 20),
+          style: EselTypography.name(fontSize: size * 0.59),
         ),
       ),
     );
