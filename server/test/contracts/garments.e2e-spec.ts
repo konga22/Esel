@@ -1,20 +1,96 @@
-// 계약 테스트: garments 모듈. api-contract.json의 API와 루트 docs/dev/features.json의 서버 합격 기준을 할 일(it.todo)로 적어 두었다.
-// 이 파일은 손으로 관리한다. API마다 'METHOD /api/경로: … → 상태' 형식의 todo나 테스트가 있어야 하고, 상태 코드는 api-contract.json과 같아야 한다(npm run check:server가 확인).
-// 하나를 구현하면 그 todo를 it(…) 안에서 request(app.getHttpServer()).<method>('/api/…')로 부르는 실제 테스트로 바꾸고, api-contract.json의 status를 done으로 바꾼다.
-// 실행: npm run test:e2e (todo는 실패가 아니라 '남은 일'로 표시된다)
+import { INestApplication } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
+import request from 'supertest';
+import { App } from 'supertest/types.js';
+import { PrismaService } from '../../src/prisma/prisma.service.js';
+import { createTestApp } from '../create-app.js';
 
 describe('DEV-24 착용 정보', () => {
-  // garments.mine · 접근: user · 응답: Page<GarmentOwnerDto> · 계약: P19
-  it.todo(
-    'GET /api/me/garments: 내 옷 목록(같은 옷, 다른 코디에서 다시 고르기, cursor) → 200',
-  );
-  it.todo('GET /api/me/garments: 로그인 없이 부르면 → 401 AUTH_REQUIRED');
-  it.todo(
-    'GET /api/me/garments: 보낸 값의 형식이 맞지 않아요 → 400 VALIDATION',
-  );
-  it.todo('합격 기준(P19): 내 옷만 돌려줌. 다른 사람의 옷은 섞이지 않음');
-  it.todo(
-    '합격 기준(P19): 응답에 가격·쇼핑 링크 필드가 없음(publicForbiddenFields)',
-  );
-  it.todo('합격 기준: 탈퇴하면 내 옷과 호에 붙은 착용 정보가 함께 지워짐');
+  let app: INestApplication<App>;
+  let prisma: PrismaService;
+
+  beforeAll(async () => {
+    app = await createTestApp();
+    prisma = app.get(PrismaService);
+    await cleanup();
+  });
+  afterEach(cleanup);
+  afterAll(async () => app.close());
+
+  async function cleanup() {
+    await prisma.user.deleteMany({
+      where: { email: { endsWith: '@garments.e2e.test' } },
+    });
+  }
+
+  async function signup(label: string) {
+    const response = await request(app.getHttpServer())
+      .post('/api/auth/email/signup')
+      .send({
+        email: `${label}-${randomUUID()}@garments.e2e.test`,
+        password: 'correct horse battery staple',
+      })
+      .expect(201);
+    return {
+      id: response.body.userId as string,
+      token: response.body.accessToken as string,
+    };
+  }
+
+  const auth = (token: string) => ({ Authorization: `Bearer ${token}` });
+
+  it('GET /api/me/garments: 내 옷 목록(같은 옷, 다른 코디에서 다시 고르기, cursor) → 200', async () => {
+    const owner = await signup('owner');
+    const other = await signup('other');
+    const mine = await prisma.garment.create({
+      data: { ownerId: owner.id, kind: 'top', name: '흰 셔츠', note: '오버핏' },
+    });
+    await prisma.garment.create({
+      data: { ownerId: other.id, kind: 'shoes', name: '남의 신발' },
+    });
+    const response = await request(app.getHttpServer())
+      .get('/api/me/garments')
+      .set(auth(owner.token))
+      .expect(200);
+    expect(response.body).toEqual({
+      items: [
+        {
+          id: mine.id,
+          kind: 'top',
+          name: '흰 셔츠',
+          note: '오버핏',
+          createdAt: expect.any(String),
+        },
+      ],
+      nextCursor: null,
+    });
+    expect(JSON.stringify(response.body)).not.toMatch(/price|shopUrl/i);
+  });
+
+  it('GET /api/me/garments: 로그인 없이 부르면 → 401 AUTH_REQUIRED', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/api/me/garments')
+      .expect(401);
+    expect(response.body.error.code).toBe('AUTH_REQUIRED');
+  });
+
+  it('GET /api/me/garments: 보낸 값의 형식이 맞지 않아요 → 400 VALIDATION', async () => {
+    const owner = await signup('invalid');
+    const response = await request(app.getHttpServer())
+      .get('/api/me/garments?cursor=bad')
+      .set(auth(owner.token))
+      .expect(400);
+    expect(response.body.error.code).toBe('VALIDATION');
+  });
+
+  it('합격 기준: 탈퇴하면 내 옷과 호에 붙은 착용 정보가 함께 지워짐', async () => {
+    const owner = await signup('cascade');
+    const garment = await prisma.garment.create({
+      data: { ownerId: owner.id, kind: 'bag', name: '가방' },
+    });
+    await prisma.user.delete({ where: { id: owner.id } });
+    expect(
+      await prisma.garment.findUnique({ where: { id: garment.id } }),
+    ).toBeNull();
+  });
 });

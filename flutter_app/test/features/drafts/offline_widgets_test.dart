@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -61,8 +62,10 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    await reach('원본에서 얼굴 위치 맞추기');
-    await tester.tap(find.text('원본에서 얼굴 위치 맞추기'));
+    // 물감이 켜져 있으면 표지 아래 안내의 버튼 이름이 "물감 위치 옮기기"다(PR #21 리뷰).
+    await reach('물감 위치 옮기기');
+    expect(find.text('물감 위치가 어긋났나요?'), findsOneWidget);
+    await tester.tap(find.text('물감 위치 옮기기'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.byType(CoverPreview),
@@ -73,6 +76,8 @@ void main() {
       tester.widget<CoverPreview>(find.byType(CoverPreview)).locatingFace,
       isTrue,
     );
+    expect(find.text('얼굴 가운데를 눌러 주세요'), findsOneWidget);
+    await reach('효과 미리보기로 돌아가기');
     await reach('목 아래');
     await tester.tap(find.text('목 아래'));
     await tester.pumpAndSettle();
@@ -113,8 +118,8 @@ void main() {
       find.descendant(of: photo, matching: find.byType(EselPaintAsset)),
       findsOneWidget,
     );
-    await reach('원본에서 얼굴 위치 맞추기');
-    await tester.tap(find.text('원본에서 얼굴 위치 맞추기'));
+    await reach('물감 위치 옮기기');
+    await tester.tap(find.text('물감 위치 옮기기'));
     await tester.pumpAndSettle();
     final preview = find.byType(CoverPreview);
     final rect = tester.getRect(preview);
@@ -212,7 +217,9 @@ void main() {
     (tester) async {
       final now = DateTime.now();
       await tester.pumpWidget(
-        MaterialApp(home: LocalCalendarScreen(library: library,ownerId:'owner')),
+        MaterialApp(
+          home: LocalCalendarScreen(library: library, ownerId: 'owner'),
+        ),
       );
       for (var i = 0; i < 13; i++) {
         await tester.tap(find.byTooltip('이전 달'));
@@ -238,9 +245,18 @@ void main() {
           ),
         ),
       );
+      // 설정은 기기에 저장한 뒤에 알린다. 고정 100ms만 기다리면 CI 디스크가 느릴 때
+      // 알림 전에 글자 크기를 읽어 가끔 실패했다. 알림이 올 때까지 기다린다.
       await tester.runAsync(() async {
+        final saved = Completer<void>();
+        void done() {
+          if (!saved.isCompleted) saved.complete();
+        }
+
+        library.addListener(done);
         await tester.tap(find.text('큰 글씨'));
-        await Future<void>.delayed(const Duration(milliseconds: 100));
+        await saved.future.timeout(const Duration(seconds: 10));
+        library.removeListener(done);
       });
       await tester.pumpAndSettle();
       expect(library.largeText, isTrue);

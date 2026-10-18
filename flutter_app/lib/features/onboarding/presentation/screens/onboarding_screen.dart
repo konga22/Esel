@@ -10,6 +10,7 @@ import '../../../../core/ui/esel_paint_asset.dart';
 import '../../../../core/ui/esel_pressable.dart';
 import '../../../drafts/data/local_library.dart';
 import '../../../media/presentation/cover_preview.dart';
+import '../../../media/presentation/face_adjust_guide.dart';
 import '../../domain/models/onboarding_draft.dart';
 import '../controllers/onboarding_controller.dart';
 
@@ -487,6 +488,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   // ───────── J6 얼굴
 
+  /// 원본에서 얼굴 가운데를 고르는 모드로. 표지가 보이게 올려 준다.
+  void _locateFace() {
+    setState(() => _locatingFace = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final preview = _facePreviewKey.currentContext;
+      if (mounted && preview != null) {
+        Scrollable.ensureVisible(
+          preview,
+          duration: const Duration(milliseconds: 180),
+        );
+      }
+    });
+  }
+
   Widget _buildFace(OnboardingDraft draft) {
     final cover = draft.toCover(id: 'founding', now: DateTime(2026));
     return _page(
@@ -517,6 +532,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               locatingFace: _locatingFace,
               aspectRatio: null,
               chrome: !_locatingFace,
+              hint: _locatingFace ? '얼굴 가운데를 눌러 주세요' : null,
               onFacePosition: (point) {
                 _c.placeFace(point);
                 setState(() => _locatingFace = false);
@@ -524,15 +540,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 10),
-        Text(
-          _locatingFace
-              ? '원본 사진에서 얼굴 가운데를 눌러 주세요.'
-              : !draft.facePlaced
-              ? '효과는 바로 적용돼요. 얼굴 위치 맞추기로 기준을 정해 주세요.'
-              : '자르기는 하나만, 물감은 따로 켜고 끌 수 있어요.',
-          textAlign: TextAlign.center,
-          style: EselTypography.body(fontSize: 13, color: EselColors.muted),
+        const SizedBox(height: 12),
+        // 물감이 어긋났을 때 무엇을 누를지 표지 바로 아래에서 알려 준다(PR #21 리뷰).
+        FaceAdjustGuide(
+          effects: draft.effectiveFaceEffects,
+          locating: _locatingFace,
+          placed: draft.facePlaced,
+          cancelHere: false,
+          onToggle: _locateFace,
         ),
         const SizedBox(height: 14),
         GridView.count(
@@ -578,21 +593,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   _c.selectFaceMode(FaceLayoutMode.paintStroke);
                 },
         ),
-        TextButton(
-          onPressed: () {
-            setState(() => _locatingFace = true);
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              final preview = _facePreviewKey.currentContext;
-              if (mounted && preview != null) {
-                Scrollable.ensureVisible(
-                  preview,
-                  duration: const Duration(milliseconds: 180),
-                );
-              }
-            });
-          },
-          child: Text(draft.facePlaced ? '얼굴 위치 다시 정하기' : '얼굴 위치 맞추기'),
-        ),
+        const SizedBox(height: 8),
         const Text('얼굴 크기'),
         Slider(
           value: draft.faceWidth,

@@ -271,9 +271,16 @@ describe('DEV-05 로그인', () => {
         password: 'correct horse battery staple',
       })
       .expect(201);
+    await prisma.authSession.update({
+      where: {
+        accessTokenHash: hashToken(signup.body.accessToken as string),
+      },
+      data: { accessExpiresAt: new Date(Date.now() - 1_000) },
+    });
 
     const refreshed = await request(app.getHttpServer())
       .post('/api/auth/refresh')
+      .set('Authorization', `Bearer ${signup.body.accessToken}`)
       .send({ refreshToken: signup.body.refreshToken })
       .expect(201);
 

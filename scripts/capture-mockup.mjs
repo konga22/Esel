@@ -44,6 +44,9 @@ const SETUP = {
   C5b: IN + at('stand', 'shelf:dana') + "document.querySelector('#scroller').scrollTop=1060;",
   C6: IN + at('make'),
   C6neck: `${IN}S.me.crop='neck';S.me.paint=false;` + at('make'),
+  // PR #21 review follow-up: paint on shows the "물감 위치 옮기기" guide; pressing it shows the plain photo and the hint.
+  C6paint: `${IN}S.me.paint=true;` + at('make'),
+  C6face: `${IN}S.me.paint=true;S.me.locate=true;` + at('make'),
   C6wear: IN + at('make') + "openGarment(null);S.draft.kind='가방';S.draft.note='빈티지';redrawSheet();",
   C7: IN + at() + scroll(0, 1500, 20) + scroll(1490, 1100, 10),
   C8: IN + at('same'),

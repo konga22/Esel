@@ -1,5 +1,6 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
@@ -13,6 +14,8 @@ import type { AuthUser } from '../auth/auth-user.js';
 import { CurrentUser } from '../auth/current-user.decorator.js';
 import { IssueReactionsOwnerDto } from './dto/issue-reactions-owner.dto.js';
 import { MagazineOwnerDto } from './dto/magazine-owner.dto.js';
+import { ScrapPageDto } from './dto/scrap-page.dto.js';
+import { ScrapsQueryDto } from './dto/scraps-query.dto.js';
 import { MeService } from './me.service.js';
 
 @ApiTags('me')
@@ -31,6 +34,18 @@ export class MeController {
     @Query('cursor') cursor?: string,
   ): Promise<MagazineOwnerDto> {
     return this.meService.magazine(user.id, cursor);
+  }
+
+  @Get('scraps')
+  @ApiOperation({ summary: '내가 저장한 캔버스 목록' })
+  @ApiOkResponse({ type: ScrapPageDto })
+  @ApiBadRequestResponse({ description: 'VALIDATION' })
+  @ApiUnauthorizedResponse({ description: 'AUTH_REQUIRED 또는 TOKEN_EXPIRED' })
+  scraps(
+    @CurrentUser() user: AuthUser,
+    @Query() query: ScrapsQueryDto,
+  ): Promise<ScrapPageDto> {
+    return this.meService.scraps(user.id, query.cursor);
   }
 
   @Get('issues/:id/reactions')

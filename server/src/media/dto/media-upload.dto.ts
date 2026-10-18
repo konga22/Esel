@@ -5,9 +5,9 @@ export class MediaUploadDto {
   id: string;
 
   @ApiProperty({
-    example: 'pending/550e8400-e29b-41d4-a716-446655440000.upload',
+    example: '/api/media/550e8400-e29b-41d4-a716-446655440000/file',
   })
-  storageKey: string;
+  uploadUrl: string;
 
   @ApiProperty({ example: 15_728_640 })
   maxSizeBytes: number;

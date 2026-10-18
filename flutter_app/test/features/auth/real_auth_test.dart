@@ -93,6 +93,44 @@ void main() {
     },
   );
   test(
+    '#26 리뷰: 가입·로그인·토큰 갱신에는 access 토큰을 붙이지 않고, 로그아웃과 보호된 요청에는 붙인다',
+    () async {
+      await storage.saveTokens(accessToken: 'expired', refreshToken: 'refresh');
+      final headers = <String, String?>{};
+      server.listen((req) async {
+        final auth = req.headers.value(HttpHeaders.authorizationHeader);
+        headers[req.uri.path] = auth;
+        // 서버(#26)는 공개 주소에서도 붙은 토큰을 검사한다: 만료 토큰이면 401.
+        if (auth == 'Bearer expired') {
+          req.response.statusCode = 401;
+          req.response.write(
+            jsonEncode({
+              'error': {'code': 'TOKEN_EXPIRED', 'message': 'expired'},
+            }),
+          );
+        } else if (req.uri.path.endsWith('/auth/refresh')) {
+          req.response.write(jsonEncode(session('renewed', 'rotated')));
+        } else {
+          req.response.write(jsonEncode({'available': true}));
+        }
+        await req.response.close();
+      });
+      // 만료된 토큰으로 보호된 요청 → 토큰 없이 갱신 → 새 토큰으로 다시 보냄. 로그아웃되지 않는다.
+      expect(await http.get('/users/minakim/available'), {'available': true});
+      expect(headers['/api/auth/refresh'], isNull);
+      expect(headers['/api/users/minakim/available'], 'Bearer renewed');
+      expect((await storage.getTokens())?['access_token'], 'renewed');
+      expect(StandardHttpClient.sendsAccessToken('/auth/email/login'), isFalse);
+      expect(
+        StandardHttpClient.sendsAccessToken('/auth/email/signup'),
+        isFalse,
+      );
+      expect(StandardHttpClient.sendsAccessToken('auth/refresh'), isFalse);
+      expect(StandardHttpClient.sendsAccessToken('/auth/logout'), isTrue);
+      expect(StandardHttpClient.sendsAccessToken('/today/cover'), isTrue);
+    },
+  );
+  test(
     'expired access refreshes once and retries the protected request',
     () async {
       await storage.saveTokens(accessToken: 'expired', refreshToken: 'refresh');

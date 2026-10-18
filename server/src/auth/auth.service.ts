@@ -228,9 +228,9 @@ export class AuthService {
     );
     const issue = await this.prisma.issue.findUnique({
       where: { authorId_serviceDate: { authorId: userId, serviceDate: today } },
-      select: { id: true },
+      select: { id: true, deletedAt: true },
     });
-    return Boolean(issue);
+    return Boolean(issue && !issue.deletedAt);
   }
 
   private toSessionDto(

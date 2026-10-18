@@ -1,5 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { randomUUID } from 'node:crypto';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
 import { serviceDate } from '../../src/common/service-date.js';
@@ -13,15 +14,84 @@ import { createLockedIssuePerCandidate } from '../p01-fixtures.js';
 // 실행: npm run test:e2e (todo는 실패가 아니라 '남은 일'로 표시된다)
 
 describe('DEV-04 비로그인 첫 표지와 로그인 바', () => {
+  let app: INestApplication<App>;
+  let prisma: PrismaService;
+  let timeZone: string;
+
+  beforeAll(async () => {
+    app = await createTestApp();
+    prisma = app.get(PrismaService);
+    timeZone = app.get(ConfigService).getOrThrow<string>('SERVICE_TIME_ZONE');
+    await cleanup();
+  });
+  afterEach(cleanup);
+  afterAll(async () => app.close());
+
+  async function cleanup() {
+    await prisma.issue.deleteMany({
+      where: { author: { email: { endsWith: '@cover.e2e.test' } } },
+    });
+    await prisma.user.deleteMany({
+      where: { email: { endsWith: '@cover.e2e.test' } },
+    });
+  }
+
+  async function createIssue(index: number, colorId: string) {
+    const user = await prisma.user.create({
+      data: {
+        email: `cover-${index}-${randomUUID()}@cover.e2e.test`,
+        profile: {
+          create: { masthead: `cover${String.fromCharCode(97 + index)}` },
+        },
+      },
+    });
+    const media = await prisma.mediaAsset.create({
+      data: {
+        ownerId: user.id,
+        storageKey: `cover/${randomUUID()}`,
+        status: 'READY',
+        mimeType: 'image/jpeg',
+        sizeBytes: 24,
+      },
+    });
+    const dateKey = serviceDate(new Date(), timeZone);
+    return prisma.issue.create({
+      data: {
+        authorId: user.id,
+        serviceDate: new Date(`${dateKey}T00:00:00.000Z`),
+        issueNumber: 1,
+        colorId,
+        mediaId: media.id,
+        caption: '비로그인 표지',
+        faceMode: 'PLAIN',
+        publishedAt: new Date(Date.now() + index * 1_000),
+      },
+    });
+  }
+
   // today.cover · 접근: public · 응답: TodayCoverPublicDto · 계약: P01, P12, P18
-  it.todo('GET /api/today/cover: 비로그인용 오늘의 표지와 안쪽 2쪽 → 200');
-  it.todo(
-    '합격 기준(P12): 비로그인에게는 표지 1장과 안쪽 2쪽까지만 줌(3번째 지면 이후는 응답에 없음)',
-  );
-  it.todo(
-    '합격 기준(P01): 오늘 후보 색 표지는 각 방의 미리보기(최신 3장) 안에서만 고름. 로그인 없이 불러 잠긴 표지를 보는 우회를 막음',
-  );
-  it.todo('합격 기준(P18): 응답에 반응 숫자가 없음');
+  it('GET /api/today/cover: 비로그인용 오늘의 표지와 안쪽 2쪽 → 200', async () => {
+    const color = await prisma.color.findFirstOrThrow({
+      orderBy: { sortOrder: 'asc' },
+    });
+    const issues = [];
+    for (let index = 0; index < 4; index += 1) {
+      issues.push(await createIssue(index, color.id));
+    }
+    const response = await request(app.getHttpServer())
+      .get('/api/today/cover')
+      .expect(200);
+    expect(response.body.cover).toBeTruthy();
+    expect(response.body.pages).toHaveLength(2);
+    const ids = [response.body.cover, ...response.body.pages].map(
+      ({ id }: { id: string }) => id,
+    );
+    expect(ids).toHaveLength(3);
+    expect(ids).not.toContain(issues[0]!.id);
+    expect(JSON.stringify(response.body)).not.toMatch(
+      /likeCount|scrapCount|lineCount|subscriberCount|rank/,
+    );
+  });
 });
 
 describe('DEV-07 오늘의 색', () => {

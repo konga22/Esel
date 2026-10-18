@@ -299,7 +299,7 @@ flowchart LR
 | 영역 | 경로 | 상태와 주의 |
 |---|---|---|
 | 최신 디자인 | Claude Design 캔버스 (`harness.json.activeDesign.canvas`, 비공개) | 00~04 보드와 03 화면 2개 페이지. 공유 전에는 소유자만 열 수 있음 |
-| 기능 개발 | [docs/dev](dev/README.md), `harness.json.development` | 개발 가이드, 기능 목록(features.json → FEATURES.md), 목업 화면 그림 65장, 생성 토큰 `flutter_app/lib/core/design/tokens.g.dart` |
+| 기능 개발 | [docs/dev](dev/README.md), `harness.json.development` | 개발 가이드, 기능 목록(features.json → FEATURES.md), 목업 화면 그림 67장, 생성 토큰 `flutter_app/lib/core/design/tokens.g.dart` |
 | 서버 | [server/AGENTS.md](../server/AGENTS.md), [api-contract.json](../server/api-contract.json) | NestJS·Prisma·PostgreSQL. 약속(API 55개)과 `check:server`, 배움 안내, 리뷰 체크리스트 |
 | 앱 목업 | [20261011-app-mockup](../.codex/temp/prototype/20261011-app-mockup/README.md) (`harness.json.appMockup`) | 모든 화면을 한 앱으로 이어 눌러 보는 비공개 웹 목업. 인물·12색은 생성기 `lib.mjs`에서 빌드 때 주입. 실제 저장·로그인 없음 |
 | 디자인 보드 사본 | [docs/design](design/README.md) | 캔버스의 보드·화면 캡처와 값 표. 레포에서 사람과 다른 AI가 읽는 곳. `npm run design:capture`로 다시 찍음 |

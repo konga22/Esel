@@ -1,4 +1,6 @@
 import { INestApplication } from '@nestjs/common';
+import { access, mkdir, rm, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
 import { PrismaService } from '../../src/prisma/prisma.service.js';
@@ -10,11 +12,12 @@ import { createTestApp } from '../create-app.js';
 // 실행: npm run test:e2e (todo는 실패가 아니라 '남은 일'로 표시된다)
 
 describe('DEV-19 설정과 계정', () => {
+  const mediaRoot = path.resolve('.test-account-media');
   let app: INestApplication<App>;
   let prisma: PrismaService;
 
   beforeAll(async () => {
-    app = await createTestApp();
+    app = await createTestApp({ MEDIA_STORAGE_ROOT: mediaRoot });
     prisma = app.get(PrismaService);
     await cleanupFixtures();
   });
@@ -23,12 +26,14 @@ describe('DEV-19 설정과 계정', () => {
 
   afterAll(async () => {
     await app.close();
+    await rm(mediaRoot, { recursive: true, force: true });
   });
 
   async function cleanupFixtures() {
     await prisma.user.deleteMany({
       where: { email: { endsWith: '@account.e2e.test' } },
     });
+    await rm(mediaRoot, { recursive: true, force: true });
   }
 
   async function signup(name: string) {
@@ -45,16 +50,64 @@ describe('DEV-19 설정과 계정', () => {
     };
   }
 
+  async function createProfile(userId: string, masthead: string) {
+    return prisma.profile.create({ data: { userId, masthead } });
+  }
+
   // account.updateProfile · 접근: user · 응답: ProfileOwnerDto · 계약: P14
-  it.todo('PATCH /api/me/profile: 제호·소개 바꾸기 → 200');
-  it.todo('PATCH /api/me/profile: 로그인 없이 부르면 → 401 AUTH_REQUIRED');
-  it.todo(
-    'PATCH /api/me/profile: 보낸 값의 형식이 맞지 않아요 → 400 VALIDATION',
-  );
-  it.todo('PATCH /api/me/profile: 이미 있는 이름이에요 → 409 MASTHEAD_TAKEN');
-  it.todo(
-    'PATCH /api/me/profile: 이름은 영문 소문자 2~10자예요 → 422 MASTHEAD_INVALID',
-  );
+  it('PATCH /api/me/profile: 제호·소개 바꾸기 → 200', async () => {
+    const user = await signup('profile-update');
+    await createProfile(user.userId, 'before');
+    const response = await request(app.getHttpServer())
+      .patch('/api/me/profile')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({ masthead: 'after', bio: '옷으로 남기는 나의 계절.' })
+      .expect(200);
+    expect(response.body).toMatchObject({
+      masthead: 'after',
+      bio: '옷으로 남기는 나의 계절.',
+      issueCount: 0,
+    });
+  });
+  it('PATCH /api/me/profile: 로그인 없이 부르면 → 401 AUTH_REQUIRED', async () => {
+    const response = await request(app.getHttpServer())
+      .patch('/api/me/profile')
+      .send({ bio: '소개' })
+      .expect(401);
+    expect(response.body.error.code).toBe('AUTH_REQUIRED');
+  });
+  it('PATCH /api/me/profile: 보낸 값의 형식이 맞지 않아요 → 400 VALIDATION', async () => {
+    const user = await signup('profile-validation');
+    await createProfile(user.userId, 'validone');
+    const response = await request(app.getHttpServer())
+      .patch('/api/me/profile')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({ bio: '가'.repeat(81) })
+      .expect(400);
+    expect(response.body.error.code).toBe('VALIDATION');
+  });
+  it('PATCH /api/me/profile: 이미 있는 이름이에요 → 409 MASTHEAD_TAKEN', async () => {
+    const owner = await signup('profile-owner');
+    const user = await signup('profile-taken');
+    await createProfile(owner.userId, 'reserved');
+    await createProfile(user.userId, 'current');
+    const response = await request(app.getHttpServer())
+      .patch('/api/me/profile')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({ masthead: 'reserved' })
+      .expect(409);
+    expect(response.body.error.code).toBe('MASTHEAD_TAKEN');
+  });
+  it('PATCH /api/me/profile: 이름은 영문 소문자 2~10자예요 → 422 MASTHEAD_INVALID', async () => {
+    const user = await signup('profile-invalid');
+    await createProfile(user.userId, 'validtwo');
+    const response = await request(app.getHttpServer())
+      .patch('/api/me/profile')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({ masthead: 'Not-valid' })
+      .expect(422);
+    expect(response.body.error.code).toBe('MASTHEAD_INVALID');
+  });
   // account.notifications · 접근: user · 응답: NotificationSettingsDto
   it('GET /api/me/notifications: 알림 설정 보기 → 200', async () => {
     const user = await signup('notifications-get');
@@ -118,7 +171,120 @@ describe('DEV-19 설정과 계정', () => {
     expect(response.body.error.code).toBe('VALIDATION');
   });
   // account.delete · 접근: user · 응답: void
-  it.todo('DELETE /api/me: 탈퇴(삭제 내용 확인 후) → 204');
-  it.todo('DELETE /api/me: 로그인 없이 부르면 → 401 AUTH_REQUIRED');
-  it.todo('DELETE /api/me: 보낸 값의 형식이 맞지 않아요 → 400 VALIDATION');
+  it('DELETE /api/me: 탈퇴(삭제 내용 확인 후) → 204', async () => {
+    const user = await signup('delete-success');
+    await createProfile(user.userId, 'leaving');
+    await prisma.notificationSettings.create({ data: { userId: user.userId } });
+    await request(app.getHttpServer())
+      .delete('/api/me')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({ confirmed: true })
+      .expect(204);
+    expect(
+      await prisma.user.findUnique({ where: { id: user.userId } }),
+    ).toBeNull();
+    await request(app.getHttpServer())
+      .get('/api/me/notifications')
+      .set('Authorization', `Bearer ${user.token}`)
+      .expect(401);
+  });
+  it('DELETE /api/me: 소유 사진과 함께 삭제되는 트윈 상대 사진 파일도 정리 → 204', async () => {
+    const owner = await signup('delete-files-owner');
+    const partner = await signup('delete-files-partner');
+    await createProfile(owner.userId, 'fileowner');
+    await createProfile(partner.userId, 'filemate');
+    const ownerMedia = await prisma.mediaAsset.create({
+      data: {
+        ownerId: owner.userId,
+        storageKey: `account-e2e/${owner.userId}.png`,
+        status: 'READY',
+        mimeType: 'image/png',
+        sizeBytes: 3,
+      },
+    });
+    const partnerMedia = await prisma.mediaAsset.create({
+      data: {
+        ownerId: partner.userId,
+        storageKey: `account-e2e/${partner.userId}.png`,
+        status: 'READY',
+        mimeType: 'image/png',
+        sizeBytes: 3,
+      },
+    });
+    const twin = await prisma.twin.create({
+      data: {
+        serviceDate: new Date('2001-01-01T00:00:00.000Z'),
+        status: 'ACCEPTED',
+        participations: {
+          create: [
+            {
+              userId: owner.userId,
+              serviceDate: new Date('2001-01-01T00:00:00.000Z'),
+              role: 'INVITER',
+            },
+            {
+              userId: partner.userId,
+              serviceDate: new Date('2001-01-01T00:00:00.000Z'),
+              role: 'INVITEE',
+            },
+          ],
+        },
+      },
+    });
+    await prisma.twinPost.createMany({
+      data: [
+        {
+          twinId: twin.id,
+          userId: owner.userId,
+          mediaId: ownerMedia.id,
+          colorId: 'sage',
+        },
+        {
+          twinId: twin.id,
+          userId: partner.userId,
+          mediaId: partnerMedia.id,
+          colorId: 'butter',
+        },
+      ],
+    });
+    const paths = [ownerMedia, partnerMedia].flatMap(({ id, storageKey }) => [
+      path.join(mediaRoot, storageKey),
+      path.join(mediaRoot, 'thumbs', `${id}.jpg`),
+    ]);
+    for (const filePath of paths) {
+      await mkdir(path.dirname(filePath), { recursive: true });
+      await writeFile(filePath, 'img');
+    }
+
+    await request(app.getHttpServer())
+      .delete('/api/me')
+      .set('Authorization', `Bearer ${owner.token}`)
+      .send({ confirmed: true })
+      .expect(204);
+
+    for (const filePath of paths) {
+      await expect(access(filePath)).rejects.toMatchObject({ code: 'ENOENT' });
+    }
+    expect(
+      await prisma.mediaAsset.count({
+        where: { id: { in: [ownerMedia.id, partnerMedia.id] } },
+      }),
+    ).toBe(0);
+  });
+  it('DELETE /api/me: 로그인 없이 부르면 → 401 AUTH_REQUIRED', async () => {
+    const response = await request(app.getHttpServer())
+      .delete('/api/me')
+      .send({ confirmed: true })
+      .expect(401);
+    expect(response.body.error.code).toBe('AUTH_REQUIRED');
+  });
+  it('DELETE /api/me: 보낸 값의 형식이 맞지 않아요 → 400 VALIDATION', async () => {
+    const user = await signup('delete-validation');
+    const response = await request(app.getHttpServer())
+      .delete('/api/me')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({ confirmed: false })
+      .expect(400);
+    expect(response.body.error.code).toBe('VALIDATION');
+  });
 });
