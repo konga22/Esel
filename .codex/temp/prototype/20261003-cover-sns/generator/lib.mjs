@@ -159,15 +159,20 @@ export const pill = (label, fg, extra = '') => `<span style="height: 32px; paddi
 // The masthead: the brand name set huge across the top of a cover.
 export const masthead = (text, color, { size = 200, top = 80, track = -0.05 } = {}) => `<div aria-hidden="true" style="position: absolute; left: 0; right: 0; top: ${top}px; text-align: center; font-family: ${SERIF}; font-size: ${size}px; line-height: 0.9; letter-spacing: ${track}em; padding-right: ${Math.round(-track * size)}px; color: ${color}; white-space: nowrap">${text}</div>`;
 
-// Floating glass capsule, four slots: home, palette (my paint of the day), make (+), my sketchbook (my avatar).
-// `active` marks the screen in view with a small dot under its icon; making a canvas is a modal step and never marked.
-export const CAPSULE = { w: 260, h: 60, slot: 62 };
+// Floating glass capsule, three slots: a swap slot, make (+), my sketchbook (my avatar).
+// The swap slot always offers the other place: on the home feed it is the palette (my paint of the day), and anywhere
+// in the palette (or my sketchbook) it is home. `active` names the place in view ('home', 'palette' or 'me'); only the
+// sketchbook slot carries the 4px dot, since the swap slot shows where you can go, not where you are. Making a canvas is
+// a modal step and never marked.
+export const CAPSULE = { w: 198, h: 60, slot: 62 };
 export function capsule({ color = 'powder', me = ME, active = null, bottom = 34, solid = false } = {}) {
   const slot = (key, href, label, inner) => `<a href="${href}" aria-label="${label}"${active === key ? ' aria-current="page"' : ''} style="position: relative; width: ${CAPSULE.slot}px; height: 48px; box-sizing: border-box; padding-bottom: 6px; display: flex; align-items: center; justify-content: center">${inner}<span aria-hidden="true" style="position: absolute; left: 50%; bottom: 1px; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: ${active === key ? INK : 'transparent'}"></span></a>`;
+  const swap = active === 'home'
+    ? slot('to-palette', 'CoverStand.dc.html', '팔레트', paint(color, 52, '', ''))
+    : slot('to-home', 'CoverFeed.dc.html', '홈', icon('home', 24, 1.7));
   const skin = solid ? `background: ${PAPER}; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14)` : '';
   return `<nav aria-label="주요 화면"${solid ? '' : ' class="esel-glass"'} style="position: absolute; left: 50%; bottom: ${bottom}px; width: ${CAPSULE.w}px; height: ${CAPSULE.h}px; margin-left: -${CAPSULE.w / 2}px; box-sizing: border-box; padding: 0 6px; border-radius: 30px; display: flex; align-items: center; justify-content: space-between; color: ${INK}${skin ? `; ${skin}` : ''}">
-${slot('home', 'CoverFeed.dc.html', '홈', icon('home', 24, 1.7))}
-${slot('palette', 'CoverStand.dc.html', '팔레트', paint(color, 52, '', ''))}
+${swap}
 <span style="width: ${CAPSULE.slot}px; display: flex; justify-content: center"><a href="CoverMake.dc.html" aria-label="오늘의 캔버스 만들기" style="width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: ${INK}; color: ${PAPER}">${icon('plus', 22, 2)}</a></span>
 ${slot('me', 'CoverShelf.dc.html', '내 스케치북', avatar(me, 34))}
 </nav>`;

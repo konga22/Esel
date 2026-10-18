@@ -109,7 +109,7 @@ ${typeRow('메타', `<span style="font-family: ${MONO}; font-size: 12px; letter-
 <section style="${CARD}; padding: 24px; display: flex; flex-direction: column; gap: 14px">
 ${eyebrow('간격 · 크기')}
 ${[4, 8, 12, 16, 20, 24, 32].map((s) => `<div style="display: flex; align-items: center; gap: 12px"><span style="width: ${s * 4}px; height: 12px; background: ${INK}"></span><span style="font-family: ${MONO}; font-size: 12px">${s}</span></div>`).join('\n')}
-${note(`누를 수 있는 곳은 최소 48×48. 화면 좌우 여백 20, 안쪽 지면 글 18. 캡슐 ${CAPSULE.w}×${CAPSULE.h}(4칸, 칸마다 ${CAPSULE.slot}). 팔레트 격자 칸 ${GRID.cols[0]}×${GRID.cell}, 긴 칸 ${GRID.cols[0]}×${GRID.tall}, 간격 ${GRID.gap}.`)}
+${note(`누를 수 있는 곳은 최소 48×48. 화면 좌우 여백 20, 안쪽 지면 글 18. 캡슐 ${CAPSULE.w}×${CAPSULE.h}(3칸, 칸마다 ${CAPSULE.slot}). 팔레트 격자 칸 ${GRID.cols[0]}×${GRID.cell}, 긴 칸 ${GRID.cols[0]}×${GRID.tall}, 간격 ${GRID.gap}.`)}
 </section>
 <section style="${CARD}; padding: 24px; display: flex; flex-direction: column; gap: 14px">
 ${eyebrow('모서리')}
@@ -170,12 +170,13 @@ const paintToggleSpec = (on, off = false) => `<span style="width: 340px; height:
 board('BoardComponents', '컴포넌트', '02 · COMPONENTS', 2930, `<section style="display: flex; flex-direction: column; gap: 18px">
 ${h2('메뉴 캡슐 · 로그인 바 · 작은 로고')}
 <div style="display: flex; gap: 36px; align-items: flex-start; flex-wrap: wrap">
-<div style="display: flex; flex-direction: column; gap: 10px">${stageCap('', `${cover('ama', 300, 110, 0.5, 0.55, '; position: absolute; left: 0; top: 0', '')}${capsule({ color: PEOPLE[ME].color, active: 'home', bottom: 25 })}`)}<span style="font-family: ${MONO}; font-size: 11px; color: ${MUTED}">캡슐 · 글라스 · 사진 위 · 지금 홈</span></div>
-<div style="display: flex; flex-direction: column; gap: 10px">${stageCap('background: #ECECEF', capsule({ color: PEOPLE[ME].color, active: 'palette', bottom: 25, solid: true }))}<span style="font-family: ${MONO}; font-size: 11px; color: ${MUTED}">캡슐 · 단색 · 투명도 줄이기 / 고대비 · 지금 팔레트</span></div>
+<div style="display: flex; flex-direction: column; gap: 10px">${stageCap('', `${cover('ama', 300, 110, 0.5, 0.55, '; position: absolute; left: 0; top: 0', '')}${capsule({ color: PEOPLE[ME].color, active: 'home', bottom: 25 })}`)}<span style="font-family: ${MONO}; font-size: 11px; color: ${MUTED}">캡슐 · 글라스 · 사진 위 · 홈에서는 첫 칸이 팔레트</span></div>
+<div style="display: flex; flex-direction: column; gap: 10px">${stageCap('background: #ECECEF', capsule({ color: PEOPLE[ME].color, active: 'palette', bottom: 25, solid: true }))}<span style="font-family: ${MONO}; font-size: 11px; color: ${MUTED}">캡슐 · 단색 · 투명도 줄이기 / 고대비 · 팔레트에서는 첫 칸이 홈</span></div>
+<div style="display: flex; flex-direction: column; gap: 10px">${stageCap('background: #F9F9FB', capsule({ color: PEOPLE[ME].color, active: 'me', bottom: 25, solid: true }))}<span style="font-family: ${MONO}; font-size: 11px; color: ${MUTED}">캡슐 · 단색 · 내 스케치북 · 첫 칸 홈, 내 칸에 점</span></div>
 <div style="display: flex; flex-direction: column; gap: 10px"><div style="position: relative; width: 400px; height: 110px; border-radius: 18px; overflow: hidden">${cover('lise', 400, 110, 0.5, 0.6, '; position: absolute; left: 0; top: 0', '')}<span class="esel-glass" style="position: absolute; left: 16px; right: 16px; top: 22px; height: 66px; box-sizing: border-box; padding: 8px; border-radius: 33px; display: flex; gap: 8px"><span style="flex: 1 1 0; border-radius: 25px; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1.5px ${INK}; font-size: 15px; font-weight: 600">로그인</span><span style="flex: 1.35 1 0; border-radius: 25px; display: flex; align-items: center; justify-content: center; background: ${INK}; color: ${PAPER}; font-size: 15px; font-weight: 600">내 스케치북 만들기</span></span></div><span style="font-family: ${MONO}; font-size: 11px; color: ${MUTED}">로그인 바 · 비로그인 스크롤에서 캡슐 자리</span></div>
 <div style="display: flex; flex-direction: column; gap: 10px"><div style="position: relative; width: 200px; height: 110px; border-radius: 18px; overflow: hidden">${cover('kofi', 200, 110, 0.7, 0.4, '; position: absolute; left: 0; top: 0', '')}<span style="position: absolute; left: 46px; top: 32px; width: 108px; height: 46px; border-radius: 23px; display: flex; align-items: center; justify-content: center; background: rgba(249, 249, 251, 0.86); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7), 0 4px 16px rgba(41, 42, 39, 0.1); font-family: ${SERIF}; font-size: 28px; letter-spacing: -1.4px">Esel<span style="color: #AE8775">.</span></span></div><span style="font-family: ${MONO}; font-size: 11px; color: ${MUTED}">작은 로고 · 위로 스크롤</span></div>
 </div>
-${note(`캡슐 ${CAPSULE.w}×${CAPSULE.h} · 네 칸 ${CAPSULE.slot}씩: 홈 · 팔레트(내 오늘의 색 물감) · 만들기(+) · 스케치북(내 얼굴). 지금 보는 화면만 아이콘 아래 점 4px. 만들기는 잠깐 들어갔다 나오는 화면이라 점을 찍지 않는다. 누르는 영역은 칸마다 48 이상.`)}
+${note(`캡슐 ${CAPSULE.w}×${CAPSULE.h} · 세 칸 ${CAPSULE.slot}씩: 바뀌는 칸 · 만들기(+) · 스케치북(내 얼굴). 첫 칸은 지금 없는 쪽을 보여 준다. 홈에서는 팔레트(내 오늘의 색 물감), 팔레트와 내 스케치북에서는 홈. 팔레트에서 연 남의 스케치북·같은 색 방도 팔레트에 속해 홈이 뜬다. 점 4px은 내 스케치북에만 찍는다(바뀌는 칸은 갈 곳이라 점이 없고, 만들기는 잠깐 들어갔다 나오는 화면). 누르는 영역은 칸마다 48 이상.`)}
 </section>
 <section style="display: flex; flex-direction: column; gap: 18px">
 ${h2('버튼')}
