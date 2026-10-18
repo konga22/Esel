@@ -23,6 +23,8 @@
     {"id": "C5b", "title": "스케치북 · 지난 캔버스", "route": "shelf", "image": "docs/dev/screens/c5b-shelf-past.jpg"},
     {"id": "C6", "title": "오늘의 캔버스 만들기", "route": "make", "image": "docs/dev/screens/c6-make.jpg", "figma": "122:753"},
     {"id": "C6neck", "title": "만들기 · 목 아래(물감 꺼짐)", "route": "make", "image": "docs/dev/screens/c6neck-make-neck.jpg"},
+    {"id": "C6paint", "title": "만들기 · 물감 켬과 물감 위치 안내", "route": "make", "image": "docs/dev/screens/c6paint-make-paint.jpg"},
+    {"id": "C6face", "title": "만들기 · 물감 위치 옮기기(얼굴 가운데 누르기)", "route": "make", "image": "docs/dev/screens/c6face-make-face.jpg"},
     {"id": "C6wear", "title": "만들기 · 착용 정보 더하기", "route": "make", "image": "docs/dev/screens/c6wear-make-garment.jpg"},
     {"id": "C7", "title": "홈 안쪽 지면 · 작은 로고", "route": "feed", "image": "docs/dev/screens/c7-feed-inner.jpg", "figma": "122:811"},
     {"id": "C8", "title": "팔레트 · 색 방(올리기 전)", "route": "same", "image": "docs/dev/screens/c8-same-locked.jpg", "figma": "122:581"},
@@ -326,7 +328,9 @@
         "J4",
         "J6",
         "C6",
-        "C6neck"
+        "C6neck",
+        "C6paint",
+        "C6face"
       ],
       "contracts": [
         "P11",
@@ -339,6 +343,7 @@
         "카메라·앨범은 기존 image_picker를 쓴다",
         "물감 합성과 자르기는 기기에서(RepaintBoundary 합성 등). 원본 얼굴 사진을 서버로 보내 가리지 않음",
         "얼굴 위치를 못 찾으면 직접 위치를 정하게 하거나 목 아래를 권함",
+        "10-18 PR #21 리뷰 후속(Flutter·목업 반영): 표지 바로 아래 얼굴 위치 안내. 물감이 켜져 있으면 '물감 위치가 어긋났나요?'와 '물감 위치 옮기기', 목 아래는 자른 자리 안내, 아직 안 정했으면 '얼굴 위치 맞추기'. 누르면 효과를 숨긴 원본 위에 '얼굴 가운데를 눌러 주세요' 표시, 누른 자리로 물감·자르기가 다시 놓임. 첫 캔버스(J6)는 취소를 화면 아래 버튼 하나로. 목업 C6paint·C6face·J6가 기준",
         "\"익명화된다\"는 표현을 쓰지 않음"
       ],
       "server": [
