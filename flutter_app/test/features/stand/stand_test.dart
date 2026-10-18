@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -119,6 +120,68 @@ void main() {
       expect(stand.selected, EselPaint.camel);
       expect(find.textContaining('같은 색'), findsOneWidget); // the room head
       expect(find.text('올리면 함께 펼쳐집니다'), findsOneWidget);
+    });
+
+    // #23 리뷰: 앱 위쪽에 오류 안내 줄이 끼면 이 화면만 짧아진다. 부채는 둥근 버튼을 둘러싸야 한다.
+    for (final banner in [0.0, 80.0]) {
+      testWidgets('위쪽 안내 ${banner.round()}px에서도 부채가 둥근 버튼을 중심으로 펼쳐진다', (
+        tester,
+      ) async {
+        tester.view.physicalSize = const Size(480, 1000);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+        final stand = StandController(StandMockSource(library: () => library));
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Column(
+              children: [
+                SizedBox(height: banner),
+                Expanded(
+                  child: StandScreen(
+                    controller: stand,
+                    viewer: today.viewer,
+                    viewerId: today.ownerId,
+                    onSelectCover: (_) {},
+                    onMakeTodayIssue: () {},
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+        await tester.pump();
+        await tester.tap(find.byKey(const ValueKey('palette-fan')));
+        await tester.pumpAndSettle();
+        final button = tester.getCenter(
+          find.byKey(const ValueKey('palette-fan')),
+        );
+        Offset on(double r, double deg) =>
+            button +
+            Offset(
+              r * math.cos(deg * math.pi / 180),
+              r * math.sin(deg * math.pi / 180),
+            );
+        for (final (key, deg) in [
+          ('palette-fan-recommended', 200.0),
+          ('palette-fan-subscriptions', 250.0),
+        ]) {
+          final got = tester.getCenter(find.byKey(ValueKey(key)));
+          expect((got - on(80, deg)).distance, lessThan(1), reason: key);
+        }
+      });
+    }
+
+    testWidgets('모든 색 버튼은 누르는 영역이 48 이상', (tester) async {
+      final stand = StandController(StandMockSource(library: () => library));
+      await pumpStand(tester, stand);
+      await tester.tap(find.byKey(const ValueKey('palette-fan')));
+      await tester.pumpAndSettle();
+      final size = tester.getSize(
+        find.byKey(const ValueKey('palette-all-colors')),
+      );
+      expect(size.height, greaterThanOrEqualTo(48));
+      expect(size.width, greaterThanOrEqualTo(48));
+      expect(find.bySemanticsLabel('모든 색'), findsOneWidget);
     });
 
     testWidgets('바깥을 누르면 부채가 닫힌다', (tester) async {
