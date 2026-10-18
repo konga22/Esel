@@ -175,6 +175,9 @@ void main() {
         tester.widget<CoverPreview>(find.byType(CoverPreview)).locatingFace,
         isTrue,
       );
+      // 위치 지정 중에는 표지 위 안내, 취소는 화면 아래 버튼 하나.
+      expect(find.text('얼굴 가운데를 눌러 주세요'), findsOneWidget);
+      expect(find.text('효과 미리보기로 돌아가기'), findsNothing);
       await tester.ensureVisible(find.byType(CoverPreview));
       await tester.tap(find.byType(CoverPreview));
       await tester.pump();

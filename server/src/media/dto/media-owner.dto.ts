@@ -18,7 +18,4 @@ export class MediaOwnerDto {
 
   @ApiPropertyOptional({ nullable: true, type: Number })
   height: number | null;
-
-  @ApiProperty()
-  storageKey: string;
 }

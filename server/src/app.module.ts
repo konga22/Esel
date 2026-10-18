@@ -1,11 +1,15 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { FriendsModule } from './friends/friends.module.js';
+import { FeedModule } from './feed/feed.module.js';
+import { StandModule } from './stand/stand.module.js';
 import { validateEnvironment } from './config/environment.js';
 import { HealthModule } from './health/health.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { ProfileModule } from './profile/profile.module.js';
 import { TodayModule } from './today/today.module.js';
+import { TwinsModule } from './twins/twins.module.js';
 import { AccountModule } from './account/account.module.js';
 import { MediaModule } from './media/media.module.js';
 import { IssuesModule } from './issues/issues.module.js';
@@ -13,6 +17,9 @@ import { MagazinesModule } from './magazines/magazines.module.js';
 import { MeModule } from './me/me.module.js';
 import { RecordsModule } from './records/records.module.js';
 import { UsersModule } from './users/users.module.js';
+import { GarmentsModule } from './garments/garments.module.js';
+import { ShareModule } from './share/share.module.js';
+import { ModerationModule } from './moderation/moderation.module.js';
 
 @Module({
   imports: [
@@ -32,6 +39,13 @@ import { UsersModule } from './users/users.module.js';
     MeModule,
     RecordsModule,
     UsersModule,
+    FriendsModule,
+    FeedModule,
+    StandModule,
+    TwinsModule,
+    GarmentsModule,
+    ShareModule,
+    ModerationModule,
   ],
 })
 export class AppModule {}

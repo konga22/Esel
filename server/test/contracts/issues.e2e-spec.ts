@@ -13,36 +13,279 @@ import { createTestApp } from '../create-app.js';
 // 실행: npm run test:e2e (todo는 실패가 아니라 '남은 일'로 표시된다)
 
 describe('DEV-09 오늘 호 발행', () => {
+  let app: INestApplication<App>;
+  let prisma: PrismaService;
+  let publishMastheadSequence = 0;
+
+  beforeAll(async () => {
+    app = await createTestApp();
+    prisma = app.get(PrismaService);
+    await cleanup();
+  });
+  afterEach(cleanup);
+  afterAll(async () => app.close());
+
+  async function cleanup() {
+    await prisma.issue.deleteMany({
+      where: { author: { email: { endsWith: '@publish.e2e.test' } } },
+    });
+    await prisma.user.deleteMany({
+      where: { email: { endsWith: '@publish.e2e.test' } },
+    });
+  }
+
+  async function publishingUser(label: string) {
+    const signup = await request(app.getHttpServer())
+      .post('/api/auth/email/signup')
+      .send({
+        email: `${label}-${randomUUID()}@publish.e2e.test`,
+        password: 'correct horse battery staple',
+      })
+      .expect(201);
+    const user = {
+      userId: signup.body.userId as string,
+      token: signup.body.accessToken as string,
+    };
+    await prisma.profile.create({
+      data: {
+        userId: user.userId,
+        masthead: nextPublishMasthead(),
+      },
+    });
+    const today = await request(app.getHttpServer())
+      .get('/api/today')
+      .set('Authorization', `Bearer ${user.token}`)
+      .expect(200);
+    await request(app.getHttpServer())
+      .put('/api/today/choice')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({ colorId: today.body.candidates[0].id })
+      .expect(200);
+    return user;
+  }
+
+  function nextPublishMasthead(): string {
+    let value = publishMastheadSequence++;
+    let suffix = '';
+    do {
+      suffix = String.fromCharCode(97 + (value % 26)) + suffix;
+      value = Math.floor(value / 26) - 1;
+    } while (value >= 0);
+    return `pub${suffix}`;
+  }
+
+  async function media(userId: string, status: 'PENDING' | 'READY' = 'READY') {
+    return prisma.mediaAsset.create({
+      data: {
+        ownerId: userId,
+        storageKey: `publish-e2e/${randomUUID()}`,
+        status,
+        mimeType: 'image/png',
+        sizeBytes: 24,
+        width: 1080,
+        height: 1440,
+      },
+    });
+  }
+
+  const payload = (mediaId: string) => ({
+    mediaId,
+    caption: '  오늘의 기록  ',
+    faceMode: 'PLAIN',
+  });
+
   // issues.publish · 접근: user · 응답: IssueOwnerDto · 계약: P04, P01
-  it.todo('POST /api/issues: 오늘 호 발행(하루 한 번, 호수 +1) → 201');
-  it.todo('POST /api/issues: 로그인 없이 부르면 → 401 AUTH_REQUIRED');
-  it.todo('POST /api/issues: 보낸 값의 형식이 맞지 않아요 → 400 VALIDATION');
-  it.todo(
-    'POST /api/issues: 오늘 호는 이미 발행했어요 → 409 ISSUE_ALREADY_PUBLISHED',
-  );
-  it.todo(
-    'POST /api/issues: 사진 올리기가 아직 끝나지 않았어요 → 409 MEDIA_NOT_READY',
-  );
-  it.todo('합격 기준(P04): 동시에 두 번 보내도 호가 하나만 생김(DB unique)');
-  it.todo(
-    '합격 기준(P04): 호 저장과 호수 +1, 그날 색 잠금(locked_at)을 한 트랜잭션으로. 실패하면 호수가 오르지 않고 다시 시도할 수 있음',
-  );
+  it('POST /api/issues: 오늘 호 발행(하루 한 번, 호수 +1) → 201', async () => {
+    const user = await publishingUser('success');
+    const ready = await media(user.userId);
+    const response = await request(app.getHttpServer())
+      .post('/api/issues')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send(payload(ready.id))
+      .expect(201);
+    expect(response.body).toMatchObject({
+      issueNumber: 1,
+      caption: '오늘의 기록',
+      faceMode: 'PLAIN',
+      garments: [],
+      likeCount: 0,
+      scrapCount: 0,
+      lineCount: 0,
+    });
+    expect(
+      await prisma.profile.findUnique({ where: { userId: user.userId } }),
+    ).toMatchObject({ issueCount: 1 });
+    expect(
+      await prisma.userDailyChoice.findFirst({
+        where: { userId: user.userId },
+      }),
+    ).toMatchObject({ lockedAt: expect.any(Date) });
+  });
+
+  it('POST /api/issues: 로그인 없이 부르면 → 401 AUTH_REQUIRED', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/issues')
+      .send(payload(randomUUID()))
+      .expect(401);
+    expect(response.body.error.code).toBe('AUTH_REQUIRED');
+  });
+
+  it('POST /api/issues: 보낸 값의 형식이 맞지 않아요 → 400 VALIDATION', async () => {
+    const user = await publishingUser('invalid');
+    const ready = await media(user.userId);
+    const response = await request(app.getHttpServer())
+      .post('/api/issues')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({ ...payload(ready.id), faceMode: 'UNKNOWN' })
+      .expect(400);
+    expect(response.body.error.code).toBe('VALIDATION');
+  });
+
+  it('POST /api/issues: 오늘 호는 이미 발행했어요 → 409 ISSUE_ALREADY_PUBLISHED', async () => {
+    const user = await publishingUser('duplicate');
+    const first = await media(user.userId);
+    const second = await media(user.userId);
+    await request(app.getHttpServer())
+      .post('/api/issues')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send(payload(first.id))
+      .expect(201);
+    const response = await request(app.getHttpServer())
+      .post('/api/issues')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send(payload(second.id))
+      .expect(409);
+    expect(response.body.error.code).toBe('ISSUE_ALREADY_PUBLISHED');
+  });
+
+  it('POST /api/issues: 사진 올리기가 아직 끝나지 않았어요 → 409 MEDIA_NOT_READY', async () => {
+    const user = await publishingUser('pending');
+    const pending = await media(user.userId, 'PENDING');
+    const response = await request(app.getHttpServer())
+      .post('/api/issues')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send(payload(pending.id))
+      .expect(409);
+    expect(response.body.error.code).toBe('MEDIA_NOT_READY');
+    expect(
+      await prisma.profile.findUnique({ where: { userId: user.userId } }),
+    ).toMatchObject({ issueCount: 0 });
+  });
+
+  it('합격 기준(P04): 동시에 두 번 보내도 호가 하나만 생김(DB unique)', async () => {
+    const user = await publishingUser('concurrent');
+    const first = await media(user.userId);
+    const second = await media(user.userId);
+    const responses = await Promise.all([
+      request(app.getHttpServer())
+        .post('/api/issues')
+        .set('Authorization', `Bearer ${user.token}`)
+        .send(payload(first.id)),
+      request(app.getHttpServer())
+        .post('/api/issues')
+        .set('Authorization', `Bearer ${user.token}`)
+        .send(payload(second.id)),
+    ]);
+    expect(responses.map(({ status }) => status).sort((left, right) => left - right)).toEqual([201, 409]);
+    expect(await prisma.issue.count({ where: { authorId: user.userId } })).toBe(
+      1,
+    );
+    expect(
+      await prisma.profile.findUnique({ where: { userId: user.userId } }),
+    ).toMatchObject({ issueCount: 1 });
+  });
+
   it.todo(
     '합격 기준(P01): 발행하면 오늘 후보 3색 방이 모두 열림(GET /api/stand)',
   );
   // 10-18 착용 정보(DEV-24, P19): garments[]는 선택 필드
-  it.todo(
-    '합격 기준(P19): garments 없이 보내도 발행됨. 보내면 최대 8개까지 저장하고 응답에 그대로 돌려줌',
-  );
-  it.todo(
-    '합격 기준(P19): garments가 9개 이상이거나 kind가 목록에 없으면 400 VALIDATION, 호는 만들어지지 않음',
-  );
-  it.todo(
-    '합격 기준(P19): garments 항목의 URL·가격 같은 모르는 필드는 거절(whitelist)하고 저장하지 않음',
-  );
-  it.todo(
-    '합격 기준(P19): garmentId로 남의 옷을 고르면 400 VALIDATION(내 옷만 다시 고를 수 있음)',
-  );
+  it('합격 기준(P19): garments 없이 보내도 발행됨. 보내면 최대 8개까지 저장하고 응답에 그대로 돌려줌', async () => {
+    const user = await publishingUser('garments');
+    const ready = await media(user.userId);
+    const response = await request(app.getHttpServer())
+      .post('/api/issues')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({
+        ...payload(ready.id),
+        garments: [
+          {
+            kind: '셔츠',
+            name: '파란 셔츠',
+            note: '오래 입음',
+            todayColor: true,
+            x: 0.25,
+            y: 0.5,
+          },
+        ],
+      })
+      .expect(201);
+    expect(response.body.garments).toEqual([
+      expect.objectContaining({
+        garmentId: expect.any(String),
+        kind: '셔츠',
+        name: '파란 셔츠',
+        note: '오래 입음',
+        todayColor: true,
+        x: 0.25,
+        y: 0.5,
+      }),
+    ]);
+  });
+
+  it('합격 기준(P19): garments가 9개 이상이거나 kind가 목록에 없으면 400 VALIDATION, 호는 만들어지지 않음', async () => {
+    const user = await publishingUser('garment-invalid');
+    const ready = await media(user.userId);
+    for (const garments of [
+      Array.from({ length: 9 }, () => ({ kind: '셔츠' })),
+      [{ kind: '자동차' }],
+    ]) {
+      await request(app.getHttpServer())
+        .post('/api/issues')
+        .set('Authorization', `Bearer ${user.token}`)
+        .send({ ...payload(ready.id), garments })
+        .expect(400);
+    }
+    expect(await prisma.issue.count({ where: { authorId: user.userId } })).toBe(
+      0,
+    );
+  });
+
+  it('합격 기준(P19): garments 항목의 URL·가격 같은 모르는 필드는 거절(whitelist)하고 저장하지 않음', async () => {
+    const user = await publishingUser('garment-forbidden');
+    const ready = await media(user.userId);
+    for (const forbidden of [
+      { price: 1000 },
+      { shopUrl: 'https://example.com' },
+    ]) {
+      const response = await request(app.getHttpServer())
+        .post('/api/issues')
+        .set('Authorization', `Bearer ${user.token}`)
+        .send({
+          ...payload(ready.id),
+          garments: [{ kind: '셔츠', ...forbidden }],
+        })
+        .expect(400);
+      expect(response.body.error.code).toBe('VALIDATION');
+    }
+  });
+
+  it('합격 기준(P19): garmentId로 남의 옷을 고르면 400 VALIDATION(내 옷만 다시 고를 수 있음)', async () => {
+    const user = await publishingUser('garment-owner');
+    const other = await publishingUser('garment-other');
+    const otherGarment = await prisma.garment.create({
+      data: { ownerId: other.userId, kind: '코트' },
+    });
+    const ready = await media(user.userId);
+    const response = await request(app.getHttpServer())
+      .post('/api/issues')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({
+        ...payload(ready.id),
+        garments: [{ garmentId: otherGarment.id, kind: '코트' }],
+      })
+      .expect(400);
+    expect(response.body.error.code).toBe('VALIDATION');
+  });
 });
 
 describe('DEV-11 펼침면과 독자 한 줄', () => {

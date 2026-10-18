@@ -7,6 +7,10 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { ChooseColorDto } from './dto/choose-color.dto.js';
 import { ColorDto } from './dto/color.dto.js';
 import { TodayDto } from './dto/today.dto.js';
+import {
+  TodayCoverIssueDto,
+  TodayCoverPublicDto,
+} from './dto/today-cover-public.dto.js';
 import { dailyCandidateIds } from './today.rules.js';
 
 const paletteInclude = {
@@ -36,6 +40,62 @@ export class TodayService {
     return this.toDto(userId, key, date, candidates);
   }
 
+  async cover(): Promise<TodayCoverPublicDto> {
+    const { key, date } = this.currentServiceDate();
+    const issues = await this.prisma.issue.findMany({
+      where: { serviceDate: date, deletedAt: null },
+      include: {
+        author: { select: { profile: { select: { masthead: true } } } },
+        color: true,
+        media: {
+          select: { id: true, mimeType: true, width: true, height: true },
+        },
+        garments: {
+          include: { garment: true },
+          orderBy: { position: 'asc' },
+        },
+      },
+      orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }],
+    });
+    const perColor = new Map<string, number>();
+    const visible: TodayCoverIssueDto[] = [];
+    for (const issue of issues) {
+      const seen = perColor.get(issue.colorId) ?? 0;
+      if (seen >= 3 || !issue.author.profile) continue;
+      perColor.set(issue.colorId, seen + 1);
+      visible.push({
+        id: issue.id,
+        masthead: issue.author.profile.masthead,
+        issueNumber: issue.issueNumber,
+        publishedAt: issue.publishedAt.toISOString(),
+        color: {
+          id: issue.color.id,
+          nameKo: issue.color.nameKo,
+          nameEn: issue.color.nameEn,
+          hex: issue.color.hex,
+        },
+        media: issue.media,
+        caption: issue.caption,
+        faceMode: issue.faceMode,
+        garments: issue.garments.map(({ garment, todayColor, x, y }) => ({
+          garmentId: garment.id,
+          kind: garment.kind,
+          name: garment.name,
+          note: garment.note,
+          todayColor,
+          x,
+          y,
+        })),
+      });
+      if (visible.length === 3) break;
+    }
+    return {
+      serviceDate: key,
+      cover: visible[0] ?? null,
+      pages: visible.slice(1, 3),
+    };
+  }
+
   async choose(userId: string, input: ChooseColorDto): Promise<TodayDto> {
     const { key, date } = this.currentServiceDate();
     const palette = await this.getOrCreatePalette(key, date);
@@ -52,7 +112,7 @@ export class TodayService {
         where: {
           authorId_serviceDate: { authorId: userId, serviceDate: date },
         },
-        select: { id: true },
+        select: { id: true, deletedAt: true },
       }),
     ]);
     if (choice?.lockedAt || issue) throw new AppException('CHOICE_LOCKED');
@@ -157,14 +217,14 @@ export class TodayService {
         where: {
           authorId_serviceDate: { authorId: userId, serviceDate: date },
         },
-        select: { id: true },
+        select: { id: true, deletedAt: true },
       }),
     ]);
     return {
       serviceDate: key,
       candidates,
       selectedColorId: choice?.colorId ?? null,
-      hasPublishedToday: Boolean(issue),
+      hasPublishedToday: Boolean(issue && !issue.deletedAt),
     };
   }
 }
