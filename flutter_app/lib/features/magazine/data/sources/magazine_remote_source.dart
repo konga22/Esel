@@ -6,9 +6,6 @@ import 'magazine_source.dart';
 import '../../domain/models/server_magazine.dart';
 import '../../../issue/domain/models/server_issue.dart';
 import '../../../issue/data/sources/issue_remote_source.dart';
-import '../../../issue/domain/models/public_issue.dart';
-import '../../../media/domain/models/face_box.dart';
-import '../../../media/domain/models/face_layout_mode.dart';
 
 /// 서버 공개 필터를 통과한 목록만 사용한다. 사진 URL은 아직 계약에 없어 생성하지 않는다.
 class MagazineRemoteSource implements MagazineSource {
@@ -82,30 +79,7 @@ class MagazineRemoteSource implements MagazineSource {
       totalIssues: result.issueCount,
       isMine: mine,
       issues: issues
-          .map(
-            (v) => PublicIssue(
-              liked: v.liked,
-              scrapped: v.scrapped,
-              id: v.id,
-              ownerId: ownerId,
-              masthead: v.masthead,
-              issueNumber: v.number,
-              date: v.date,
-              publishedAt: v.publishedAt,
-              timeLabel: '',
-              color: v.color,
-              photo: '',
-              face: const FaceBox(.5, .3, .16),
-              faceMode: switch (v.faceMode) {
-                'PAINT' => FaceLayoutMode.paintStroke,
-                'BEHIND_MASTHEAD' => FaceLayoutMode.behindLogo,
-                'NECK_DOWN' => FaceLayoutMode.belowNeck,
-                _ => FaceLayoutMode.original,
-              },
-              caption: v.caption,
-              alt: '사진 제공 준비 중',
-            ),
-          )
+          .map((v) => serverIssueToPublic(v, ownerId: ownerId))
           .toList(),
     );
   }
