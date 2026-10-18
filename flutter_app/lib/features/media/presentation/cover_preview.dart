@@ -27,6 +27,9 @@ class CoverPreview extends StatelessWidget {
   /// 표지에서 얼굴 가운데를 누른 자리(사진에 대한 비율).
   final ValueChanged<Offset>? onFacePosition;
 
+  /// 사진 아래쪽 가운데의 짧은 안내(예: 위치 지정 중 "얼굴 가운데를 눌러 주세요").
+  final String? hint;
+
   /// 표지 비율. null이면 주어진 상자를 채운다(첫 캔버스 전체 화면 등).
   final double? aspectRatio;
 
@@ -39,6 +42,7 @@ class CoverPreview extends StatelessWidget {
     this.editing = false,
     this.locatingFace = false,
     this.onFacePosition,
+    this.hint,
     this.aspectRatio = 3 / 4,
     this.chrome = true,
   });
@@ -261,6 +265,53 @@ class CoverPreview extends StatelessWidget {
                         ),
                       ],
                     ],
+                  ),
+                ),
+              ),
+            if (hint case final text?)
+              Positioned(
+                left: 12,
+                right: 12,
+                bottom: 12,
+                child: IgnorePointer(
+                  child: Center(
+                    child: DecoratedBox(
+                      key: const Key('cover-preview-hint'),
+                      decoration: BoxDecoration(
+                        color: const Color(0xB3000000),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 7,
+                        ),
+                        // 좁은 표지에서도 한 줄로, 넘치면 글자를 줄인다.
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.touch_app_outlined,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                text,
+                                maxLines: 1,
+                                softWrap: false,
+                                style: EselTypography.body(
+                                  fontSize: 12.5,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),

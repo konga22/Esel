@@ -10,7 +10,7 @@
 | [DEV-04](#dev-04) | 비로그인 첫 표지와 로그인 바 | 1 계정 | J1 J1b | P12 P16 | DEV-01 DEV-03 | doing |
 | [DEV-05](#dev-05) | 로그인 | 1 계정 | J2 | P12 | DEV-04 | doing |
 | [DEV-07](#dev-07) | 오늘의 색 | 2 창간·발행 | J3 | P03 P05 P17 | DEV-02 DEV-03 | doing |
-| [DEV-08](#dev-08) | 사진과 얼굴 연출 | 2 창간·발행 | J4 J6 C6 C6neck | P11 P15 | DEV-01 | doing |
+| [DEV-08](#dev-08) | 사진과 얼굴 연출 | 2 창간·발행 | J4 J6 C6 C6neck C6paint C6face | P11 P15 | DEV-01 | doing |
 | [DEV-09](#dev-09) | 오늘 호 발행 | 2 창간·발행 | C6 C8b | P04 P01 | DEV-07 DEV-08 | doing |
 | [DEV-06](#dev-06) | 창간 | 2 창간·발행 | J3 J4 J5 J6 J7 | P13 P14 P15 P04 | DEV-05 DEV-07 DEV-08 DEV-09 | doing |
 | [DEV-10](#dev-10) | 홈 피드 | 3 읽기 | C1 C2 C7 | P01 P02 P16 P18 | DEV-09 | doing |
@@ -267,7 +267,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **목업 화면**
 
-[J4 촬영](screens/j4-shoot.jpg) · [J6 얼굴 연출 · 자르기와 물감](screens/j6-face.jpg) · [C6 오늘의 캔버스 만들기](screens/c6-make.jpg) · [C6neck 만들기 · 목 아래(물감 꺼짐)](screens/c6neck-make-neck.jpg)
+[J4 촬영](screens/j4-shoot.jpg) · [J6 얼굴 연출 · 자르기와 물감](screens/j6-face.jpg) · [C6 오늘의 캔버스 만들기](screens/c6-make.jpg) · [C6neck 만들기 · 목 아래(물감 꺼짐)](screens/c6neck-make-neck.jpg) · [C6paint 만들기 · 물감 켬과 물감 위치 안내](screens/c6paint-make-paint.jpg) · [C6face 만들기 · 물감 위치 옮기기(얼굴 가운데 누르기)](screens/c6face-make-face.jpg)
 
 **지킬 계약** P11, P15 · **먼저 할 것** DEV-01
 
@@ -276,6 +276,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 - 카메라·앨범은 기존 image_picker를 쓴다
 - 물감 합성과 자르기는 기기에서(RepaintBoundary 합성 등). 원본 얼굴 사진을 서버로 보내 가리지 않음
 - 얼굴 위치를 못 찾으면 직접 위치를 정하게 하거나 목 아래를 권함
+- 10-18 PR #21 리뷰 후속(Flutter·목업 반영): 표지 바로 아래 얼굴 위치 안내. 물감이 켜져 있으면 '물감 위치가 어긋났나요?'와 '물감 위치 옮기기', 목 아래는 자른 자리 안내, 아직 안 정했으면 '얼굴 위치 맞추기'. 누르면 효과를 숨긴 원본 위에 '얼굴 가운데를 눌러 주세요' 표시, 누른 자리로 물감·자르기가 다시 놓임. 첫 캔버스(J6)는 취소를 화면 아래 버튼 하나로. 목업 C6paint·C6face·J6가 기준
 - "익명화된다"는 표현을 쓰지 않음
 
 **서버 (초안)**
@@ -1024,6 +1025,8 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 | C5b | 스케치북 · 지난 캔버스 | `shelf` | [그림](screens/c5b-shelf-past.jpg) | — |
 | C6 | 오늘의 캔버스 만들기 | `make` | [그림](screens/c6-make.jpg) | 122:753 |
 | C6neck | 만들기 · 목 아래(물감 꺼짐) | `make` | [그림](screens/c6neck-make-neck.jpg) | — |
+| C6paint | 만들기 · 물감 켬과 물감 위치 안내 | `make` | [그림](screens/c6paint-make-paint.jpg) | — |
+| C6face | 만들기 · 물감 위치 옮기기(얼굴 가운데 누르기) | `make` | [그림](screens/c6face-make-face.jpg) | — |
 | C6wear | 만들기 · 착용 정보 더하기 | `make` | [그림](screens/c6wear-make-garment.jpg) | — |
 | C7 | 홈 안쪽 지면 · 작은 로고 | `feed` | [그림](screens/c7-feed-inner.jpg) | 122:811 |
 | C8 | 팔레트 · 색 방(올리기 전) | `same` | [그림](screens/c8-same-locked.jpg) | 122:581 |

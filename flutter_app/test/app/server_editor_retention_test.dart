@@ -85,7 +85,12 @@ void main() {
       final editor = find.byType(CoverEditorScreen),
           state = tester.state(editor);
       final caption = find.byKey(const Key('draft-caption'));
-      await tester.ensureVisible(caption);
+      // 표지 아래 얼굴 위치 안내만큼 아래에 있다. 목록이 그릴 때까지 내린다.
+      await tester.scrollUntilVisible(
+        caption,
+        250,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.enterText(caption, 'edited caption');
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();

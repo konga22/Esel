@@ -59,6 +59,7 @@ const PATHS = {
   grid: '<rect x="4.5" y="4.5" width="6" height="6" rx="1"/><rect x="13.5" y="4.5" width="6" height="6" rx="1"/><rect x="4.5" y="13.5" width="6" height="6" rx="1"/><rect x="13.5" y="13.5" width="6" height="6" rx="1"/>',
   pen: '<path d="M4.5 19.5l3.8-.9L19 7.9a1.9 1.9 0 0 0 0-2.7l-.2-.2a1.9 1.9 0 0 0-2.7 0L5.4 15.7z"/><path d="M14.5 6.5l3 3"/>',
   twin: '<circle cx="9.5" cy="12" r="5"/><circle cx="14.5" cy="12" r="5"/>',
+  touch: '<path d="M9 11.5V5.5a1.5 1.5 0 0 1 3 0v5"/><path d="M12 10V8.5a1.5 1.5 0 0 1 3 0V11"/><path d="M15 10.5a1.5 1.5 0 0 1 3 0v3.8a5.7 5.7 0 0 1-5.7 5.7h-.6a5 5 0 0 1-3.9-1.9l-2.9-3.6a1.4 1.4 0 0 1 2.1-1.9L9 14.5"/>',
   hanger: '<path d="M10 6.2a2 2 0 1 1 2.6 1.9c-.4.1-.6.5-.6.9v.8"/><path d="M12 9.8L3.8 15.6c-.6.4-.3 1.4.4 1.4h15.6c.7 0 1-.9.4-1.4z"/>',
 };
 const icon = (n, size = 24, sw = 1.7, fill = 'none') => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${fill}" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${PATHS[n]}</svg>`;
@@ -104,14 +105,18 @@ function strokeAt(color, f) {
   return `<img src="${paintSrc(color)}" alt="" style="left:${Math.round(f.fx - pw / 2)}px;top:${Math.round(f.fy - f.fwPx * 0.12 - pw / 4)}px;width:${pw}px;height:${Math.round(pw / 2)}px;transform:rotate(-10deg)">`;
 }
 // "Behind the sign": the face goes to height ty under the sign. Tall boxes need more zoom so the photo can still reach the top.
-function behindBox(k, W, H, zoom, ty) {
+function behindBox(k, W, H, zoom, ty, at) {
   const p = PEOPLE[k];
-  const z = Math.max(zoom, (H - ty) / (W * p.r * (1 - p.fy)));
-  return cropBox(k, W, H, z, p.fx, p.fy, W / 2, ty);
+  const fx = at?.x ?? p.fx;
+  const fy = at?.y ?? p.fy;
+  const z = Math.max(zoom, (H - ty) / (W * p.r * (1 - fy)));
+  const b = cropBox(k, W, H, z, fx, fy, W / 2, ty);
+  return at ? { ...b, fx: b.left + fx * b.dw, fy: b.top + fy * b.dh } : b;
 }
 const boxImg = (k, b, alt) => `<img src="${photoSrc(k)}" alt="${alt}" loading="lazy" style="left:${b.left}px;top:${b.top}px;width:${b.dw}px;height:${b.dh}px">`;
 // One photo in a W×H box with a face presentation: plain, paint (plain + stroke), behind (zoomed so the face sits where the sign is),
 // neck, detail, mono. `o.paint` adds the stroke to "behind" too: the stroke is a switch of its own (P15, 10-18).
+// `o.at` = the face centre I set myself (photo fractions); the stroke and the "behind" crop follow it.
 function face(k, W, H, style = 'plain', o = {}) {
   const p = PEOPLE[k];
   const px = o.px ?? 0.5;
@@ -121,12 +126,13 @@ function face(k, W, H, style = 'plain', o = {}) {
   let inner;
   if (style === 'neck') inner = boxImg(k, neckBox(k, W, H), `${alt}, 얼굴 아래로 자른 구도`);
   else if (style === 'behind') {
-    const b = behindBox(k, W, H, o.zoom ?? 1.7, o.tyPx ?? H * (o.ty ?? 0.2));
+    const b = behindBox(k, W, H, o.zoom ?? 1.7, o.tyPx ?? H * (o.ty ?? 0.2), o.at);
     inner = boxImg(k, b, alt) + (o.paint ? strokeAt(color, b) : '');
   } else if (style === 'detail') inner = boxImg(k, cropBox(k, W, H, 2.4, 0.55, 0.8, W / 2, H / 2), `${alt}의 디테일`);
   else {
     inner = `<img class="fit" src="${photoSrc(k)}" alt="${alt}" loading="lazy" style="object-position:${pct(px)} ${pct(py)}${style === 'mono' ? ';filter:grayscale(1) contrast(1.06)' : ''}">`;
-    if (style === 'paint') inner += strokeAt(color, fit(k, W, H, px, py));
+    const f = fit(k, W, H, px, py);
+    if (style === 'paint') inner += strokeAt(color, o.at ? { ...f, fx: o.at.x * f.dw - f.ox, fy: o.at.y * f.dh - f.oy } : f);
   }
   return `<span class="ph" style="width:${W}px;height:${H}px${o.radius ? `;border-radius:${o.radius}px` : ''}">${inner}</span>`;
 }
@@ -198,7 +204,7 @@ const OLDER = ['coral', 'sage', 'butter', 'cobalt', 'cream', 'powder', 'lilac', 
 function fresh() {
   return {
     auth: 'out',
-    me: { name: ME, bio: '옷으로 남기는 나의 계절.', issues: 11, color: 'camel', crop: 'plain', paint: false, mast: 'white', caption: PEOPLE[ME].cap, email: `${ME}@example.com`, minor: false, garments: MY_GARMENTS.map((g) => ({ ...g })) },
+    me: { name: ME, bio: '옷으로 남기는 나의 계절.', issues: 11, color: 'camel', crop: 'plain', paint: false, locate: false, at: null, mast: 'white', caption: PEOPLE[ME].cap, email: `${ME}@example.com`, minor: false, garments: MY_GARMENTS.map((g) => ({ ...g })) },
     published: false,
     justPublished: false,
     liked: new Set(),
@@ -218,7 +224,7 @@ function fresh() {
     requests: ['zuri'],
     twin: { step: 'none', with: 'dana', color: 'camel', vis: null, no: 3 },
     notif: { on: true, twin: true, likes: true, remind: true },
-    join: { color: 'camel', name: ME, crop: 'plain', paint: true },
+    join: { color: 'camel', name: ME, crop: 'plain', paint: true, locate: false, at: null },
     copied: false,
   };
 }
@@ -235,6 +241,28 @@ const sameCount = (c) => SAME_COUNT[c] + (S.published && c === S.me.color ? 1 : 
 // A face choice as one style for face(): a crop (plain · behind · neck) plus the paint switch, which neck turns off (P15).
 const lookStyle = (crop, paint) => (crop === 'plain' && paint && 'paint') || crop;
 const myLook = () => ({ style: lookStyle(S.me.crop, S.me.paint), paint: S.me.crop === 'behind' && S.me.paint, color: S.me.color });
+// Face position guide under the cover (PR #21 review): says what to press when the stroke sits off the face. While setting it the
+// cover shows the plain photo with a hint; a tap there becomes the face centre. In join the cancel is the bottom button instead.
+function faceGuide(st, key, { cancelHere = true } = {}) {
+  const neck = st.crop === 'neck';
+  const [title, sub, action] = st.locate
+    ? ['사진에서 얼굴 가운데를 눌러 주세요', '효과를 잠시 숨긴 원본이에요. 누른 자리를 기준으로 물감과 자르기가 다시 놓여요.', cancelHere ? '효과 미리보기로 돌아가기' : '']
+    : neck
+      ? ['목 아래 · 물감은 쓰지 않아요', '턱 아래로 잘라요. 자른 자리가 어긋나면 얼굴 위치를 다시 정해 주세요.', '얼굴 위치 다시 정하기']
+      : st.paint
+        ? ['물감 위치가 어긋났나요?', '버튼을 누르고 사진에서 얼굴 가운데를 누르면 물감이 그 자리로 옮겨 가요.', '물감 위치 옮기기']
+        : ['얼굴 위치', '물감 한 획·사인 뒤로·목 아래는 얼굴 위치를 기준으로 놓여요.', '얼굴 위치 다시 정하기'];
+  return `<div class="face-guide${st.locate ? ' on' : ''}" role="status">${icon('touch', 20)}<span class="fg-t"><b>${title}</b><span>${sub}</span></span>${action ? `<button type="button" class="fg-go" data-act="locate:${key}">${action}</button>` : ''}</div>`;
+}
+const coverHint = () => `<span class="cover-hint" aria-hidden="true">${icon('touch', 16)}얼굴 가운데를 눌러 주세요</span>`;
+// A tap on the plain photo (object-position 50% 50%) → photo fractions.
+function photoPoint(e, el, W, H) {
+  const r = el.getBoundingClientRect();
+  const f = fit(ME, W, H);
+  const cx = ((e.clientX - r.left) / r.width) * W;
+  const cy = ((e.clientY - r.top) / r.height) * H;
+  return { x: Math.max(0, Math.min(1, (cx + f.ox) / f.dw)), y: Math.max(0, Math.min(1, (cy + f.oy) / f.dh)) };
+}
 const lookOf = (k) => (k === ME ? myLook() : { style: FACE[k] || 'plain', paint: false, color: PEOPLE[k].color });
 const garmentsOf = (k) => (k === ME ? (S.published ? S.me.garments : []) : GARMENTS[k] || []);
 function linesFor(k) {
@@ -915,14 +943,15 @@ SCREENS.make = () => {
 <div class="top-gap"></div>
 <header class="hd" style="position:relative;padding-right:18px">${backBtn('닫기', 'x')}<h1 style="position:absolute;left:0;right:0;margin:0;text-align:center;font-size:16px;font-weight:600;pointer-events:none">오늘의 캔버스 만들기</h1><span class="serif it" style="font-size:18px"><span class="roll" id="roll"><span><span>Nº ${pad3(m.issues + 1)}</span><span>올렸어요</span></span></span></span></header>
 <div class="scroll" id="scroller"><div style="display:flex;flex-direction:column;align-items:center;padding:6px 20px 20px">
-<div id="mk-cover" style="position:relative;width:${W}px;height:${H}px;flex-shrink:0;overflow:hidden;background:var(--photo);color:${m.mast === 'white' ? WHITE : INK};box-shadow:0 14px 36px rgba(41,42,39,.2)">
-${face(ME, W, H, look.style, { zoom: 1.9, ty: 0.21, color: m.color, paint: look.paint })}
+<div id="mk-cover"${m.locate ? ` data-act="faceat:me:${W}:${H}" aria-label="얼굴 가운데 누르기"` : ''} style="position:relative;width:${W}px;height:${H}px;flex-shrink:0;overflow:hidden;background:var(--photo);color:${m.mast === 'white' ? WHITE : INK};box-shadow:0 14px 36px rgba(41,42,39,.2)${m.locate ? ';cursor:crosshair' : ''}">
+${m.locate ? face(ME, W, H, 'plain') + coverHint() : face(ME, W, H, look.style, { zoom: 1.9, ty: 0.21, color: m.color, paint: look.paint, at: m.at })}
 <span class="shade" style="top:0;height:45%;background:linear-gradient(rgba(0,0,0,.4),rgba(0,0,0,0))"></span>
-<span class="mono" aria-hidden="true" style="position:absolute;left:10px;right:10px;top:8px;display:flex;justify-content:space-between;font-size:8px;letter-spacing:.06em"><span>ESEL</span><span>Nº ${pad3(m.issues + 1)} · 9. 6.</span></span>
-<span class="serif" aria-hidden="true" style="position:absolute;left:0;right:0;top:18px;text-align:center;font-size:${mastSize(m.name, W, 128)}px;line-height:.9;letter-spacing:-.05em;padding-right:5px;white-space:nowrap">${esc(m.name)}</span>
+${m.locate ? '' : `<span class="mono" aria-hidden="true" style="position:absolute;left:10px;right:10px;top:8px;display:flex;justify-content:space-between;font-size:8px;letter-spacing:.06em"><span>ESEL</span><span>Nº ${pad3(m.issues + 1)} · 9. 6.</span></span>
+<span class="serif" aria-hidden="true" style="position:absolute;left:0;right:0;top:18px;text-align:center;font-size:${mastSize(m.name, W, 128)}px;line-height:.9;letter-spacing:-.05em;padding-right:5px;white-space:nowrap">${esc(m.name)}</span>`}
 <span class="shade" style="bottom:0;height:40%;background:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,.5))"></span>
-<span style="position:absolute;left:12px;right:12px;bottom:12px;color:${WHITE};font-size:11px;font-weight:500">${esc(m.caption)}</span>
+${m.locate ? '' : `<span style="position:absolute;left:12px;right:12px;bottom:12px;color:${WHITE};font-size:11px;font-weight:500">${esc(m.caption)}</span>`}
 </div>
+${faceGuide(m, 'me')}
 <div class="mk-controls">
 <span class="lbl">얼굴 · 자르기</span>
 <div class="seg" role="group" aria-label="자르기">${SEG(CROPS, m.crop, 'crop')}</div>
@@ -1378,16 +1407,17 @@ SCREENS['join-face'] = () => {
 <div class="scroll" id="scroller"><div class="pad" style="padding-bottom:20px">
 <h1 class="serif" style="margin:20px 0 0;font-size:30px;font-weight:400;line-height:1.2">얼굴은 어떻게 할까요?</h1>
 <p style="margin:6px 0 0;font-size:14px;color:var(--sub)">올릴 때마다 바꿀 수 있어요. 가려도 똑같이 멋져요.</p>
-<div style="position:relative;width:${W}px;height:${H}px;margin:20px auto 0;overflow:hidden;background:var(--photo);color:${WHITE};box-shadow:0 14px 36px rgba(41,42,39,.2)">
-${face(ME, W, H, lookStyle(j.crop, j.paint && !neck), { zoom: 1.9, ty: 0.21, color: j.color, paint: j.crop === 'behind' && j.paint })}
+<div${j.locate ? ` data-act="faceat:join:${W}:${H}" aria-label="얼굴 가운데 누르기"` : ''} style="position:relative;width:${W}px;height:${H}px;margin:20px auto 0;overflow:hidden;background:var(--photo);color:${WHITE};box-shadow:0 14px 36px rgba(41,42,39,.2)${j.locate ? ';cursor:crosshair' : ''}">
+${j.locate ? face(ME, W, H, 'plain') + coverHint() : face(ME, W, H, lookStyle(j.crop, j.paint && !neck), { zoom: 1.9, ty: 0.21, color: j.color, paint: j.crop === 'behind' && j.paint, at: j.at })}
 <span class="shade" style="top:0;height:45%;background:linear-gradient(rgba(0,0,0,.4),rgba(0,0,0,0))"></span>
-<span class="serif" aria-hidden="true" style="position:absolute;left:0;right:0;top:14px;text-align:center;font-size:${mastSize(j.name, W, 110)}px;line-height:.9;letter-spacing:-.05em;padding-right:4px;white-space:nowrap">${esc(j.name)}</span>
+${j.locate ? '' : `<span class="serif" aria-hidden="true" style="position:absolute;left:0;right:0;top:14px;text-align:center;font-size:${mastSize(j.name, W, 110)}px;line-height:.9;letter-spacing:-.05em;padding-right:4px;white-space:nowrap">${esc(j.name)}</span>`}
 </div>
+${faceGuide(j, 'join', { cancelHere: false })}
 <div class="crop-cards" role="group" aria-label="자르기" style="margin-top:18px">${cards.map(([k, t, s]) => `<button type="button" data-act="joincrop:${k}" aria-pressed="${j.crop === k}"><b>${t}</b><span>${s}</span></button>`).join('')}</div>
 <div class="paint-card" style="margin-top:8px;opacity:${neck ? 0.38 : 1}">${paintImg(j.color, 52)}<span style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:600">물감 한 획</span><span style="font-size:12px;color:var(--sub)">오늘의 색으로 눈을 가려요</span></span><div class="seg" role="group" aria-label="물감 한 획" style="margin-left:auto;width:116px">${SEG([['off', '끔'], ['on', '켬']], j.paint && !neck ? 'on' : 'off', 'joinpaint', { disabled: neck })}</div></div>
 ${neck ? '<p class="lbl" style="margin:8px 0 0;line-height:18px">목 아래는 얼굴이 없어 물감을 쓰지 않아요.</p>' : ''}
 </div></div>
-<div class="bottom-bar"><button type="button" class="btn" data-go="join-done">첫 캔버스 올리기</button></div></div>`,
+<div class="bottom-bar">${j.locate ? '<button type="button" class="btn line" data-act="locate:join">위치 조정 취소</button>' : '<button type="button" class="btn" data-go="join-done">첫 캔버스 올리기</button>'}</div></div>`,
   };
 };
 SCREENS['join-done'] = () => {
@@ -1597,8 +1627,8 @@ const ACT = {
   },
   'wear-all': () => $('#wear')?.scrollIntoView({ block: 'start', behavior: calm() ? 'auto' : 'smooth' }),
   // Make: one crop, the paint switch (off and disabled with neck down, not restored afterwards), sign color (P15).
-  crop: (k) => { S.me.crop = k; if (k === 'neck') S.me.paint = false; render({ keepScroll: true }); },
-  paint: (v) => { if (S.me.crop === 'neck') return; S.me.paint = v === 'on'; render({ keepScroll: true }); },
+  crop: (k) => { S.me.crop = k; S.me.locate = false; if (k === 'neck') S.me.paint = false; render({ keepScroll: true }); },
+  paint: (v) => { if (S.me.crop === 'neck') return; S.me.locate = false; S.me.paint = v === 'on'; render({ keepScroll: true }); },
   mast: (k) => { S.me.mast = k; render({ keepScroll: true }); },
   'wear-add': () => openGarment(null),
   'wear-edit': (i) => openGarment(+i),
@@ -1703,8 +1733,11 @@ const ACT = {
   shutter: () => go('join-name'),
   album: () => { toast('목업에서는 예시 사진으로 이어가요'); go('join-name'); },
   flip: () => toast('목업에서는 카메라를 쓰지 않아요'),
-  joincrop: (k) => { S.join.crop = k; if (k === 'neck') S.join.paint = false; render({ keepScroll: true }); },
-  joinpaint: (v) => { if (S.join.crop === 'neck') return; S.join.paint = v === 'on'; render({ keepScroll: true }); },
+  joincrop: (k) => { S.join.crop = k; S.join.locate = false; if (k === 'neck') S.join.paint = false; render({ keepScroll: true }); },
+  // Face position (PR #21 review): the guide button starts or ends setting it; a tap on the plain photo sets it.
+  locate: (key) => { const st = key === 'join' ? S.join : S.me; st.locate = !st.locate; render({ keepScroll: true }); },
+  faceat: (key, w, h, el, e) => { const st = key === 'join' ? S.join : S.me; if (!st.locate || !e) return; st.at = photoPoint(e, el, +w, +h); st.locate = false; render({ keepScroll: true }); },
+  joinpaint: (v) => { if (S.join.crop === 'neck') return; S.join.locate = false; S.join.paint = v === 'on'; render({ keepScroll: true }); },
   found: (where) => {
     const j = S.join;
     S.auth = 'in';
@@ -1729,7 +1762,7 @@ document.addEventListener('click', (e) => {
     return;
   }
   const [name, ...args] = t.dataset.act.split(':');
-  ACT[name]?.(...args, t);
+  ACT[name]?.(...args, t, e);
 });
 document.addEventListener('input', (e) => {
   const key = e.target.dataset?.in;
