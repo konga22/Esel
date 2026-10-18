@@ -43,6 +43,14 @@ class StandardHttpClient implements AppHttpClient {
   @override
   Future<Map<String, dynamic>> delete(String path) => _send('DELETE', path);
 
+  /// access 토큰을 붙이는 요청인지. 가입·로그인·토큰 갱신(`/auth/*`)은 토큰 없이 보낸다.
+  /// 서버는 토큰이 붙어 있으면 공개 주소에서도 검사하므로, 만료된 토큰을 붙이면 갱신이
+  /// `TOKEN_EXPIRED`로 실패해 로그아웃된다(#26 리뷰). 로그아웃만 지금 세션 토큰이 필요하다.
+  static bool sendsAccessToken(String path) {
+    final normalized = path.startsWith('/') ? path : '/$path';
+    return normalized == '/auth/logout' || !normalized.startsWith('/auth/');
+  }
+
   Future<Map<String, dynamic>> _send(
     String method,
     String path, {
@@ -60,7 +68,7 @@ class StandardHttpClient implements AppHttpClient {
       final request = await client.openUrl(method, uri);
       request.headers.contentType = io.ContentType.json;
       request.headers.set(io.HttpHeaders.acceptHeader, 'application/json');
-      final tokens = await storage.getTokens();
+      final tokens = sendsAccessToken(path) ? await storage.getTokens() : null;
       if (tokens != null) {
         request.headers.set(
           io.HttpHeaders.authorizationHeader,
@@ -90,7 +98,7 @@ class StandardHttpClient implements AppHttpClient {
       if (response.statusCode == 401 &&
           code == 'TOKEN_EXPIRED' &&
           retry &&
-          (path == '/auth/logout' || !path.startsWith('/auth/'))) {
+          sendsAccessToken(path)) {
         _refreshing ??= _refresh();
         try {
           await _refreshing;
