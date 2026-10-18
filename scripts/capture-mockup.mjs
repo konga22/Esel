@@ -37,6 +37,8 @@ const SETUP = {
   C3: IN + at('spread:dana'),
   C4: IN + at('stand'),
   C4subs: IN + at('stand:subs'),
+  // R5-4: the round button opened, choices fanned out around the thumb.
+  C4fan: `${IN}S.fan=true;` + at('stand'),
   // Opened from a palette cell, so it belongs to the palette and the capsule's first slot offers home.
   C5: IN + at('stand', 'shelf:dana'),
   C5b: IN + at('stand', 'shelf:dana') + "document.querySelector('#scroller').scrollTop=1060;",
@@ -45,9 +47,14 @@ const SETUP = {
   C6wear: IN + at('make') + "openGarment(null);S.draft.kind='가방';S.draft.note='빈티지';redrawSheet();",
   C7: IN + at() + scroll(0, 1500, 20) + scroll(1490, 1100, 10),
   C8: IN + at('same'),
-  C8list: `${IN}S.colorList=true;` + at('same'),
+  C8list: IN + at('same') + 'ACT.allcolors();',
   C8b: PUB + at('same'),
   M1: PUB + at('me'),
+  M1cal: `${PUB}S.meTab='cal';` + at('me'),
+  M1saved: `${PUB}S.meTab='saved';` + at('me'),
+  M1menu: PUB + at('me') + 'ACT.mymenu();',
+  // Weekly theme card between covers in the home feed (10-18).
+  C1card: IN + at() + "document.querySelector('#scroller').scrollTop=document.querySelector('.feature').offsetTop-120;",
   A4: PUB + at('me', 'reactions'),
   R1: PUB + at('me', 'record'),
   R2: PUB + at('me', 'record', 'day:6'),

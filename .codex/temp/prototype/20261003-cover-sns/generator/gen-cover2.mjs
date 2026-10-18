@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { mastSize, SANS, SERIF, MONO, INK, PAPER, MUTED, HAIR, PAINT, PEOPLE, ME, COLOR_ORDER, TODAY_CANDIDATES, ROOT, cover, fit, faceStroke, cropStroke, cropFace, neckDown, crop, avatar, paint, icon, stat, LIKE_ATTRS, pill, masthead, capsule, tagDot, wearPill, page } from './lib.mjs';
 import { mastLayer, scrollLogic } from './scroll.mjs';
+import { adopted } from './gen-explore.mjs';
 
 const OUT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'project');
 const files = {};
@@ -175,43 +176,11 @@ function gridBlock(items, top, tallLeft, draw = tile) {
   if (tallLeft) return [draw(a, x[0], top, cols[0], tall), draw(b, x[1], top, cols[1], cell), draw(c, x[2], top, cols[2], cell), draw(d, x[1], r2, cols[1], cell), draw(e, x[2], r2, cols[2], cell)].join('\n');
   return [draw(a, x[0], top, cols[0], cell), draw(b, x[1], top, cols[1], cell), draw(c, x[2], top, cols[2], tall), draw(d, x[0], r2, cols[0], cell), draw(e, x[1], r2, cols[1], cell)].join('\n');
 }
-// 추천: recently posted, same color as me, not yet subscribed. Before I post, my three candidate colors stay out (P01).
-const RECOMMENDED = [
-  [{ key: 'dana' }, { key: 'ama' }, { key: 'riva', py: 0.5 }, { key: 'lise', style: 'paint' }, { key: 'omar', style: 'neck' }],
-  [{ key: 'vera', py: 0.5 }, { key: 'zuri' }, { key: 'elin', py: 0.2 }, { key: 'freya', style: 'behind' }, { key: 'hana', py: 0.35 }],
-  [{ key: 'sol', py: 0.35 }, { key: 'nia', py: 0.4 }, { key: 'june', style: 'neck' }, { key: 'cleo', py: 0.25 }, { key: 'maya', py: 0.35 }],
-  [{ key: 'ines', style: 'paint', py: 0.2 }, { key: 'rio', py: 0.4 }, { key: 'mira', py: 0.25 }, { key: 'ayo', py: 0.3 }, { key: 'elin', style: 'behind' }],
-];
-const paletteHead = `<header style="flex-shrink: 0; height: 48px; display: flex; align-items: baseline; justify-content: space-between; padding: 8px 18px 0; box-sizing: border-box">
-<h1 style="margin: 0; font-family: ${SERIF}; font-size: 32px; font-weight: 400; line-height: 1">팔레트</h1>
-<span style="font-family: ${SERIF}; font-style: italic; font-size: 17px">9. 6. 일요일</span>
-</header>`;
-// Tabs: 추천 · 색상 ▾ · 구독. No "전체". The underline does not slide (motion board).
-const tabLink = (label, href, on, extra = '') => `<a href="${href}"${on ? ' aria-current="page"' : ''} style="height: 44px; padding: 0 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 16px; font-weight: 600; color: ${on ? INK : MUTED}"><span style="height: 22px; display: flex; align-items: center; gap: 2px">${label}${extra}</span><span style="align-self: stretch; height: 1.5px; background: ${on ? INK : 'transparent'}"></span></a>`;
-const paletteTabs = (active) => `<nav aria-label="팔레트 보기" style="flex-shrink: 0; height: 46px; box-sizing: border-box; display: flex; gap: 18px; padding: 2px 16px 0">
-${tabLink('추천', 'CoverStand.dc.html', active === 'pick')}
-${tabLink('색상', 'CoverStandLocked.dc.html', active === 'color', icon('down', 16, 2))}
-${tabLink('구독', 'CoverStand.dc.html', active === 'sub')}
-</nav>`;
-const gridTop = 8;
 
-// C4 팔레트 · 추천
-files.CoverStand = page('표지 SNS 4 팔레트', `<div style="${ROOT(`padding-top: 54px; display: flex; flex-direction: column; background: ${PAPER}; color: ${INK}`)}">
-${paletteHead}
-${paletteTabs('pick')}
-<div class="esel-scroll" style="flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none">
-<section aria-label="추천" style="position: relative; height: ${GRID.block * RECOMMENDED.length}px; margin-top: ${gridTop}px">
-${RECOMMENDED.map((items, i) => gridBlock(items, i * GRID.block, i % 2 === 1)).join('\n')}
-</section>
-<div style="height: 110px"></div>
-</div>
-${capsule({ color: PEOPLE[ME].color, active: 'palette' })}
-</div>`);
+// C4 팔레트 · 추천 and C8 카멜 방 come from the adopted layouts in gen-explore.mjs (R5-4, 10-18); see the end of this file.
 
-// C8 팔레트 · 색상, 오늘 올리기 전. 고른 색(카멜)의 방은 먼저 3장만 선명하고 나머지는 흐린 칸. 올리거나 자정이 지나면 모두 펼쳐진다.
-const LOCK = { color: PEOPLE[ME].color, total: 64, open: Object.keys(PEOPLE).filter((k) => k !== ME && PEOPLE[k].color === PEOPLE[ME].color).slice(0, 3) };
-// Each person picked their own face presentation.
-const LOCK_FACE = { leo: { style: 'neck' }, noor: { style: 'behind' }, mara: { py: 0.3 } };
+// The color list (used by the "모든 색" sample on the components board). LOCK.color marks my color as the current one.
+const LOCK = { color: PEOPLE[ME].color };
 // Color list: my three candidates (locked before I post, mine first), then the rest in an assumed "picked most today" order. No numbers.
 const PICK_ORDER = ['powder', 'butter', 'cobalt', 'coral', 'sage', 'cream', 'charcoal', 'terracotta', 'burgundy'];
 const myCandidates = [PEOPLE[ME].color, ...TODAY_CANDIDATES.filter((c) => c !== PEOPLE[ME].color)];
@@ -221,49 +190,6 @@ const colorRow = (c) => {
   const current = c === LOCK.color;
   return `<button type="button" onClick="{{closeList}}" aria-label="${PAINT[c].name}${locked ? ' · 올리기 전이라 세 장만 먼저 보여요' : ''}"${current ? ' aria-current="true"' : ''} style="width: calc(100% - 12px); height: 48px; margin: 0 6px; box-sizing: border-box; padding: 0 8px 0 4px; border-radius: 10px; display: flex; align-items: center; gap: 4px; font-size: 15px; font-weight: ${current ? 600 : 500}; background: ${current ? '#F1F1EE' : 'transparent'}">${paint(c, 44, '', '')}<span>${PAINT[c].name}</span><span style="margin-left: auto; display: flex; align-items: center; gap: 8px">${locked ? icon('lock', 15, 1.8) : ''}<span style="width: 18px; display: flex">${current ? icon('check', 18, 2) : ''}</span></span></button>`;
 };
-const colorPanel = (top, maxH) => `<div id="color-list" role="group" aria-label="색 고르기" style="display: {{listDisplay}}; position: absolute; left: 16px; top: ${top}px; width: 236px; max-height: ${maxH}px; overflow-y: auto; box-sizing: border-box; padding: 6px 0; border-radius: 16px; background: #FFFFFF; box-shadow: inset 0 0 0 1px ${HAIR}, 0 10px 28px rgba(0, 0, 0, 0.14); scrollbar-width: none; z-index: 2">
-${colorList.slice(0, myCandidates.length).map(colorRow).join('\n')}
-<span aria-hidden="true" style="display: block; height: 1px; margin: 4px 14px; background: ${HAIR}"></span>
-${colorList.slice(myCandidates.length).map(colorRow).join('\n')}
-</div>`;
-const colorButton = (c) => `<button type="button" aria-expanded="{{listExpanded}}" aria-controls="color-list" onClick="{{toggleList}}" aria-label="색 고르기 · 지금 ${PAINT[c].name}" style="height: 48px; display: flex; align-items: center"><span style="height: 40px; padding: 0 10px 0 8px; border-radius: 20px; display: flex; align-items: center; gap: 4px; background: #FFFFFF; box-shadow: inset 0 0 0 1.5px ${INK}; font-size: 15px; font-weight: 600">${paint(c, 40, '', '')}<span>${PAINT[c].name}</span>${icon('lock', 15, 1.8)}<span style="display: flex; margin-left: 2px; transform: {{chevronTurn}}">${icon('down', 18, 2)}</span></span></button>`;
-// Blurred cells keep the grid's shape; no photo, name or face shows through.
-const blurCell = (i) => (it, x, y, w, h) => `<span style="position: absolute; left: ${x}px; top: ${y}px; width: ${w}px; height: ${h}px; background: ${PAINT[LOCK.color].hex}; opacity: ${0.32 + ((it * 5 + i * 3) % 4) * 0.08}"></span>`;
-const LK = { row: 48, top: 54 + 48 + 46 + 4 };
-LK.grid = LK.top + LK.row + 4;
-LK.blur = LK.grid + GRID.cell + GRID.gap;
-const lockedGrid = `<div style="position: absolute; left: 0; right: 0; top: ${LK.grid}px">
-${LOCK.open.map((k, i) => tile({ key: k, ...LOCK_FACE[k] }, GRID.x[i], 0, GRID.cols[i], GRID.cell)).join('\n')}
-</div>
-<section aria-label="${PAINT[LOCK.color].name} 사진 ${LOCK.total - LOCK.open.length}장 · 오늘의 캔버스를 올리면 펼쳐져요" style="position: absolute; left: 0; right: 0; top: ${LK.blur}px; height: ${852 - LK.blur}px; overflow: hidden">
-<div aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 0; filter: blur(1.5px)">
-${gridBlock([0, 1, 2, 3, 4], 0, true, blurCell(0))}
-${[0, 1, 2].map((i) => blurCell(1)(i + 5, GRID.x[i], GRID.block, GRID.cols[i], GRID.cell)).join('\n')}
-</div>
-<div style="position: absolute; left: 50%; top: 58px; transform: translateX(-50%); width: 300px; padding: 18px 18px 16px; box-sizing: border-box; border-radius: 22px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; background: rgba(249, 249, 251, 0.95); box-shadow: inset 0 0 0 1px ${HAIR}, 0 10px 28px rgba(0, 0, 0, 0.1)">
-${icon('lock', 20, 1.8)}
-<p style="margin: 2px 0 0; font-family: ${SERIF}; font-size: 22px; line-height: 1.2">올리면 함께 펼쳐집니다</p>
-<p style="margin: 0; font-size: 13px; line-height: 1.45; color: ${MUTED}">${PAINT[LOCK.color].name} ${LOCK.total - LOCK.open.length}장이 더 있어요.<br>자정이 지나면 모두 펼쳐져요.</p>
-<a href="CoverMake.dc.html" style="margin-top: 10px; height: 48px; padding: 0 22px; border-radius: 24px; display: flex; align-items: center; gap: 6px; background: ${INK}; color: ${PAPER}; font-size: 15px; font-weight: 600">${icon('plus', 18, 2)}<span>오늘의 캔버스 만들기</span></a>
-</div>
-</section>`;
-files.CoverStandLocked = page('표지 SNS 8 팔레트 · 색상 · 올리기 전', `<div style="${ROOT(`padding-top: 54px; display: flex; flex-direction: column; background: ${PAPER}; color: ${INK}`)}">
-${paletteHead}
-${paletteTabs('color')}
-<div style="flex-shrink: 0; height: ${LK.row}px; margin-top: 4px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px 0 16px">
-${colorButton(LOCK.color)}
-<span style="font-size: 13px; color: ${MUTED}">같은 색 ${LOCK.total}명 · 먼저 ${LOCK.open.length}장</span>
-</div>
-${lockedGrid}
-${colorPanel(LK.top + LK.row + 2, 6 + 3 * 48 + 9 + 7.5 * 48)}
-${capsule({ color: PEOPLE[ME].color, active: 'palette' })}
-</div>`, { logic: `const open = !!(this.state && this.state.list);
-vals.listDisplay = open ? 'block' : 'none';
-vals.listExpanded = open ? 'true' : 'false';
-vals.chevronTurn = open ? 'rotate(180deg)' : 'none';
-vals.toggleList = () => this.setState({ list: !open });
-vals.closeList = () => this.setState({ list: false });` });
-
 // C5 스케치북 · dana. 팔레트 격자에서 사람을 누르면 온다. 그 사람의 사진이 최신부터 세로로 이어진다.
 // Issue numbers rise only by posting, so they run without gaps (P04).
 const ISSUES = 38;
@@ -446,6 +372,8 @@ ${mastLayer}
 ${capsule({ color: PEOPLE[ME].color, active: 'home' })}
 </div>`, sc);
 
+// Palette and my page follow the layouts chosen on 10-18 (palette R5-4, my page X4-1).
+Object.assign(files, { CoverStand: adopted.CoverStand, CoverStandLocked: adopted.CoverStandLocked, CoverMe: adopted.CoverMe });
 for (const [name, html] of Object.entries(files)) fs.writeFileSync(path.join(OUT, `${name}.dc.html`), html);
-export { scrollCover, innerPages, inner, coverText, topBar, shade, miniCover, GRID, gridBlock, tile, tileImg, paletteTabs, colorRow, colorList, myCandidates, GARMENTS, garmentRow, WEAR };
+export { scrollCover, innerPages, inner, coverText, topBar, shade, miniCover, GRID, gridBlock, tile, tileImg, colorRow, colorList, myCandidates, GARMENTS, garmentRow, WEAR };
 console.log('ok', Object.entries(files).map(([n, h]) => `${n}:${h.length}`).join(' '));

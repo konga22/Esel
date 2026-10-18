@@ -13,20 +13,25 @@
     {"id": "J6", "title": "얼굴 연출 · 자르기와 물감", "route": "join-face", "image": "docs/dev/screens/j6-face.jpg", "figma": "122:1440"},
     {"id": "J7", "title": "첫 캔버스", "route": "join-done", "image": "docs/dev/screens/j7-first-issue.jpg", "figma": "122:1481"},
     {"id": "C1", "title": "홈", "route": "feed", "image": "docs/dev/screens/c1-feed.jpg", "figma": "122:89"},
+    {"id": "C1card", "title": "홈 · 이번 주 주제 카드", "route": "feed", "image": "docs/dev/screens/c1card-feed-theme.jpg"},
     {"id": "C2", "title": "홈 · 어두운 사진 표지", "route": "feed", "image": "docs/dev/screens/c2-feed-dark.jpg", "figma": "122:158"},
     {"id": "C3", "title": "자세히 보기 · 착용 정보", "route": "spread", "image": "docs/dev/screens/c3-spread.jpg", "figma": "122:228"},
-    {"id": "C4", "title": "팔레트 · 추천", "route": "stand", "image": "docs/dev/screens/c4-stand.jpg", "figma": "122:309"},
+    {"id": "C4", "title": "팔레트 · 추천(사진만, 둥근 버튼)", "route": "stand", "image": "docs/dev/screens/c4-stand.jpg", "figma": "122:309"},
     {"id": "C4subs", "title": "팔레트 · 구독", "route": "stand", "image": "docs/dev/screens/c4subs-stand-subs.jpg"},
+    {"id": "C4fan", "title": "팔레트 · 부채 펼침", "route": "stand", "image": "docs/dev/screens/c4fan-stand-fan.jpg"},
     {"id": "C5", "title": "스케치북", "route": "shelf", "image": "docs/dev/screens/c5-shelf.jpg", "figma": "122:461"},
     {"id": "C5b", "title": "스케치북 · 지난 캔버스", "route": "shelf", "image": "docs/dev/screens/c5b-shelf-past.jpg"},
     {"id": "C6", "title": "오늘의 캔버스 만들기", "route": "make", "image": "docs/dev/screens/c6-make.jpg", "figma": "122:753"},
     {"id": "C6neck", "title": "만들기 · 목 아래(물감 꺼짐)", "route": "make", "image": "docs/dev/screens/c6neck-make-neck.jpg"},
     {"id": "C6wear", "title": "만들기 · 착용 정보 더하기", "route": "make", "image": "docs/dev/screens/c6wear-make-garment.jpg"},
     {"id": "C7", "title": "홈 안쪽 지면 · 작은 로고", "route": "feed", "image": "docs/dev/screens/c7-feed-inner.jpg", "figma": "122:811"},
-    {"id": "C8", "title": "팔레트 · 색상(올리기 전)", "route": "same", "image": "docs/dev/screens/c8-same-locked.jpg", "figma": "122:581"},
-    {"id": "C8list", "title": "팔레트 · 색 목록 펼침", "route": "same", "image": "docs/dev/screens/c8list-color-list.jpg"},
-    {"id": "C8b", "title": "팔레트 · 색상(올린 뒤)", "route": "same", "image": "docs/dev/screens/c8b-same-open.jpg"},
-    {"id": "M1", "title": "내 스케치북", "route": "me", "image": "docs/dev/screens/m1-me.jpg", "figma": "142:72"},
+    {"id": "C8", "title": "팔레트 · 색 방(올리기 전)", "route": "same", "image": "docs/dev/screens/c8-same-locked.jpg", "figma": "122:581"},
+    {"id": "C8list", "title": "팔레트 · 모든 색", "route": "same", "image": "docs/dev/screens/c8list-all-colors.jpg"},
+    {"id": "C8b", "title": "팔레트 · 색 방(올린 뒤)", "route": "same", "image": "docs/dev/screens/c8b-same-open.jpg"},
+    {"id": "M1", "title": "내 스케치북 · 내 캔버스", "route": "me", "image": "docs/dev/screens/m1-me.jpg", "figma": "142:72"},
+    {"id": "M1cal", "title": "내 스케치북 · 색 달력 탭", "route": "me", "image": "docs/dev/screens/m1cal-me-calendar.jpg"},
+    {"id": "M1saved", "title": "내 스케치북 · 저장함 탭", "route": "me", "image": "docs/dev/screens/m1saved-me-saved.jpg"},
+    {"id": "M1menu", "title": "내 스케치북 · ≡ 메뉴", "route": "me", "image": "docs/dev/screens/m1menu-me-menu.jpg"},
     {"id": "A4", "title": "내 캔버스의 반응", "route": "reactions", "image": "docs/dev/screens/a4-reactions.jpg", "figma": "144:395"},
     {"id": "R1", "title": "색 달력", "route": "record", "image": "docs/dev/screens/r1-record.jpg", "figma": "142:104"},
     {"id": "R2", "title": "날짜 기록", "route": "day", "image": "docs/dev/screens/r2-day.jpg", "figma": "142:228"},
@@ -539,9 +544,10 @@
       "id": "DEV-12",
       "phase": 3,
       "title": "팔레트(탐색)와 같은 색",
-      "summary": "팔레트(인스타 돋보기 탭 구조)에서 추천·색상·구독 탭으로 작은 표지 격자를 둘러본다. 오늘 후보 3색은 올리기 전 자물쇠이고, 색상에서 고르면 최신 3장과 흐린 칸만 보인다.",
+      "summary": "팔레트(인스타 돋보기 탭 구조)에서 화면을 채우는 작은 사진 격자를 둘러보고, 캡슐 위 둥근 버튼의 부채로 추천·구독·색을 고른다(10-18 R5-4). 오늘 후보 3색은 올리기 전 자물쇠이고, 색 방에서는 최신 3장과 흐린 칸만 보인다.",
       "screens": [
         "C4",
+        "C4fan",
         "C8",
         "C8b",
         "C4subs",
@@ -556,9 +562,10 @@
         "DEV-10"
       ],
       "client": [
+        "10-18 R5-4(남은 일): 위쪽 제목·탭 줄을 없애고 격자가 화면을 채운다. 칸은 사진만(얼굴 연출 그대로, 사인 뒤로를 고른 사람만 사인). 캡슐 위 오른쪽 둥근 버튼(60, 지금 보는 것: 추천 물감 세 점 · 구독 얼굴 · 색 물감)과 옆 이름. 누르면 엄지 둘레 부채: 반지름 80 추천·구독, 142 내 후보 3색(올리기 전 자물쇠), 202 많이 고른 색 5개, 왼쪽 아래 '모든 색' 목록. 색 방은 짧은 머리(물감 · 이름 · 같은 색 인원 · 먼저 3장). 목업 C4·C4fan·C8·C8list가 기준",
         "Flutter 공통 팔레트: 추천·색상·구독, 3열 모자이크, 타인 스케치북 이동. 로컬은 공개 규칙 적용 후 구성하며 비후보 색은 고정 물감 순서. 서버 추천·색 순서 API는 미연결",
-        "10-18: 화면 이름은 팔레트. 탭은 추천 · 색상 · 구독(\"전체\" 없음), 인스타 돋보기 탭 크기의 작은 3열 격자(두 줄마다 세로로 긴 칸 하나)",
-        "색상 탭은 색 선택 버튼을 누르면 목록이 아래로 펼쳐짐. 내 후보 3색(발행 전 자물쇠)이 먼저, 나머지는 서버가 준 순서(오늘 많이 고른 순). 숫자는 그리지 않음",
+        "화면 이름은 팔레트. \"전체\" 없음. 인스타 돋보기 탭 크기의 작은 3열 격자(두 줄마다 세로로 긴 칸 하나)",
+        "색 순서(부채 바깥·모든 색): 내 후보 3색(발행 전 자물쇠)이 먼저, 나머지는 서버가 준 순서(오늘 많이 고른 순). 숫자는 그리지 않음",
         "격자 칸을 누르면 그 사람의 스케치북(DEV-13)으로",
         "흐린 책등은 서버가 준 개수로만 그린다(이름·사진을 받지 않음)",
         "안내는 '발행하면 함께 펼쳐집니다'와 자정 안내만. 손실 문구·카운트다운 금지"
@@ -629,9 +636,12 @@
       "id": "DEV-14",
       "phase": 4,
       "title": "내 스케치북과 반응",
-      "summary": "내 스케치북에서 오늘의 캔버스, 지난 캔버스, 진입(색 달력·트윈·친구·이번 주 주제·전시·설정)을 보고, 내 캔버스의 반응 수와 목록은 나만 본다.",
+      "summary": "내 스케치북은 마이페이지(10-18 X4-1): 얼굴·사인·소개, 숫자 줄(캔버스 · 구독자(나만) · 구독 · 친구·트윈), 탭 내 캔버스 · 색 달력 · 저장함, ≡에 프로필 편집·공유·설정. 내 캔버스의 반응 수와 목록, 저장한 캔버스는 나만 본다.",
       "screens": [
         "M1",
+        "M1cal",
+        "M1saved",
+        "M1menu",
         "A4"
       ],
       "contracts": [
@@ -642,17 +652,21 @@
         "DEV-11"
       ],
       "client": [
-        "오늘 발행 전이면 '오늘 호 만들기' 카드",
+        "10-18 X4-1(남은 일): MY SKETCHBOOK 머리와 오른쪽 위 ≡(프로필 편집 · 내 스케치북 공유 · 설정과 계정 시트). 얼굴 80 · 세리프 사인 · 소개. 숫자 줄 캔버스 · 구독자(나만, 자물쇠) · 구독(→ 팔레트 구독) · 친구·트윈(→ 친구 화면, 맨 위에 트윈). 탭 내 캔버스 · 색 달력 · 저장함(아이콘 + 글자), 3열 격자, 칸을 누르면 내 사진이 세로로. 이번 주 주제·전시 진입은 빼고 홈 카드로. 29CM처럼 검은 얇은 선. 목업 M1·M1cal·M1saved·M1menu가 기준",
+        "저장함(새 기능): 저장을 누른 남의 캔버스 목록, 나에게만. 로컬은 기기 보관, 서버는 GET /api/me/scraps(cursor)",
+        "오늘 발행 전이면 오늘의 색 한 줄과 만들기",
         "반응 목록 화면에 '다른 사람에게는 좋아요 수가 표시되지 않아요'",
         "서버 모드 내 스케치북과 소유자 전용 반응 수·최근 목록 연결. 공개 DTO에 숫자를 옮기지 않음"
       ],
       "server": [
         "GET /api/me/magazine",
-        "GET /api/me/issues/{id}/reactions (소유자만)"
+        "GET /api/me/issues/{id}/reactions (소유자만)",
+        "GET /api/me/scraps: 내가 저장한 캔버스 목록(cursor, 공개 필터 먼저, 반응 숫자 없음)"
       ],
       "acceptance": [
         "볼 수 있는 남의 issue id로 reactions를 부르면 403, 볼 수 없는(잠긴·삭제된) 호면 404",
-        "소유자 응답에만 숫자가 있음"
+        "소유자 응답에만 숫자가 있음",
+        "저장함에는 지금 볼 수 있는 캔버스만 옴(잠긴·삭제·차단은 빠짐), 남의 저장함은 부를 수 없음"
       ],
       "tests": [
         "server/test/contracts/me.e2e-spec.ts",
@@ -934,9 +948,8 @@
       "summary": "2026-10-18: 주간 주제 참여·다른 기기 내 계정의 공개 표지 조회까지. 실제 서버 사용자 목록/동기화 제외.",
       "screens": [
         "CH1",
-        "C4",
-        "C6",
-        "M1"
+        "C1card",
+        "C6"
       ],
       "contracts": [
         "P01",
@@ -949,6 +962,7 @@
         "DEV-12"
       ],
       "client": [
+        "10-18: 진입은 홈 피드 표지 사이 카드(이번 주 주제). 마이페이지·팔레트 진입은 뺌. 카드 사진은 지금 볼 수 있는 것만(P01). 목업 C1card",
         "가방·겹쳐 입기·데님·비 오는 날 주간 주제, 기존 발행/참여 재사용",
         "계정별 내 기록과 기기 내 공개 참여 목록, 공개 필터 후 그룹화, 잠긴 색은 숨김"
       ],
@@ -1017,8 +1031,7 @@
       "summary": "2026-10-18 사용자 확정: 공개 표지를 직접 선정하고 이유를 적는 로컬 편집. 베스트/공개 순위/연간 특집 제외. 서버 전체 완료 아님.",
       "screens": [
         "CL1",
-        "C4",
-        "M1"
+        "C1card"
       ],
       "contracts": [
         "P01",
@@ -1031,6 +1044,7 @@
         "DEV-12"
       ],
       "client": [
+        "10-18: 진입은 홈 피드 표지 사이 카드(이번 주의 전시). 마이페이지 진입은 뺌",
         "features/collections domain/data/presentation, 서울 기간·이유 검증·계정별 선정 저장",
         "공개 필터 후 기간 모음, 이전 JSON 호환, 기존 호 유지·다음 호수 불변"
       ],
