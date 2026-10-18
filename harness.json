@@ -20,11 +20,11 @@
       {"id": "mood", "name": "00 무드보드", "files": ["BoardMood.dc.html"]},
       {"id": "tokens", "name": "01 디자인 토큰", "files": ["BoardTokens.dc.html"]},
       {"id": "components", "name": "02 컴포넌트", "files": ["BoardComponents.dc.html"]},
-      {"id": "cover", "name": "03 화면 · 표지 SNS", "files": ["CoverFeed.dc.html", "CoverNext.dc.html", "CoverSpread.dc.html", "CoverStand.dc.html", "CoverShelf.dc.html", "CoverStandLocked.dc.html", "CoverMake.dc.html", "CoverScroll.dc.html"]},
+      {"id": "cover", "name": "03 화면 · 표지 SNS", "files": ["CoverFeed.dc.html", "CoverNext.dc.html", "CoverSpread.dc.html", "CoverStand.dc.html", "CoverShelf.dc.html", "CoverStandLocked.dc.html", "CoverMake.dc.html", "CoverScroll.dc.html", "CoverMe.dc.html"]},
       {"id": "join", "name": "03 화면 · 로그인 · 첫 캔버스", "files": ["JoinScroll.dc.html", "JoinLogin.dc.html", "JoinColor.dc.html", "JoinShoot.dc.html", "JoinName.dc.html", "JoinFace.dc.html", "JoinDone.dc.html"]},
       {"id": "motion", "name": "04 모션", "files": ["BoardMotion.dc.html"]}
     ],
-    "archivePages": ["보관 · 피드 시안", "보관 · 아틀리에", "보관 · 미니멀"],
+    "archivePages": ["보관 · 팔레트 · 마이페이지 시안", "보관 · 피드 시안", "보관 · 아틀리에", "보관 · 미니멀"],
     "viewport": {"width": 393, "height": 852}
   },
   "appMockup": {
@@ -171,7 +171,8 @@
     "docs/design/screens/c2-next.jpg",
     "docs/design/screens/c3-spread.jpg",
     "docs/design/screens/c4-stand.jpg",
-    "docs/design/screens/c8-color-list.jpg",
+    "docs/design/screens/c4-fan.jpg",
+    "docs/design/screens/m1-me.jpg",
     "docs/design/screens/c5-shelf.jpg",
     "docs/design/screens/c6-make-behind.jpg",
     "docs/design/screens/c6-make-neck.jpg",

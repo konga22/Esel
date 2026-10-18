@@ -157,7 +157,7 @@
       "is_interactive": true,
       "page": "cover",
       "radius": 28,
-      "title": "C4 팔레트 · 추천",
+      "title": "C4 팔레트 · 추천 (둥근 버튼을 눌러 부채 열기)",
       "w": 393,
       "x": 1419,
       "y": 0
@@ -541,10 +541,340 @@
       "is_interactive": true,
       "page": "cover",
       "radius": 28,
-      "title": "C8 팔레트 · 색상 · 올리기 전",
+      "title": "C8 팔레트 · 카멜 방 · 올리기 전",
       "w": 393,
       "x": 473,
       "y": 1240
+    },
+    "ExplorePalette2Glass.dc.html": {
+      "x": 0,
+      "y": 4960,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "Q1 글라스 바",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExplorePalette2Box.dc.html": {
+      "x": 473,
+      "y": 4960,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "Q3 물감 상자",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExplorePalette2Rail.dc.html": {
+      "x": 946,
+      "y": 4960,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "Q4 색 레일",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExplorePalette3GlassBox.dc.html": {
+      "x": 0,
+      "y": 3720,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "R1 글라스 + 물감 상자",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExplorePalette3GlassRail.dc.html": {
+      "x": 473,
+      "y": 3720,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "R2 글라스 물감 레일",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExplorePalette3Tray.dc.html": {
+      "x": 946,
+      "y": 3720,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "R3 엄지 아래 물감 트레이",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExplorePalette3RailRoom.dc.html": {
+      "x": 1419,
+      "y": 3720,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "R4 레일 · 카멜 방(올리기 전)",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExplorePalette3Fan.dc.html": {
+      "x": 1892,
+      "y": 3720,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "R5 손안의 팔레트",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExplorePalette3FanWords.dc.html": {
+      "x": 2365,
+      "y": 3720,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "R5-1 글자 토글 · 내리면 숨김",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExplorePalette3FanAll.dc.html": {
+      "x": 2838,
+      "y": 3720,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "R5-2 추천·구독도 부채 안에",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExplorePalette3FanThumb.dc.html": {
+      "x": 3311,
+      "y": 3720,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "R5-3 엄지 옆 토글",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExplorePalette3FanChoose.dc.html": {
+      "x": 3784,
+      "y": 3720,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "R5-4 구독도 고르는 것 중 하나",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExploreMy1Profile.dc.html": {
+      "x": 0,
+      "y": 1240,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "V1 정돈된 프로필",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExploreMy2Board.dc.html": {
+      "x": 473,
+      "y": 1240,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "V2 표지와 대시보드",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExploreMy6CoverTiles.dc.html": {
+      "x": 946,
+      "y": 1240,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "W1 표지 썸네일 + 카드 3칸",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExploreMy7Swipe.dc.html": {
+      "x": 1419,
+      "y": 1240,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "W2 가로로 넘기는 카드",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExploreMy8Stats.dc.html": {
+      "x": 1892,
+      "y": 1240,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "W3 숫자 줄 + 2×2",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExploreMy9Today.dc.html": {
+      "x": 2365,
+      "y": 1240,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "W4 오늘 큰 카드",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExploreMy10Month.dc.html": {
+      "x": 0,
+      "y": 2480,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "W5 색 달력 크게",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExploreMy11Segment.dc.html": {
+      "x": 473,
+      "y": 2480,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "W6 세그먼트 대시보드",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExploreMy12Ink.dc.html": {
+      "x": 946,
+      "y": 2480,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "W7 먹색 카드",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExploreMy13Accent.dc.html": {
+      "x": 1419,
+      "y": 2480,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "W8 오늘의 색으로 물든 페이지",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExploreMy14Asym.dc.html": {
+      "x": 1892,
+      "y": 2480,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "W9 비대칭 대시보드",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExploreMy15Center.dc.html": {
+      "x": 2365,
+      "y": 2480,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "W10 가운데 정렬",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExploreRef1Insta.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "X1 인스타그램 결",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExploreRef2Pin.dc.html": {
+      "x": 473,
+      "y": 0,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "X2 핀터레스트 결",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExploreRef3Editorial.dc.html": {
+      "x": 946,
+      "y": 0,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "X3 29CM 결",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExploreRef4Mix.dc.html": {
+      "x": 1419,
+      "y": 0,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "X4 인스타그램 + 29CM",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExploreRef5Shelf.dc.html": {
+      "x": 1892,
+      "y": 0,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "X5 W컨셉 + 핀터레스트",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExploreRefY1Homes.dc.html": {
+      "x": 2365,
+      "y": 0,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "X4-1 제자리로 나누기",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExploreRefY2Drawer.dc.html": {
+      "x": 2838,
+      "y": 0,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "X4-2 햄버거 + 저장함 탭",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "ExploreRefY3Numbers.dc.html": {
+      "x": 3311,
+      "y": 0,
+      "w": 393,
+      "h": 852,
+      "page": "explore",
+      "title": "X4-3 숫자 줄이 입구",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "CoverMe.dc.html": {
+      "x": 946,
+      "y": 1240,
+      "w": 393,
+      "h": 852,
+      "page": "cover",
+      "title": "M1 내 스케치북 · 마이페이지",
+      "is_interactive": true,
+      "radius": 28
     }
   },
   "createdOnFiles": {
@@ -554,7 +884,7 @@
   "designSystems": [],
   "launch": {
     "view": "canvas",
-    "page": "mood"
+    "page": "cover"
   },
   "notes": {
     "atelier-collection": {
@@ -579,7 +909,7 @@
       "kind": "title1",
       "maxW": 1812,
       "page": "cover",
-      "text": "스크롤 시안 · 올리기 전 색상 탭 — C7은 Play로 열어 아래로 내리고 다시 올려 보기, C8은 카멜 버튼을 눌러 색 목록 열기",
+      "text": "스크롤 · 색 방 · 마이페이지 — C7은 Play로 열어 내리고 다시 올려 보기, M1은 ≡를 눌러 메뉴 열기",
       "w": 240,
       "x": 0,
       "y": 980
@@ -645,6 +975,38 @@
       "kind": "title1",
       "maxW": 1812,
       "page": "join"
+    },
+    "explore-palette2": {
+      "x": 0,
+      "y": 4700,
+      "text": "남긴 2차 시안 — Q1 글라스 바 · Q3 물감 상자 · Q4 색 레일 (칸은 사진만, 사인 뒤로를 고른 사람만 사인)",
+      "kind": "title1",
+      "maxW": 1339,
+      "page": "explore"
+    },
+    "explore-palette3": {
+      "x": 0,
+      "y": 3460,
+      "text": "팔레트 3차 시안 (R5-4로 결정) — Q1·Q3·Q4에서 이어서: 사진은 화면 가득, 위는 비우고, 물감은 손 닿는 곳에. R5-1~4는 Play로 열어 둥근 버튼·추천/구독을 눌러 보기, R5-1은 내려 보기",
+      "kind": "title1",
+      "maxW": 4177,
+      "page": "explore"
+    },
+    "explore-my": {
+      "x": 0,
+      "y": 980,
+      "text": "마이페이지 — V1·V2 남김 + 새 시안 10 (W1~W10). 남에게 보이는 나 · 나만 보는 것 · 함께 · 보관함. 저장함은 새 기능 제안",
+      "kind": "title1",
+      "maxW": 2758,
+      "page": "explore"
+    },
+    "explore-ref": {
+      "x": 0,
+      "y": -260,
+      "text": "마이페이지 참고 앱 시안 5 + X4 변형 3 — 편집·공유는 ≡ 안으로, 주제 뺌, 색 달력·저장함·친구·트윈 숨기는 방법 셋 (≡를 눌러 메뉴 열기)",
+      "kind": "title1",
+      "maxW": 4177,
+      "page": "explore"
     }
   },
   "order": [
@@ -692,6 +1054,7 @@
     "CoverStandLocked.dc.html",
     "CoverMake.dc.html",
     "CoverScroll.dc.html",
+    "CoverMe.dc.html",
     "JoinScroll.dc.html",
     "JoinLogin.dc.html",
     "JoinColor.dc.html",
@@ -702,7 +1065,39 @@
     "BoardMood.dc.html",
     "BoardTokens.dc.html",
     "BoardComponents.dc.html",
-    "BoardMotion.dc.html"
+    "BoardMotion.dc.html",
+    "ExplorePalette2Glass.dc.html",
+    "ExplorePalette2Box.dc.html",
+    "ExplorePalette2Rail.dc.html",
+    "ExplorePalette3GlassBox.dc.html",
+    "ExplorePalette3GlassRail.dc.html",
+    "ExplorePalette3Tray.dc.html",
+    "ExplorePalette3RailRoom.dc.html",
+    "ExplorePalette3Fan.dc.html",
+    "ExplorePalette3FanWords.dc.html",
+    "ExplorePalette3FanAll.dc.html",
+    "ExplorePalette3FanThumb.dc.html",
+    "ExplorePalette3FanChoose.dc.html",
+    "ExploreMy1Profile.dc.html",
+    "ExploreMy2Board.dc.html",
+    "ExploreMy6CoverTiles.dc.html",
+    "ExploreMy7Swipe.dc.html",
+    "ExploreMy8Stats.dc.html",
+    "ExploreMy9Today.dc.html",
+    "ExploreMy10Month.dc.html",
+    "ExploreMy11Segment.dc.html",
+    "ExploreMy12Ink.dc.html",
+    "ExploreMy13Accent.dc.html",
+    "ExploreMy14Asym.dc.html",
+    "ExploreMy15Center.dc.html",
+    "ExploreRef1Insta.dc.html",
+    "ExploreRef2Pin.dc.html",
+    "ExploreRef3Editorial.dc.html",
+    "ExploreRef4Mix.dc.html",
+    "ExploreRef5Shelf.dc.html",
+    "ExploreRefY1Homes.dc.html",
+    "ExploreRefY2Drawer.dc.html",
+    "ExploreRefY3Numbers.dc.html"
   ],
   "pages": [
     {
@@ -728,6 +1123,10 @@
     {
       "id": "motion",
       "name": "04 모션"
+    },
+    {
+      "id": "explore",
+      "name": "보관 · 팔레트 · 마이페이지 시안"
     },
     {
       "id": "feeds",
