@@ -120,6 +120,8 @@ class _IntroScreenState extends State<IntroScreen> {
                     ],
                   ),
                 )
+              else if (page != null && cover == null)
+                const Center(child: Text('아직 볼 수 있는 캔버스가 없어요.'))
               else if (page == null || cover == null)
                 const Center(child: CircularProgressIndicator(strokeWidth: 2))
               else
@@ -180,17 +182,22 @@ class _IntroScreenState extends State<IntroScreen> {
   /// 640px 지나면 translateY(140%) → 0(360ms drawer)으로 올라오고 200ms에 나타난다.
   /// 동작 줄이기에서는 제자리에서 나타나기만 한다.
   Widget _buildLoginBar(BuildContext context) {
+    final visible =
+        _showLoginBar ||
+        widget.feedController.errorMessage != null ||
+        (widget.feedController.page != null &&
+            widget.feedController.page!.cover == null);
     final calm = MediaQuery.disableAnimationsOf(context);
     return IgnorePointer(
-      ignoring: !_showLoginBar,
+      ignoring: !visible,
       child: ExcludeSemantics(
-        excluding: !_showLoginBar,
+        excluding: !visible,
         child: AnimatedSlide(
-          offset: _showLoginBar || calm ? Offset.zero : const Offset(0, 1.4),
+          offset: visible || calm ? Offset.zero : const Offset(0, 1.4),
           duration: EselMotion.loginBar,
           curve: EselMotion.drawer,
           child: AnimatedOpacity(
-            opacity: _showLoginBar ? 1 : 0,
+            opacity: visible ? 1 : 0,
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeOut,
             child: EselGlass(

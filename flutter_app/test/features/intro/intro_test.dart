@@ -1,3 +1,7 @@
+import 'package:esel/core/config/app_config.dart';
+import 'package:esel/core/network/http_client.dart';
+import 'package:esel/core/storage/session_storage.dart';
+import 'package:esel/features/feed/data/sources/feed_remote_source.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:esel/core/ui/esel_glass.dart';
@@ -23,6 +27,40 @@ void main() {
     Finder barButton(String text) =>
         find.ancestor(of: inBar(text), matching: find.byType(EselPressable));
 
+    testWidgets(
+      'unavailable remote feed still exposes working login and join buttons',
+      (tester) async {
+        usePhone(tester);
+        var logins = 0, joins = 0;
+        final feed = FeedController(
+          FeedRemoteSource(
+            StandardHttpClient(
+              config: const AppConfig(),
+              storage: InMemorySessionStorage(),
+            ),
+          ),
+        );
+        addTearDown(feed.dispose);
+        await tester.pumpWidget(
+          MaterialApp(
+            home: IntroScreen(
+              feedController: feed,
+              today: DailyCandidates.demoDate,
+              onOpenLogin: () => logins++,
+              onStartJoin: () => joins++,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('서버 피드는 아직 연결하지 않았어요.'), findsOneWidget);
+        expect(find.byType(CircularProgressIndicator), findsNothing);
+        await tester.tap(inBar('로그인'));
+        await tester.tap(inBar('스케치북 만들기'));
+        expect(logins, 1);
+        expect(joins, 1);
+        expect(tester.takeException(), isNull);
+      },
+    );
     testWidgets('renders cover, scroll brings glass login bar', (tester) async {
       usePhone(tester);
       var logins = 0;
