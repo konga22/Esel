@@ -65,17 +65,86 @@ void main() {
   }
 
   Finder lockIcons() => find.byIcon(Icons.lock_outline);
+  Finder sheetLocks() => find.descendant(
+    of: find.byType(BottomSheet),
+    matching: find.byIcon(Icons.lock_outline),
+  );
+  // R5-4: the color list opens from the fan (round button → 모든 색).
+  Future<void> openAllColors(WidgetTester tester) async {
+    await tester.tap(find.byKey(const ValueKey('palette-fan')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('palette-all-colors')));
+    await tester.pumpAndSettle();
+  }
+
+  group('DEV-12 팔레트 R5-4 · 둥근 버튼과 부채', () {
+    testWidgets('위에 제목·탭 없이 둥근 버튼이 지금 보는 것을 보여 주고 부채로 바꾼다', (tester) async {
+      final stand = StandController(StandMockSource(library: () => library));
+      await pumpStand(tester, stand);
+      expect(find.text('팔레트'), findsNothing);
+      expect(find.byKey(const ValueKey('palette-colors')), findsNothing);
+      expect(find.text('추천'), findsOneWidget); // label beside the round button
+
+      await tester.tap(find.byKey(const ValueKey('palette-fan')));
+      await tester.pumpAndSettle();
+      for (final key in [
+        'palette-fan-recommended',
+        'palette-fan-subscriptions',
+        'palette-all-colors',
+      ]) {
+        expect(find.byKey(ValueKey(key)), findsOneWidget);
+      }
+      // My three candidates sit on the middle arc with a lock before I post (P01).
+      for (final color in today.candidates) {
+        expect(
+          find.byKey(ValueKey('palette-fan-color-${color.name}')),
+          findsOneWidget,
+        );
+      }
+      expect(find.byIcon(Icons.lock), findsNWidgets(3));
+
+      await tester.tap(find.byKey(const ValueKey('palette-fan-subscriptions')));
+      await tester.pumpAndSettle();
+      expect(stand.tab, PaletteTab.subscriptions);
+      expect(
+        find.byKey(const ValueKey('palette-fan-recommended')),
+        findsNothing,
+      );
+
+      await tester.tap(find.byKey(const ValueKey('palette-fan')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('palette-fan-color-camel')));
+      await tester.pumpAndSettle();
+      expect(stand.tab, PaletteTab.colors);
+      expect(stand.selected, EselPaint.camel);
+      expect(find.textContaining('같은 색'), findsOneWidget); // the room head
+      expect(find.text('올리면 함께 펼쳐집니다'), findsOneWidget);
+    });
+
+    testWidgets('바깥을 누르면 부채가 닫힌다', (tester) async {
+      final stand = StandController(StandMockSource(library: () => library));
+      await pumpStand(tester, stand);
+      await tester.tap(find.byKey(const ValueKey('palette-fan')));
+      await tester.pumpAndSettle();
+      await tester.tapAt(const Offset(40, 120));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('palette-fan-recommended')),
+        findsNothing,
+      );
+      expect(stand.tab, PaletteTab.recommended);
+    });
+  });
 
   group('DEV-12 팔레트 · 같은 색 잠금(P01)', () {
     testWidgets('올리기 전에는 후보 3색 칩 모두에 자물쇠, 그 방은 3장과 흐린 책등', (tester) async {
       final stand = StandController(StandMockSource(library: () => library));
       await pumpStand(tester, stand);
 
-      expect(find.text('팔레트'), findsOneWidget);
+      expect(find.byKey(const ValueKey('palette-fan')), findsOneWidget);
       expect(today.candidates, hasLength(3));
-      await tester.tap(find.byKey(const ValueKey('palette-colors')));
-      await tester.pumpAndSettle();
-      expect(lockIcons(), findsNWidgets(3));
+      await openAllColors(tester);
+      expect(sheetLocks(), findsNWidgets(3));
       await tester.tap(find.text('카멜').last);
       await tester.pumpAndSettle();
       // 카멜 방: 오늘 카멜 표지 4장 중 최신 3장만, 1장은 이름 없이 개수만.
@@ -84,10 +153,12 @@ void main() {
       expect(find.text('올리면 함께 펼쳐집니다'), findsOneWidget);
       expect(stand.tiles, hasLength(3));
       expect(stand.shelf!.hiddenCount, 1);
-      for (final name in ['mara', 'selin', 'noor']) {
-        expect(find.text(name), findsOneWidget);
-      }
-      expect(find.text('leo'), findsNothing);
+      // Cells carry only the photo (R5-4); who is visible is what the controller hands the grid.
+      expect(
+        stand.tiles.map((v) => v.masthead),
+        containsAll(['mara', 'selin', 'noor']),
+      );
+      expect(stand.tiles.map((v) => v.masthead), isNot(contains('leo')));
       expect(find.textContaining('1장이 더 있어요'), findsOneWidget);
       expect(find.textContaining('놓치면'), findsNothing);
     });
@@ -98,13 +169,12 @@ void main() {
         final stand = StandController(StandMockSource(library: () => library))
           ..preferredColor = EselPaint.lilac;
         await pumpStand(tester, stand);
-        await tester.tap(find.byKey(const ValueKey('palette-colors')));
-        await tester.pumpAndSettle();
+        await openAllColors(tester);
         final titles = tester
             .widgetList<ListTile>(find.byType(ListTile))
             .map((v) => (v.title as Text).data)
             .toList();
-        expect(titles.take(4), ['색상', '라일락', '카멜', '올리브']);
+        expect(titles.take(4), ['모든 색', '라일락', '카멜', '올리브']);
         expect(
           find.byKey(const Key('palette-candidate-divider')),
           findsOneWidget,
@@ -136,9 +206,8 @@ void main() {
       expect(today.myColor, EselPaint.camel);
       stand.select(EselPaint.camel);
       await tester.pump();
-      await tester.tap(find.byKey(const ValueKey('palette-colors')));
-      await tester.pumpAndSettle();
-      expect(lockIcons(), findsNWidgets(3));
+      await openAllColors(tester);
+      expect(sheetLocks(), findsNWidgets(3));
     });
 
     test('초안 저장(확정)만으로는 열리지 않는다(P03)', () async {
@@ -163,9 +232,10 @@ void main() {
       stand.select(EselPaint.camel);
       await tester.pump();
       expect(find.text('올리면 함께 펼쳐집니다'), findsNothing);
-      for (final name in ['mara', 'selin', 'noor', 'leo']) {
-        expect(find.text(name), findsOneWidget);
-      }
+      expect(
+        stand.tiles.map((v) => v.masthead),
+        containsAll(['mara', 'selin', 'noor', 'leo']),
+      );
     });
 
     test('자정이 지나면 어제 방은 열리고 새 날짜 후보 방은 다시 잠긴다', () async {

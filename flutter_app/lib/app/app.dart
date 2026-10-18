@@ -685,13 +685,8 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
         _sl.standController.preferredColor = today.myColor;
         _sl.standController.subscriptions =
             _sl.reactionsController.subscribedOwnerIds;
+        // 이번 주 주제·전시는 팔레트에서 빠지고 홈 피드 카드로 간다(10-18).
         return StandScreen(
-          onOpenCollections: _sl.config.isMock
-              ? () => setState(() => _activeScreen = ActiveScreen.collections)
-              : null,
-          onOpenChallenges: _sl.config.isMock
-              ? () => setState(() => _activeScreen = ActiveScreen.challenges)
-              : null,
           controller: _sl.standController,
           viewer: today.viewer,
           viewerId: session.userId,
