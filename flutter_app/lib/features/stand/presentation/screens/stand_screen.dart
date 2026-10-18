@@ -116,57 +116,61 @@ class _StandScreenState extends State<StandScreen> {
       final room = c.tab == PaletteTab.colors && c.selected != null;
       return Scaffold(
         backgroundColor: EselColors.paper,
-        body: Stack(
-          children: [
-            Positioned.fill(
-              child: Column(
-                children: [
-                  if (room) SafeArea(bottom: false, child: _roomHead()),
-                  Expanded(child: _content(room)),
-                ],
+        // 부채 중심은 화면 전체가 아니라 이 화면이 실제로 받은 크기로 잡는다. 앱 위쪽에 오류 안내
+        // 줄이 끼면 이 화면만 짧아지고, 둥근 버튼은 이 화면 아래를 기준으로 놓이기 때문이다.
+        body: LayoutBuilder(
+          builder: (context, box) => Stack(
+            children: [
+              Positioned.fill(
+                child: Column(
+                  children: [
+                    if (room) SafeArea(bottom: false, child: _roomHead()),
+                    Expanded(child: _content(room)),
+                  ],
+                ),
               ),
-            ),
-            if (!room)
-              const Positioned(
-                left: 0,
-                right: 0,
-                top: 0,
-                height: 110,
-                child: IgnorePointer(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Color(0x52000000), Color(0x00000000)],
+              if (!room)
+                const Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  height: 110,
+                  child: IgnorePointer(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Color(0x52000000), Color(0x00000000)],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            if (_fan) ..._fanLayer(context, capsuleBottom),
-            if (!_fan)
-              Positioned(
-                right: 86,
-                bottom: capsuleBottom + 85,
-                child: EselGlass(
-                  borderRadius: 15,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  height: 30,
-                  child: Center(
-                    child: Text(
-                      _viewLabel,
-                      style: EselTypography.label(fontSize: 13),
+              if (_fan) ..._fanLayer(context, box.biggest, capsuleBottom),
+              if (!_fan)
+                Positioned(
+                  right: 86,
+                  bottom: capsuleBottom + 85,
+                  child: EselGlass(
+                    borderRadius: 15,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    height: 30,
+                    child: Center(
+                      child: Text(
+                        _viewLabel,
+                        style: EselTypography.label(fontSize: 13),
+                      ),
                     ),
                   ),
                 ),
+              Positioned(
+                right: 16,
+                bottom: capsuleBottom + 70,
+                child: _fanButton(),
               ),
-            Positioned(
-              right: 16,
-              bottom: capsuleBottom + 70,
-              child: _fanButton(),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     },
@@ -503,8 +507,12 @@ class _StandScreenState extends State<StandScreen> {
     ),
   );
 
-  List<Widget> _fanLayer(BuildContext context, double capsuleBottom) {
-    final size = MediaQuery.sizeOf(context);
+  List<Widget> _fanLayer(
+    BuildContext context,
+    Size size,
+    double capsuleBottom,
+  ) {
+    // 둥근 버튼(오른쪽 16, 아래 capsuleBottom + 70, 지름 60)의 가운데.
     final center = Offset(size.width - 46, size.height - capsuleBottom - 100);
     final calm = MediaQuery.disableAnimationsOf(context);
     Offset at(double r, double deg) => Offset(
@@ -637,18 +645,33 @@ class _StandScreenState extends State<StandScreen> {
           onTap: () => _showColor(color),
           child: EselPaintAsset(paint: color, width: 44),
         ),
+      // 보이는 알약은 36 높이 그대로, 누르는 영역은 위아래로 6씩 늘려 48(하네스 최소 기준).
       Positioned(
         left: 16,
-        bottom: capsuleBottom + 80,
-        child: GestureDetector(
-          key: const ValueKey('palette-all-colors'),
-          onTap: _allColors,
-          child: EselGlass(
-            borderRadius: 18,
-            height: 36,
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            child: Center(
-              child: Text('모든 색', style: EselTypography.label(fontSize: 13)),
+        bottom: capsuleBottom + 74,
+        child: Semantics(
+          button: true,
+          label: '모든 색',
+          excludeSemantics: true,
+          child: GestureDetector(
+            key: const ValueKey('palette-all-colors'),
+            behavior: HitTestBehavior.opaque,
+            onTap: _allColors,
+            child: SizedBox(
+              height: 48,
+              child: Center(
+                child: EselGlass(
+                  borderRadius: 18,
+                  height: 36,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: Center(
+                    child: Text(
+                      '모든 색',
+                      style: EselTypography.label(fontSize: 13),
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
         ),
