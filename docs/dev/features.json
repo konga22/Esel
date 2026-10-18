@@ -339,7 +339,9 @@
       "server": [
         "POST /api/media: 업로드 준비(저장 키, 허용 형식·15MB 제한)",
         "POST /api/media/{id}/complete: 형식·크기·해상도 검증 후 READY",
-        "이미지 파일은 PostgreSQL에 넣지 않음"
+        "이미지 파일은 PostgreSQL에 넣지 않음",
+        "10-18 결정: 사진 파일은 서버 디스크(Docker 영구 볼륨)에 저장. PUT /api/media/{id}/file로 올림(소유자·PENDING·15MB), 완료 단계에서 실제 형식 재검사",
+        "GET /api/media/{id}: 같은 색 잠금·차단·삭제·트윈 공개 상태를 검사한 뒤에만 보냄. 내부 저장 경로는 응답하지 않음. 앱은 로그인 토큰을 붙여 이미지를 받음"
       ],
       "acceptance": [
         "얼굴 위치를 정하지 않으면 발행 버튼 비활성(P11)",
@@ -353,7 +355,6 @@
         "server/test/contracts/media.e2e-spec.ts"
       ],
       "openDecisions": [
-        "이미지 저장소(S3 호환·로컬 등)",
         "기기 얼굴 감지 방식"
       ],
       "status": "doing"
