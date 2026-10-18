@@ -13,6 +13,7 @@ import '../../../core/ui/esel_button.dart';
 import '../../../core/ui/esel_paint_asset.dart';
 import '../../media/domain/models/face_layout_mode.dart';
 import '../../media/presentation/cover_preview.dart';
+import '../../media/presentation/face_adjust_guide.dart';
 import '../data/local_library.dart';
 import '../domain/cover_draft.dart';
 import '../../challenges/domain/challenge.dart';
@@ -77,6 +78,18 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
       _draft = value;
       _dirty = true;
     });
+  }
+
+  /// 원본에서 얼굴 가운데를 고르는 모드를 켜고 끈다. 켤 때는 표지가 보이게 맨 위로.
+  void _toggleLocating() {
+    setState(() => _locatingFace = !_locatingFace);
+    if (_locatingFace) {
+      _scroll.animateTo(
+        0,
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
   /// 그대로 연출인데 사인을 줄여도 얼굴에 닿는지(P15). 미리보기 표지 360×480 기준.
@@ -392,13 +405,6 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
                   : '로컬 시연 · 올린 호는 이 기기에 저장돼요.',
             ),
             const SizedBox(height: 16),
-            if (_locatingFace)
-              const Padding(
-                padding: EdgeInsets.only(bottom: 8),
-                child: Text(
-                  '얼굴 위치 지정 중 · 효과를 숨긴 원본이에요. 사진의 얼굴 가운데를 누르면 효과가 다시 적용돼요.',
-                ),
-              ),
             RepaintBoundary(
               key: _capture,
               child: CoverPreview(
@@ -406,6 +412,7 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
                 editing: _locatingFace || !_draft.faceConfirmed,
                 locatingFace: _locatingFace,
                 chrome: !_locatingFace,
+                hint: _locatingFace ? '얼굴 가운데를 눌러 주세요' : null,
                 onFacePosition: (point) {
                   _edit(
                     _draft.copyWith(faceX: point.dx, faceY: point.dy),
@@ -414,6 +421,19 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
                   setState(() => _locatingFace = false);
                 },
               ),
+            ),
+            const SizedBox(height: 12),
+            // 물감이 어긋났을 때 무엇을 누를지 표지 바로 아래에서 알려 준다(PR #21 리뷰).
+            FaceAdjustGuide(
+              effects: _draft.effectiveFaceEffects,
+              locating: _locatingFace,
+              placed: true,
+              directTap:
+                  _draft.photoPath.isNotEmpty &&
+                  !_draft.faceConfirmed &&
+                  faceCropMode(_draft.effectiveFaceEffects) !=
+                      FaceLayoutMode.belowNeck,
+              onToggle: _draft.photoPath.isEmpty ? null : _toggleLocating,
             ),
             const SizedBox(height: 16),
             Wrap(
@@ -566,24 +586,10 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
                       );
                     },
             ),
-            Text(
-              _draft.effectiveFaceEffects.contains(FaceLayoutMode.belowNeck)
-                  ? '목 아래에서는 물감이 꺼지고 선택할 수 없어요. 그대로 또는 사인 뒤로를 고르면 다시 켤 수 있어요.'
-                  : '표지에서 얼굴 가운데를 누르거나 움직여 위치를 정해 주세요.',
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() => _locatingFace = !_locatingFace);
-                if (_locatingFace) {
-                  _scroll.animateTo(
-                    0,
-                    duration: const Duration(milliseconds: 180),
-                    curve: Curves.easeOut,
-                  );
-                }
-              },
-              child: Text(_locatingFace ? '효과 미리보기로 돌아가기' : '원본에서 얼굴 위치 맞추기'),
-            ),
+            if (_draft.effectiveFaceEffects.contains(FaceLayoutMode.belowNeck))
+              const Text(
+                '목 아래에서는 물감이 꺼지고 선택할 수 없어요. 그대로 또는 사인 뒤로를 고르면 다시 켤 수 있어요.',
+              ),
             if (_plainTouchesFace)
               Text(
                 '그대로에서는 사인이 얼굴에 닿아요. 물감 한 획이나 사인 뒤로를 골라 보세요.',
