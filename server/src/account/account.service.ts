@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '../generated/prisma/client.js';
 import { AppException } from '../common/app-exception.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { MediaService } from '../media/media.service.js';
 import { ProfileOwnerDto } from '../profile/dto/profile-owner.dto.js';
 import { DeleteAccountDto } from './dto/delete-account.dto.js';
 import { NotificationSettingsDto } from './dto/notification-settings.dto.js';
@@ -17,7 +18,12 @@ const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettingsDto = {
 
 @Injectable()
 export class AccountService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(AccountService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mediaService: MediaService,
+  ) {}
 
   async updateProfile(
     userId: string,
@@ -93,16 +99,50 @@ export class AccountService {
   }
 
   async deleteAccount(userId: string, _input: DeleteAccountDto): Promise<void> {
-    await this.prisma.$transaction(async (tx) => {
+    const files = await this.prisma.$transaction(async (tx) => {
       const participations = await tx.twinParticipation.findMany({
         where: { userId },
         select: { twinId: true },
       });
+      const twinIds = participations.map(({ twinId }) => twinId);
+      const [ownedMedia, twinPosts] = await Promise.all([
+        tx.mediaAsset.findMany({
+          where: { ownerId: userId },
+          select: { id: true, storageKey: true },
+        }),
+        tx.twinPost.findMany({
+          where: { twinId: { in: twinIds } },
+          select: { media: { select: { id: true, storageKey: true } } },
+        }),
+      ]);
+      const media = Array.from(
+        new Map(
+          [...ownedMedia, ...twinPosts.map(({ media }) => media)].map(
+            (item) => [item.id, item] as const,
+          ),
+        ).values(),
+      );
       await tx.twin.deleteMany({
-        where: { id: { in: participations.map(({ twinId }) => twinId) } },
+        where: { id: { in: twinIds } },
       });
       await tx.issue.deleteMany({ where: { authorId: userId } });
+      await tx.mediaAsset.deleteMany({
+        where: { id: { in: media.map(({ id }) => id) } },
+      });
       await tx.user.delete({ where: { id: userId } });
+      return media;
     });
+
+    const removed = await Promise.allSettled(
+      files.map(({ id, storageKey }) =>
+        this.mediaService.removeStoredFiles(storageKey, id),
+      ),
+    );
+    const failures = removed.filter(({ status }) => status === 'rejected');
+    if (failures.length > 0) {
+      this.logger.warn(
+        `계정 데이터는 삭제됐지만 미디어 파일 ${failures.length}개 정리에 실패했습니다.`,
+      );
+    }
   }
 }

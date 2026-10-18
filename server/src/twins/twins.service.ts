@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Prisma } from '../generated/prisma/client.js';
 import { AppException } from '../common/app-exception.js';
 import { serviceDate } from '../common/service-date.js';
+import { isWriteConflict } from '../prisma/is-write-conflict.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { ChooseColorDto } from '../today/dto/choose-color.dto.js';
 import { TwinInviteDto } from './dto/twin-invite.dto.js';
@@ -181,19 +182,35 @@ export class TwinsService {
       throw new AppException('TWIN_STATE');
     }
 
-    await this.prisma.$transaction([
-      this.prisma.twinParticipation.updateMany({
-        where: { twinId },
-        data: { consentedAt: null },
-      }),
-      this.prisma.twinParticipation.update({
-        where: { twinId_userId: { twinId, userId } },
-        data: {
-          visibility: input.visibility.toUpperCase() as
-            'PRIVATE' | 'SOLO' | 'JOINT',
+    try {
+      await this.prisma.$transaction(
+        async (tx) => {
+          const editable = await tx.twin.updateMany({
+            where: { id: twinId, publishedAt: null },
+            data: { updatedAt: new Date() },
+          });
+          if (editable.count !== 1) throw new AppException('TWIN_STATE');
+          await tx.twinParticipation.updateMany({
+            where: { twinId },
+            data: { consentedAt: null },
+          });
+          const updated = await tx.twinParticipation.updateMany({
+            where: { twinId, userId },
+            data: {
+              visibility: input.visibility.toUpperCase() as
+                'PRIVATE' | 'SOLO' | 'JOINT',
+            },
+          });
+          if (updated.count !== 1) throw new AppException('TWIN_STATE');
         },
-      }),
-    ]);
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      );
+    } catch (error) {
+      if (isWriteConflict(error)) {
+        throw new AppException('TWIN_STATE');
+      }
+      throw error;
+    }
     return this.toDto(userId, await this.requireTwin(userId, twinId));
   }
 
@@ -228,7 +245,17 @@ export class TwinsService {
       throw new AppException('TWIN_CONSENT_REQUIRED');
     }
     const updated = await this.prisma.twin.updateMany({
-      where: { id: twinId, publishedAt: null },
+      where: {
+        id: twinId,
+        publishedAt: null,
+        participations: {
+          every: {
+            post: { isNot: null },
+            visibility: 'JOINT',
+            consentedAt: { not: null },
+          },
+        },
+      },
       data: { publishedAt: new Date() },
     });
     if (updated.count !== 1) throw new AppException('TWIN_STATE');

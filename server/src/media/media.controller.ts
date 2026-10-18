@@ -31,6 +31,8 @@ import {
 import type { Request, Response } from 'express';
 import type { AuthUser } from '../auth/auth-user.js';
 import { CurrentUser } from '../auth/current-user.decorator.js';
+import { OptionalCurrentUser } from '../auth/optional-current-user.decorator.js';
+import { Public } from '../common/public.decorator.js';
 import { MediaOwnerDto } from './dto/media-owner.dto.js';
 import { MediaSizeQueryDto } from './dto/media-size-query.dto.js';
 import { MediaUploadDto } from './dto/media-upload.dto.js';
@@ -38,12 +40,12 @@ import { PrepareMediaDto } from './dto/prepare-media.dto.js';
 import { MediaService } from './media.service.js';
 
 @ApiTags('media')
-@ApiBearerAuth()
 @Controller('media')
 export class MediaController {
   constructor(private readonly mediaService: MediaService) {}
 
   @Post()
+  @ApiBearerAuth()
   @ApiOperation({ summary: '사진 올리기 준비(업로드 API 주소 받기)' })
   @ApiCreatedResponse({ type: MediaUploadDto })
   @ApiBadRequestResponse({ description: 'VALIDATION' })
@@ -58,6 +60,7 @@ export class MediaController {
   }
 
   @Put(':id/file')
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: '서버 영구 디스크에 사진 파일 올리기' })
   @ApiBody({ schema: { type: 'string', format: 'binary' } })
@@ -86,6 +89,7 @@ export class MediaController {
   }
 
   @Post(':id/complete')
+  @ApiBearerAuth()
   @ApiOperation({ summary: '사진 올리기 완료 확인·검증과 썸네일 생성' })
   @ApiCreatedResponse({ type: MediaOwnerDto })
   @ApiUnauthorizedResponse({ description: 'AUTH_REQUIRED 또는 TOKEN_EXPIRED' })
@@ -102,6 +106,7 @@ export class MediaController {
   }
 
   @Get(':id')
+  @Public()
   @ApiOperation({ summary: '공개 권한을 확인해 원본 또는 썸네일 사진 보기' })
   @ApiProduces('image/jpeg', 'image/png', 'image/heic')
   @ApiOkResponse({ schema: { type: 'string', format: 'binary' } })
@@ -109,12 +114,12 @@ export class MediaController {
   @ApiUnauthorizedResponse({ description: 'AUTH_REQUIRED 또는 TOKEN_EXPIRED' })
   @ApiNotFoundResponse({ description: 'NOT_FOUND' })
   async file(
-    @CurrentUser() user: AuthUser,
+    @OptionalCurrentUser() user: AuthUser | null,
     @Param('id') id: string,
     @Query() query: MediaSizeQueryDto,
     @Res({ passthrough: true }) response: Response,
   ): Promise<StreamableFile> {
-    const file = await this.mediaService.file(user.id, id, query.size);
+    const file = await this.mediaService.file(user?.id ?? null, id, query.size);
     response.setHeader('Content-Type', file.mimeType);
     response.setHeader('Content-Length', file.sizeBytes);
     response.setHeader('Cache-Control', 'private, no-store');

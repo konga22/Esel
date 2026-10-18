@@ -4,6 +4,7 @@ import { AppException } from '../common/app-exception.js';
 import { IS_PUBLIC_KEY } from '../common/public.decorator.js';
 import { AuthService } from './auth.service.js';
 import type { AuthenticatedRequest } from './current-user.decorator.js';
+import { IGNORE_ACCESS_TOKEN_KEY } from './ignore-access-token.decorator.js';
 
 @Injectable()
 export class AccessTokenGuard implements CanActivate {
@@ -17,7 +18,12 @@ export class AccessTokenGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
+    const ignoreAccessToken = this.reflector.getAllAndOverride<boolean>(
+      IGNORE_ACCESS_TOKEN_KEY,
+      [context.getHandler(), context.getClass()],
+    );
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
+    if (isPublic && ignoreAccessToken) return true;
     const token = bearerToken(request.headers.authorization);
     if (isPublic && !token) return true;
     if (!token) throw new AppException('AUTH_REQUIRED');

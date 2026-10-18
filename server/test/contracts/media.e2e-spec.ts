@@ -1,10 +1,15 @@
 import { INestApplication } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { Readable } from 'node:stream';
 import request from 'supertest';
 import sharp from 'sharp';
 import { App } from 'supertest/types.js';
+import { AppException } from '../../src/common/app-exception.js';
+import { serviceDate } from '../../src/common/service-date.js';
 import { MAX_MEDIA_SIZE_BYTES } from '../../src/media/media.rules.js';
+import { MediaService } from '../../src/media/media.service.js';
 import { PrismaService } from '../../src/prisma/prisma.service.js';
 import { createTestApp } from '../create-app.js';
 
@@ -17,10 +22,14 @@ describe('DEV-08 사진과 얼굴 연출', () => {
   const mediaRoot = path.resolve('.test-media');
   let app: INestApplication<App>;
   let prisma: PrismaService;
+  let config: ConfigService;
+  let mediaService: MediaService;
 
   beforeAll(async () => {
     app = await createTestApp({ MEDIA_STORAGE_ROOT: mediaRoot });
     prisma = app.get(PrismaService);
+    config = app.get(ConfigService);
+    mediaService = app.get(MediaService);
     await cleanupFixtures();
   });
 
@@ -227,6 +236,55 @@ describe('DEV-08 사진과 얼굴 연출', () => {
     expect(response.body.error.code).toBe('MEDIA_NOT_PENDING');
   });
 
+  it('PUT /api/media/:id/file: 늦게 끝난 업로드가 완료된 원본을 덮어쓰지 않음', async () => {
+    const user = await signup('upload-race');
+    const slowBytes = await png(640, 640);
+    const fastBytes = await png(320, 480);
+    const prepared = await prepare(user.token, 'image/png', slowBytes.length);
+    let startedResolve!: () => void;
+    const started = new Promise<void>((resolve) => {
+      startedResolve = resolve;
+    });
+    let firstRead = true;
+    const split = Math.floor(slowBytes.length / 2);
+    const slowStream = new Readable({
+      read() {
+        if (!firstRead) return;
+        firstRead = false;
+        this.push(slowBytes.subarray(0, split));
+        startedResolve();
+      },
+    });
+    const slowResult = mediaService
+      .upload(
+        user.userId,
+        prepared.body.id,
+        slowStream,
+        'image/png',
+        slowBytes.length,
+      )
+      .then(
+        () => null,
+        (error: unknown) => error,
+      );
+    await started;
+
+    await upload(user.token, prepared.body.id, fastBytes).expect(204);
+    await request(app.getHttpServer())
+      .post(`/api/media/${prepared.body.id}/complete`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .expect(201);
+    slowStream.push(slowBytes.subarray(split));
+    slowStream.push(null);
+
+    const error = await slowResult;
+    expect(error).toBeInstanceOf(AppException);
+    expect((error as AppException).code).toBe('MEDIA_NOT_PENDING');
+    expect(await readFile(await uploadPath(prepared.body.id))).toEqual(
+      fastBytes,
+    );
+  });
+
   it('PUT /api/media/:id/file: 사진이 너무 커요 → 413 MEDIA_TOO_LARGE', async () => {
     const user = await signup('upload-large');
     const prepared = await prepare(user.token);
@@ -342,7 +400,7 @@ describe('DEV-08 사진과 얼굴 연출', () => {
     expect(response.body.error.code).toBe('MEDIA_TYPE');
   });
 
-  // media.get · 접근: user · 응답: MediaBinary · 계약: P01, P02, P10, P11
+  // media.get · 접근: public · 응답: MediaBinary · 계약: P01, P02, P10, P11
   it('GET /api/media/:id: 소유자가 원본 또는 썸네일 사진 보기 → 200', async () => {
     const user = await signup('get-owner');
     const id = await readyMedia(user.token);
@@ -361,11 +419,11 @@ describe('DEV-08 사진과 얼굴 연출', () => {
     expect(thumbnail.headers['content-type']).toMatch(/^image\/jpeg/);
   });
 
-  it('GET /api/media/:id: 로그인 없이 부르면 → 401 AUTH_REQUIRED', async () => {
+  it('GET /api/media/:id: 로그인 없이도 숨은 사진은 → 404 NOT_FOUND', async () => {
     const response = await request(app.getHttpServer())
       .get('/api/media/550e8400-e29b-41d4-a716-446655440000')
-      .expect(401);
-    expect(response.body.error.code).toBe('AUTH_REQUIRED');
+      .expect(404);
+    expect(response.body.error.code).toBe('NOT_FOUND');
   });
 
   it('GET /api/media/:id: size 형식이 맞지 않아요 → 400 VALIDATION', async () => {
@@ -396,7 +454,6 @@ describe('DEV-08 사진과 얼굴 연출', () => {
 
   it('GET /api/media/:id: 공개 가능한 개인 호의 사진은 다른 사용자도 볼 수 있음 → 200', async () => {
     const owner = await signup('get-issue-owner');
-    const reader = await signup('get-issue-reader');
     const mediaId = await readyMedia(owner.token);
     await prisma.issue.create({
       data: {
@@ -412,7 +469,44 @@ describe('DEV-08 사진과 얼굴 연출', () => {
 
     await request(app.getHttpServer())
       .get(`/api/media/${mediaId}?size=thumb`)
-      .set('Authorization', `Bearer ${reader.token}`)
+      .expect(200)
+      .expect('Content-Type', /^image\/jpeg/);
+  });
+
+  it('GET /api/media/:id: 비로그인 오늘 표지의 사진을 바로 볼 수 있음 → 200', async () => {
+    const owner = await signup('get-cover-owner');
+    await prisma.profile.create({
+      data: { userId: owner.userId, masthead: 'coverpic' },
+    });
+    const mediaId = await readyMedia(owner.token);
+    const key = serviceDate(
+      new Date(),
+      config.getOrThrow<string>('SERVICE_TIME_ZONE'),
+    );
+    await prisma.issue.create({
+      data: {
+        authorId: owner.userId,
+        serviceDate: new Date(`${key}T00:00:00.000Z`),
+        issueNumber: 1,
+        colorId: 'sage',
+        mediaId,
+        caption: '',
+        faceMode: 'PLAIN',
+        publishedAt: new Date(Date.now() + 86_400_000),
+      },
+    });
+    const cover = await request(app.getHttpServer())
+      .get('/api/today/cover')
+      .expect(200);
+    expect([
+      cover.body.cover?.media?.id,
+      ...(cover.body.pages ?? []).map(
+        (page: { media: { id: string } }) => page.media.id,
+      ),
+    ]).toContain(mediaId);
+
+    await request(app.getHttpServer())
+      .get(`/api/media/${mediaId}?size=thumb`)
       .expect(200)
       .expect('Content-Type', /^image\/jpeg/);
   });
@@ -482,7 +576,6 @@ describe('DEV-08 사진과 얼굴 연출', () => {
     });
     await request(app.getHttpServer())
       .get(`/api/media/${ownerMediaId}`)
-      .set('Authorization', `Bearer ${outsider.token}`)
       .expect(200);
   });
 

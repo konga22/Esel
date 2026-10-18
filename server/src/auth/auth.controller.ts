@@ -14,6 +14,7 @@ import { Public } from '../common/public.decorator.js';
 import { AuthService } from './auth.service.js';
 import type { AuthUser } from './auth-user.js';
 import { CurrentUser } from './current-user.decorator.js';
+import { IgnoreAccessToken } from './ignore-access-token.decorator.js';
 import { EmailLoginDto } from './dto/email-login.dto.js';
 import { EmailSignupDto } from './dto/email-signup.dto.js';
 import { RefreshDto } from './dto/refresh.dto.js';
@@ -25,6 +26,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
+  @IgnoreAccessToken()
   @Post('email/signup')
   @ApiOperation({ summary: '이메일로 가입' })
   @ApiCreatedResponse({ type: SessionDto })
@@ -36,6 +38,7 @@ export class AuthController {
   }
 
   @Public()
+  @IgnoreAccessToken()
   @Post('email/login')
   @ApiOperation({ summary: '이메일로 로그인' })
   @ApiCreatedResponse({ type: SessionDto })
@@ -47,6 +50,7 @@ export class AuthController {
   }
 
   @Public()
+  @IgnoreAccessToken()
   @Post('refresh')
   @ApiOperation({ summary: 'refresh token을 회전해 새 토큰 받기' })
   @ApiCreatedResponse({ type: SessionDto })

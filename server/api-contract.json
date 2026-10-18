@@ -385,7 +385,7 @@
       "id": "media.get",
       "method": "GET",
       "path": "/media/:id",
-      "access": "user",
+      "access": "public",
       "feature": "DEV-08",
       "module": "media",
       "summary": "공개 권한을 확인해 원본 또는 썸네일 사진 보기",

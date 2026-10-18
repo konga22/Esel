@@ -1,4 +1,6 @@
 import { INestApplication } from '@nestjs/common';
+import { access, mkdir, rm, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
 import { PrismaService } from '../../src/prisma/prisma.service.js';
@@ -10,11 +12,12 @@ import { createTestApp } from '../create-app.js';
 // 실행: npm run test:e2e (todo는 실패가 아니라 '남은 일'로 표시된다)
 
 describe('DEV-19 설정과 계정', () => {
+  const mediaRoot = path.resolve('.test-account-media');
   let app: INestApplication<App>;
   let prisma: PrismaService;
 
   beforeAll(async () => {
-    app = await createTestApp();
+    app = await createTestApp({ MEDIA_STORAGE_ROOT: mediaRoot });
     prisma = app.get(PrismaService);
     await cleanupFixtures();
   });
@@ -23,12 +26,14 @@ describe('DEV-19 설정과 계정', () => {
 
   afterAll(async () => {
     await app.close();
+    await rm(mediaRoot, { recursive: true, force: true });
   });
 
   async function cleanupFixtures() {
     await prisma.user.deleteMany({
       where: { email: { endsWith: '@account.e2e.test' } },
     });
+    await rm(mediaRoot, { recursive: true, force: true });
   }
 
   async function signup(name: string) {
@@ -182,6 +187,89 @@ describe('DEV-19 설정과 계정', () => {
       .get('/api/me/notifications')
       .set('Authorization', `Bearer ${user.token}`)
       .expect(401);
+  });
+  it('DELETE /api/me: 소유 사진과 함께 삭제되는 트윈 상대 사진 파일도 정리 → 204', async () => {
+    const owner = await signup('delete-files-owner');
+    const partner = await signup('delete-files-partner');
+    await createProfile(owner.userId, 'fileowner');
+    await createProfile(partner.userId, 'filemate');
+    const ownerMedia = await prisma.mediaAsset.create({
+      data: {
+        ownerId: owner.userId,
+        storageKey: `account-e2e/${owner.userId}.png`,
+        status: 'READY',
+        mimeType: 'image/png',
+        sizeBytes: 3,
+      },
+    });
+    const partnerMedia = await prisma.mediaAsset.create({
+      data: {
+        ownerId: partner.userId,
+        storageKey: `account-e2e/${partner.userId}.png`,
+        status: 'READY',
+        mimeType: 'image/png',
+        sizeBytes: 3,
+      },
+    });
+    const twin = await prisma.twin.create({
+      data: {
+        serviceDate: new Date('2001-01-01T00:00:00.000Z'),
+        status: 'ACCEPTED',
+        participations: {
+          create: [
+            {
+              userId: owner.userId,
+              serviceDate: new Date('2001-01-01T00:00:00.000Z'),
+              role: 'INVITER',
+            },
+            {
+              userId: partner.userId,
+              serviceDate: new Date('2001-01-01T00:00:00.000Z'),
+              role: 'INVITEE',
+            },
+          ],
+        },
+      },
+    });
+    await prisma.twinPost.createMany({
+      data: [
+        {
+          twinId: twin.id,
+          userId: owner.userId,
+          mediaId: ownerMedia.id,
+          colorId: 'sage',
+        },
+        {
+          twinId: twin.id,
+          userId: partner.userId,
+          mediaId: partnerMedia.id,
+          colorId: 'butter',
+        },
+      ],
+    });
+    const paths = [ownerMedia, partnerMedia].flatMap(({ id, storageKey }) => [
+      path.join(mediaRoot, storageKey),
+      path.join(mediaRoot, 'thumbs', `${id}.jpg`),
+    ]);
+    for (const filePath of paths) {
+      await mkdir(path.dirname(filePath), { recursive: true });
+      await writeFile(filePath, 'img');
+    }
+
+    await request(app.getHttpServer())
+      .delete('/api/me')
+      .set('Authorization', `Bearer ${owner.token}`)
+      .send({ confirmed: true })
+      .expect(204);
+
+    for (const filePath of paths) {
+      await expect(access(filePath)).rejects.toMatchObject({ code: 'ENOENT' });
+    }
+    expect(
+      await prisma.mediaAsset.count({
+        where: { id: { in: [ownerMedia.id, partnerMedia.id] } },
+      }),
+    ).toBe(0);
   });
   it('DELETE /api/me: 로그인 없이 부르면 → 401 AUTH_REQUIRED', async () => {
     const response = await request(app.getHttpServer())

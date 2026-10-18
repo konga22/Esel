@@ -85,7 +85,8 @@ export class MediaService {
       throw new AppException('MEDIA_TOO_LARGE');
     }
 
-    const target = this.pathFor(media.storageKey);
+    const candidateStorageKey = `pending/${id}-${randomUUID()}.upload`;
+    const target = this.pathFor(candidateStorageKey);
     const temporary = `${target}.${randomUUID()}.part`;
     await mkdir(path.dirname(target), { recursive: true });
     let received = 0;
@@ -101,6 +102,8 @@ export class MediaService {
       },
     });
 
+    let candidateReady = false;
+    let claimed = false;
     try {
       await pipeline(
         stream,
@@ -108,14 +111,25 @@ export class MediaService {
         createWriteStream(temporary, { flags: 'wx' }),
       );
       if (received < 1) throw new AppException('MEDIA_TYPE');
-      await rm(target, { force: true });
       await rename(temporary, target);
-      await this.prisma.mediaAsset.update({
-        where: { id },
-        data: { sizeBytes: received },
+      candidateReady = true;
+      const updated = await this.prisma.mediaAsset.updateMany({
+        where: {
+          id,
+          ownerId: userId,
+          status: 'PENDING',
+          updatedAt: media.updatedAt,
+        },
+        data: { storageKey: candidateStorageKey, sizeBytes: received },
       });
+      if (updated.count !== 1) throw new AppException('MEDIA_NOT_PENDING');
+      claimed = true;
+      await rm(this.pathFor(media.storageKey), { force: true }).catch(
+        () => undefined,
+      );
     } catch (error) {
       await rm(temporary, { force: true });
+      if (candidateReady && !claimed) await rm(target, { force: true });
       throw error;
     }
   }
@@ -166,7 +180,7 @@ export class MediaService {
     });
   }
 
-  async file(userId: string, id: string, size: MediaSize) {
+  async file(userId: string | null, id: string, size: MediaSize) {
     this.assertUuid(id);
     const media = await this.prisma.mediaAsset.findUnique({
       where: { id },
@@ -200,19 +214,24 @@ export class MediaService {
       if (media.issue) {
         await this.issuesService.assertVisible(userId, media.issue.id);
       } else if (media.twinPost) {
-        const block = await this.prisma.block.findUnique({
-          where: {
-            blockerId_blockedId: {
-              blockerId: userId,
-              blockedId: media.ownerId,
+        if (userId) {
+          const block = await this.prisma.block.findUnique({
+            where: {
+              blockerId_blockedId: {
+                blockerId: userId,
+                blockedId: media.ownerId,
+              },
             },
-          },
-          select: { id: true },
-        });
-        if (block) throw new AppException('NOT_FOUND');
+            select: { id: true },
+          });
+          if (block) throw new AppException('NOT_FOUND');
+        }
         const { twin } = media.twinPost.participant;
-        const participant = twin.participations.some(
-          ({ userId: participantId }) => participantId === userId,
+        const participant = Boolean(
+          userId &&
+          twin.participations.some(
+            ({ userId: participantId }) => participantId === userId,
+          ),
         );
         const bothPosted = twin.participations.every(({ post }) => post);
         const owner = twin.participations.find(

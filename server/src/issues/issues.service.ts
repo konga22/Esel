@@ -387,7 +387,7 @@ export class IssuesService {
     }
   }
 
-  async assertVisible(userId: string, issueId: string) {
+  async assertVisible(userId: string | null, issueId: string) {
     if (!UUID_PATTERN.test(issueId)) throw new AppException('NOT_FOUND');
     const issue = await this.prisma.issue.findUnique({
       where: { id: issueId },
@@ -400,15 +400,20 @@ export class IssuesService {
       },
     });
     if (!issue || issue.deletedAt) throw new AppException('NOT_FOUND');
-    if (issue.authorId === userId) return issue;
+    if (userId && issue.authorId === userId) return issue;
 
-    const block = await this.prisma.block.findUnique({
-      where: {
-        blockerId_blockedId: { blockerId: userId, blockedId: issue.authorId },
-      },
-      select: { id: true },
-    });
-    if (block) throw new AppException('NOT_FOUND');
+    if (userId) {
+      const block = await this.prisma.block.findUnique({
+        where: {
+          blockerId_blockedId: {
+            blockerId: userId,
+            blockedId: issue.authorId,
+          },
+        },
+        select: { id: true },
+      });
+      if (block) throw new AppException('NOT_FOUND');
+    }
 
     const todayKey = serviceDate(
       new Date(),
@@ -419,6 +424,11 @@ export class IssuesService {
     if (issueDateKey > todayKey) throw new AppException('NOT_FOUND');
 
     const today = new Date(`${todayKey}T00:00:00.000Z`);
+    if (!userId) {
+      const coverIds = await this.anonymousTodayCoverIds(today);
+      if (coverIds.includes(issue.id)) return issue;
+      throw new AppException('NOT_FOUND');
+    }
     const ownIssue = await this.prisma.issue.findUnique({
       where: { authorId_serviceDate: { authorId: userId, serviceDate: today } },
       select: { id: true, deletedAt: true },
@@ -436,6 +446,28 @@ export class IssuesService {
     });
     if (preview.some(({ id }) => id === issue.id)) return issue;
     throw new AppException('NOT_FOUND');
+  }
+
+  private async anonymousTodayCoverIds(date: Date): Promise<string[]> {
+    const issues = await this.prisma.issue.findMany({
+      where: { serviceDate: date, deletedAt: null },
+      orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }],
+      select: {
+        id: true,
+        colorId: true,
+        author: { select: { profile: { select: { id: true } } } },
+      },
+    });
+    const perColor = new Map<string, number>();
+    const visible: string[] = [];
+    for (const issue of issues) {
+      const seen = perColor.get(issue.colorId) ?? 0;
+      if (seen >= 3 || !issue.author.profile) continue;
+      perColor.set(issue.colorId, seen + 1);
+      visible.push(issue.id);
+      if (visible.length === 3) break;
+    }
+    return visible;
   }
 
   private async candidateIds(key: string, date: Date): Promise<string[]> {
