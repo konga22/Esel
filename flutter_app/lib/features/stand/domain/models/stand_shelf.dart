@@ -12,15 +12,23 @@ class StandShelf {
   final List<PublicIssue> items;
   final int hiddenCount;
 
+  /// 서버가 사람마다 한 장으로 이미 골라 준 추천·구독 목록인지. 그러면 앱이 다시 거르지 않는다.
+  final bool curated;
+
+  /// 서버가 알려 준 같은 색 인원. 없으면 받은 장수 + 숨긴 수.
+  final int? count;
+
   const StandShelf({
     required this.color,
     required this.access,
     required this.items,
     required this.hiddenCount,
+    this.curated = false,
+    this.count,
   });
 
   bool get isPreview => access == SameColorRoomAccess.preview;
 
   /// 같은 색 인원(공개 숫자, P18).
-  int get total => items.length + hiddenCount;
+  int get total => count ?? items.length + hiddenCount;
 }

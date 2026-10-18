@@ -20,7 +20,7 @@ class StandController extends ChangeNotifier {
   EselPaint? preferredColor;
   List<PublicIssue> get tiles {
     var values = _shelf?.items ?? const <PublicIssue>[];
-    if (tab == PaletteTab.colors) return values;
+    if (tab == PaletteTab.colors || (_shelf?.curated ?? false)) return values;
     final people = <String, PublicIssue>{};
     for (final issue in values) {
       if (tab == PaletteTab.subscriptions &&
@@ -92,6 +92,7 @@ class StandController extends ChangeNotifier {
         viewer: viewer,
         viewerId: _viewerId,
         color: _selected,
+        tab: tab,
       );
       if (request != _request) return;
       _shelf = shelf;

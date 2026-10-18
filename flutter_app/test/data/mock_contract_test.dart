@@ -125,19 +125,23 @@ void main() {
     });
   });
 
-  test('미구현 피드·팔레트 소스는 몰래 mock으로 바꾸지 않는다', () async {
-    const config = AppConfig(apiMode: ApiMode.server);
+  test('서버 피드·팔레트 소스는 서버에 닿지 못해도 몰래 mock으로 바꾸지 않는다', () async {
+    // 닫힌 포트: 곧바로 연결 실패.
+    const config = AppConfig(
+      apiMode: ApiMode.server,
+      apiBaseUrl: 'http://127.0.0.1:1/api',
+    );
     final http = StandardHttpClient(
       config: config,
       storage: InMemorySessionStorage(),
     );
     await expectLater(
       FeedRemoteSource(http).today(viewer: before, signedIn: true),
-      throwsA(isA<NotImplementedFailure>()),
+      throwsA(isA<NetworkFailure>()),
     );
     await expectLater(
       StandRemoteSource(http).shelf(viewer: before),
-      throwsA(isA<NotImplementedFailure>()),
+      throwsA(isA<NetworkFailure>()),
     );
   });
 
