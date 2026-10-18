@@ -670,8 +670,7 @@
       "errors": ["VALIDATION"],
       "contracts": ["P01", "P02", "P18"],
       "test": "test/contracts/me.e2e-spec.ts",
-      "status": "todo",
-      "note": "10-18 새 기능. 저장(scrap)은 이미 있는 POST/DELETE /issues/:id/scrap. 지금 볼 수 있는 캔버스만 돌려준다(잠긴·삭제·차단 제외). 반응 숫자 없음"
+      "status": "done"
     },
     {
       "id": "garments.mine",

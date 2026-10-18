@@ -44,7 +44,7 @@ npm run start:dev
 
 ## 현재 구현된 API
 
-`api-contract.json` 기준 라우트 62개 중 61개가 구현되어 있습니다. 이번 서버 묶음의 기존 계약은 모두 끝났고, `main`에서 새로 추가된 저장함 조회(`GET /api/me/scraps`) 1개가 다음 구현 대상으로 남아 있습니다.
+`api-contract.json` 기준 라우트 62개가 모두 구현되어 있습니다. 계약 완료는 62/62개(100%)이고 진행 중(`doing`)이나 미구현(`todo`) API는 없습니다.
 
 | 방법     | 주소                                    | 하는 일                                                           |
 | -------- | --------------------------------------- | ----------------------------------------------------------------- |
@@ -83,6 +83,7 @@ npm run start:dev
 | `DELETE` | `/api/magazines/:masthead/subscription` | 잡지 구독 취소                                                    |
 | `GET`    | `/api/me/magazine`                      | 오늘 호·지난 호와 소유자 전용 반응 숫자 조회                      |
 | `GET`    | `/api/me/issues/:id/reactions`          | 내 호의 좋아요·스크랩·독자 한 줄 수와 최근 목록 조회              |
+| `GET`    | `/api/me/scraps`                        | 지금 볼 수 있는 저장 캔버스를 저장 최신순 cursor로 조회           |
 | `GET`    | `/api/me/records?month=YYYY-MM`         | 사진 기록과 색 복원을 구분한 월간 기록 조회                       |
 | `POST`   | `/api/me/records/:date/restore`         | 이번 달 지난 빈 날의 후보 색 복원(월 2회)                         |
 | `GET`    | `/api/users/:masthead`                  | 제호로 공개 사용자 정보 조회                                      |

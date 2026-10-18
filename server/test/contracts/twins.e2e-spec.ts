@@ -594,8 +594,16 @@ describe('DEV-17 트윈', () => {
       partnerConsented: true,
       publishedAt: expect.any(String),
     });
-    expect(await prisma.issue.count()).toBe(0);
-    expect(await prisma.userDailyChoice.count()).toBe(0);
+    expect(
+      await prisma.issue.count({
+        where: { authorId: { in: [inviter.userId, invitee.userId] } },
+      }),
+    ).toBe(0);
+    expect(
+      await prisma.userDailyChoice.count({
+        where: { userId: { in: [inviter.userId, invitee.userId] } },
+      }),
+    ).toBe(0);
     expect(
       await prisma.profile.findMany({
         where: { userId: { in: [inviter.userId, invitee.userId] } },

@@ -5,6 +5,7 @@ import request from 'supertest';
 import { App } from 'supertest/types.js';
 import { serviceDate } from '../../src/common/service-date.js';
 import { PrismaService } from '../../src/prisma/prisma.service.js';
+import { dailyCandidateIds } from '../../src/today/today.rules.js';
 import { createTestApp } from '../create-app.js';
 
 describe('DEV-14 내 잡지와 반응', () => {
@@ -61,6 +62,7 @@ describe('DEV-14 내 잡지와 반응', () => {
     owner: { userId: string },
     offset = -1,
     colorId = 'sage',
+    issueNumber = offset === 0 ? 2 : offset > 0 ? 3 : 1,
   ) {
     const media = await prisma.mediaAsset.create({
       data: {
@@ -75,7 +77,7 @@ describe('DEV-14 내 잡지와 반응', () => {
       data: {
         authorId: owner.userId,
         serviceDate: dateAt(offset),
-        issueNumber: offset === 0 ? 2 : offset > 0 ? 3 : 1,
+        issueNumber,
         colorId,
         mediaId: media.id,
         caption: '내 잡지',
@@ -217,14 +219,156 @@ describe('DEV-14 내 잡지와 반응', () => {
       lineCount: 0,
     });
   });
-  // 10-18 저장함(새 기능): 내가 저장한 캔버스 목록. 저장은 POST/DELETE /api/issues/:id/scrap.
-  it.todo(
-    'GET /api/me/scraps: 저장함: 내가 저장한 캔버스 목록(cursor, 나에게만) → 200',
-  );
-  it.todo('GET /api/me/scraps: 로그인 없이 부르면 → 401 AUTH_REQUIRED');
-  it.todo('GET /api/me/scraps: 보낸 값의 형식이 맞지 않아요 → 400 VALIDATION');
-  it.todo(
-    '합격 기준(P01): 저장함에는 지금 볼 수 있는 캔버스만 옴(올리기 전 내 후보 색 캔버스·삭제·차단은 빠짐)',
-  );
-  it.todo('합격 기준(P18): 저장함 응답에 반응 숫자가 없음');
+  it('GET /api/me/scraps: 저장함: 내가 저장한 캔버스 목록(cursor, 나에게만) → 200', async () => {
+    const reader = await signup('scraps-page-reader');
+    const issues = [
+      await createIssue(reader, 1, 'sage', 1),
+      await createIssue(reader, 2, 'sage', 2),
+    ];
+    const base = Date.now() - 60_000;
+    const scraps = await Promise.all(
+      issues.map((issue, index) =>
+        prisma.scrap.create({
+          data: {
+            userId: reader.userId,
+            issueId: issue.id,
+            createdAt: new Date(base + index * 1_000),
+          },
+        }),
+      ),
+    );
+
+    const first = await request(app.getHttpServer())
+      .get('/api/me/scraps')
+      .set(auth(reader.token))
+      .expect(200);
+    expect(first.body).toMatchObject({
+      items: [
+        { id: issues[1].id, scrapped: true },
+        { id: issues[0].id, scrapped: true },
+      ],
+      nextCursor: null,
+    });
+    const cursor = Buffer.from(
+      JSON.stringify({
+        createdAt: scraps[1].createdAt.toISOString(),
+        issueId: scraps[1].issueId,
+      }),
+    ).toString('base64url');
+
+    const second = await request(app.getHttpServer())
+      .get('/api/me/scraps')
+      .query({ cursor })
+      .set(auth(reader.token))
+      .expect(200);
+    expect(second.body).toMatchObject({
+      items: [{ id: issues[0].id, scrapped: true }],
+      nextCursor: null,
+    });
+  });
+
+  it('GET /api/me/scraps: 로그인 없이 부르면 → 401 AUTH_REQUIRED', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/api/me/scraps')
+      .expect(401);
+    expect(response.body.error.code).toBe('AUTH_REQUIRED');
+  });
+
+  it('GET /api/me/scraps: 보낸 값의 형식이 맞지 않아요 → 400 VALIDATION', async () => {
+    const reader = await signup('scraps-invalid-cursor');
+    const response = await request(app.getHttpServer())
+      .get('/api/me/scraps')
+      .query({ cursor: 'not-a-cursor' })
+      .set(auth(reader.token))
+      .expect(400);
+    expect(response.body.error).toMatchObject({
+      code: 'VALIDATION',
+      details: { cursor: expect.any(Array) },
+    });
+  });
+
+  it('합격 기준(P01): 저장함에는 지금 볼 수 있는 캔버스만 옴(올리기 전 내 후보 색 캔버스·삭제·차단은 빠짐)', async () => {
+    const reader = await signup('scraps-visible-reader');
+    const visibleOwner = await signup('scraps-visible-owner');
+    const deletedOwner = await signup('scraps-deleted-owner');
+    const blockedOwner = await signup('scraps-blocked-owner');
+    const todayOwners = await Promise.all(
+      Array.from({ length: 4 }, (_, index) =>
+        signup(`scraps-today-owner-${index}`),
+      ),
+    );
+    const palette = await prisma.dailyPalette.findUnique({
+      where: { serviceDate: dateAt(0) },
+      select: { colors: { orderBy: { position: 'asc' } } },
+    });
+    const candidateColorId =
+      palette?.colors[0]?.colorId ??
+      dailyCandidateIds(
+        serviceDate(new Date(), timeZone),
+        (
+          await prisma.color.findMany({
+            orderBy: { sortOrder: 'asc' },
+            select: { id: true },
+          })
+        ).map(({ id }) => id),
+      )[0];
+    if (!candidateColorId) throw new Error('후보 색이 필요합니다.');
+    const visible = await createIssue(visibleOwner);
+    const deleted = await createIssue(deletedOwner);
+    const blocked = await createIssue(blockedOwner);
+    const todayIssues = [];
+    for (let index = 0; index < todayOwners.length; index += 1) {
+      const issue = await createIssue(todayOwners[index], 0, candidateColorId);
+      todayIssues.push(issue);
+      await prisma.issue.update({
+        where: { id: issue.id },
+        data: { publishedAt: new Date(Date.now() - index * 1_000) },
+      });
+    }
+    await prisma.issue.update({
+      where: { id: deleted.id },
+      data: { deletedAt: new Date() },
+    });
+    await prisma.block.create({
+      data: { blockerId: reader.userId, blockedId: blockedOwner.userId },
+    });
+    await prisma.scrap.createMany({
+      data: [visible.id, deleted.id, blocked.id, todayIssues[3].id].map(
+        (issueId, index) => ({
+          userId: reader.userId,
+          issueId,
+          createdAt: new Date(Date.now() + index * 1_000),
+        }),
+      ),
+    });
+
+    const response = await request(app.getHttpServer())
+      .get('/api/me/scraps')
+      .set(auth(reader.token))
+      .expect(200);
+    expect(response.body).toMatchObject({
+      items: [{ id: visible.id }],
+      nextCursor: null,
+    });
+  });
+
+  it('합격 기준(P18): 저장함 응답에 반응 숫자가 없음', async () => {
+    const reader = await signup('scraps-p18-reader');
+    const owner = await signup('scraps-p18-owner');
+    const issue = await createIssue(owner);
+    await prisma.scrap.create({
+      data: { userId: reader.userId, issueId: issue.id },
+    });
+    await prisma.like.create({
+      data: { userId: reader.userId, issueId: issue.id },
+    });
+
+    const response = await request(app.getHttpServer())
+      .get('/api/me/scraps')
+      .set(auth(reader.token))
+      .expect(200);
+    expect(response.body.items[0]).not.toHaveProperty('likeCount');
+    expect(response.body.items[0]).not.toHaveProperty('scrapCount');
+    expect(response.body.items[0]).not.toHaveProperty('lineCount');
+  });
 });

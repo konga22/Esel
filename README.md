@@ -66,4 +66,4 @@ flutter test
 
 `--dart-define=ESEL_API_MODE=mock`을 빼면 서버 모드라서, 서버 없이는 옛 기기 보관함 화면만 보인다. 시연 순서와 검증 범위는 [Flutter 중간발표 안내](docs/flutter/MIDTERM_DEMO.md)에 있다. iOS는 맥(Xcode)에서만 빌드할 수 있다.
 
-직접 구축 서버는 NestJS·PostgreSQL·Prisma로 구성되어 있고, 현재 API 계약 62개 중 61개가 구현되어 있다. 인증·서버 디스크 사진 업로드·오늘의 캔버스 발행·피드·팔레트·친구·트윈·공유·신고·차단·호 삭제까지 서버 검증을 거쳤고, `main`에서 새로 추가된 저장함 조회 API 1개가 남아 있다. Flutter의 전체 화면이 모두 서버와 연결된 것은 아니며, 시연 모드의 기록은 기기에만 남는다(웹은 메모리). 자세한 실행법과 정책은 [서버 README](server/README.md)를 따른다. 사진 출처는 [demo-sources](assets/demo-sources.md)와 [models-sources](assets/models-sources.md)에 있고, 사진에 붙인 이름·숫자는 예시다.
+직접 구축 서버는 NestJS·PostgreSQL·Prisma로 구성되어 있고, 현재 API 계약 62개가 모두 구현되어 있다. 인증·서버 디스크 사진 업로드·오늘의 캔버스 발행·피드·팔레트·저장함·친구·트윈·공유·신고·차단·호 삭제까지 서버 검증을 거쳤다. Flutter의 전체 화면이 모두 서버와 연결된 것은 아니며, 시연 모드의 기록은 기기에만 남는다(웹은 메모리). 자세한 실행법과 정책은 [서버 README](server/README.md)를 따른다. 사진 출처는 [demo-sources](assets/demo-sources.md)와 [models-sources](assets/models-sources.md)에 있고, 사진에 붙인 이름·숫자는 예시다.
