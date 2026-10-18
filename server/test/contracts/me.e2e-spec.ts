@@ -217,4 +217,14 @@ describe('DEV-14 내 잡지와 반응', () => {
       lineCount: 0,
     });
   });
+  // 10-18 저장함(새 기능): 내가 저장한 캔버스 목록. 저장은 POST/DELETE /api/issues/:id/scrap.
+  it.todo(
+    'GET /api/me/scraps: 저장함: 내가 저장한 캔버스 목록(cursor, 나에게만) → 200',
+  );
+  it.todo('GET /api/me/scraps: 로그인 없이 부르면 → 401 AUTH_REQUIRED');
+  it.todo('GET /api/me/scraps: 보낸 값의 형식이 맞지 않아요 → 400 VALIDATION');
+  it.todo(
+    '합격 기준(P01): 저장함에는 지금 볼 수 있는 캔버스만 옴(올리기 전 내 후보 색 캔버스·삭제·차단은 빠짐)',
+  );
+  it.todo('합격 기준(P18): 저장함 응답에 반응 숫자가 없음');
 });
