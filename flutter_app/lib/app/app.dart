@@ -64,6 +64,9 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
 
   /// 마이페이지 ≡ → 프로필 편집이면 설정을 프로필 화면으로 바로 연다.
   bool _settingsProfile = false;
+
+  /// 마이페이지에서 보던 탭. 전체 색 달력에 다녀와도 색 달력 탭으로 돌아온다.
+  MyPageTab _myTab = MyPageTab.canvases;
   StyleChallenge? _pendingChallenge;
   String? _previousIssueId;
   String? _contentOwnerId;
@@ -780,6 +783,9 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
           friendCount: _sl.config.isMock
               ? _sl.friendsController.friends.length
               : null,
+          monthRecords: _sl.recordsSource.month,
+          initialTab: _myTab,
+          onTabChanged: (tab) => _myTab = tab,
           savedIssues: _sl.config.isMock
               ? () => _demoSaved(today.viewer)
               : null,

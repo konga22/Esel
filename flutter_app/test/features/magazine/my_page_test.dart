@@ -17,6 +17,8 @@ import 'package:esel/features/magazine/presentation/screens/shelf_screen.dart';
 import 'package:esel/features/records/presentation/screens/monthly_record_screen.dart';
 import 'package:esel/features/settings/presentation/screens/settings_screen.dart';
 import 'package:esel/features/twin/presentation/screens/twin_screen.dart';
+import 'package:esel/features/today/domain/rules/daily_candidates.dart';
+import 'package:esel/core/time/service_date.dart';
 
 void main() {
   // 서비스 로케이터는 한 번만 준비된다. 테스트는 위에서부터 이어진다(첫 테스트에서 오늘 올림).
@@ -129,6 +131,34 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('my-open-records')));
       await tester.pumpAndSettle();
       expect(find.byType(MonthlyRecordScreen), findsOneWidget);
+    });
+
+    testWidgets('#24 리뷰: 전체 색 달력에서 복원한 날이 마이페이지 달력에도 보이고, 다녀와도 탭이 유지된다', (
+      tester,
+    ) async {
+      final day = const ServiceDate(2026, 9, 5);
+      await tester.runAsync(
+        () => sl.recordsSource.restore(day, DailyCandidates.forDate(day).first),
+      );
+      await openMyPage(tester);
+      await tester.tap(find.byKey(const ValueKey('my-tab-calendar')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('my-day-5-restored')), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('my-open-records')),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(find.byKey(const ValueKey('my-open-records')));
+      await tester.pumpAndSettle();
+      expect(find.byType(MonthlyRecordScreen), findsOneWidget);
+      await tester.tap(find.byTooltip('뒤로'));
+      await tester.pumpAndSettle();
+      expect(find.byType(MyPageScreen), findsOneWidget);
+      expect(find.text('9월의 색'), findsOneWidget);
+      // 다음 테스트를 위해 내 캔버스 탭으로 돌려 둔다.
+      await tester.tap(find.byKey(const ValueKey('my-tab-canvases')));
+      await tester.pumpAndSettle();
     });
 
     testWidgets('저장함은 내가 저장했고 지금 볼 수 있는 캔버스만', (tester) async {

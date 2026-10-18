@@ -23,6 +23,7 @@ import 'package:esel/features/magazine/presentation/controllers/magazine_control
 import 'package:esel/features/magazine/presentation/screens/my_page_screen.dart';
 import 'package:esel/features/magazine/presentation/screens/shelf_screen.dart';
 import 'package:esel/features/reactions/presentation/controllers/reactions_controller.dart';
+import 'package:esel/features/records/domain/models/server_records.dart';
 import 'package:esel/features/stand/data/sources/stand_mock_source.dart';
 import 'package:esel/features/stand/presentation/controllers/stand_controller.dart';
 import 'package:esel/features/stand/presentation/screens/stand_screen.dart';
@@ -159,6 +160,16 @@ void main() {
             todayColor: EselPaint.camel,
             publishedToday: false,
             friendCount: 3,
+            // 캡처용 이번 달 기록: 9일만 색 복원, 18일(오늘)은 아직.
+            monthRecords: (month) async => ServerMonthRecords(month, 1, [
+              for (var day = 1; day < 18; day++)
+                ServerDayRecord(
+                  date: ServiceDate(2026, 10, day),
+                  color: EselPaint.values[day % EselPaint.values.length],
+                  restored: day == 9,
+                  issueId: null,
+                ),
+            ]),
             savedIssues: () => saved,
             onOpenCanvas: (_) {},
             onOpenSaved: (_) {},

@@ -4,6 +4,7 @@ import '../../../../core/design/typography.dart';
 import '../../../../core/ui/esel_paint_asset.dart';
 import '../../../issue/domain/models/public_issue.dart';
 import '../../../issue/presentation/canvas_photo.dart';
+import '../../../records/domain/models/server_records.dart';
 import '../../../reactions/presentation/controllers/reactions_controller.dart';
 import '../../../stand/domain/rules/same_color_rule.dart';
 import '../controllers/magazine_controller.dart';
@@ -25,6 +26,13 @@ class MyPageScreen extends StatefulWidget {
 
   /// 친구 수. 친구 기능이 없는 모드(서버)에서는 null이고 숫자 칸을 숨긴다.
   final int? friendCount;
+
+  /// 월별 색 기록(발행 + 색 복원). 전체 색 달력과 같은 소스를 쓴다. 인자는 `2026-09` 형식.
+  final Future<ServerMonthRecords> Function(String month) monthRecords;
+
+  /// 처음 보여 줄 탭과 탭을 바꿀 때 알림. 색 달력에서 전체 달력에 다녀와도 탭이 유지된다.
+  final MyPageTab initialTab;
+  final ValueChanged<MyPageTab>? onTabChanged;
 
   /// 저장한 캔버스. 저장함 API가 연결되지 않은 모드에서는 null(준비 중).
   final List<PublicIssue> Function()? savedIssues;
@@ -58,7 +66,10 @@ class MyPageScreen extends StatefulWidget {
     required this.onEditProfile,
     required this.onShare,
     required this.onOpenSettings,
+    required this.monthRecords,
     this.friendCount,
+    this.initialTab = MyPageTab.canvases,
+    this.onTabChanged,
     this.savedIssues,
     this.onOpenFriends,
   });
@@ -68,8 +79,22 @@ class MyPageScreen extends StatefulWidget {
 }
 
 class _MyPageScreenState extends State<MyPageScreen> {
-  MyPageTab _tab = MyPageTab.canvases;
+  late MyPageTab _tab = widget.initialTab;
   MagazineProfile? _last;
+  Future<ServerMonthRecords>? _month;
+
+  String get _monthKey {
+    final today = widget.viewer.today;
+    return '${today.year}-${today.month.toString().padLeft(2, '0')}';
+  }
+
+  void _select(MyPageTab tab) {
+    setState(() {
+      _tab = tab;
+      if (tab == MyPageTab.calendar) _month ??= widget.monthRecords(_monthKey);
+    });
+    widget.onTabChanged?.call(tab);
+  }
 
   void _configure() => widget.controller.configure(
     ownerId: widget.ownerId,
@@ -94,6 +119,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
     widget.controller.addListener(_profileChanged);
     _configure();
     _profileChanged();
+    if (_tab == MyPageTab.calendar) _month = widget.monthRecords(_monthKey);
   }
 
   @override
@@ -205,7 +231,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
               else
                 switch (_tab) {
                   MyPageTab.canvases => _canvases(profile),
-                  MyPageTab.calendar => _calendar(profile),
+                  MyPageTab.calendar => _calendar(),
                   MyPageTab.saved => _saved(),
                 },
             ],
@@ -356,7 +382,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                 button: true,
                 child: InkWell(
                   key: ValueKey('my-tab-${tab.name}'),
-                  onTap: () => setState(() => _tab = tab),
+                  onTap: () => _select(tab),
                   child: Container(
                     height: 46,
                     decoration: BoxDecoration(
@@ -450,68 +476,90 @@ class _MyPageScreenState extends State<MyPageScreen> {
     );
   }
 
-  /// 이번 달 색 달력: 올린 날은 그날 색 물감, 지난 빈 날은 빈 동그라미, 오늘은 테두리.
+  /// 이번 달 색 달력: 전체 색 달력과 같은 월별 기록(발행 + 색 복원)을 읽는다(#24 리뷰).
+  /// 올린 날은 그날 색 물감, 복원한 날은 그 색 테두리 동그라미, 지난 빈 날은 빈 동그라미, 오늘은 테두리.
   /// 색 복원은 색 달력 화면에서 한다.
-  Widget _calendar(MagazineProfile? profile) {
-    final today = widget.viewer.today;
-    final colors = <int, EselPaint>{
-      for (final issue in profile?.issues ?? const <PublicIssue>[])
-        if (issue.date.year == today.year && issue.date.month == today.month)
-          issue.date.day: issue.color,
-    };
-    final first = DateTime.utc(today.year, today.month, 1);
-    final days = DateTime.utc(today.year, today.month + 1, 0).day;
-    final lead = first.weekday % 7; // 일요일 시작
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            '${today.month}월의 색',
-            style: EselTypography.heading(fontSize: 22),
-          ),
-          const SizedBox(height: 10),
-          Row(
+  Widget _calendar() => FutureBuilder<ServerMonthRecords>(
+    future: _month,
+    builder: (context, snapshot) {
+      if (snapshot.hasError) {
+        return Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
             children: [
-              for (final d in ['일', '월', '화', '수', '목', '금', '토'])
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      d,
-                      style: EselTypography.body(
-                        fontSize: 11,
-                        color: EselColors.muted,
+              const Text('색 기록을 불러오지 못했어요.'),
+              TextButton(
+                onPressed: () =>
+                    setState(() => _month = widget.monthRecords(_monthKey)),
+                child: const Text('다시 시도'),
+              ),
+            ],
+          ),
+        );
+      }
+      final records = snapshot.data;
+      if (records == null) {
+        return const Padding(
+          padding: EdgeInsets.all(40),
+          child: Center(child: CircularProgressIndicator()),
+        );
+      }
+      final today = widget.viewer.today;
+      final days = {for (final day in records.days) day.date.day: day};
+      final first = DateTime.utc(today.year, today.month, 1);
+      final count = DateTime.utc(today.year, today.month + 1, 0).day;
+      final lead = first.weekday % 7; // 일요일 시작
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              '${today.month}월의 색',
+              style: EselTypography.heading(fontSize: 22),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                for (final d in ['일', '월', '화', '수', '목', '금', '토'])
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        d,
+                        style: EselTypography.body(
+                          fontSize: 11,
+                          color: EselColors.muted,
+                        ),
                       ),
                     ),
                   ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          GridView.count(
-            crossAxisCount: 7,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            childAspectRatio: 0.82,
-            children: [
-              for (var i = 0; i < lead; i++) const SizedBox.shrink(),
-              for (var day = 1; day <= days; day++)
-                _day(day, colors[day], today.day),
-            ],
-          ),
-          const SizedBox(height: 8),
-          OutlinedButton(
-            key: const ValueKey('my-open-records'),
-            onPressed: widget.onOpenRecords,
-            child: const Text('색 달력 열기 · 빈 날 색 복원'),
-          ),
-        ],
-      ),
-    );
-  }
+              ],
+            ),
+            const SizedBox(height: 6),
+            GridView.count(
+              crossAxisCount: 7,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              childAspectRatio: 0.82,
+              children: [
+                for (var i = 0; i < lead; i++) const SizedBox.shrink(),
+                for (var day = 1; day <= count; day++)
+                  _day(day, days[day], today.day),
+              ],
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton(
+              key: const ValueKey('my-open-records'),
+              onPressed: widget.onOpenRecords,
+              child: const Text('색 달력 열기 · 빈 날 색 복원'),
+            ),
+          ],
+        ),
+      );
+    },
+  );
 
-  Widget _day(int day, EselPaint? color, int today) => Container(
+  Widget _day(int day, ServerDayRecord? record, int today) => Container(
     key: ValueKey('my-day-$day'),
     margin: const EdgeInsets.all(2),
     decoration: day == today
@@ -531,8 +579,21 @@ class _MyPageScreenState extends State<MyPageScreen> {
           ),
         ),
         const SizedBox(height: 2),
-        if (color != null)
-          EselPaintAsset(paint: color, width: 30)
+        if (record != null && record.restored)
+          Container(
+            key: ValueKey('my-day-$day-restored'),
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: EselPaints.of(record.color).color,
+                width: 2.5,
+              ),
+            ),
+          )
+        else if (record != null)
+          EselPaintAsset(paint: record.color, width: 30)
         else if (day < today)
           Container(
             width: 12,
