@@ -570,7 +570,7 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
       body: Stack(
         children: [
           _buildActiveTabScreen(context),
-          // 디자인: 260×60 캡슐, 가로 가운데, 화면 아래 34(홈 인디케이터가 더 높으면 그 위).
+          // 디자인: 198×60 캡슐, 가로 가운데, 화면 아래 34(홈 인디케이터가 더 높으면 그 위).
           Positioned(
             left: 0,
             right: 0,
@@ -818,9 +818,12 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
     });
   }
 
-  /// 디자인 "메뉴 캡슐": 내 오늘의 색 물감(52) · Ink 원 48 안의 + · 내 아바타(34).
+  /// 디자인 "메뉴 캡슐"(10-18): 바뀌는 칸 · Ink 원 48 안의 + · 내 아바타(34).
+  /// 바뀌는 칸은 지금 속한 쪽의 반대편이다. 홈 피드(와 홈에서 연 스케치북)에서는 내 오늘의 색
+  /// 물감(52) → 팔레트, 그 밖(팔레트·팔레트에서 연 스케치북·내 스케치북)에서는 홈 아이콘 → 홈.
   /// 사진이 깔린 피드에서만 글라스, 흰 화면 탭에서는 단색 + 그림자.
   Widget _buildGlassBottomBar(BuildContext context) {
+    final onHome = _currentTab == AppTab.feed;
     return EselGlass(
       key: const Key('menu-capsule'),
       width: EselSizes.capsuleWidth,
@@ -831,21 +834,23 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildCapsuleItem(
-            '홈',
-            AppTab.feed,
-            context,
-            child: const Icon(Icons.home_outlined, size: 26),
-          ),
-          _buildCapsuleItem(
-            '팔레트',
-            AppTab.stand,
-            context,
-            child: EselPaintAsset(
-              paint: _sl.todayController.myColor,
-              width: 52,
+          if (onHome)
+            _buildCapsuleItem(
+              '팔레트',
+              AppTab.stand,
+              context,
+              child: EselPaintAsset(
+                paint: _sl.todayController.myColor,
+                width: 52,
+              ),
+            )
+          else
+            _buildCapsuleItem(
+              '홈',
+              AppTab.feed,
+              context,
+              child: const Icon(Icons.home_outlined, size: 26),
             ),
-          ),
           _buildCapsuleItem(
             '만들기',
             AppTab.publish,
@@ -909,10 +914,11 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
     required Widget child,
     double width = 62,
   }) {
-    // 앱 목업: 지금 보고 있는 쪽(팔레트, 스케치북·스케치북) 아래에 4px 먹 점.
-    final current =
-        _currentTab == tab || (tab == AppTab.me && _currentTab == AppTab.shelf);
-    final marked = current && tab != AppTab.publish;
+    // 앱 목업: 4px 먹 점은 내 스케치북에 있을 때 스케치북 칸에만. 바뀌는 칸은 갈 곳을
+    // 보여 주는 버튼이라 점이 없고, 만들기는 잠깐 들어갔다 나오는 화면이라 점이 없다.
+    final marked =
+        tab == AppTab.me &&
+        (_currentTab == AppTab.me || _currentTab == AppTab.shelf);
     return Semantics(
       selected: marked,
       child: EselPressable(
