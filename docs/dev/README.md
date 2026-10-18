@@ -69,7 +69,7 @@ data 계층은 인증(`features/auth/data`), 기기 보관함(`features/drafts/d
 | `twin*` | `features/twin/.../twin_screen.dart` | T1~T10 |
 | `settings`, `profile`, `notifications`, `account`, `logout`, `delete*` | `features/settings/.../settings_screen.dart` | S1~S6 |
 
-화면 전환은 `app.dart`의 상태(`AppTab`, `ActiveScreen`)로 한다. 라우터 패키지는 승인 없이 추가하지 않는다. 하단 글라스 캡슐은 홈·팔레트·만들기·스케치북 4칸, 260×60이며 `app.dart`의 `_buildGlassBottomBar` 한 곳에 둔다. Server 전용 중복 화면과 이전 기기 홈 화면은 제거했다. 설정의 기기 초안·초안 달력·접근성 설정에서 기존 기기 기능을 연다. 기기 초안은 서버 발행본과 구분하며 로그인한 ownerId의 기록만 편집·삭제한다.
+화면 전환은 `app.dart`의 상태(`AppTab`, `ActiveScreen`)로 한다. 라우터 패키지는 승인 없이 추가하지 않는다. 하단 글라스 캡슐은 `app.dart`의 `_buildGlassBottomBar` 한 곳에 둔다. 지금 앱은 홈·팔레트·만들기·스케치북 4칸(260×60)이고, 10-18에 바뀌는 칸 3칸(198×60, 첫 칸이 홈에서는 팔레트·그 밖에서는 홈)으로 정해 DEV-25에서 바꾼다. Server 전용 중복 화면과 이전 기기 홈 화면은 제거했다. 설정의 기기 초안·초안 달력·접근성 설정에서 기존 기기 기능을 연다. 기기 초안은 서버 발행본과 구분하며 로그인한 ownerId의 기록만 편집·삭제한다.
 
 ### 서버 (`server/`)
 
