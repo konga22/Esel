@@ -200,6 +200,16 @@ export class MediaService {
       if (media.issue) {
         await this.issuesService.assertVisible(userId, media.issue.id);
       } else if (media.twinPost) {
+        const block = await this.prisma.block.findUnique({
+          where: {
+            blockerId_blockedId: {
+              blockerId: userId,
+              blockedId: media.ownerId,
+            },
+          },
+          select: { id: true },
+        });
+        if (block) throw new AppException('NOT_FOUND');
         const { twin } = media.twinPost.participant;
         const participant = twin.participations.some(
           ({ userId: participantId }) => participantId === userId,
@@ -239,6 +249,13 @@ export class MediaService {
       mimeType: size === MediaSize.THUMB ? 'image/jpeg' : media.mimeType,
       sizeBytes: fileSize,
     };
+  }
+
+  async removeStoredFiles(storageKey: string, id: string): Promise<void> {
+    await Promise.all([
+      rm(this.pathFor(storageKey), { force: true }),
+      rm(this.thumbnailPath(id), { force: true }),
+    ]);
   }
 
   private async requireOwnedPending(userId: string, id: string) {

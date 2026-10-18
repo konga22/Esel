@@ -25,24 +25,30 @@ export class FeedService {
       this.config.getOrThrow<string>('SERVICE_TIME_ZONE'),
     );
     const today = new Date(`${key}T00:00:00.000Z`);
-    const [ownIssue, candidateIds, subscriptions] = await Promise.all([
+    const [ownIssue, candidateIds, subscriptions, blocks] = await Promise.all([
       this.prisma.issue.findUnique({
         where: {
           authorId_serviceDate: { authorId: userId, serviceDate: today },
         },
-        select: { id: true },
+        select: { id: true, deletedAt: true },
       }),
       this.candidateIds(key, today),
       this.prisma.subscription.findMany({
         where: { subscriberId: userId },
         select: { magazineId: true },
       }),
+      this.prisma.block.findMany({
+        where: { blockerId: userId },
+        select: { blockedId: true },
+      }),
     ]);
     const cursorValue = cursor ? this.decodeCursor(cursor) : null;
     const raw = await this.prisma.issue.findMany({
       where: {
+        deletedAt: null,
+        authorId: { notIn: blocks.map(({ blockedId }) => blockedId) },
         serviceDate: { lte: today },
-        ...(!ownIssue
+        ...(!ownIssue || ownIssue.deletedAt
           ? {
               OR: [
                 { serviceDate: { lt: today } },

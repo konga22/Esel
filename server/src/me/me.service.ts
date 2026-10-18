@@ -32,12 +32,13 @@ export class MeService {
         where: {
           authorId_serviceDate: { authorId: userId, serviceDate: today },
         },
-        select: { id: true },
+        select: { id: true, deletedAt: true },
       }),
       this.prisma.issue.findMany({
         where: {
           authorId: userId,
           serviceDate: { lt: today },
+          deletedAt: null,
           ...(beforeIssueNumber
             ? { issueNumber: { lt: beforeIssueNumber } }
             : {}),
@@ -48,9 +49,10 @@ export class MeService {
       }),
     ]);
     const pastRaw = rawPastIssues.slice(0, 20);
-    const todayIssue = todayRaw
-      ? ((await this.issuesService.get(userId, todayRaw.id)) as IssueOwnerDto)
-      : null;
+    const todayIssue =
+      todayRaw && !todayRaw.deletedAt
+        ? ((await this.issuesService.get(userId, todayRaw.id)) as IssueOwnerDto)
+        : null;
     const pastIssues = (await Promise.all(
       pastRaw.map(({ id }) => this.issuesService.get(userId, id)),
     )) as IssueOwnerDto[];

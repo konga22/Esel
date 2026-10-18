@@ -46,7 +46,7 @@ export class StandService {
       };
     }
 
-    const [candidateIds, ownIssue] =
+    const [candidateIds, ownIssue, blocks] =
       key === current.key
         ? await Promise.all([
             this.candidateIds(key, date),
@@ -54,20 +54,42 @@ export class StandService {
               where: {
                 authorId_serviceDate: { authorId: userId, serviceDate: date },
               },
-              select: { id: true },
+              select: { id: true, deletedAt: true },
+            }),
+            this.prisma.block.findMany({
+              where: { blockerId: userId },
+              select: { blockedId: true },
             }),
           ])
-        : [[], null];
-    const locked =
-      key === current.key && !ownIssue && candidateIds.includes(colorId);
+        : [
+            [],
+            null,
+            await this.prisma.block.findMany({
+              where: { blockerId: userId },
+              select: { blockedId: true },
+            }),
+          ];
+    const blockedIds = blocks.map(({ blockedId }) => blockedId);
+    const locked = Boolean(
+      key === current.key &&
+      (!ownIssue || ownIssue.deletedAt) &&
+      candidateIds.includes(colorId),
+    );
     const cursorValue = cursor ? this.decodeCursor(cursor) : null;
     const total = await this.prisma.issue.count({
-      where: { serviceDate: date, colorId },
+      where: {
+        serviceDate: date,
+        colorId,
+        deletedAt: null,
+        authorId: { notIn: blockedIds },
+      },
     });
     const raw = await this.prisma.issue.findMany({
       where: {
         serviceDate: date,
         colorId,
+        deletedAt: null,
+        authorId: { notIn: blockedIds },
         ...(!locked && cursorValue
           ? {
               OR: [
@@ -113,35 +135,45 @@ export class StandService {
 
   async recommended(userId: string, cursor?: string): Promise<PalettePageDto> {
     const current = this.currentDate();
-    const [candidateIds, ownIssue, choice, subscriptions] = await Promise.all([
-      this.candidateIds(current.key, current.date),
-      this.prisma.issue.findUnique({
-        where: {
-          authorId_serviceDate: { authorId: userId, serviceDate: current.date },
-        },
-        select: { id: true },
-      }),
-      this.prisma.userDailyChoice.findUnique({
-        where: {
-          userId_serviceDate: { userId, serviceDate: current.date },
-        },
-        select: { colorId: true },
-      }),
-      this.prisma.subscription.findMany({
-        where: { subscriberId: userId },
-        select: { magazineId: true },
-      }),
-    ]);
+    const [candidateIds, ownIssue, choice, subscriptions, blocks] =
+      await Promise.all([
+        this.candidateIds(current.key, current.date),
+        this.prisma.issue.findUnique({
+          where: {
+            authorId_serviceDate: {
+              authorId: userId,
+              serviceDate: current.date,
+            },
+          },
+          select: { id: true, deletedAt: true },
+        }),
+        this.prisma.userDailyChoice.findUnique({
+          where: {
+            userId_serviceDate: { userId, serviceDate: current.date },
+          },
+          select: { colorId: true },
+        }),
+        this.prisma.subscription.findMany({
+          where: { subscriberId: userId },
+          select: { magazineId: true },
+        }),
+        this.prisma.block.findMany({
+          where: { blockerId: userId },
+          select: { blockedId: true },
+        }),
+      ]);
     const excludedAuthors = [
       userId,
       ...subscriptions.map(({ magazineId }) => magazineId),
+      ...blocks.map(({ blockedId }) => blockedId),
     ];
     const raw = await this.prisma.issue.findMany({
       where: {
+        deletedAt: null,
         authorId: { notIn: excludedAuthors },
         serviceDate: { lte: current.date },
         ...(choice ? { colorId: choice.colorId } : {}),
-        ...(!ownIssue
+        ...(!ownIssue || ownIssue.deletedAt
           ? {
               OR: [
                 { serviceDate: { lt: current.date } },
@@ -198,26 +230,34 @@ export class StandService {
   ): Promise<PalettePageDto> {
     const current = this.currentDate();
     const cursorValue = cursor ? this.decodeCursor(cursor) : null;
-    const [candidateIds, ownIssue, subscriptions] = await Promise.all([
+    const [candidateIds, ownIssue, subscriptions, blocks] = await Promise.all([
       this.candidateIds(current.key, current.date),
       this.prisma.issue.findUnique({
         where: {
           authorId_serviceDate: { authorId: userId, serviceDate: current.date },
         },
-        select: { id: true },
+        select: { id: true, deletedAt: true },
       }),
       this.prisma.subscription.findMany({
         where: { subscriberId: userId },
         select: { magazineId: true },
+      }),
+      this.prisma.block.findMany({
+        where: { blockerId: userId },
+        select: { blockedId: true },
       }),
     ]);
     if (subscriptions.length === 0) return { items: [], nextCursor: null };
 
     const raw = await this.prisma.issue.findMany({
       where: {
-        authorId: { in: subscriptions.map(({ magazineId }) => magazineId) },
+        authorId: {
+          in: subscriptions.map(({ magazineId }) => magazineId),
+          notIn: blocks.map(({ blockedId }) => blockedId),
+        },
+        deletedAt: null,
         serviceDate: { lte: current.date },
-        ...(!ownIssue
+        ...(!ownIssue || ownIssue.deletedAt
           ? {
               OR: [
                 { serviceDate: { lt: current.date } },
@@ -284,7 +324,7 @@ export class StandService {
               serviceDate: current.date,
             },
           },
-          select: { id: true },
+          select: { id: true, deletedAt: true },
         }),
         this.prisma.userDailyChoice.groupBy({
           by: ['colorId'],
@@ -300,7 +340,7 @@ export class StandService {
       candidates.map((id, index) => [id, index]),
     );
     const ordered = [...colors].sort((left, right) => {
-      if (!issue) {
+      if (!issue || issue.deletedAt) {
         const leftPosition = candidatePosition.get(left.id);
         const rightPosition = candidatePosition.get(right.id);
         if (leftPosition !== undefined || rightPosition !== undefined) {
@@ -318,7 +358,9 @@ export class StandService {
       serviceDate: current.key,
       items: ordered.map((color) => ({
         ...this.toColor(color),
-        locked: !issue && candidatePosition.has(color.id),
+        locked:
+          (!issue || Boolean(issue.deletedAt)) &&
+          candidatePosition.has(color.id),
         selected: choice?.colorId === color.id,
       })),
     };

@@ -21,7 +21,11 @@ export class RecordsService {
     const { start, end } = this.monthRange(month);
     const [issues, restored] = await Promise.all([
       this.prisma.issue.findMany({
-        where: { authorId: userId, serviceDate: { gte: start, lt: end } },
+        where: {
+          authorId: userId,
+          serviceDate: { gte: start, lt: end },
+          deletedAt: null,
+        },
         include: { color: true, media: true },
       }),
       this.prisma.restoredColor.findMany({

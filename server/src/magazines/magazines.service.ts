@@ -25,7 +25,7 @@ export class MagazinesService {
 
     const beforeIssueNumber = cursor ? this.decodeCursor(cursor) : null;
 
-    const [subscription, rawIssues] = await Promise.all([
+    const [subscription, rawIssues, block] = await Promise.all([
       this.prisma.subscription.findUnique({
         where: {
           subscriberId_magazineId: {
@@ -38,6 +38,7 @@ export class MagazinesService {
       this.prisma.issue.findMany({
         where: {
           authorId: profile.userId,
+          deletedAt: null,
           ...(beforeIssueNumber
             ? { issueNumber: { lt: beforeIssueNumber } }
             : {}),
@@ -46,7 +47,26 @@ export class MagazinesService {
         take: 21,
         select: { id: true, issueNumber: true },
       }),
+      this.prisma.block.findUnique({
+        where: {
+          blockerId_blockedId: {
+            blockerId: userId,
+            blockedId: profile.userId,
+          },
+        },
+        select: { id: true },
+      }),
     ]);
+
+    if (block) {
+      return {
+        masthead: profile.masthead,
+        issueCount: profile.issueCount,
+        isSubscribed: Boolean(subscription),
+        issues: [],
+        nextCursor: null,
+      };
+    }
 
     const page = rawIssues.slice(0, 20);
     const issues = [];

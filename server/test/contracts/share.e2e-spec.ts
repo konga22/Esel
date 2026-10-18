@@ -1,18 +1,22 @@
 import { INestApplication } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
 import { PrismaService } from '../../src/prisma/prisma.service.js';
+import { serviceDate } from '../../src/common/service-date.js';
 import { createTestApp } from '../create-app.js';
 
 describe('DEV-18 공유', () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
   let mastheadSequence = 0;
+  let timeZone: string;
 
   beforeAll(async () => {
     app = await createTestApp();
     prisma = app.get(PrismaService);
+    timeZone = app.get(ConfigService).getOrThrow<string>('SERVICE_TIME_ZONE');
     await cleanup();
   });
   afterEach(cleanup);
@@ -46,7 +50,15 @@ describe('DEV-18 공유', () => {
     return user;
   }
 
-  async function pastIssue(userId: string) {
+  async function issue(
+    userId: string,
+    options: {
+      date: Date;
+      colorId?: string;
+      publishedAt?: Date;
+      issueNumber?: number;
+    },
+  ) {
     const media = await prisma.mediaAsset.create({
       data: {
         ownerId: userId,
@@ -59,15 +71,19 @@ describe('DEV-18 공유', () => {
     return prisma.issue.create({
       data: {
         authorId: userId,
-        serviceDate: new Date('2020-01-01T00:00:00.000Z'),
-        issueNumber: 1,
-        colorId: 'sage',
+        serviceDate: options.date,
+        issueNumber: options.issueNumber ?? 1,
+        colorId: options.colorId ?? 'sage',
         mediaId: media.id,
         caption: '공유할 표지',
         faceMode: 'PLAIN',
+        publishedAt: options.publishedAt,
       },
     });
   }
+
+  const pastIssue = (userId: string) =>
+    issue(userId, { date: new Date('2020-01-01T00:00:00.000Z') });
 
   const auth = (token: string) => ({ Authorization: `Bearer ${token}` });
 
@@ -145,14 +161,65 @@ describe('DEV-18 공유', () => {
     expect(response.body.error.code).toBe('SHARE_NOT_PUBLIC');
   });
 
-  // 비로그인 오늘 표지 공개 정책을 정한 뒤 구현한다.
-  it.todo(
-    'GET /api/share-links/:token: 공유 링크 열기(열 때도 공개 권한 다시 검사) → 200',
-  );
-  it.todo(
-    'GET /api/share-links/:token: 없거나 지운 링크, 또는 이제 볼 수 없는 표지 → 404 NOT_FOUND',
-  );
-  it.todo(
-    '합격 기준(P01): 로그인한 사람이 링크를 열면 그 사람 기준으로 같은 색 잠금을 다시 검사해, 잠긴 표지면 404',
-  );
+  it('GET /api/share-links/:token: 공유 링크 열기(열 때도 공개 권한 다시 검사) → 200', async () => {
+    const owner = await signup('open-owner');
+    const target = await pastIssue(owner.id);
+    const created = await request(app.getHttpServer())
+      .post('/api/share-links')
+      .set(auth(owner.token))
+      .send({ issueId: target.id })
+      .expect(201);
+    const response = await request(app.getHttpServer())
+      .get(`/api/share-links/${created.body.token}`)
+      .expect(200);
+    expect(response.body).toMatchObject({
+      kind: 'ISSUE',
+      issue: { masthead: owner.masthead, caption: '공유할 표지' },
+      twin: null,
+    });
+    expect(JSON.stringify(response.body)).not.toMatch(
+      /userId|likeCount|scrapCount|lineCount|rank/,
+    );
+  });
+
+  it('GET /api/share-links/:token: 없거나 지운 링크, 또는 이제 볼 수 없는 표지 → 404 NOT_FOUND', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/api/share-links/not-a-link')
+      .expect(404);
+    expect(response.body.error.code).toBe('NOT_FOUND');
+  });
+
+  it('합격 기준(P01): 로그인한 사람이 링크를 열면 그 사람 기준으로 같은 색 잠금을 다시 검사해, 잠긴 표지면 404', async () => {
+    const reader = await signup('locked-reader');
+    const today = await request(app.getHttpServer())
+      .get('/api/today')
+      .set(auth(reader.token))
+      .expect(200);
+    const colorId = today.body.candidates[0].id as string;
+    const date = new Date(`${serviceDate(new Date(), timeZone)}T00:00:00.000Z`);
+    let oldest: Awaited<ReturnType<typeof issue>> | null = null;
+    let oldestOwner: Awaited<ReturnType<typeof signup>> | null = null;
+    for (let index = 0; index < 4; index += 1) {
+      const author = await signup(`locked-author-${index}`);
+      const created = await issue(author.id, {
+        date,
+        colorId,
+        publishedAt: new Date(10_000 + index),
+      });
+      if (index === 0) {
+        oldest = created;
+        oldestOwner = author;
+      }
+    }
+    const link = await request(app.getHttpServer())
+      .post('/api/share-links')
+      .set(auth(oldestOwner!.token))
+      .send({ issueId: oldest!.id })
+      .expect(201);
+    const response = await request(app.getHttpServer())
+      .get(`/api/share-links/${link.body.token}`)
+      .set(auth(reader.token))
+      .expect(404);
+    expect(response.body.error.code).toBe('NOT_FOUND');
+  });
 });

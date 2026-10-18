@@ -17,10 +17,9 @@ export class AccessTokenGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
-    if (isPublic) return true;
-
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const token = bearerToken(request.headers.authorization);
+    if (isPublic && !token) return true;
     if (!token) throw new AppException('AUTH_REQUIRED');
 
     request.authUser = await this.authService.authenticateAccessToken(token);

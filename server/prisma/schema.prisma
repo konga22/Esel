@@ -70,6 +70,8 @@ model User {
   garments               Garment[]
   shareLinksCreated       ShareLink[]           @relation("ShareLinkCreator")
   reportsMade             Report[]              @relation("ReportReporter")
+  blocksMade              Block[]               @relation("BlocksMade")
+  blockedBy               Block[]               @relation("BlockedUsers")
 
   @@map("users")
 }
@@ -207,6 +209,7 @@ model Issue {
   caption     String       @db.VarChar(280)
   faceMode    FaceMode     @map("face_mode")
   publishedAt DateTime     @default(now()) @map("published_at")
+  deletedAt   DateTime?    @map("deleted_at")
   author      User         @relation(fields: [authorId], references: [id], onDelete: Restrict)
   color       Color        @relation(fields: [colorId], references: [id], onDelete: Restrict)
   media       MediaAsset   @relation(fields: [mediaId], references: [id], onDelete: Restrict)
@@ -220,6 +223,7 @@ model Issue {
   @@unique([authorId, serviceDate])
   @@unique([authorId, issueNumber])
   @@index([serviceDate, colorId, publishedAt])
+  @@index([deletedAt])
   @@map("issues")
 }
 
@@ -391,6 +395,20 @@ model Report {
   @@index([issueId])
   @@index([lineId])
   @@map("reports")
+}
+
+model Block {
+  id        String   @id @default(uuid()) @db.Uuid
+  blockerId String   @map("blocker_id") @db.Uuid
+  blockedId String   @map("blocked_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  blocker   User     @relation("BlocksMade", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked   User     @relation("BlockedUsers", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+  @@index([blockerId, createdAt, id])
+  @@index([blockedId])
+  @@map("blocks")
 }
 
 model TwinParticipation {

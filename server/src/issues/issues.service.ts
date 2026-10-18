@@ -290,9 +290,14 @@ export class IssuesService {
   ): Promise<ReaderLinePageDto> {
     await this.assertVisible(userId, issueId);
     const cursorValue = cursor ? this.decodeLineCursor(cursor) : null;
+    const blocked = await this.prisma.block.findMany({
+      where: { blockerId: userId },
+      select: { blockedId: true },
+    });
     const lines = await this.prisma.readerLine.findMany({
       where: {
         issueId,
+        authorId: { notIn: blocked.map(({ blockedId }) => blockedId) },
         ...(cursorValue
           ? {
               OR: [
@@ -391,10 +396,19 @@ export class IssuesService {
         authorId: true,
         serviceDate: true,
         colorId: true,
+        deletedAt: true,
       },
     });
-    if (!issue) throw new AppException('NOT_FOUND');
+    if (!issue || issue.deletedAt) throw new AppException('NOT_FOUND');
     if (issue.authorId === userId) return issue;
+
+    const block = await this.prisma.block.findUnique({
+      where: {
+        blockerId_blockedId: { blockerId: userId, blockedId: issue.authorId },
+      },
+      select: { id: true },
+    });
+    if (block) throw new AppException('NOT_FOUND');
 
     const todayKey = serviceDate(
       new Date(),
@@ -407,15 +421,15 @@ export class IssuesService {
     const today = new Date(`${todayKey}T00:00:00.000Z`);
     const ownIssue = await this.prisma.issue.findUnique({
       where: { authorId_serviceDate: { authorId: userId, serviceDate: today } },
-      select: { id: true },
+      select: { id: true, deletedAt: true },
     });
-    if (ownIssue) return issue;
+    if (ownIssue && !ownIssue.deletedAt) return issue;
 
     const candidateIds = await this.candidateIds(todayKey, today);
     if (!candidateIds.includes(issue.colorId)) return issue;
 
     const preview = await this.prisma.issue.findMany({
-      where: { serviceDate: today, colorId: issue.colorId },
+      where: { serviceDate: today, colorId: issue.colorId, deletedAt: null },
       orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }],
       take: 3,
       select: { id: true },
