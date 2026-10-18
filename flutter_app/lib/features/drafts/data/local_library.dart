@@ -27,6 +27,29 @@ class LocalLibrary extends ChangeNotifier {
   final Directory? directory;
   LocalLibrary(Directory this.directory);
   LocalLibrary.inMemory() : directory = null;
+  LocalLibrary.unavailable() : directory = null {
+    loadError = '기기 보관함을 열지 못했어요. 기존 자료는 보존되어 있어요. 앱을 다시 시작해 주세요.';
+  }
+  String? loadError;
+  bool get available => loadError == null;
+  Future<void> loadForStartup() async {
+    try {
+      await load();
+      loadError = null;
+    } catch (_) {
+      _drafts.clear();
+      _publicationLedger.clear();
+      _reactionRecords.clear();
+      _featureRecords.clear();
+      _personalRecords.clear();
+      loadError = '기기 보관함을 읽지 못했어요. 기존 파일은 보존되어 있어요. 다시 읽기를 시도해 주세요.';
+    }
+    notifyListeners();
+  }
+
+  void _ensureAvailable() {
+    if (loadError != null) throw FormatException(loadError!);
+  }
 
   static final Map<String, Uint8List> _memoryPhotos = {};
 
@@ -52,7 +75,7 @@ class LocalLibrary extends ChangeNotifier {
       );
     }
     final library = LocalLibrary(directory);
-    await library.load();
+    await library.loadForStartup();
     return library;
   }
 
@@ -270,6 +293,7 @@ class LocalLibrary extends ChangeNotifier {
   }
 
   Future<void> _persist() async {
+    _ensureAvailable();
     final directory = this.directory;
     if (directory == null) return;
     final data = jsonEncode({
@@ -293,6 +317,7 @@ class LocalLibrary extends ChangeNotifier {
 
   Future<void> _change(void Function() change) {
     final result = _queue.then((_) async {
+      _ensureAvailable();
       final oldDrafts = List<CoverDraft>.of(_drafts);
       final oldLedger = {
         for (final e in _publicationLedger.entries)
@@ -549,6 +574,7 @@ class LocalLibrary extends ChangeNotifier {
       : File(path).exists();
 
   Future<String> importPhoto(String path) async {
+    _ensureAvailable();
     final source = File(path);
     if (await source.length() > maxPhotoBytes) {
       throw const FormatException('사진은 15MB 이하로 골라 주세요.');
@@ -558,6 +584,7 @@ class LocalLibrary extends ChangeNotifier {
 
   /// 웹은 고른 사진을 파일 경로가 아니라 바이트로만 받을 수 있다.
   Future<String> importPhotoBytes(Uint8List source) async {
+    _ensureAvailable();
     if (source.length > maxPhotoBytes) {
       throw const FormatException('사진은 15MB 이하로 골라 주세요.');
     }

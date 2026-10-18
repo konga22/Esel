@@ -64,13 +64,17 @@ class ServiceLocator {
     AppConfig? customConfig,
     ServiceClock? serviceClock,
     MockAccountVault? accountVault,
+    AppHttpClient? client,
+    SessionStorage? sessionStorage,
   }) {
     config = customConfig ?? AppConfig.current;
     clock = serviceClock ?? const SystemServiceClock();
-    storage = config.isMock
-        ? InMemorySessionStorage()
-        : const SecureSessionStorage();
-    httpClient = StandardHttpClient(config: config, storage: storage);
+    storage =
+        sessionStorage ??
+        (config.isMock
+            ? InMemorySessionStorage()
+            : const SecureSessionStorage());
+    httpClient = client ?? StandardHttpClient(config: config, storage: storage);
 
     final mockSource = AuthMockSource(
       accounts: MockAccountStore(

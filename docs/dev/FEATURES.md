@@ -61,6 +61,10 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 - `flutter_app/test/core/components_test.dart`
 - `flutter_app/test/core/phone_frame_test.dart`
 - `flutter_app/test/app/capsule_test.dart`
+- `flutter_app/test/app/server_editor_retention_test.dart`
+- `flutter_app/test/app/startup_storage_error_test.dart`
+- `flutter_app/test/features/drafts/library_recovery_test.dart`
+- `flutter_app/test/features/drafts/photo_recovery_test.dart`
 
 ## DEV-02
 
@@ -518,6 +522,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 - 호수는 결호 없이 내려감
 - 구독자 수는 보여 주지 않음
 - 서버 모드 사인 기반 스케치북·cursor 페이지·구독 연결. 서버 공개 필터 응답만 표시
+- 추가 조회 실패 시 목록·cursor 유지 후 해당 페이지 재시도. 본인 목록에는 자기 반응 대신 공유
 
 **서버 (초안)**
 
@@ -536,6 +541,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 - `flutter_app/test/features/server/core_api_test.dart`
 - `flutter_app/test/features/server/core_api_widgets_test.dart`
 - `flutter_app/test/features/server/core_api_live_test.dart`
+- `flutter_app/test/features/server/review_regressions_test.dart`
 
 ## DEV-14
 
@@ -571,6 +577,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 - `flutter_app/test/features/server/core_api_test.dart`
 - `flutter_app/test/features/server/core_api_widgets_test.dart`
 - `flutter_app/test/features/server/core_api_live_test.dart`
+- `flutter_app/test/features/server/review_regressions_test.dart`
 
 ## DEV-15
 
@@ -949,6 +956,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 - 옷 종류 목록 확정
 - 브랜드 이름 자동완성 여부(외부 데이터 없이)
+- 이름 필드에 가격·URL 문자열을 입력할 때 거절할 범위(현재는 안내만 표시)
 
 ## DEV-25
 

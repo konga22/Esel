@@ -125,7 +125,7 @@ void main() {
     expect(find.text('2026-09'), findsOneWidget);
   });
   test(
-    'today common controller selects remotely and clears choices after failure',
+    'today common controller keeps its last snapshot after refresh failure',
     () async {
       var failing = false;
       final http = ScreenHttp((method, path, body) async {
@@ -156,7 +156,7 @@ void main() {
       expect(http.calls, contains('PUT /today/choice'));
       failing = true;
       await c.reload();
-      expect(c.candidates, isEmpty);
+      expect(c.candidates, hasLength(3));
       expect(c.error, '연결 실패');
       failing = false;
       await c.reload();

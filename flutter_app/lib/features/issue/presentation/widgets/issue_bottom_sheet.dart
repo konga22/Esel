@@ -66,7 +66,7 @@ class IssueBottomSheet extends StatefulWidget {
 
 class _IssueBottomSheetState extends State<IssueBottomSheet> {
   late PublicIssue _issue;
-  bool _loading = false;
+  bool _loading = false, _submitting = false;
   String? _error, _selectedGarment;
   final _garmentKeys = <String, GlobalKey>{};
   @override
@@ -109,15 +109,20 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
   }
 
   Future<void> _submitReaderLine() async {
-    final success = await widget.reactionsController.submitReaderLine(
-      issueId: _issue.id,
-      text: _lineTextController.text,
-      authorMasthead: widget.readerMasthead,
-    );
-    if (!mounted) return;
-    if (success) {
-      _lineTextController.clear();
-      FocusScope.of(context).unfocus();
+    if (_submitting) return;
+    setState(() => _submitting = true);
+    try {
+      final success = await widget.reactionsController.submitReaderLine(
+        issueId: _issue.id,
+        text: _lineTextController.text,
+        authorMasthead: widget.readerMasthead,
+      );
+      if (mounted && success) {
+        _lineTextController.clear();
+        FocusScope.of(context).unfocus();
+      }
+    } finally {
+      if (mounted) setState(() => _submitting = false);
     }
   }
 
@@ -424,7 +429,10 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '한 줄 (${readerLines.length})',
+          widget.isOwner
+              ? '한 줄 (${widget.reactionsController.getOwnerStats(_issue.id).readerLineCount})'
+              : '한 줄',
+          key:const Key('reader-lines-heading'),
           style: EselTypography.labelLarge.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -498,6 +506,7 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
           Expanded(
             child: TextField(
               controller: _lineTextController,
+              enabled: !_submitting,
               maxLength: 60,
               decoration: InputDecoration(
                 hintText: '이 호에 한 줄 남기기...',
@@ -518,7 +527,7 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
           const SizedBox(width: 8),
           EselPressable(
             semanticsLabel: '한 줄 남기기',
-            enabled: !widget.reactionsController.loading,
+            enabled: !_submitting,
             onTap: _submitReaderLine,
             child: Container(
               width: 44,

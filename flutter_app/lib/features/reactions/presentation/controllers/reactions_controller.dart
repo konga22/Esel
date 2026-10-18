@@ -13,6 +13,7 @@ class ReactionsController extends ChangeNotifier {
   ReactionsController({this.remote, this.remoteMagazine});
   bool get isRemote => remote != null;
   bool loading = false;
+  int _pendingCount = 0, _generation = 0;
   final Map<String, String?> _lineCursors = {};
   final Map<String, OwnerReactionStats> _stats = {};
   Future<void> Function()? _retry;
@@ -35,27 +36,29 @@ class ReactionsController extends ChangeNotifier {
   }
 
   Future<void> _run(Future<void> Function() work) {
-    final owner = _owner;
+    final owner = _owner, generation = _generation;
+    _pendingCount++;
     loading = true;
-    saveError = null;
-    _retry = work;
-    _retryOwner = owner;
     notifyListeners();
     final pending = _pending.then((_) async {
-      if (owner != _owner) return;
+      if (owner != _owner || generation != _generation) return;
+      saveError = null;
+      _retry = work;
+      _retryOwner = owner;
       try {
         await work();
-        if (owner == _owner) {
+        if (owner == _owner && generation == _generation) {
           saveError = null;
           _retry = null;
         }
       } catch (e) {
-        if (owner == _owner) {
+        if (owner == _owner && generation == _generation) {
           saveError = e is Failure ? e.message : '반응을 저장하지 못했어요. 다시 시도해 주세요.';
         }
       } finally {
-        if (owner == _owner) {
-          loading = false;
+        if (owner == _owner && generation == _generation) {
+          _pendingCount--;
+          loading = _pendingCount > 0;
           notifyListeners();
         }
       }
@@ -64,16 +67,30 @@ class ReactionsController extends ChangeNotifier {
     return pending;
   }
 
+  Future<void> _refreshStats(String id, int generation) async {
+    if (generation != _generation || !_stats.containsKey(id)) return;
+    final stats = await remote!.ownerReactions(id);
+    if (generation != _generation) return;
+    _stats[id] = OwnerReactionStats(
+      readCount: null,
+      likeCount: stats.likes,
+      scrapCount: stats.scraps,
+      readerLineCount: stats.lines,
+    );
+  }
+
   Future<PublicIssue> loadDetails(
     PublicIssue reference, {
     bool owner = false,
   }) async {
     if (!isRemote) return reference;
-    final account = _owner;
+    final account = _owner, generation = _generation;
     final issue = await remote!.read(reference);
     final lines = await remote!.lines(issue.id);
     final stats = owner ? await remote!.ownerReactions(issue.id) : null;
-    if (account != _owner) throw const AuthFailure('계정이 변경됐어요. 다시 열어 주세요.');
+    if (account != _owner || generation != _generation) {
+      throw const AuthFailure('계정이 변경됐어요. 다시 열어 주세요.');
+    }
     seedIssue(issue);
     _readerLinesMap[issue.id] = lines.items;
     _lineCursors[issue.id] = lines.nextCursor;
@@ -127,30 +144,28 @@ class ReactionsController extends ChangeNotifier {
         authorMasthead: authorMasthead,
       );
     }
-    if (text.trim().isEmpty || text.trim().runes.length > 60 || loading) {
+    if (text.trim().isEmpty || text.trim().runes.length > 60) {
       return false;
     }
     var saved = false;
+    final generation = _generation;
     await _run(() async {
       final account = _owner;
       await remote!.addLine(issueId, text);
-      if (account != _owner) return;
+      if (account != _owner || generation != _generation) return;
       saved = true;
       // 저장된 댓글을 재전송하지 않고 조회만 다시 시도한다.
       Future<void> refresh() async {
         final page = await remote!.lines(issueId);
-        if (account == _owner) {
+        if (account == _owner && generation == _generation) {
           _readerLinesMap[issueId] = page.items;
           _lineCursors[issueId] = page.nextCursor;
         }
+        await _refreshStats(issueId, generation);
       }
 
       _retry = refresh;
-      final lines = await remote!.lines(issueId);
-      if (account == _owner) {
-        _readerLinesMap[issueId] = lines.items;
-        _lineCursors[issueId] = lines.nextCursor;
-      }
+      await refresh();
     });
     return saved;
   }
@@ -163,6 +178,9 @@ class ReactionsController extends ChangeNotifier {
   Future<void> get whenSaved => _pending;
   void bindUser(String? owner, LocalLibrary? library) {
     if (_owner == owner && identical(_library, library)) return;
+    _generation++;
+    _pendingCount = 0;
+    if (isRemote) _pending = Future.value();
     _stats.clear();
     _lineCursors.clear();
     _retry = null;
@@ -250,16 +268,16 @@ class ReactionsController extends ChangeNotifier {
 
   void toggleLike(String issueId) {
     if (isRemote) {
-      if (loading) return;
-      final enabled = !isLiked(issueId);
+      final generation = _generation;
       _run(() async {
+        final enabled = !isLiked(issueId);
         final account = _owner;
         final value = await remote!.setReaction(
           issueId,
           like: true,
           enabled: enabled,
         );
-        if (account == _owner) {
+        if (account == _owner && generation == _generation) {
           value.liked
               ? _likedIssueIds.add(issueId)
               : _likedIssueIds.remove(issueId);
@@ -267,6 +285,7 @@ class ReactionsController extends ChangeNotifier {
               ? _scrappedIssueIds.add(issueId)
               : _scrappedIssueIds.remove(issueId);
         }
+        await _refreshStats(issueId, generation);
       });
       return;
     }
@@ -281,16 +300,16 @@ class ReactionsController extends ChangeNotifier {
 
   void toggleScrap(String issueId) {
     if (isRemote) {
-      if (loading) return;
-      final enabled = !isScrapped(issueId);
+      final generation = _generation;
       _run(() async {
+        final enabled = !isScrapped(issueId);
         final account = _owner;
         final value = await remote!.setReaction(
           issueId,
           like: false,
           enabled: enabled,
         );
-        if (account == _owner) {
+        if (account == _owner && generation == _generation) {
           value.liked
               ? _likedIssueIds.add(issueId)
               : _likedIssueIds.remove(issueId);
@@ -298,6 +317,7 @@ class ReactionsController extends ChangeNotifier {
               ? _scrappedIssueIds.add(issueId)
               : _scrappedIssueIds.remove(issueId);
         }
+        await _refreshStats(issueId, generation);
       });
       return;
     }
@@ -312,12 +332,14 @@ class ReactionsController extends ChangeNotifier {
 
   void toggleSubscription(String ownerId) {
     if (isRemote) {
-      if (loading) return;
-      final enabled = !isSubscribed(ownerId);
+      final generation = _generation;
       _run(() async {
+        final enabled = !isSubscribed(ownerId);
         final account = _owner;
         final value = await remoteMagazine!.subscribe(ownerId, enabled);
-        if (account == _owner) seedSubscription(ownerId, value);
+        if (account == _owner && generation == _generation) {
+          seedSubscription(ownerId, value);
+        }
       });
       return;
     }

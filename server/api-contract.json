@@ -30,9 +30,9 @@
     "NOT_FOUND": { "status": 404, "message": "찾을 수 없어요.", "hint": "없거나 아직 볼 수 없는 내용이에요." },
     "EMAIL_TAKEN": { "status": 409, "message": "이미 가입한 이메일이에요.", "hint": "로그인해 주세요." },
     "MASTHEAD_TAKEN": { "status": 409, "message": "이미 있는 이름이에요.", "hint": "다른 영문 이름을 골라 주세요." },
-    "PROFILE_EXISTS": { "status": 409, "message": "이미 잡지를 만들었어요.", "hint": "내 잡지에서 이어 주세요." },
-    "CHOICE_LOCKED": { "status": 409, "message": "오늘 호를 발행해서 색을 바꿀 수 없어요.", "hint": "내일 새 색을 골라 주세요." },
-    "ISSUE_ALREADY_PUBLISHED": { "status": 409, "message": "오늘 호는 이미 발행했어요.", "hint": "하루에 한 호만 발행할 수 있어요." },
+    "PROFILE_EXISTS": { "status": 409, "message": "이미 스케치북을 만들었어요.", "hint": "스케치북에서 이어 주세요." },
+    "CHOICE_LOCKED": { "status": 409, "message": "오늘의 캔버스를 올려서 색을 바꿀 수 없어요.", "hint": "내일 새 색을 골라 주세요." },
+    "ISSUE_ALREADY_PUBLISHED": { "status": 409, "message": "오늘의 캔버스는 이미 올렸어요.", "hint": "하루에 한 캔버스만 올릴 수 있어요." },
     "MEDIA_NOT_READY": { "status": 409, "message": "사진 올리기가 아직 끝나지 않았어요.", "hint": "업로드를 마친 뒤 다시 시도해 주세요." },
     "MEDIA_NOT_PENDING": { "status": 409, "message": "이미 완료됐거나 더는 완료할 수 없는 사진이에요.", "hint": "새 사진 올리기를 준비해 다시 시도해 주세요." },
     "ALREADY_FRIENDS": { "status": 409, "message": "이미 친구예요.", "hint": "친구 목록에서 확인해 주세요." },
@@ -45,7 +45,7 @@
     "MASTHEAD_INVALID": { "status": 422, "message": "이름은 영문 소문자 2~10자예요.", "hint": "a부터 z까지만 써 주세요." },
     "COLOR_NOT_CANDIDATE": { "status": 422, "message": "오늘 후보에 없는 색이에요.", "hint": "오늘의 세 가지 색 중에서 골라 주세요." },
     "RESTORE_NOT_ALLOWED": { "status": 422, "message": "이 날짜는 복원할 수 없어요.", "hint": "이번 달 지난 빈 날짜만 복원할 수 있어요." },
-    "SHARE_NOT_PUBLIC": { "status": 422, "message": "공개된 표지만 공유할 수 있어요.", "hint": "발행하거나 공동 공개에 동의한 뒤 공유해 주세요." },
+    "SHARE_NOT_PUBLIC": { "status": 422, "message": "공개된 표지만 공유할 수 있어요.", "hint": "올리거나 공동 공개에 동의한 뒤 공유해 주세요." },
     "RATE_LIMITED": { "status": 429, "message": "요청이 너무 많아요.", "hint": "잠시 뒤 다시 시도해 주세요." }
   },
   "endpoints": [

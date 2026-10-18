@@ -51,11 +51,19 @@ class _StandScreenState extends State<StandScreen> {
         children: [
           const ListTile(title: Text('색상')),
           for (final color in [
-            ...widget.viewer.candidates,
+            if (widget.viewer.candidates.contains(c.preferredColor))
+              c.preferredColor!,
+            ...widget.viewer.candidates.where((v) => v != c.preferredColor),
             ...EselPaints.order.where(
               (v) => !widget.viewer.candidates.contains(v),
             ),
-          ])
+          ]) ...[
+            if (!widget.viewer.candidates.contains(color) &&
+                color ==
+                    EselPaints.order.firstWhere(
+                      (v) => !widget.viewer.candidates.contains(v),
+                    ))
+              const Divider(key: Key('palette-candidate-divider')),
             ListTile(
               leading: EselPaintAsset(paint: color, width: 36),
               title: Text(EselPaints.of(color).nameKo),
@@ -64,6 +72,7 @@ class _StandScreenState extends State<StandScreen> {
                   : null,
               onTap: () => Navigator.pop(context, color),
             ),
+          ],
         ],
       ),
     );

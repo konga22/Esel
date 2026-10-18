@@ -39,9 +39,11 @@ class PublishScreen extends StatefulWidget {
 
 class _PublishScreenState extends State<PublishScreen> {
   late CoverDraft _initial;
+  late final bool _blockedAtEntry;
   @override
   void initState() {
     super.initState();
+    _blockedAtEntry=widget.hasPublishedToday;
     final drafts = widget.library.drafts.where(
       (d) => d.ownerId == widget.ownerId && d.issueNumber == 0,
     );
@@ -81,7 +83,7 @@ class _PublishScreenState extends State<PublishScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.hasPublishedToday) {
+    if (_blockedAtEntry) {
       return PopScope(
         canPop: false,
         onPopInvokedWithResult: (didPop, _) {

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../../../core/errors/failures.dart';
 import '../../garments/presentation/garment_editor.dart';
 import 'dart:io';
@@ -55,6 +56,7 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
         );
     _masthead = TextEditingController(text: _draft.masthead);
     _caption = TextEditingController(text: _draft.caption);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _recoverLostPhoto());
   }
 
   @override
@@ -107,21 +109,7 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
         requestFullMetadata: false,
       );
       if (file == null) return;
-      final path = widget.library.persistent
-          ? await widget.library.importPhoto(file.path)
-          : await widget.library.importPhotoBytes(await file.readAsBytes());
-      if (!mounted) return;
-      await precacheImage(localPhotoProvider(path), context);
-      if (!mounted) return;
-      _history.add(_draft);
-      setState(() {
-        _draft = _draft.copyWith(
-          photoPath: path,
-          faceConfirmed: false,
-          garments: _draft.garments.map((g) => g.at(null, null)).toList(),
-        );
-        _dirty = true;
-      });
+      await _applyPhoto(file);
     } on PlatformException catch (error) {
       _message(
         error.code.contains('denied')
@@ -134,6 +122,67 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
       _message('사진을 저장하지 못했어요. 기기 저장 공간을 확인해 주세요.');
     } finally {
       if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _applyPhoto(XFile file) async {
+    final path = widget.library.persistent
+        ? await widget.library.importPhoto(file.path)
+        : await widget.library.importPhotoBytes(await file.readAsBytes());
+    if (!mounted) return;
+    await precacheImage(localPhotoProvider(path), context);
+    if (!mounted) return;
+    _history.add(_draft);
+    setState(() {
+      _draft = _draft.copyWith(
+        photoPath: path,
+        faceConfirmed: false,
+        garments: _draft.garments.map((v) => v.at(null, null)).toList(),
+      );
+      _dirty = true;
+    });
+  }
+
+  Future<void> _recoverLostPhoto() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
+    try {
+      final recovered = await ImagePicker().retrieveLostData();
+      if (!mounted || recovered.isEmpty) return;
+      if (recovered.exception != null) {
+        _message('중단된 사진을 읽지 못했어요. 앨범에서 다시 골라 주세요.');
+        return;
+      }
+      final files = recovered.files;
+      if (files == null || files.isEmpty) return;
+      final use = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('중단된 사진 선택을 찾았어요'),
+          content: const Text('현재 초안에 이 사진을 사용할까요? 기존 초안은 확인 없이 덮어쓰지 않아요.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('취소'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('사진 사용'),
+            ),
+          ],
+        ),
+      );
+      if (use == true && mounted) {
+        setState(() => _busy = true);
+        try {
+          await _applyPhoto(files.first);
+        } finally {
+          if (mounted) setState(() => _busy = false);
+        }
+      }
+    } on MissingPluginException {
+      // Android 이외 환경이나 위젯 검사에는 복구 플러그인이 없다.
+    } catch (_) {
+      if (mounted) _message('중단된 사진을 복구하지 못했어요. 앨범에서 다시 골라 주세요.');
     }
   }
 

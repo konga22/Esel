@@ -15,7 +15,10 @@ class MagazineController extends ChangeNotifier {
   ShelfViewMode _viewMode = ShelfViewMode.covers;
   MagazineProfile? _profile;
   bool _loading = false;
-  String? _error;
+  String? _error, _moreError;
+  bool _loadingMore = false;
+  String? get moreError => _moreError;
+  bool get isLoadingMore => _loadingMore;
   String? _ownerId;
   SameColorViewer? _viewer;
   String? _viewerId;
@@ -35,6 +38,8 @@ class MagazineController extends ChangeNotifier {
     _profile = null;
     _ownerId = null;
     _error = null;
+    _moreError = null;
+    _loadingMore = false;
     _loading = false;
   }
 
@@ -67,9 +72,14 @@ class MagazineController extends ChangeNotifier {
     final ownerId = _ownerId;
     final viewer = _viewer;
     if (ownerId == null || viewer == null) return;
+    if (more && (_loading || _loadingMore || _profile?.nextCursor == null)) {
+      return;
+    }
     final request = ++_request;
     final previous = _profile;
-    _loading = true;
+    _loading = !more;
+    _loadingMore = more;
+    _moreError = null;
     if (!more) _profile = null;
     _error = null;
     notifyListeners();
@@ -99,16 +109,29 @@ class MagazineController extends ChangeNotifier {
               }.values.toList(),
               localCovers: {...previous.localCovers, ...profile.localCovers},
             );
-      if (profile == null) _error = '이 잡지를 찾지 못했어요.';
-    } on Failure catch (failure) {
+      if (profile == null) {
+        if (more) {
+          _profile = previous;
+          _moreError = '다음 캔버스를 불러오지 못했어요.';
+        } else {
+          _error = '이 스케치북을 찾지 못했어요.';
+        }
+      }
+    } catch (failure) {
       if (request != _request) return;
-      _profile = null;
-      _error = failure.message;
-    } catch (_) {
-      if (request != _request) return;
-      _error = '스케치북을 불러오지 못했어요. 다시 시도해 주세요.';
+      final message = failure is Failure
+          ? failure.message
+          : '스케치북을 불러오지 못했어요. 다시 시도해 주세요.';
+      if (more) {
+        _profile = previous;
+        _moreError = message;
+      } else {
+        _profile = null;
+        _error = message;
+      }
     }
     _loading = false;
+    _loadingMore = false;
     notifyListeners();
   }
 }

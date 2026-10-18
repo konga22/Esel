@@ -20,6 +20,7 @@ class ShelfScreen extends StatefulWidget {
   final String? viewerId;
   final void Function(PublicIssue, CoverDraft?) onSelectIssue;
   final VoidCallback onBack;
+  final ValueChanged<PublicIssue>? onShareIssue;
   final Map<String, VoidCallback> actions;
   const ShelfScreen({
     super.key,
@@ -29,6 +30,7 @@ class ShelfScreen extends StatefulWidget {
     required this.viewer,
     required this.onSelectIssue,
     required this.onBack,
+    this.onShareIssue,
     this.viewerId,
     this.masthead,
     this.isOwner = false,
@@ -250,34 +252,46 @@ class _ShelfScreenState extends State<ShelfScreen> {
                                 ],
                               ),
                             ),
-                            IconButton(
-                              tooltip: '좋아요',
-                              onPressed: () => widget.reactionsController
-                                  .toggleLike(issue.id),
-                              icon: Icon(
-                                widget.reactionsController.isLiked(issue.id)
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
+                            if (widget.isOwner)
+                              IconButton(
+                                tooltip: '공유',
+                                onPressed: widget.onShareIssue == null
+                                    ? null
+                                    : () => widget.onShareIssue!(issue),
+                                icon: const Icon(Icons.ios_share),
+                              )
+                            else ...[
+                              IconButton(
+                                tooltip: '좋아요',
+                                onPressed: () => widget.reactionsController
+                                    .toggleLike(issue.id),
+                                icon: Icon(
+                                  widget.reactionsController.isLiked(issue.id)
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                ),
                               ),
-                            ),
-                            IconButton(
-                              tooltip: '자세히 보기',
-                              onPressed: () => widget.onSelectIssue(
-                                issue,
-                                profile.localCovers[issue.id],
+                              IconButton(
+                                tooltip: '자세히 보기',
+                                onPressed: () => widget.onSelectIssue(
+                                  issue,
+                                  profile.localCovers[issue.id],
+                                ),
+                                icon: const Icon(Icons.chat_bubble_outline),
                               ),
-                              icon: const Icon(Icons.chat_bubble_outline),
-                            ),
-                            IconButton(
-                              tooltip: '저장',
-                              onPressed: () => widget.reactionsController
-                                  .toggleScrap(issue.id),
-                              icon: Icon(
-                                widget.reactionsController.isScrapped(issue.id)
-                                    ? Icons.bookmark
-                                    : Icons.bookmark_border,
+                              IconButton(
+                                tooltip: '저장',
+                                onPressed: () => widget.reactionsController
+                                    .toggleScrap(issue.id),
+                                icon: Icon(
+                                  widget.reactionsController.isScrapped(
+                                        issue.id,
+                                      )
+                                      ? Icons.bookmark
+                                      : Icons.bookmark_border,
+                                ),
                               ),
-                            ),
+                            ],
                           ],
                         ),
                         Text(
@@ -288,12 +302,23 @@ class _ShelfScreenState extends State<ShelfScreen> {
                     ),
                   ),
                 ],
+                if (widget.controller.moreError case final message?)
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(message, key: const Key('magazine-more-error')),
+                  ),
                 if (profile.nextCursor != null)
                   TextButton(
-                    onPressed: widget.controller.isLoading
+                    onPressed: widget.controller.isLoadingMore
                         ? null
                         : () => widget.controller.load(more: true),
-                    child: const Text('이전 캔버스 더 보기'),
+                    child: Text(
+                      widget.controller.moreError != null
+                          ? '더 보기 다시 시도'
+                          : widget.controller.isLoadingMore
+                          ? '불러오는 중…'
+                          : '이전 캔버스 더 보기',
+                    ),
                   ),
               ],
             ],

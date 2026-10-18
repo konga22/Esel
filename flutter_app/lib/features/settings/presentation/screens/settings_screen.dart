@@ -8,6 +8,7 @@ import '../../../auth/presentation/controllers/auth_controller.dart';
 class SettingsScreen extends StatefulWidget {
   final AuthController authController;
   final VoidCallback onBack;
+  final Map<String, VoidCallback> deviceActions;
   final VoidCallback onLogoutComplete;
   final VoidCallback onDeleteComplete;
 
@@ -21,6 +22,7 @@ class SettingsScreen extends StatefulWidget {
     required this.onLogoutComplete,
     required this.onDeleteComplete,
     this.deleteAccount,
+    this.deviceActions = const {},
   });
 
   @override
@@ -210,6 +212,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         vertical: 12,
       ),
       children: [
+        for (final action in widget.deviceActions.entries)
+          _buildMenuTile(
+            Icons.phone_android,
+            action.key,
+            '이 기기에 보관된 자료와 설정',
+            action.value,
+          ),
         _buildMenuTile(
           Icons.person_outline,
           '프로필 편집',

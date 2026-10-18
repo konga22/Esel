@@ -212,7 +212,7 @@ void main() {
     (tester) async {
       final now = DateTime.now();
       await tester.pumpWidget(
-        MaterialApp(home: LocalCalendarScreen(library: library)),
+        MaterialApp(home: LocalCalendarScreen(library: library,ownerId:'owner')),
       );
       for (var i = 0; i < 13; i++) {
         await tester.tap(find.byTooltip('이전 달'));

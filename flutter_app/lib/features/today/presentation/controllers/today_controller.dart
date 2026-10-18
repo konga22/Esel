@@ -28,6 +28,9 @@ class TodayController extends ChangeNotifier {
   int _remoteCount = 0, _request = 0;
   bool _remotePublished = false;
   Future<void>? _inFlight;
+  Future<void> _choices = Future.value();
+  int _accountVersion = 0;
+  bool get hasTodayData => !isRemote || _remoteCandidates.isNotEmpty;
 
   LocalLibrary? _library;
   String? _ownerId;
@@ -66,7 +69,9 @@ class TodayController extends ChangeNotifier {
   }
 
   bool get hasPublishedToday =>
-      (isRemote ? _remotePublished : todayIssue != null) ||
+      (isRemote
+          ? (_today == clock.today && _remotePublished)
+          : todayIssue != null) ||
       (!isRemote &&
           _ownerId != null &&
           _library?.hasPublishedOn(_ownerId!, _today) == true);
@@ -121,10 +126,13 @@ class TodayController extends ChangeNotifier {
     bool hasProfile = true,
   }) {
     // 같은 사람이면 고른 색을 그대로 둔다(로그인 중 상태 알림마다 불릴 수 있다).
-    final changed = ownerId != _ownerId || hasProfile != _hasProfile;
+    final changed = ownerId != _ownerId;
+    final profileChanged = hasProfile != _hasProfile;
     _hasProfile = hasProfile;
     if (changed) {
       _request++;
+      _accountVersion++;
+      _choices = Future.value();
       _inFlight = null;
       _remoteCandidates = const [];
       _remoteCount = 0;
@@ -136,7 +144,11 @@ class TodayController extends ChangeNotifier {
     _ownerId = ownerId;
     _isMinor = isMinor;
     if (isRemote) {
-      if (changed && ownerId != null) {
+      if ((changed || profileChanged) && ownerId != null) {
+        if (profileChanged && !changed) {
+          _request++;
+          _inFlight = null;
+        }
         reload();
       } else if (ownerId == null) {
         loading = false;
@@ -216,8 +228,7 @@ class TodayController extends ChangeNotifier {
         ];
       } catch (e) {
         if (request == _request) {
-          _remoteCandidates = const [];
-          _issues = const [];
+          // Keep the last server snapshot during a refresh failure.
           error = e is Failure ? e.message : '오늘 상태를 불러오지 못했어요.';
         }
       } finally {
@@ -232,16 +243,33 @@ class TodayController extends ChangeNotifier {
     return _inFlight!;
   }
 
-  Future<void> choose(EselPaint color) =>
-      hasPublishedToday || !candidates.contains(color)
-      ? Future.value()
-      : reload(color);
+  Future<void> choose(EselPaint color) {
+    if (!isRemote) {
+      pick(color);
+      return Future.value();
+    }
+    final version = _accountVersion;
+    final queued = _choices.then((_) async {
+      // A color change must wait for the active refresh and earlier choices.
+      await _inFlight;
+      if (version != _accountVersion || _ownerId == null) return;
+      if (hasPublishedToday || !candidates.contains(color)) {
+        error = '현재 선택할 수 없는 색이에요. 오늘의 색을 다시 확인해 주세요.';
+        notifyListeners();
+        return;
+      }
+      await reload(color);
+    });
+    _choices = queued;
+    return queued;
+  }
 
   /// 서울 자정에 다시 계산하도록 타이머를 건다. 앱이 켜져 있는 동안만(화면이 멈추면
   /// 타이머가 늦을 수 있어서 앱 재개 때도 [refresh]한다).
   void watchMidnight() {
     _midnight?.cancel();
-    final wait = _today.endsAt.difference(clock.now());
+    // Schedule from the clock, never from an old server snapshot.
+    final wait = clock.today.endsAt.difference(clock.now());
     _midnight = Timer(
       (wait.isNegative ? Duration.zero : wait) + const Duration(seconds: 1),
       () {

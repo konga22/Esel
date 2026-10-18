@@ -1,3 +1,6 @@
+import 'package:esel/features/feed/presentation/screens/feed_screen.dart';
+import 'package:esel/core/design/tokens.g.dart';
+import 'package:esel/features/stand/domain/models/stand_shelf.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -100,5 +103,18 @@ void main() {
     expect(dot('me'), findsOneWidget);
     expect(dot('stand'), findsNothing);
     semantics.dispose();
+  });
+  testWidgets('feed color link opens the color tab instead of recommended', (
+    tester,
+  ) async {
+    usePhone(tester);
+    await tester.pumpWidget(const EselApp());
+    await tester.pumpAndSettle();
+    tester
+        .widget<FeedScreen>(find.byType(FeedScreen))
+        .onOpenStand(EselPaint.camel);
+    await tester.pumpAndSettle();
+    expect(ServiceLocator().standController.tab, PaletteTab.colors);
+    expect(ServiceLocator().standController.selected, EselPaint.camel);
   });
 }

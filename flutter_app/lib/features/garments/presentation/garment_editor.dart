@@ -57,6 +57,7 @@ class GarmentEditor extends StatelessWidget {
                   maxLength: 40,
                   decoration: const InputDecoration(
                     labelText: '이름 · 브랜드는 선택이에요',
+                    helperText: '가격이나 링크 대신 옷 이름을 적어 주세요.',
                   ),
                 ),
                 Wrap(

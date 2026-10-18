@@ -92,6 +92,26 @@ void main() {
       expect(find.textContaining('놓치면'), findsNothing);
     });
 
+    testWidgets(
+      'color picker puts my selected candidate first and separates other colors',
+      (tester) async {
+        final stand = StandController(StandMockSource(library: () => library))
+          ..preferredColor = EselPaint.lilac;
+        await pumpStand(tester, stand);
+        await tester.tap(find.byKey(const ValueKey('palette-colors')));
+        await tester.pumpAndSettle();
+        final titles = tester
+            .widgetList<ListTile>(find.byType(ListTile))
+            .map((v) => (v.title as Text).data)
+            .toList();
+        expect(titles.take(4), ['색상', '라일락', '카멜', '올리브']);
+        expect(
+          find.byKey(const Key('palette-candidate-divider')),
+          findsOneWidget,
+        );
+      },
+    );
+
     testWidgets('후보 색을 몇 번 바꿔도 어떤 방도 열리지 않는다', (tester) async {
       final stand = StandController(StandMockSource(library: () => library));
       await pumpStand(tester, stand);
