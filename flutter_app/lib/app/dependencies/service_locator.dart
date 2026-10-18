@@ -1,3 +1,5 @@
+import '../../features/media/presentation/controllers/media_upload_controller.dart';
+import '../../features/media/data/media_remote_source.dart';
 import '../../features/today/data/sources/today_remote_source.dart';
 import '../../features/issue/data/sources/issue_remote_source.dart';
 import '../../features/records/data/sources/records_source.dart';
@@ -45,6 +47,8 @@ class ServiceLocator {
   LocalLibrary? localLibrary;
   late final SessionStorage storage;
   late final AppHttpClient httpClient;
+  late final MediaRemoteSource mediaSource;
+  late final MediaUploadController mediaUploads;
 
   late final AuthRepository authRepository;
   late final AuthController authController;
@@ -94,6 +98,11 @@ class ServiceLocator {
     );
 
     authController = AuthController(authRepository);
+    mediaSource = MediaRemoteSource(httpClient);
+    mediaUploads = MediaUploadController(mediaSource);
+    authController.addListener(
+      () => mediaSource.bindOwner(authController.currentSession?.userId),
+    );
     todayController = TodayController(
       clock: clock,
       remote: config.isMock ? null : TodayRemoteSource(httpClient),
@@ -116,12 +125,20 @@ class ServiceLocator {
         ? LocalCollectionSource(library)
         : RemoteCollectionSource();
     feedController = FeedController(
-      config.isMock ? FeedMockSource() : FeedRemoteSource(httpClient),
+      config.isMock
+          ? FeedMockSource()
+          : FeedRemoteSource(
+              httpClient,
+              currentSession: () => authController.currentSession,
+            ),
     );
     standController = StandController(
       config.isMock
           ? StandMockSource(library: library)
-          : StandRemoteSource(httpClient),
+          : StandRemoteSource(
+              httpClient,
+              currentSession: () => authController.currentSession,
+            ),
     );
     magazineController = MagazineController(
       config.isMock

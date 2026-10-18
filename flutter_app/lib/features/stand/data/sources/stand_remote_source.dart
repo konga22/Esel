@@ -1,3 +1,5 @@
+import '../../../auth/domain/models/auth_session.dart';
+import '../../../media/domain/models/media_photo.dart';
 import '../../../../core/design/tokens.g.dart';
 import '../../../../core/network/http_client.dart';
 import '../../../../core/time/service_date.dart';
@@ -15,7 +17,8 @@ import 'stand_source.dart';
 class StandRemoteSource implements StandSource {
   final AppHttpClient http;
 
-  StandRemoteSource(this.http);
+  final AuthSession? Function()? currentSession;
+  StandRemoteSource(this.http, {this.currentSession});
 
   @override
   Future<StandShelf> shelf({
@@ -49,7 +52,8 @@ class StandRemoteSource implements StandSource {
       '/stand',
       queryParams: {'colorId': color.name, 'date': date.key},
     );
-    return _room(data, color, date).total;
+    final room = _room(data, color, date);
+    return room.countKnown ? room.total : 0;
   }
 
   StandShelf _room(
@@ -72,11 +76,13 @@ class StandRemoteSource implements StandSource {
               Map<String, dynamic>.from(value as Map),
               date: date,
             ),
+            viewer: currentSession?.call(),
           ),
       ],
       hiddenCount: data['hiddenCount'] as int? ?? 0,
-      // 같은 색 인원(공개 숫자, P18). 서버가 `total`을 주면 그 값, 없으면 받은 장수 + 숨긴 수.
+      // 같은 색 인원(공개 숫자, P18). total이 없으면 잠긴 미리보기만 공개 장수 + 숨긴 수를 쓰고, 열린 방은 숫자를 숨긴다.
       count: data['total'] as int?,
+      countKnown: data['total'] is int || data['locked'] == true,
     );
   }
 
@@ -86,20 +92,23 @@ class StandRemoteSource implements StandSource {
         ServiceDate.tryParse(value['serviceDate'] as String?) ??
         (throw const FormatException('서버 날짜 형식이 올바르지 않아요.'));
     final masthead = value['masthead'] as String;
+    final viewer = currentSession?.call();
     return PublicIssue(
       id: value['issueId'] as String,
-      ownerId: masthead,
+      ownerId: viewer != null && viewer.masthead == masthead
+          ? viewer.userId
+          : masthead,
       masthead: masthead,
       issueNumber: 0,
       date: date,
       publishedAt: date.startsAt,
       timeLabel: '',
       color: EselPaint.values.byName((value['color'] as Map)['id'] as String),
-      photo: '',
+      photo: mediaPhoto(((value['media'] as Map?)?['id'] as String?) ?? ''),
       face: const FaceBox(.5, .3, .16),
       faceMode: FaceLayoutMode.original,
       caption: '',
-      alt: '사진 제공 준비 중',
+      alt: '$masthead의 착장 사진',
     );
   }
 }

@@ -402,7 +402,7 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
             Text(
               widget.onPublish == null
                   ? '초안은 이 기기에만 보관돼요. 올리기 전까지 공개되지 않아요.'
-                  : '로컬 시연 · 올린 호는 이 기기에 저장돼요.',
+                  : '초안은 이 기기에 보관돼요. 올리기를 완료하기 전에는 공개되지 않아요.',
             ),
             const SizedBox(height: 16),
             RepaintBoundary(

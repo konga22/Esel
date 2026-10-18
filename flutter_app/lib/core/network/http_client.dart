@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'dart:io' as io;
 import '../config/app_config.dart';
 import '../errors/failures.dart';
@@ -19,7 +20,17 @@ abstract class AppHttpClient {
   });
 }
 
-class StandardHttpClient implements AppHttpClient {
+/// JSON 호출과 같은 인증·갱신·오류 처리를 사용하는 바이너리 통신.
+abstract interface class BinaryHttpClient {
+  Future<Uint8List> getBytes(String path, {Map<String, String>? queryParams});
+  Future<void> putBytes(
+    String path,
+    Uint8List bytes, {
+    required String contentType,
+  });
+}
+
+class StandardHttpClient implements AppHttpClient, BinaryHttpClient {
   final AppConfig config;
   final SessionStorage storage;
   Future<void>? _refreshing;
@@ -57,12 +68,33 @@ class StandardHttpClient implements AppHttpClient {
     return normalized == '/auth/logout' || !normalized.startsWith('/auth/');
   }
 
-  Future<Map<String, dynamic>> _send(
+  @override
+  Future<Uint8List> getBytes(String path, {Map<String, String>? queryParams}) =>
+      _send<Uint8List>('GET', path, queryParams: queryParams, binary: true);
+
+  @override
+  Future<void> putBytes(
+    String path,
+    Uint8List bytes, {
+    required String contentType,
+  }) async {
+    await _send<Map<String, dynamic>>(
+      'PUT',
+      path,
+      rawBody: bytes,
+      contentType: contentType,
+    );
+  }
+
+  Future<T> _send<T>(
     String method,
     String path, {
     Map<String, dynamic>? body,
     Map<String, String>? queryParams,
     bool retry = true,
+    Uint8List? rawBody,
+    String? contentType,
+    bool binary = false,
   }) async {
     final client = io.HttpClient()
       ..connectionTimeout = const Duration(seconds: 10);
@@ -72,8 +104,14 @@ class StandardHttpClient implements AppHttpClient {
         '$base${path.startsWith('/') ? path : '/$path'}',
       ).replace(queryParameters: queryParams);
       final request = await client.openUrl(method, uri);
-      request.headers.contentType = io.ContentType.json;
-      request.headers.set(io.HttpHeaders.acceptHeader, 'application/json');
+      request.followRedirects = false;
+      request.headers.contentType = contentType == null
+          ? io.ContentType.json
+          : io.ContentType.parse(contentType);
+      request.headers.set(
+        io.HttpHeaders.acceptHeader,
+        binary ? 'image/png, image/jpeg' : 'application/json',
+      );
       final tokens = sendsAccessToken(path) ? await storage.getTokens() : null;
       if (tokens != null) {
         request.headers.set(
@@ -81,18 +119,30 @@ class StandardHttpClient implements AppHttpClient {
           'Bearer ${tokens['access_token']}',
         );
       }
-      if (body != null) request.write(jsonEncode(body));
+      if (rawBody != null) {
+        request.contentLength = rawBody.length;
+        request.add(rawBody);
+      } else if (body != null) {
+        request.write(jsonEncode(body));
+      }
       final response = await request.close().timeout(
         const Duration(seconds: 15),
       );
-      final text = await response
-          .transform(utf8.decoder)
-          .join()
-          .timeout(const Duration(seconds: 15));
+      final received = BytesBuilder(copy: false);
+      await for (final chunk in response.timeout(const Duration(seconds: 15))) {
+        if (received.length + chunk.length > 15 * 1024 * 1024) {
+          throw const NetworkFailure('사진 응답이 너무 커요.', code: 'MEDIA_TOO_LARGE');
+        }
+        received.add(chunk);
+      }
+      final bytes = received.takeBytes();
+      final success = response.statusCode >= 200 && response.statusCode < 300;
+      if (success && binary) return bytes as T;
+      final text = utf8.decode(bytes);
       final json = text.isEmpty
           ? <String, dynamic>{}
           : jsonDecode(text) as Map<String, dynamic>;
-      if (response.statusCode >= 200 && response.statusCode < 300) return json;
+      if (success) return json as T;
       final error = json['error'] is Map
           ? Map<String, dynamic>.from(json['error'] as Map)
           : <String, dynamic>{};
@@ -113,12 +163,15 @@ class StandardHttpClient implements AppHttpClient {
         }
         // try 안에서는 기다린 뒤 돌려준다. 그래야 다시 보낸 요청의 오류도 아래 catch가
         // 받고, finally의 client.close가 응답을 받기 전에 실행되지 않는다.
-        return await _send(
+        return await _send<T>(
           method,
           path,
           body: body,
           queryParams: queryParams,
           retry: false,
+          rawBody: rawBody,
+          contentType: contentType,
+          binary: binary,
         );
       }
       if (response.statusCode == 401) throw AuthFailure(message, code: code);
@@ -154,7 +207,7 @@ class StandardHttpClient implements AppHttpClient {
       throw const AuthFailure('다시 로그인해 주세요.', code: 'AUTH_REQUIRED');
     }
     try {
-      final session = await _send(
+      final session = await _send<Map<String, dynamic>>(
         'POST',
         '/auth/refresh',
         body: {'refreshToken': tokens['refresh_token']},

@@ -1,3 +1,4 @@
+import 'package:esel/features/auth/domain/models/auth_session.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
@@ -76,6 +77,49 @@ void main() {
       await req.response.close();
     });
   }
+
+  test('서버 공개 목록에서도 본인 UUID는 유지하고 남의 식별자를 지어내지 않는다', () async {
+    respond(
+      (req, _) => req.uri.path == '/api/palette/colors'
+          ? {'items': []}
+          : {
+              'items': [
+                {...issue('own', 'mina'), 'source': 'RECOMMENDED'},
+                {...issue('other', 'jun'), 'source': 'RECOMMENDED'},
+              ],
+            },
+    );
+    const session = AuthSession(
+      userId: 'own-uuid',
+      email: 'qa@example.invalid',
+      masthead: 'mina',
+      hasPublishedToday: true,
+      issueCount: 1,
+      accessToken: '',
+      refreshToken: '',
+    );
+    final page = await FeedRemoteSource(
+      http,
+      currentSession: () => session,
+    ).today(viewer: viewer, signedIn: true);
+    expect(page.issues.first.ownerId, 'own-uuid');
+    expect(page.issues.last.ownerId, 'jun');
+  });
+  test('페이지 일부만 받은 열린 색 방에는 확정되지 않은 전체 인원을 표시하지 않는다', () async {
+    respond(
+      (_, _) => {
+        'items': [issue('a', 'mina')],
+        'hiddenCount': 0,
+        'locked': false,
+        'closed': false,
+        'nextCursor': 'next',
+      },
+    );
+    final source = StandRemoteSource(http);
+    final room = await source.shelf(viewer: viewer, color: EselPaint.sage);
+    expect(room.countKnown, isFalse);
+    expect(await source.sameColorCount(viewer.today, EselPaint.sage), 0);
+  });
 
   group('피드(DEV-10)', () {
     test('로그인: /feed 순서 그대로, 구독 탭은 SUBSCRIPTION만, 남의 표지는 사인으로 연다', () async {

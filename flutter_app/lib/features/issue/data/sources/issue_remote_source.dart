@@ -1,3 +1,5 @@
+import '../../../auth/domain/models/auth_session.dart';
+import '../../../media/domain/models/media_photo.dart';
 import '../../domain/models/public_issue.dart';
 import '../../../media/domain/models/face_box.dart';
 import '../../../media/domain/models/face_layout_mode.dart';
@@ -37,25 +39,32 @@ FaceLayoutMode serverFaceMode(String value) => switch (value) {
 };
 
 /// 서버 공개 표지 → 앱 공개 모델. 서버는 남의 사용자 ID를 주지 않으므로 [ownerId]는 부르는 쪽이
-/// 정한다(남의 표지는 사인으로 스케치북을 연다). 사진은 아직 연결 전이라 비워 둔다.
-PublicIssue serverIssueToPublic(ServerIssue value, {String? ownerId}) =>
-    PublicIssue(
-      id: value.id,
-      ownerId: ownerId ?? value.masthead,
-      masthead: value.masthead,
-      issueNumber: value.number,
-      date: value.date,
-      publishedAt: value.publishedAt,
-      timeLabel: '',
-      color: value.color,
-      photo: '',
-      face: const FaceBox(.5, .3, .16),
-      faceMode: serverFaceMode(value.faceMode),
-      caption: value.caption,
-      alt: '사진 제공 준비 중',
-      liked: value.liked,
-      scrapped: value.scrapped,
-    );
+/// 정한다(남의 표지는 사인으로 스케치북을 연다). 사진은 별도 인증 미디어 소스가 읽는 ID 참조로 둔다.
+PublicIssue serverIssueToPublic(
+  ServerIssue value, {
+  String? ownerId,
+  AuthSession? viewer,
+}) => PublicIssue(
+  id: value.id,
+  ownerId:
+      ownerId ??
+      (viewer != null && viewer.masthead == value.masthead
+          ? viewer.userId
+          : value.masthead),
+  masthead: value.masthead,
+  issueNumber: value.number,
+  date: value.date,
+  publishedAt: value.publishedAt,
+  timeLabel: '',
+  color: value.color,
+  photo: mediaPhoto(value.mediaId),
+  face: const FaceBox(.5, .3, .16),
+  faceMode: serverFaceMode(value.faceMode),
+  caption: value.caption,
+  alt: '${value.masthead}의 착장 사진',
+  liked: value.liked,
+  scrapped: value.scrapped,
+);
 
 class IssueRemoteSource {
   final AppHttpClient http;

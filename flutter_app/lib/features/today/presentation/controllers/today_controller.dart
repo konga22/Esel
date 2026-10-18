@@ -1,3 +1,4 @@
+import '../../../media/domain/rules/media_upload_policy.dart';
 import '../../../../core/errors/failures.dart';
 import '../../data/sources/today_remote_source.dart';
 import '../../../magazine/data/sources/magazine_remote_source.dart';
@@ -288,6 +289,7 @@ class TodayController extends ChangeNotifier {
   /// 호가 된다. 하루 두 번째 올리기과 후보 밖의 색(P17)은 거절한다.
   Future<CoverDraft> publish(CoverDraft draft) async {
     if (isRemote) {
+      validateMediaUpload(draft);
       throw const NotImplementedFailure(
         '사진 업로드·올리기 API를 준비 중이에요. 초안은 이 기기에 보관할 수 있어요.',
       );

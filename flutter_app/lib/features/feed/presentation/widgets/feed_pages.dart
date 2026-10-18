@@ -1,3 +1,5 @@
+import '../../../media/domain/models/media_photo.dart';
+import '../../../media/presentation/remote_media_photo.dart';
 import '../../../issue/presentation/canvas_photo.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/design/tokens.g.dart';
@@ -75,16 +77,21 @@ class TodayCover extends StatelessWidget {
         children: [
           GestureDetector(
             onTap: actions.onOpenSpread,
-            child: CoverPhoto(
-              image: issuePhotoProvider(issue.photo),
-              photoRatio: issue.photoRatio,
-              face: issue.face,
-              mode: issue.faceMode,
-              effects: issue.faceEffects,
-              paint: issue.color,
-              position: const Offset(0.58, 0.5),
-              semanticLabel: issue.alt,
-            ),
+            child: mediaPhotoId(issue.photo) != null
+                ? RemoteMediaPhoto(
+                    id: mediaPhotoId(issue.photo)!,
+                    semanticLabel: issue.alt,
+                  )
+                : CoverPhoto(
+                    image: issuePhotoProvider(issue.photo),
+                    photoRatio: issue.photoRatio,
+                    face: issue.face,
+                    mode: issue.faceMode,
+                    effects: issue.faceEffects,
+                    paint: issue.color,
+                    position: const Offset(0.58, 0.5),
+                    semanticLabel: issue.alt,
+                  ),
           ),
           if (!issue.inkMasthead)
             const _Shade(top: true, height: 300, alpha: 0.4),
@@ -583,7 +590,10 @@ class FeatureCard extends StatelessWidget {
                                   ? ClipRRect(
                                       borderRadius: BorderRadius.circular(4),
                                       child: ExcludeSemantics(
-                                        child: CanvasPhoto(issue: photos[i]),
+                                        child: CanvasPhoto(
+                                          issue: photos[i],
+                                          thumbnail: true,
+                                        ),
                                       ),
                                     )
                                   : const SizedBox.shrink(),

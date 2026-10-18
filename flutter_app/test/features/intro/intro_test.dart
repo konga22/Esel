@@ -1,6 +1,6 @@
-import 'package:esel/core/config/app_config.dart';
+import 'package:esel/features/stand/domain/rules/same_color_rule.dart';
+import 'package:esel/core/errors/failures.dart';
 import 'package:esel/core/network/http_client.dart';
-import 'package:esel/core/storage/session_storage.dart';
 import 'package:esel/features/feed/data/sources/feed_remote_source.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,6 +10,38 @@ import 'package:esel/features/feed/data/sources/feed_mock_source.dart';
 import 'package:esel/features/feed/presentation/controllers/feed_controller.dart';
 import 'package:esel/features/intro/presentation/screens/intro_screen.dart';
 import 'package:esel/features/today/domain/rules/daily_candidates.dart';
+
+class UnavailableHttp implements AppHttpClient {
+  @override
+  Future<Map<String, dynamic>> get(
+    String path, {
+    Map<String, String>? queryParams,
+  }) async => throw const NetworkFailure('테스트 서버에 연결할 수 없어요.');
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class SingleCoverSource extends FeedMockSource {
+  @override
+  Future<FeedPage> today({
+    required SameColorViewer viewer,
+    required bool signedIn,
+    FeedTab tab = FeedTab.all,
+    Set<String> subscribedOwnerIds = const {},
+  }) async {
+    final page = await super.today(
+      viewer: viewer,
+      signedIn: signedIn,
+      tab: tab,
+      subscribedOwnerIds: subscribedOwnerIds,
+    );
+    return FeedPage(
+      date: page.date,
+      appIssueNumber: page.appIssueNumber,
+      issues: [page.issues.first],
+    );
+  }
+}
 
 void main() {
   group('DEV-04 IntroScreen Tests (P12, P16)', () {
@@ -27,19 +59,35 @@ void main() {
     Finder barButton(String text) =>
         find.ancestor(of: inBar(text), matching: find.byType(EselPressable));
 
+    testWidgets('표지가 한 장뿐이어도 마지막까지 내리면 로그인 바를 사용할 수 있다', (tester) async {
+      usePhone(tester);
+      var logins = 0;
+      final feed = FeedController(SingleCoverSource());
+      addTearDown(feed.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: IntroScreen(
+            feedController: feed,
+            today: DailyCandidates.demoDate,
+            onOpenLogin: () => logins++,
+            onStartJoin: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(ListView), const Offset(0, -2400));
+      await tester.pumpAndSettle();
+      await tester.tap(inBar('로그인'));
+      expect(logins, 1);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets(
       'unavailable remote feed still exposes working login and join buttons',
       (tester) async {
         usePhone(tester);
         var logins = 0, joins = 0;
-        final feed = FeedController(
-          FeedRemoteSource(
-            StandardHttpClient(
-              config: const AppConfig(),
-              storage: InMemorySessionStorage(),
-            ),
-          ),
-        );
+        final feed = FeedController(FeedRemoteSource(UnavailableHttp()));
         addTearDown(feed.dispose);
         await tester.pumpWidget(
           MaterialApp(

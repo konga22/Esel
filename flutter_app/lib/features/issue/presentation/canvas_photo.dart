@@ -1,3 +1,5 @@
+import '../../media/domain/models/media_photo.dart';
+import '../../media/presentation/remote_media_photo.dart';
 import 'package:flutter/material.dart';
 import '../../../core/design/tokens.g.dart';
 import '../../drafts/domain/cover_draft.dart';
@@ -12,18 +14,28 @@ import 'issue_photo.dart';
 class CanvasPhoto extends StatelessWidget {
   final PublicIssue issue;
   final bool cover, tags;
+  final bool thumbnail;
   final String? selected;
   final ValueChanged<String>? onTag;
   const CanvasPhoto({
     super.key,
     required this.issue,
     this.cover = false,
+    this.thumbnail = false,
     this.tags = false,
     this.selected,
     this.onTag,
   });
   @override
   Widget build(BuildContext context) {
+    final mediaId = mediaPhotoId(issue.photo);
+    if (mediaId != null) {
+      return RemoteMediaPhoto(
+        id: mediaId,
+        thumbnail: thumbnail,
+        semanticLabel: issue.alt,
+      );
+    }
     if (issue.photo.isEmpty) {
       return const ColoredBox(
         color: EselColors.photo,
