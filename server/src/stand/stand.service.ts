@@ -192,6 +192,81 @@ export class StandService {
     };
   }
 
+  async subscriptions(
+    userId: string,
+    cursor?: string,
+  ): Promise<PalettePageDto> {
+    const current = this.currentDate();
+    const cursorValue = cursor ? this.decodeCursor(cursor) : null;
+    const [candidateIds, ownIssue, subscriptions] = await Promise.all([
+      this.candidateIds(current.key, current.date),
+      this.prisma.issue.findUnique({
+        where: {
+          authorId_serviceDate: { authorId: userId, serviceDate: current.date },
+        },
+        select: { id: true },
+      }),
+      this.prisma.subscription.findMany({
+        where: { subscriberId: userId },
+        select: { magazineId: true },
+      }),
+    ]);
+    if (subscriptions.length === 0) return { items: [], nextCursor: null };
+
+    const raw = await this.prisma.issue.findMany({
+      where: {
+        authorId: { in: subscriptions.map(({ magazineId }) => magazineId) },
+        serviceDate: { lte: current.date },
+        ...(!ownIssue
+          ? {
+              OR: [
+                { serviceDate: { lt: current.date } },
+                { serviceDate: current.date, colorId: { notIn: candidateIds } },
+              ],
+            }
+          : {}),
+      },
+      include: {
+        author: { select: { profile: { select: { masthead: true } } } },
+        color: true,
+        media: {
+          select: { id: true, mimeType: true, width: true, height: true },
+        },
+      },
+      orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }],
+    });
+    const latestByAuthor = new Map<string, (typeof raw)[number]>();
+    for (const issue of raw) {
+      if (!latestByAuthor.has(issue.authorId) && issue.author.profile) {
+        latestByAuthor.set(issue.authorId, issue);
+      }
+    }
+    const unique = [...latestByAuthor.values()];
+    const afterCursor = cursorValue
+      ? unique.filter(
+          ({ publishedAt, id }) =>
+            publishedAt < cursorValue.publishedAt ||
+            (publishedAt.getTime() === cursorValue.publishedAt.getTime() &&
+              id < cursorValue.id),
+        )
+      : unique;
+    const page = afterCursor.slice(0, 20);
+    const last = page.at(-1);
+    return {
+      items: page.map((issue) => ({
+        issueId: issue.id,
+        masthead: issue.author.profile!.masthead,
+        serviceDate: this.dateKey(issue.serviceDate),
+        color: this.toColor(issue.color),
+        media: issue.media,
+      })),
+      nextCursor:
+        afterCursor.length > 20 && last
+          ? this.encodeCursor(last.publishedAt, last.id)
+          : null,
+    };
+  }
+
   async colors(userId: string): Promise<PaletteColorsDto> {
     const current = this.currentDate();
     const [colors, candidates, choice, issue, choiceCounts] = await Promise.all(

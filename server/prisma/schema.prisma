@@ -68,6 +68,8 @@ model User {
   friendRequestsReceived FriendRequest[]       @relation("FriendRequestReceiver")
   twinParticipations     TwinParticipation[]
   garments               Garment[]
+  shareLinksCreated       ShareLink[]           @relation("ShareLinkCreator")
+  reportsMade             Report[]              @relation("ReportReporter")
 
   @@map("users")
 }
@@ -212,6 +214,8 @@ model Issue {
   scraps      Scrap[]
   readerLines ReaderLine[]
   garments    IssueGarment[]
+  shareLinks  ShareLink[]
+  reports     Report[]
 
   @@unique([authorId, serviceDate])
   @@unique([authorId, issueNumber])
@@ -281,6 +285,7 @@ model ReaderLine {
   createdAt DateTime @default(now()) @map("created_at")
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   issue     Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  reports   Report[]
 
   @@index([issueId, createdAt, id])
   @@map("reader_lines")
@@ -348,9 +353,44 @@ model Twin {
   createdAt      DateTime            @default(now()) @map("created_at")
   updatedAt      DateTime            @updatedAt @map("updated_at")
   participations TwinParticipation[]
+  shareLinks     ShareLink[]
 
   @@index([serviceDate, status])
   @@map("twins")
+}
+
+model ShareLink {
+  id        String   @id @default(uuid()) @db.Uuid
+  creatorId String   @map("creator_id") @db.Uuid
+  tokenHash String   @unique @map("token_hash") @db.Char(64)
+  issueId   String?  @map("issue_id") @db.Uuid
+  twinId    String?  @map("twin_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  creator   User     @relation("ShareLinkCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  issue     Issue?   @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  twin      Twin?    @relation(fields: [twinId], references: [id], onDelete: Cascade)
+
+  @@index([issueId])
+  @@index([twinId])
+  @@map("share_links")
+}
+
+model Report {
+  id         String      @id @default(uuid()) @db.Uuid
+  reporterId String      @map("reporter_id") @db.Uuid
+  issueId    String      @map("issue_id") @db.Uuid
+  lineId     String?     @map("line_id") @db.Uuid
+  reason     String      @db.VarChar(32)
+  details    String      @default("") @db.VarChar(500)
+  createdAt  DateTime    @default(now()) @map("created_at")
+  reporter   User        @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  issue      Issue       @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  line       ReaderLine? @relation(fields: [lineId], references: [id], onDelete: Cascade)
+
+  @@index([reporterId, createdAt])
+  @@index([issueId])
+  @@index([lineId])
+  @@map("reports")
 }
 
 model TwinParticipation {

@@ -17,6 +17,9 @@ import { MagazinesModule } from './magazines/magazines.module.js';
 import { MeModule } from './me/me.module.js';
 import { RecordsModule } from './records/records.module.js';
 import { UsersModule } from './users/users.module.js';
+import { GarmentsModule } from './garments/garments.module.js';
+import { ShareModule } from './share/share.module.js';
+import { ModerationModule } from './moderation/moderation.module.js';
 
 @Module({
   imports: [
@@ -40,6 +43,9 @@ import { UsersModule } from './users/users.module.js';
     FeedModule,
     StandModule,
     TwinsModule,
+    GarmentsModule,
+    ShareModule,
+    ModerationModule,
   ],
 })
 export class AppModule {}

@@ -1,19 +1,158 @@
-// 계약 테스트: share 모듈. api-contract.json의 API와 루트 docs/dev/features.json의 서버 합격 기준을 할 일(it.todo)로 적어 두었다.
-// 이 파일은 손으로 관리한다. API마다 'METHOD /api/경로: … → 상태' 형식의 todo나 테스트가 있어야 하고, 상태 코드는 api-contract.json과 같아야 한다(npm run check:server가 확인).
-// 하나를 구현하면 그 todo를 it(…) 안에서 request(app.getHttpServer()).<method>('/api/…')로 부르는 실제 테스트로 바꾸고, api-contract.json의 status를 done으로 바꾼다.
-// 실행: npm run test:e2e (todo는 실패가 아니라 '남은 일'로 표시된다)
+import { INestApplication } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
+import request from 'supertest';
+import { App } from 'supertest/types.js';
+import { PrismaService } from '../../src/prisma/prisma.service.js';
+import { createTestApp } from '../create-app.js';
 
 describe('DEV-18 공유', () => {
-  // share.create · 접근: user · 응답: ShareLinkDto · 계약: P01, P02, P18
-  it.todo('POST /api/share-links: 공개된 표지·공동 트윈의 공유 링크 만들기 → 201');
-  it.todo('POST /api/share-links: 로그인 없이 부르면 → 401 AUTH_REQUIRED');
-  it.todo('POST /api/share-links: 보낸 값의 형식이 맞지 않아요 → 400 VALIDATION');
-  it.todo('POST /api/share-links: 없거나 나에게 잠긴 표지·트윈 → 404 NOT_FOUND');
-  it.todo('POST /api/share-links: 공개된 표지만 공유할 수 있어요 → 422 SHARE_NOT_PUBLIC');
-  // share.open · 접근: public · 응답: SharedIssuePublicDto · 계약: P01, P02, P18
-  it.todo('GET /api/share-links/:token: 공유 링크 열기(열 때도 공개 권한 다시 검사) → 200');
-  it.todo('GET /api/share-links/:token: 없거나 지운 링크, 또는 이제 볼 수 없는 표지 → 404 NOT_FOUND');
-  it.todo('합격 기준: 발행 전 내 표지·비공개 트윈은 링크 발급 거절');
-  it.todo('합격 기준(P18): 링크 응답에 숫자·사용자 내부 ID 없음');
-  it.todo('합격 기준(P01): 로그인한 사람이 링크를 열면 그 사람 기준으로 같은 색 잠금을 다시 검사해, 잠긴 표지면 404');
+  let app: INestApplication<App>;
+  let prisma: PrismaService;
+  let mastheadSequence = 0;
+
+  beforeAll(async () => {
+    app = await createTestApp();
+    prisma = app.get(PrismaService);
+    await cleanup();
+  });
+  afterEach(cleanup);
+  afterAll(async () => app.close());
+
+  async function cleanup() {
+    await prisma.issue.deleteMany({
+      where: { author: { email: { endsWith: '@share.e2e.test' } } },
+    });
+    await prisma.user.deleteMany({
+      where: { email: { endsWith: '@share.e2e.test' } },
+    });
+  }
+
+  async function signup(label: string) {
+    const response = await request(app.getHttpServer())
+      .post('/api/auth/email/signup')
+      .send({
+        email: `${label}-${randomUUID()}@share.e2e.test`,
+        password: 'correct horse battery staple',
+      })
+      .expect(201);
+    const user = {
+      id: response.body.userId as string,
+      token: response.body.accessToken as string,
+      masthead: `share${String.fromCharCode(97 + mastheadSequence++)}`,
+    };
+    await prisma.profile.create({
+      data: { userId: user.id, masthead: user.masthead },
+    });
+    return user;
+  }
+
+  async function pastIssue(userId: string) {
+    const media = await prisma.mediaAsset.create({
+      data: {
+        ownerId: userId,
+        storageKey: `share/${randomUUID()}`,
+        status: 'READY',
+        mimeType: 'image/jpeg',
+        sizeBytes: 24,
+      },
+    });
+    return prisma.issue.create({
+      data: {
+        authorId: userId,
+        serviceDate: new Date('2020-01-01T00:00:00.000Z'),
+        issueNumber: 1,
+        colorId: 'sage',
+        mediaId: media.id,
+        caption: '공유할 표지',
+        faceMode: 'PLAIN',
+      },
+    });
+  }
+
+  const auth = (token: string) => ({ Authorization: `Bearer ${token}` });
+
+  it('POST /api/share-links: 공개된 표지·공동 트윈의 공유 링크 만들기 → 201', async () => {
+    const owner = await signup('owner');
+    const issue = await pastIssue(owner.id);
+    const response = await request(app.getHttpServer())
+      .post('/api/share-links')
+      .set(auth(owner.token))
+      .send({ issueId: issue.id })
+      .expect(201);
+    expect(response.body).toEqual({
+      token: expect.any(String),
+      path: `/api/share-links/${response.body.token}`,
+      createdAt: expect.any(String),
+    });
+    expect(JSON.stringify(response.body)).not.toMatch(
+      /userId|issueId|twinId|Count|rank/,
+    );
+  });
+
+  it('POST /api/share-links: 로그인 없이 부르면 → 401 AUTH_REQUIRED', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/share-links')
+      .send({ issueId: randomUUID() })
+      .expect(401);
+    expect(response.body.error.code).toBe('AUTH_REQUIRED');
+  });
+
+  it('POST /api/share-links: 보낸 값의 형식이 맞지 않아요 → 400 VALIDATION', async () => {
+    const owner = await signup('invalid');
+    for (const body of [
+      {},
+      { issueId: 'bad' },
+      { issueId: randomUUID(), twinId: randomUUID() },
+    ]) {
+      const response = await request(app.getHttpServer())
+        .post('/api/share-links')
+        .set(auth(owner.token))
+        .send(body)
+        .expect(400);
+      expect(response.body.error.code).toBe('VALIDATION');
+    }
+  });
+
+  it('POST /api/share-links: 없거나 나에게 잠긴 표지·트윈 → 404 NOT_FOUND', async () => {
+    const owner = await signup('missing');
+    const response = await request(app.getHttpServer())
+      .post('/api/share-links')
+      .set(auth(owner.token))
+      .send({ issueId: randomUUID() })
+      .expect(404);
+    expect(response.body.error.code).toBe('NOT_FOUND');
+  });
+
+  it('POST /api/share-links: 공개된 표지만 공유할 수 있어요 → 422 SHARE_NOT_PUBLIC', async () => {
+    const owner = await signup('private-twin');
+    const twin = await prisma.twin.create({
+      data: {
+        serviceDate: new Date('2020-01-01T00:00:00.000Z'),
+        participations: {
+          create: {
+            userId: owner.id,
+            serviceDate: new Date('2020-01-01T00:00:00.000Z'),
+            role: 'INVITER',
+          },
+        },
+      },
+    });
+    const response = await request(app.getHttpServer())
+      .post('/api/share-links')
+      .set(auth(owner.token))
+      .send({ twinId: twin.id })
+      .expect(422);
+    expect(response.body.error.code).toBe('SHARE_NOT_PUBLIC');
+  });
+
+  // 비로그인 오늘 표지 공개 정책을 정한 뒤 구현한다.
+  it.todo(
+    'GET /api/share-links/:token: 공유 링크 열기(열 때도 공개 권한 다시 검사) → 200',
+  );
+  it.todo(
+    'GET /api/share-links/:token: 없거나 지운 링크, 또는 이제 볼 수 없는 표지 → 404 NOT_FOUND',
+  );
+  it.todo(
+    '합격 기준(P01): 로그인한 사람이 링크를 열면 그 사람 기준으로 같은 색 잠금을 다시 검사해, 잠긴 표지면 404',
+  );
 });

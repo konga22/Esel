@@ -334,13 +334,41 @@ describe('DEV-12 가판대와 같은 색', () => {
     expect(JSON.stringify(response.body)).not.toMatch(/count|rank/i);
   });
 
-  it.todo(
-    'GET /api/palette/subscriptions: 팔레트 구독 탭: 구독한 사람마다 최신 사진 한 장 → 200',
-  );
-  it.todo(
-    'GET /api/palette/subscriptions: 로그인 없이 부르면 → 401 AUTH_REQUIRED',
-  );
-  it.todo(
-    'GET /api/palette/subscriptions: 보낸 값의 형식이 맞지 않아요 → 400 VALIDATION',
-  );
+  it('GET /api/palette/subscriptions: 팔레트 구독 탭: 구독한 사람마다 최신 사진 한 장 → 200', async () => {
+    const reader = await signup('subscriptions-reader');
+    const author = await signup('subscriptions-author');
+    await prisma.subscription.create({
+      data: { subscriberId: reader.id, magazineId: author.id },
+    });
+    await issue(author.id, { date: day(-2), colorId: 'sage', issueNumber: 1 });
+    const latest = await issue(author.id, {
+      date: day(-1),
+      colorId: 'sage',
+      issueNumber: 2,
+    });
+    const response = await request(app.getHttpServer())
+      .get('/api/palette/subscriptions')
+      .set(auth(reader.token))
+      .expect(200);
+    expect(response.body.items).toEqual([
+      expect.objectContaining({
+        issueId: latest.id,
+        masthead: author.masthead,
+      }),
+    ]);
+  });
+  it('GET /api/palette/subscriptions: 로그인 없이 부르면 → 401 AUTH_REQUIRED', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/api/palette/subscriptions')
+      .expect(401);
+    expect(response.body.error.code).toBe('AUTH_REQUIRED');
+  });
+  it('GET /api/palette/subscriptions: 보낸 값의 형식이 맞지 않아요 → 400 VALIDATION', async () => {
+    const reader = await signup('subscriptions-invalid');
+    const response = await request(app.getHttpServer())
+      .get('/api/palette/subscriptions?cursor=bad')
+      .set(auth(reader.token))
+      .expect(400);
+    expect(response.body.error.code).toBe('VALIDATION');
+  });
 });

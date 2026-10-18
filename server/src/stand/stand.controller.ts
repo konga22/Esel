@@ -51,6 +51,20 @@ export class StandController {
     return this.standService.recommended(user.id, query.cursor);
   }
 
+  @Get('palette/subscriptions')
+  @ApiOperation({
+    summary: '팔레트 구독 탭: 구독한 사람마다 최신 공개 사진 한 장',
+  })
+  @ApiOkResponse({ type: PalettePageDto })
+  @ApiBadRequestResponse({ description: 'VALIDATION' })
+  @ApiUnauthorizedResponse({ description: 'AUTH_REQUIRED 또는 TOKEN_EXPIRED' })
+  subscriptions(
+    @CurrentUser() user: AuthUser,
+    @Query() query: PaletteQueryDto,
+  ): Promise<PalettePageDto> {
+    return this.standService.subscriptions(user.id, query.cursor);
+  }
+
   @Get('palette/colors')
   @ApiOperation({ summary: '팔레트 색상 목록 순서' })
   @ApiOkResponse({ type: PaletteColorsDto })
