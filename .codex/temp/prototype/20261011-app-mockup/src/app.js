@@ -54,6 +54,11 @@ const PATHS = {
   link: '<path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/>',
   camera: '<path d="M4 8h3.2l1.5-2.5h6.6L16.8 8H20v11H4z"/><circle cx="12" cy="13.2" r="3.4"/>',
   home: '<path d="M4.5 10.4L12 4.3l7.5 6.1V19.5h-5v-5h-5v5h-5z"/>',
+  menu: '<path d="M4.5 7h15"/><path d="M4.5 12h15"/><path d="M4.5 17h15"/>',
+  calendar: '<rect x="4" y="5.5" width="16" height="14" rx="2"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/>',
+  grid: '<rect x="4.5" y="4.5" width="6" height="6" rx="1"/><rect x="13.5" y="4.5" width="6" height="6" rx="1"/><rect x="4.5" y="13.5" width="6" height="6" rx="1"/><rect x="13.5" y="13.5" width="6" height="6" rx="1"/>',
+  pen: '<path d="M4.5 19.5l3.8-.9L19 7.9a1.9 1.9 0 0 0 0-2.7l-.2-.2a1.9 1.9 0 0 0-2.7 0L5.4 15.7z"/><path d="M14.5 6.5l3 3"/>',
+  twin: '<circle cx="9.5" cy="12" r="5"/><circle cx="14.5" cy="12" r="5"/>',
   hanger: '<path d="M10 6.2a2 2 0 1 1 2.6 1.9c-.4.1-.6.5-.6.9v.8"/><path d="M12 9.8L3.8 15.6c-.6.4-.3 1.4.4 1.4h15.6c.7 0 1-.9.4-1.4z"/>',
 };
 const icon = (n, size = 24, sw = 1.7, fill = 'none') => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${fill}" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${PATHS[n]}</svg>`;
@@ -186,6 +191,8 @@ const DARK = new Set(['theo']);
 const RESTORE_CHOICES = { 3: ['lilac', 'olive', 'camel'] };
 const LIKERS = ['dana', 'ama', 'zuri', 'kofi', 'riva', 'hana', 'freya', 'leo', 'noor', 'sol', 'elin', 'maya'];
 const MY_COUNTS = { likes: 12, lines: 3, scraps: 9, readers: 12 };
+// Subscribers of my sketchbook: a number only I see (P18).
+const MY_SUBSCRIBERS = 34;
 const OLDER = ['coral', 'sage', 'butter', 'cobalt', 'cream', 'powder', 'lilac', 'camel', 'olive', 'powder', 'terracotta', 'charcoal', 'sage', 'powder', 'burgundy', 'butter'];
 
 function fresh() {
@@ -195,12 +202,14 @@ function fresh() {
     published: false,
     justPublished: false,
     liked: new Set(),
-    scrapped: new Set(),
+    // Canvases I saved (저장함, 10-18 new feature); a few examples so the tab is not empty.
+    scrapped: new Set(['riva', 'zuri', 'freya', 'kofi', 'vera', 'hana']),
     subs: new Set(['dana', 'theo', 'ama']),
     lines: {},
     coverKey: 'dana',
     paletteColor: null,
-    colorList: false,
+    fan: false,
+    meTab: 'mine',
     draft: null,
     record: { 1: { c: 'camel', k: 'posted', no: 8 }, 2: { c: 'sage', k: 'posted', no: 9 }, 4: { c: 'powder', k: 'posted', no: 10 }, 5: { c: 'butter', k: 'posted', no: 11 } },
     credits: 2,
@@ -354,8 +363,16 @@ function blockSlots(tallLeft) {
     ? [[x[0], 0, cols[0], tall], [x[1], 0, cols[1], cell], [x[2], 0, cols[2], cell], [x[1], r2, cols[1], cell], [x[2], r2, cols[2], cell]]
     : [[x[0], 0, cols[0], cell], [x[1], 0, cols[1], cell], [x[2], 0, cols[2], tall], [x[0], r2, cols[0], cell], [x[1], r2, cols[1], cell]];
 }
-const tile = (k, [x, y, w, h], { rise = false, i = 0 } = {}) => `<button type="button" class="tile${rise ? ' rise' : ''}" data-go="${k === ME ? 'me' : `shelf:${k}`}" aria-label="${esc(signOf(k))}의 스케치북" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px${rise ? `;animation-delay:${i * 40}ms` : ''}">${signCover(k, w, h)}</button>`;
-function grid(keys, { label, rise = false } = {}) {
+// A palette cell (R5-4, 10-18): only the photo with the face choice the person made. The sign stays only for
+// "behind the sign", where it is what hides the face (P15).
+function cleanCover(k, w, h, { py = TILE_PY[k] ?? 0.3 } = {}) {
+  const look = lookOf(k);
+  if (look.style === 'behind') return signCover(k, w, h, { look });
+  if (look.style === 'neck') return face(k, w, h, 'neck');
+  return face(k, w, h, look.style, { px: faceX(k, w, h), py, color: look.color });
+}
+const tile = (k, [x, y, w, h], { rise = false, i = 0 } = {}) => `<button type="button" class="tile${rise ? ' rise' : ''}" data-go="${k === ME ? 'me' : `shelf:${k}`}" aria-label="${esc(signOf(k))}의 스케치북" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px${rise ? `;animation-delay:${i * 40}ms` : ''}">${cleanCover(k, w, h)}</button>`;
+function grid(keys, { label, rise = false, full = false } = {}) {
   let bottom = 0;
   const cells = keys.map((k, i) => {
     const b = Math.floor(i / 5);
@@ -364,7 +381,7 @@ function grid(keys, { label, rise = false } = {}) {
     bottom = Math.max(bottom, top + h);
     return tile(k, [x, top, w, h], { rise, i });
   });
-  return `<section class="grid" aria-label="${esc(label)}" style="height:${bottom}px">${cells.join('')}</section>`;
+  return `<section class="grid${full ? ' full' : ''}" aria-label="${esc(label)}" style="height:${bottom}px">${cells.join('')}</section>`;
 }
 
 // ───────── home: the first item is the cover, the rest are inner pages
@@ -506,6 +523,9 @@ ${mastLayer(INK)}
   mount: (el) => morph(el, { loginAt: 640 }),
 });
 
+// Weekly theme and exhibitions live in the home feed as cards between covers (10-18; they left my page).
+// Photos are only ones I may see now (P01).
+const featureCard = (go, eyebrow, title, sub, keys) => `<button type="button" class="feature" data-go="${go}"><span class="eyebrow">${eyebrow}</span><span class="serif ft">${title}</span><span class="fs">${sub}</span><span class="fphotos">${keys.filter(visibleToday).map((k) => `<span class="fp">${cleanCover(k, 104, 138)}</span>`).join('')}</span><span class="fgo">${icon('arrow', 18, 1.8)}</span></button>`;
 // C1·C2·C7 홈
 SCREENS.feed = () => {
   // C2: the cover of the day can be a dark photo (white logo, top and bottom shade). Before I post, a candidate-color cover would break P01.
@@ -516,6 +536,8 @@ SCREENS.feed = () => {
   if (S.published) pages.push(inner(ME, pad2(n++)));
   list.forEach((k, i) => {
     pages.push(inner(k, pad2(n++)));
+    if (i === 4) pages.push(featureCard('challenges', '이번 주 주제', '가방으로 포인트', '서울 월~일 · 오늘 후보 색과 함께, 새 옷 없이도', ['ama', 'riva', 'zuri']));
+    if (i === 9) pages.push(featureCard('collections', '이번 주의 전시', '고른 이유가 있는 캔버스', '오늘 · 이번 주 · 이달 · 순위나 숫자 없이', ['dana', 'freya', 'elin']));
     if (i === 2 && locked()) {
       pages.push(`<button type="button" class="notice" data-go="same:${S.me.color}">${paintImg(S.me.color, 64)}<span style="display:flex;flex-direction:column;gap:3px;flex:1"><b style="font-size:15px">오늘의 ${cname(S.me.color)} · 같은 색 ${sameCount(S.me.color)}명</b><span style="font-size:13px;color:var(--muted)">올리면 함께 펼쳐집니다</span></span>${icon('right', 20)}</button>`);
     }
@@ -602,18 +624,45 @@ function readerLine(r, t) {
   return `<div style="display:flex;gap:10px;padding:7px 0">${avatar(r, 30)}<div style="min-width:0"><div style="display:flex;align-items:center;gap:6px;height:18px"><span style="font-size:14px;font-weight:600">${esc(r === ME ? meName() : r)}</span>${paintImg(color, 40)}<span style="font-size:12px;color:var(--muted)">${cname(color)}</span></div><p style="margin:2px 0 0;font-size:14.5px;line-height:1.4">${esc(t)}</p></div></div>`;
 }
 
-// ───────── C4·C8 팔레트 (stand): 추천 · 색상 ▾ · 구독, a small three-column grid (10-18)
-function paletteTop(active) {
-  const c = S.paletteColor || S.me.color;
-  const root = isTabRoot();
-  const tabBtn = (label, on, attrs) => `<button type="button" ${attrs}${on ? ' aria-current="page"' : ''}><span>${label}</span><i></i></button>`;
-  return `<div class="top-gap"></div>
-<header class="ptop${root ? '' : ' back'}"><span class="l">${root ? '' : backBtn()}<h1>팔레트</h1></span><span class="date">9. 6. 일요일</span></header>
-<nav class="ptabs" aria-label="팔레트 보기">
-${tabBtn('추천', active === 'pick', 'data-go="stand"')}
-${tabBtn(`색상${icon('down', 16, 2)}`, active === 'color', active === 'color' ? `data-act="colorlist" aria-expanded="${S.colorList}" aria-controls="color-list"` : `data-go="same:${c}"`)}
-${tabBtn('구독', active === 'subs', 'data-go="stand:subs"')}
-</nav>`;
+// ───────── C4·C8 팔레트 (stand · same), R5-4 (10-18): the explore grid fills the screen and nothing sits on top of it.
+// A round button over the capsule shows what is on screen (추천: three dabs, 구독: faces, a color: that paint). Pressing it
+// fans the choices out around the thumb: 추천 · 구독 inside, my three candidates next (locked before I post, P01) and the
+// most picked colors outside; "모든 색" lists every color. No counts anywhere (P18).
+function colorOrder() {
+  const mine = [S.me.color, ...TODAY_COLORS.filter((c) => c !== S.me.color)];
+  return [mine, [...PICK_ORDER, ...ORDER].filter((c, i, a) => !mine.includes(c) && a.indexOf(c) === i)];
+}
+const fanAt = (r, deg) => [Math.round(r * Math.cos((deg * Math.PI) / 180)), Math.round(r * Math.sin((deg * Math.PI) / 180))];
+function fanFace(view, c, small = false) {
+  if (view === 'same') return paintImg(c, small ? 34 : 46);
+  if (view === 'subs') return `<span class="fan-faces">${[...S.subs].filter((k) => PEOPLE[k]).slice(0, 3).map((k) => avatar(k, small ? 18 : 22)).join('')}</span>`;
+  return `<span class="fan-dabs${small ? ' s' : ''}">${['powder', 'coral', 'sage'].map((p) => paintImg(p, small ? 22 : 28)).join('')}</span>`;
+}
+function fanLayer(view, c) {
+  if (!S.fan) return '';
+  const [mine, rest] = colorOrder();
+  const spread = (list, r, a0, a1) => list.map((x, i) => [x, fanAt(r, a0 + ((a1 - a0) * i) / Math.max(1, list.length - 1))]);
+  const item = ([dx, dy], inner, attrs, label, extra = '') => `<button type="button" class="fan-item glass" ${attrs} aria-label="${label}" style="left:${dx - 29}px;top:${dy - 29}px">${inner}${extra}</button>`;
+  const pick = (v, label, deg) => item(fanAt(80, deg), `${fanFace(v, null, true)}<span class="fl">${label}</span>`, `data-act="fanview:${v}" aria-pressed="${view === v}"`, label);
+  const colors = [...spread(mine, 142, 192, 258), ...spread(rest.slice(0, 5), 202, 182, 268)].map(([col, at]) => {
+    const lk = locked() && TODAY_COLORS.includes(col);
+    return item(at, paintImg(col, 44), `data-act="fancolor:${col}" aria-pressed="${view === 'same' && c === col}"`, `${cname(col)}${lk ? ' · 올리기 전이라 세 장만 먼저 보여요' : ''}`, lk ? `<span class="fan-lock">${icon('lock', 9, 2.2)}</span>` : '');
+  });
+  return `<button type="button" class="fan-dim" data-act="fan" aria-label="닫기" tabindex="-1"></button>
+<div class="fan" role="group" aria-label="볼 것 고르기">${pick('pick', '추천', 200)}${pick('subs', '구독', 250)}${colors.join('')}</div>
+<button type="button" class="fan-all glass" data-act="allcolors">모든 색</button>`;
+}
+function fanButton(view, c, label) {
+  return `${S.fan ? '' : `<span class="fan-label glass">${esc(label)}</span>`}<button type="button" class="fan-btn${S.fan ? ' open' : ' glass'}" data-act="fan" aria-expanded="${S.fan}" aria-label="${S.fan ? '닫기' : `볼 것 고르기 · 지금 ${esc(label)}`}">${S.fan ? icon('x', 22, 2) : fanFace(view, c)}</button>`;
+}
+function allColorsSheet() {
+  const [mine, rest] = colorOrder();
+  const cur = stack[stack.length - 1].name === 'same' ? S.paletteColor : null;
+  const opt = (c) => {
+    const lk = locked() && TODAY_COLORS.includes(c);
+    return `<button type="button" class="color-opt" data-act="pickcolor:${c}" aria-current="${c === cur}" aria-label="${cname(c)}${lk ? ' · 올리기 전이라 세 장만 먼저 보여요' : ''}">${paintImg(c, 44)}<span>${cname(c)}</span><span class="end">${lk ? icon('lock', 15, 1.8) : ''}<span class="ck">${c === cur ? icon('check', 18, 2) : ''}</span></span></button>`;
+  };
+  return `<span class="grab"></span><h2>모든 색</h2><p class="note" style="margin:0">내 오늘의 후보 3색이 먼저, 나머지는 오늘 많이 고른 순이에요.</p><div class="color-list in-sheet" role="group" aria-label="색 고르기">${mine.map(opt).join('')}<span class="sep" aria-hidden="true"></span>${rest.map(opt).join('')}</div>`;
 }
 SCREENS.stand = (arg) => {
   if (arg && arg !== 'subs') return { redirect: { name: 'same', arg } };
@@ -621,32 +670,21 @@ SCREENS.stand = (arg) => {
   // Before I post, my three candidate colors stay out of the grid (P01); the same holds for subscriptions.
   const keys = subs ? [...S.subs].filter((k) => PEOPLE[k] && visibleToday(k)) : RECOMMENDED.filter(visibleToday);
   const body = keys.length
-    ? grid(keys, { label: subs ? '구독' : '추천' })
-    : `<div class="pad" style="padding-top:40px"><p class="serif" style="margin:0;font-size:24px;line-height:1.3">구독한 스케치북이 없어요</p><p class="note" style="margin-top:8px">스케치북에서 구독을 누르면 여기에 모여요.</p></div>`;
-  const more = subs ? '' : `<div class="pad" style="padding-top:24px"><p class="lbl" style="margin:0 0 2px">함께 보기</p><div class="rows">${row({ go: 'challenges', title: '이번 주 주제', sub: '가방으로 포인트 · 같은 옷, 다른 코디' })}${row({ go: 'collections', title: '전시', sub: '오늘 · 이번 주 · 이달' })}</div></div>`;
+    ? grid(keys, { label: subs ? '구독' : '추천', full: true })
+    : `<div class="pad" style="padding-top:calc(var(--st) + 60px)"><p class="serif" style="margin:0;font-size:24px;line-height:1.3">구독한 스케치북이 없어요</p><p class="note" style="margin-top:8px">스케치북에서 구독을 누르면 여기에 모여요.</p></div>`;
   return {
     html: `<div class="scr">
-${paletteTop(subs ? 'subs' : 'pick')}
-<div class="scroll" id="scroller">${body}${more}<div style="height:110px"></div></div>
+<div class="scroll" id="scroller">${body}<div style="height:180px"></div></div>
+<span class="pshade" aria-hidden="true"></span>${isTabRoot() ? '' : `<span class="pback glass">${backBtn()}</span>`}
+${fanLayer(subs ? 'subs' : 'pick', null)}${fanButton(subs ? 'subs' : 'pick', null, subs ? '구독' : '추천')}
 </div>`,
     capsule: true,
   };
 };
 
-// C8 팔레트 · 색상. Before I post, each of my candidate colors shows the three newest cells and the rest as blurred cells
-// (no name, no face), with "올리면 함께 펼쳐집니다". Posting or midnight opens them all; minors have no lock (P01).
-function colorOrder() {
-  const mine = [S.me.color, ...TODAY_COLORS.filter((c) => c !== S.me.color)];
-  return [mine, [...PICK_ORDER, ...ORDER].filter((c, i, a) => !mine.includes(c) && a.indexOf(c) === i)];
-}
-function colorPanel(cur) {
-  const [mine, rest] = colorOrder();
-  const opt = (c) => {
-    const lk = locked() && TODAY_COLORS.includes(c);
-    return `<button type="button" class="color-opt" role="menuitemradio" aria-checked="${c === cur}" data-act="pickcolor:${c}" aria-label="${cname(c)}${lk ? ' · 올리기 전이라 세 장만 먼저 보여요' : ''}">${paintImg(c, 44)}<span>${cname(c)}</span><span class="end">${lk ? icon('lock', 15, 1.8) : ''}<span class="ck">${c === cur ? icon('check', 18, 2) : ''}</span></span></button>`;
-  };
-  return `<div id="color-list" class="color-list" role="menu" aria-label="색 고르기">${mine.map(opt).join('')}<span class="sep" aria-hidden="true"></span>${rest.map(opt).join('')}</div>`;
-}
+// C8 팔레트 · 색 방. A short head names the room. Before I post, each of my candidate colors shows the three newest cells and
+// the rest as blurred cells (no name, no face), with "올리면 함께 펼쳐집니다". Posting or midnight opens them all; minors
+// have no lock (P01).
 SCREENS.same = (color) => {
   const c = color || S.paletteColor || S.me.color;
   S.paletteColor = c;
@@ -655,9 +693,8 @@ SCREENS.same = (color) => {
   const preview = room.slice(0, 3);
   const fx = S.justPublished && !lockedRoom;
   S.justPublished = false;
-  const button = `<button type="button" class="color-btn" data-act="colorlist" aria-expanded="${S.colorList}" aria-controls="color-list" aria-label="색 고르기 · 지금 ${cname(c)}${lockedRoom ? ' · 올리기 전이라 세 장만 먼저 보여요' : ''}"><span id="mychip">${paintImg(c, 40)}<span>${cname(c)}</span>${lockedRoom ? icon('lock', 15, 1.8) : ''}<span class="chev">${icon('down', 18, 2)}</span></span></button>`;
-  const head = `${S.colorList ? '<button type="button" class="list-catch" data-act="closelist" aria-label="색 목록 닫기" tabindex="-1"></button>' : ''}
-<div class="color-row">${button}<span class="count">같은 색 ${sameCount(c)}명${lockedRoom ? ` · 먼저 ${preview.length}장` : ''}</span>${S.colorList ? colorPanel(c) : ''}</div>`;
+  const head = `<div class="top-gap"></div>
+<header class="room-hd">${isTabRoot() ? '' : backBtn()}<span id="mychip" class="room-paint">${paintImg(c, 48)}</span><h1>${cname(c)}</h1><span class="count">같은 색 ${sameCount(c)}명${lockedRoom ? ` · 먼저 ${preview.length}장` : ''}</span>${lockedRoom ? `<span class="lk">${icon('lock', 15, 1.8)}</span>` : ''}</header>`;
   let body;
   if (lockedRoom) {
     const hidden = sameCount(c) - preview.length;
@@ -675,18 +712,17 @@ ${icon('lock', 20, 1.8)}
 </section>`;
   } else {
     const keys = S.published && c === S.me.color ? [ME, ...room] : room;
-    body = `${fx ? '<p class="note" style="margin:0;padding:0 20px 8px">올려서 같은 색 사진이 모두 펼쳐졌어요.</p>' : ''}${grid(keys, { label: `${cname(c)} · 같은 색`, rise: fx })}`;
+    body = `${fx ? '<p class="note" style="margin:0;padding:0 20px 8px">올려서 같은 색 사진이 모두 펼쳐졌어요.</p>' : ''}${grid(keys, { label: `${cname(c)} · 같은 색`, rise: fx, full: true })}`;
   }
   return {
     html: `<div class="scr">
-${paletteTop('color')}
 ${head}
-<div class="scroll" id="scroller">${body}<div style="height:110px"></div></div>
+<div class="scroll" id="scroller">${body}<div style="height:180px"></div></div>
+${fanLayer('same', c)}${fanButton('same', c, cname(c))}
 </div>`,
     capsule: true,
     mount: (el) => {
       if (fx) $('#mychip', el)?.classList.add('unlock-fill');
-      if (S.colorList) $('.color-opt[aria-checked="true"]', el)?.focus({ preventScroll: true });
     },
   };
 };
@@ -740,7 +776,7 @@ function sketchPost(k, post) {
   const acts = mine
     ? (post.today ? stat('share', ME) : '')
     : `${stat('like', id)}${post.today ? stat('line', k) : stat('oldline', id)}${stat('scrap', id)}`;
-  return `<article class="post">
+  return `<article class="post" id="post-${mine ? 'me' : k}-${post.no}">
 <div style="position:relative">${post.today ? `<button type="button" data-go="spread:${k}" aria-label="Nº ${pad3(post.no)} 자세히 보기" style="display:block">${photo}</button>` : photo}${n ? wearLink(k, n, 'position:absolute;right:10px;bottom:4px') : ''}</div>
 <div class="post-meta"><span class="no">Nº ${pad3(post.no)} · ${post.date}</span>${paintImg(post.color, 40)}<span class="cn">${cname(post.color)}</span><span class="acts">${acts}</span></div>
 <p class="post-cap">${esc(post.cap)}</p>
@@ -770,33 +806,59 @@ ${postList(k, personPosts(k), n)}
     capsule: true,
   };
 };
+// M1 내 스케치북 (my page), X4-1 (10-18): me, my numbers, then 내 캔버스 · 색 달력 · 저장함 as tabs over the photos.
+// 친구 · 트윈 is a number that opens friends (the twin lives there); edit, share and settings sit in the ≡ sheet.
+// Weekly theme and exhibitions left this page for cards in the home feed.
+function squareGrid(cells, label) {
+  return `<section class="sq-grid" aria-label="${label}">${cells.join('')}</section>`;
+}
+function myGrid() {
+  const posts = myPosts();
+  return squareGrid(posts.map((post, i) => {
+    const w = i % 3 === 1 ? 129 : 130;
+    return `<button type="button" class="sq" data-go="myposts:${post.no}" aria-label="Nº ${pad3(post.no)} · ${post.date} · ${cname(post.color)}">${postPhoto(ME, w, 173, post.look, { py: post.py ?? 0.4 })}</button>`;
+  }), '내 캔버스');
+}
+function savedGrid() {
+  const keys = [...S.scrapped].map((id) => id.split('-')[0]).filter((k, i, a) => PEOPLE[k] && k !== ME && a.indexOf(k) === i);
+  if (!keys.length) return '<div class="pad" style="padding-top:28px"><p class="serif" style="margin:0;font-size:22px">저장한 캔버스가 없어요</p><p class="note" style="margin-top:6px">캔버스에서 저장을 누르면 여기에 모여요. 저장한 사실은 나에게만 보여요.</p></div>';
+  return squareGrid(keys.map((k, i) => `<button type="button" class="sq" data-go="shelf:${k}" aria-label="${esc(signOf(k))}의 캔버스">${cleanCover(k, i % 3 === 1 ? 129 : 130, 173)}</button>`), '저장함');
+}
 SCREENS.me = () => {
   const m = S.me;
-  const menu = [
-    ['record', '색 달력'],
-    ['twin', S.twin.step === 'none' ? '친구와 트윈' : `트윈 · ${twinStatus()}`],
-    ['friends', `나의 친구${S.requests.length ? ` · 요청 ${S.requests.length}` : ''}`],
-    ['challenges', '이번 주 주제'],
-    ['collections', '전시'],
-  ];
-  const today = S.published ? '' : `<div class="card" style="margin:14px 20px 4px;display:flex;flex-direction:column;gap:12px"><div style="display:flex;align-items:center;gap:8px">${paintImg(m.color, 56)}<span style="font-size:15px;font-weight:600">오늘은 ${cname(m.color)}</span></div><p class="note" style="margin:0">오늘의 캔버스를 아직 올리지 않았어요. 올리면 같은 색 ${sameCount(m.color)}명의 사진이 함께 펼쳐져요.</p><button type="button" class="btn" data-tab="make">오늘의 캔버스 만들기</button></div>`;
+  const t = S.meTab || 'mine';
+  const stat = (n, label, { lock = false, go = '' } = {}) => `<${go ? `button type="button" data-go="${go}"` : 'span'} class="my-st"><b>${n}</b><span>${lock ? icon('lock', 10, 2) : ''}${label}</span></${go ? 'button' : 'span'}>`;
+  const tabs = [['mine', 'grid', '내 캔버스'], ['cal', 'calendar', '색 달력'], ['saved', 'bookmark', '저장함']];
+  const today = S.published ? '' : `<button type="button" class="today-line" data-tab="make">${paintImg(m.color, 40)}<span>오늘은 ${cname(m.color)} · 아직 올리지 않았어요</span><span class="go">만들기${icon('right', 16, 2)}</span></button>`;
+  const body = t === 'cal' ? `<div class="pad" style="padding-top:14px">${calendarHtml()}</div>` : t === 'saved' ? savedGrid() : myGrid();
   return {
     html: `<div class="scr">
 <div class="top-gap"></div>
-<header class="hd">${isTabRoot() ? '<span style="width:48px"></span>' : backBtn()}<span class="eyebrow" style="color:var(--ink)">ESEL · 내 스케치북</span><span class="side"><button type="button" class="icon-btn" data-go="settings" aria-label="설정">${icon('gear', 22)}</button></span></header>
+<header class="hd my-hd"><span class="l">${isTabRoot() ? '' : backBtn()}<span class="eyebrow" style="color:var(--ink)">MY SKETCHBOOK</span></span><span class="side"><button type="button" class="icon-btn" data-act="mymenu" aria-label="메뉴">${icon('menu', 24)}</button></span></header>
 <div class="scroll" id="scroller">
-${sketchHead(ME, { count: m.issues })}
-<div class="pad"><button type="button" class="link-line" data-go="reactions"><span>내 캔버스의 반응 보기</span><span class="muted">· 나에게만 보여요</span>${icon('arrow', 16, 1.8)}</button></div>
-<div class="chips" role="group" aria-label="내 스케치북 메뉴" style="padding-top:2px">${menu.map(([go, l]) => `<button type="button" class="chip plain" data-go="${go}"><span>${l}</span></button>`).join('')}</div>
-<hr class="rule" style="margin-top:2px">
+<section class="my-head">
+<div class="my-top">${avatar(ME, 80)}<div class="my-id"><h1 class="serif it">${esc(meName())}</h1><p>${esc(m.bio)}</p></div></div>
+<div class="my-stats">${stat(m.issues, '캔버스')}${stat(MY_SUBSCRIBERS, '구독자', { lock: true })}${stat(S.subs.size, '구독', { go: 'stand:subs' })}${stat(S.friends.length, '친구 · 트윈', { go: 'friends' })}</div>
 ${today}
-${postList(ME, myPosts(), m.issues)}
+</section>
+<nav class="my-tabs" role="tablist" aria-label="내 보관함">${tabs.map(([id, ic, label]) => `<button type="button" role="tab" data-act="metab:${id}" aria-selected="${t === id}">${icon(ic, 19, 1.7)}<span>${label}</span></button>`).join('')}</nav>
+${body}
 <div style="height:110px"></div>
 </div>
 </div>`,
     capsule: true,
   };
 };
+// My canvases one after another, opened from a cell of my grid at that canvas.
+SCREENS.myposts = (no) => ({
+  html: `<div class="scr">
+<div class="top-gap"></div>
+<header class="hd" style="padding-right:18px">${backBtn()}<span class="eyebrow" style="color:var(--ink)">내 캔버스</span><span class="side"></span></header>
+<div class="scroll" id="scroller">${myPosts().map((p) => sketchPost(ME, p)).join('')}<div style="height:110px"></div></div>
+</div>`,
+  capsule: true,
+  mount: (el) => { const a = $(`#post-me-${no}`, el); if (a) $('#scroller', el).scrollTop = a.offsetTop; },
+});
 SCREENS.challenges = () => ({
   html: `<div class="scr"><div class="top-gap"></div><header style="display:flex;align-items:center">${backBtn()}<h1 class="serif" style="font-size:24px">이번 주 주제</h1></header><div class="scroll" style="padding:20px">
 <h2 class="serif">옷을 입는 작은 이유</h2><p class="note">오늘 후보 3색과 함께 내 스케치북에 이야기를 남겨요.<br>목업 · 저장하지 않는 예시 화면</p>
@@ -914,7 +976,7 @@ function dayRecord(d) {
   if (d === TODAY && S.published) return { c: S.me.color, k: 'posted', no: S.me.issues };
   return S.record[d];
 }
-SCREENS.record = () => {
+function calendarHtml() {
   const cells = [];
   for (let i = 0; i < MONTH_START_DOW; i++) cells.push('<span></span>');
   let posted = 0;
@@ -930,13 +992,16 @@ SCREENS.record = () => {
     else if (d === TODAY) cells.push(`<button type="button" class="day today" data-tab="make" aria-label="오늘 · 아직 올리기 전">${n}<span class="mark"><span class="empty"></span></span></button>`);
     else cells.push(`<button type="button" class="day" data-go="restore:${d}" aria-label="9월 ${d}일 · 빈 날 · 색 복원하기">${n}<span class="mark"><span class="empty"></span></span></button>`);
   }
+  return `<div class="cal" style="margin-top:6px">${DOW.map((w) => `<span class="dow">${w}</span>`).join('')}${cells.join('')}</div>
+<div style="display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:16px;font-size:13px"><span style="display:flex;align-items:center;gap:6px">${paintImg('camel', 28)}사진 기록 ${posted}일</span><span style="display:flex;align-items:center;gap:6px"><span class="ring" style="display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid var(--muted)"></span>색 복원 ${restored}일</span><span class="muted" style="margin-left:auto">복원 기회 ${S.credits}번 남음</span></div>`;
+}
+SCREENS.record = () => {
   return {
     html: page({
       eyebrow: '색 달력 · 2026',
       title: '9월의 색 달력',
       lead: '사진으로 남긴 날과 색만 복원한 날을 구분해요.',
-      body: `<div class="cal" style="margin-top:20px">${DOW.map((w) => `<span class="dow">${w}</span>`).join('')}${cells.join('')}</div>
-<div style="display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:16px;font-size:13px"><span style="display:flex;align-items:center;gap:6px">${paintImg('camel', 28)}사진 기록 ${posted}일</span><span style="display:flex;align-items:center;gap:6px"><span class="ring" style="display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid var(--muted)"></span>색 복원 ${restored}일</span><span class="muted" style="margin-left:auto">복원 기회 ${S.credits}번 남음</span></div>
+      body: `<div style="margin-top:14px">${calendarHtml()}</div>
 <hr class="rule" style="margin:16px 0">
 <p class="note">빈 날짜를 눌러 놓친 색을 복원할 수 있어요. 복원한 색은 캔버스 올리기나 팔레트 공개에 포함되지 않아요.</p>`,
       bottom: S.published ? `<button type="button" class="btn" data-go="day:${TODAY}">9월 ${TODAY}일 기록 보기</button>` : '<button type="button" class="btn" data-tab="make">오늘의 캔버스 만들기</button>',
@@ -1000,10 +1065,10 @@ SCREENS.restored = (d) => {
 
 // ───────── 친구 F1–F3
 SCREENS.friends = () => page({
-  eyebrow: `친구 · ${S.friends.length}명`,
+  eyebrow: `친구 · ${S.friends.length}명 · 트윈`,
   title: '나의 친구',
   lead: '취향이 닮은 사람들과 기록을 이어가요.',
-  body: `<div class="rows" style="margin-top:16px">${S.friends.map((k) => row({ go: `shelf:${k}`, title: k, sub: k === 'dana' ? '친구 · 트윈 2회' : k === 'ama' ? '친구 · 오늘의 캔버스 올림' : '새 친구', lead: avatar(k, 44) })).join('')}</div>
+  body: `<div class="rows" style="margin-top:16px">${row({ go: 'twin', title: '트윈', sub: S.twin.step === 'none' ? '친구와 같은 날 한 장씩, 두 사람의 표지' : twinStatus(), lead: `<span class="lead-ic">${icon('twin', 22)}</span>` })}${S.friends.map((k) => row({ go: `shelf:${k}`, title: k, sub: k === 'dana' ? '친구 · 트윈 2회' : k === 'ama' ? '친구 · 오늘의 캔버스 올림' : '새 친구', lead: avatar(k, 44) })).join('')}</div>
 ${S.requests.length ? `<button type="button" class="card" data-go="friend:${S.requests[0]}" style="margin-top:18px;width:100%;display:flex;align-items:center;gap:12px;text-align:left">${avatar(S.requests[0], 44)}<span style="display:flex;flex-direction:column;gap:3px;flex:1"><b style="font-size:15px">친구 요청 ${S.requests.length}</b><span style="font-size:13px;color:var(--muted)">${S.requests[0]}님의 요청이 도착했어요</span></span>${icon('right', 20)}</button>` : ''}
 <form id="find" style="margin-top:22px" autocomplete="off"><div class="field"><label for="find-id">아이디로 친구 찾기</label><input id="find-id" type="text" placeholder="@zuri" autocapitalize="none" spellcheck="false"></div><p class="hint" id="find-hint" style="margin:8px 0 0;font-size:13px;color:var(--muted)">영문 아이디를 적어 주세요.</p><button type="submit" class="btn line" style="margin-top:12px">친구 프로필 확인</button></form>`,
 });
@@ -1428,7 +1493,7 @@ function toast(msg) {
 // ───────── navigation
 function render({ keepScroll = false } = {}) {
   const top = stack[stack.length - 1];
-  if (top.name !== 'same') S.colorList = false;
+  if (!['stand', 'same'].includes(top.name)) S.fan = false;
   const out = (SCREENS[top.name] || SCREENS.feed)(top.arg);
   if (out.redirect) { stack[stack.length - 1] = out.redirect; render({ keepScroll }); return; }
   const app = $('#app');
@@ -1441,7 +1506,7 @@ function render({ keepScroll = false } = {}) {
   if (!keepScroll) app.focus({ preventScroll: true });
   markGuide();
 }
-const NEEDS_LOGIN = new Set(['shelf', 'stand', 'same', 'me', 'make', 'record', 'friends', 'twin', 'settings']);
+const NEEDS_LOGIN = new Set(['shelf', 'stand', 'same', 'me', 'myposts', 'make', 'record', 'friends', 'twin', 'settings']);
 function go(name, arg) {
   if (S.auth === 'out' && NEEDS_LOGIN.has(name)) { openLogin(); return; }
   const entry = arg !== undefined ? { name, arg } : { name };
@@ -1512,14 +1577,16 @@ const ACT = {
   },
   'share-apps': () => shareApps(),
   'share-dest': () => { closeSheet(); toast('실제 앱에서는 기기 공유 메뉴로 보내요'); },
-  // Palette · 색상: the color button opens the list below it; a row switches the room and closes the list.
-  colorlist: () => {
-    if (stack[stack.length - 1].name !== 'same') { go('same', S.paletteColor || S.me.color); return; }
-    S.colorList = !S.colorList;
-    render({ keepScroll: true });
-  },
-  closelist: () => { S.colorList = false; render({ keepScroll: true }); },
-  pickcolor: (c) => { S.paletteColor = c; S.colorList = false; stack[stack.length - 1] = { name: 'same', arg: c }; render(); },
+  // Palette (R5-4): the round button opens the fan; a choice swaps the palette in place and closes it.
+  fan: () => { S.fan = !S.fan; render({ keepScroll: true }); },
+  fanview: (v) => { S.fan = false; stack[stack.length - 1] = v === 'subs' ? { name: 'stand', arg: 'subs' } : { name: 'stand' }; render(); },
+  fancolor: (c) => { S.fan = false; S.paletteColor = c; stack[stack.length - 1] = { name: 'same', arg: c }; render(); },
+  allcolors: () => { S.fan = false; render({ keepScroll: true }); openSheet(allColorsSheet()); },
+  pickcolor: (c) => { closeSheet(true); S.fan = false; S.paletteColor = c; stack[stack.length - 1] = { name: 'same', arg: c }; render(); },
+  // My page: tabs swap in place; ≡ holds edit, share and settings.
+  metab: (t) => { S.meTab = t; render({ keepScroll: true }); },
+  mymenu: () => openSheet(`<span class="grab"></span><div class="rows">${[['profile', 'pen', '프로필 편집'], ['share', 'share', '내 스케치북 공유'], ['settings', 'gear', '설정과 계정']].map(([a, ic, l]) => `<button type="button" class="row" data-act="menugo:${a}"><span class="lead-ic">${icon(ic, 21)}</span><span class="t"><b>${l}</b></span><span class="chev">${icon('right', 20)}</span></button>`).join('')}</div>`),
+  menugo: (a) => { closeSheet(true); if (a === 'share') openShare(ME); else go(a); },
   // Garment info in the detail view: a tag dot lights its row, "착용 n" scrolls to the list.
   'wear-hl': (i) => {
     const li = $(`#wear-${i}`);
@@ -1703,7 +1770,7 @@ document.addEventListener('submit', (e) => {
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
   if ($('.sheet')) closeSheet();
-  else if (S.colorList) ACT.closelist();
+  else if (S.fan) ACT.fan();
 });
 
 // ───────── desktop guide: jump to a scene
