@@ -13,7 +13,10 @@ abstract class AppHttpClient {
   Future<Map<String, dynamic>> post(String path, {Map<String, dynamic>? body});
   Future<Map<String, dynamic>> put(String path, {Map<String, dynamic>? body});
   Future<Map<String, dynamic>> patch(String path, {Map<String, dynamic>? body});
-  Future<Map<String, dynamic>> delete(String path);
+  Future<Map<String, dynamic>> delete(
+    String path, {
+    Map<String, dynamic>? body,
+  });
 }
 
 class StandardHttpClient implements AppHttpClient {
@@ -41,7 +44,10 @@ class StandardHttpClient implements AppHttpClient {
     Map<String, dynamic>? body,
   }) => _send('PATCH', path, body: body);
   @override
-  Future<Map<String, dynamic>> delete(String path) => _send('DELETE', path);
+  Future<Map<String, dynamic>> delete(
+    String path, {
+    Map<String, dynamic>? body,
+  }) => _send('DELETE', path, body: body);
 
   /// access 토큰을 붙이는 요청인지. 가입·로그인·토큰 갱신(`/auth/*`)은 토큰 없이 보낸다.
   /// 서버는 토큰이 붙어 있으면 공개 주소에서도 검사하므로, 만료된 토큰을 붙이면 갱신이

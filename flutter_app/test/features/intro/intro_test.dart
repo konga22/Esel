@@ -52,7 +52,9 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        expect(find.text('서버 피드는 아직 연결하지 않았어요.'), findsOneWidget);
+        // 서버에 닿지 못하면 오류 안내(몰래 시연 자료로 바꾸지 않는다).
+        expect(feed.errorMessage, isNotNull);
+        expect(feed.page, isNull);
         expect(find.byType(CircularProgressIndicator), findsNothing);
         await tester.tap(inBar('로그인'));
         await tester.tap(inBar('스케치북 만들기'));

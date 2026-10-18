@@ -63,6 +63,10 @@ class TodayCover extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final info = EselPaints.of(issue.color);
+    // 같은 색 인원을 모르면(서버가 아직 주지 않음) 숫자 없이 색 이름만. 표지 자신이 있어 0명일 수는 없다.
+    final sameColorLabel = sameColorCount > 0
+        ? '${info.nameKo} · 같은 색 $sameColorCount명'
+        : info.nameKo;
     const white = Colors.white;
     return SizedBox(
       height: height,
@@ -155,7 +159,7 @@ class TodayCover extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 EselPressable(
-                  semanticsLabel: '${info.nameKo} · 같은 색 $sameColorCount명 팔레트',
+                  semanticsLabel: '$sameColorLabel 팔레트',
                   onTap: actions.onOpenStand,
                   child: SizedBox(
                     height: 44,
@@ -165,7 +169,7 @@ class TodayCover extends StatelessWidget {
                         EselPaintAsset(paint: issue.color, width: 60),
                         const SizedBox(width: 8),
                         Text(
-                          '${info.nameKo} · 같은 색 $sameColorCount명',
+                          sameColorLabel,
                           style: EselTypography.label(color: white),
                         ),
                         const SizedBox(width: 8),

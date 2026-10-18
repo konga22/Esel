@@ -56,9 +56,16 @@ class ScreenHttp extends AppHttpClient {
     Map<String, dynamic>? body,
   }) => send('PATCH', path, body);
   @override
-  Future<Map<String, dynamic>> delete(String path) =>
-      send('DELETE', path, null);
+  Future<Map<String, dynamic>> delete(
+    String path, {
+    Map<String, dynamic>? body,
+  }) => send('DELETE', path, body);
 }
+
+/// 가짜 서버의 오늘(todayDto의 2026-10-18)과 같은 서울 날짜에 고정한 시계.
+/// 실제 시계를 쓰면 서울 자정이 지난 뒤 날짜가 어긋나 실패한다.
+ManualServiceClock _serverDay() =>
+    ManualServiceClock(DateTime.utc(2026, 10, 18, 3));
 
 Widget records(ScreenHttp http) => MonthlyRecordScreen(
   source: RecordsRemoteSource(http),
@@ -144,7 +151,7 @@ void main() {
         );
       });
       final c = TodayController(
-        clock: const SystemServiceClock(),
+        clock: _serverDay(),
         remote: TodayRemoteSource(http),
         remoteMagazine: MagazineRemoteSource(http),
       );
@@ -176,7 +183,7 @@ void main() {
             },
     );
     final c = TodayController(
-      clock: const SystemServiceClock(),
+      clock: _serverDay(),
       remote: TodayRemoteSource(http),
       remoteMagazine: MagazineRemoteSource(http),
     );
@@ -195,7 +202,7 @@ void main() {
         throw const NotFoundFailure('아직 스케치북이 없어요.');
       });
       final c = TodayController(
-        clock: const SystemServiceClock(),
+        clock: _serverDay(),
         remote: TodayRemoteSource(http),
         remoteMagazine: MagazineRemoteSource(http),
       );

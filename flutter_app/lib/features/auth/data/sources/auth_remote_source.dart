@@ -62,6 +62,7 @@ class AuthRemoteSource {
   }
 
   Future<void> deleteAccount() async {
-    await httpClient.delete('/me');
+    // 서버는 삭제 내용을 확인했다는 표시가 있어야 지운다(DeleteAccountDto).
+    await httpClient.delete('/me', body: {'confirmed': true});
   }
 }

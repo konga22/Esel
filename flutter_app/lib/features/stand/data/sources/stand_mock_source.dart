@@ -32,6 +32,7 @@ class StandMockSource implements StandSource {
     required SameColorViewer viewer,
     String? viewerId,
     EselPaint? color,
+    PaletteTab tab = PaletteTab.recommended,
   }) async {
     final covers = _coversOn(viewer.today, viewerId);
     if (color == null) {
