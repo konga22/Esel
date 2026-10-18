@@ -6,13 +6,13 @@ Esel의 직접 구축 REST API입니다. NestJS, PostgreSQL, Prisma로 구성합
 
 ## 처음 읽을 것
 
-| 문서 | 내용 |
-|---|---|
-| [AGENTS.md](AGENTS.md) | AI가 이 폴더에서 일하는 규칙. 루트 `AGENTS.md`의 우선순위 아래에서 서버 세부 규칙만 보충한다 |
-| [docs/LEARN.md](docs/LEARN.md) | 서버를 처음 배우는 사람을 위한 설명과 미션 순서(미션마다 AI 지시문) |
-| [docs/API_RULES.md](docs/API_RULES.md) | 주소·응답·오류·폴더 규칙 |
+| 문서                                   | 내용                                                                                                                                    |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| [AGENTS.md](AGENTS.md)                 | AI가 이 폴더에서 일하는 규칙. 루트 `AGENTS.md`의 우선순위 아래에서 서버 세부 규칙만 보충한다                                            |
+| [docs/LEARN.md](docs/LEARN.md)         | 서버를 처음 배우는 사람을 위한 설명과 미션 순서(미션마다 AI 지시문)                                                                     |
+| [docs/API_RULES.md](docs/API_RULES.md) | 주소·응답·오류·폴더 규칙                                                                                                                |
 | [api-contract.json](api-contract.json) | 만들 API 약속 목록. 여기 없는 API는 만들지 않는다. 경로·권한·오류 코드의 정본이고, 요청·응답 데이터 모양의 정본은 Swagger(코드의 DTO)다 |
-| [docs/REVIEW.md](docs/REVIEW.md) | PR 리뷰 체크리스트 |
+| [docs/REVIEW.md](docs/REVIEW.md)       | PR 리뷰 체크리스트                                                                                                                      |
 
 ```bash
 npm run check:server   # 약속·규칙·루트 하네스 대조. 설치 없이 동작하고, 실패하면 이유와 고치는 법을 알려 준다(실패 0건이어야 한다)
@@ -44,71 +44,71 @@ npm run start:dev
 
 ## 현재 구현된 API
 
-`api-contract.json` 기준 라우트 61개가 모두 구현되어 있습니다. 계약 완료는 61/61개(100%)이고 진행 중(`doing`)이나 미구현(`todo`) API는 없습니다.
+`api-contract.json` 기준 라우트 62개 중 61개가 구현되어 있습니다. 이번 서버 묶음의 기존 계약은 모두 끝났고, `main`에서 새로 추가된 저장함 조회(`GET /api/me/scraps`) 1개가 다음 구현 대상으로 남아 있습니다.
 
-| 방법 | 주소 | 하는 일 |
-|---|---|---|
-| `GET` | `/api/health` | API 프로세스와 PostgreSQL 연결 상태 확인 |
-| `GET` | `/api/today/cover` | 비로그인용 오늘 표지 1장과 안쪽 지면 최대 2쪽 조회 |
-| `POST` | `/api/auth/email/signup` | 이메일 가입, 비밀번호 해시와 새 세션 생성 |
-| `POST` | `/api/auth/email/login` | 이메일·비밀번호 확인 후 새 기기 세션 생성 |
-| `POST` | `/api/auth/refresh` | refresh token을 한 번 사용하고 새 토큰 쌍으로 교체 |
-| `POST` | `/api/auth/logout` | Bearer access token에 해당하는 현재 기기 세션 폐기 |
-| `GET` | `/api/today` | 서비스 날짜의 후보 3색과 내 선택·발행 여부 조회 |
-| `PUT` | `/api/today/choice` | 후보 중 오늘의 색 선택·변경(발행 전까지) |
-| `GET` | `/api/mastheads/:name/availability` | 영문 소문자 2~10자 제호의 형식·중복 확인 |
-| `POST` | `/api/profile` | 제호를 확정해 내 잡지 프로필 생성 |
-| `POST` | `/api/media` | JPEG·PNG·HEIC 파일 업로드 준비 |
-| `PUT` | `/api/media/:id/file` | 준비한 사진을 서버 영구 디스크에 스트리밍 업로드 |
-| `POST` | `/api/media/:id/complete` | 실제 파일 형식·크기를 검사하고 480px 썸네일을 만들어 업로드 완료 |
-| `GET` | `/api/media/:id?size=original\|thumb` | 호·트윈 공개 권한을 확인해 원본 또는 썸네일 전송 |
-| `POST` | `/api/issues` | 업로드 완료 사진과 선택 착용 정보로 오늘 호 발행 |
-| `GET` | `/api/feed` | 공개 가능한 구독·추천 호를 최신순 cursor 피드로 조회 |
-| `GET` | `/api/stand?colorId=…` | 날짜·색별 팔레트 방과 후보색 최신 3장 미리보기 조회 |
-| `GET` | `/api/palette/recommended` | 아직 구독하지 않은 사람별 최신 공개 사진 한 장 조회 |
-| `GET` | `/api/palette/colors` | 발행 전 후보 3색을 먼저 두고 잠금 상태를 포함한 색 목록 조회 |
-| `GET` | `/api/palette/subscriptions` | 구독한 사람별 최신 공개 사진 한 장 조회 |
-| `GET` | `/api/me/garments` | 내가 등록한 옷을 최신순 cursor 목록으로 조회 |
-| `GET` | `/api/me/notifications` | 내 알림 설정 조회(저장 전 기본값은 모두 `true`) |
-| `PUT` | `/api/me/notifications` | 내 알림 설정 저장·변경 |
-| `GET` | `/api/issues/:id` | 공개 가능한 호 조회(소유자에게만 반응 수 포함) |
-| `POST` | `/api/issues/:id/like` | 좋아요 저장(중복 요청도 한 번만 저장) |
-| `DELETE` | `/api/issues/:id/like` | 좋아요 취소 |
-| `POST` | `/api/issues/:id/scrap` | 스크랩 저장(중복 요청도 한 번만 저장) |
-| `DELETE` | `/api/issues/:id/scrap` | 스크랩 취소 |
-| `GET` | `/api/issues/:id/lines` | 독자 한 줄 목록을 20개씩 cursor로 조회 |
-| `POST` | `/api/issues/:id/lines` | 60자 이내 독자 한 줄 작성 |
-| `GET` | `/api/magazines/:masthead` | 공개 가능한 지난 호와 내 구독 상태 조회 |
-| `POST` | `/api/magazines/:masthead/subscription` | 잡지 구독 |
-| `DELETE` | `/api/magazines/:masthead/subscription` | 잡지 구독 취소 |
-| `GET` | `/api/me/magazine` | 오늘 호·지난 호와 소유자 전용 반응 숫자 조회 |
-| `GET` | `/api/me/issues/:id/reactions` | 내 호의 좋아요·스크랩·독자 한 줄 수와 최근 목록 조회 |
-| `GET` | `/api/me/records?month=YYYY-MM` | 사진 기록과 색 복원을 구분한 월간 기록 조회 |
-| `POST` | `/api/me/records/:date/restore` | 이번 달 지난 빈 날의 후보 색 복원(월 2회) |
-| `GET` | `/api/users/:masthead` | 제호로 공개 사용자 정보 조회 |
-| `GET` | `/api/friends` | 내 친구 목록을 cursor로 조회 |
-| `GET` | `/api/friends/requests` | 받은 친구 요청을 cursor로 조회 |
-| `POST` | `/api/friends/requests` | 제호로 친구 요청 전송(양방향 중복 방지) |
-| `POST` | `/api/friends/requests/:id/accept` | 받은 친구 요청 수락 |
-| `POST` | `/api/friends/requests/:id/decline` | 받은 친구 요청 거절 |
-| `POST` | `/api/twins` | 친구를 오늘 트윈에 초대 |
-| `GET` | `/api/twins/:id` | 참여자에게 트윈 현재 단계 조회 |
-| `POST` | `/api/twins/:id/accept` | 트윈 초대 수락 |
-| `PUT` | `/api/twins/:id/choice` | 내 트윈 후보 3색 중 하나 선택 |
-| `POST` | `/api/twins/:id/posts` | 업로드 완료된 미디어로 내 트윈 표지 게시 |
-| `PUT` | `/api/twins/:id/visibility` | 두 표지가 모두 올라온 뒤 내 공개 범위를 private·solo·joint로 선택 |
-| `POST` | `/api/twins/:id/consent` | 두 사람 모두 joint를 선택한 뒤 공동 공개에 개별 동의 |
-| `POST` | `/api/twins/:id/publish` | 두 사람의 명시적 동의가 모인 트윈 공동 발행 |
-| `POST` | `/api/share-links` | 볼 수 있는 표지 또는 공동 공개된 트윈의 공유 토큰 생성 |
-| `GET` | `/api/share-links/:token` | 로그인 여부에 맞춰 공개 권한을 다시 검사하고 공유 내용 조회 |
-| `POST` | `/api/issues/:id/reports` | 볼 수 있는 표지 신고 접수 |
-| `POST` | `/api/issues/:id/lines/:lineId/reports` | 볼 수 있는 독자 한 줄 신고 접수 |
-| `POST` | `/api/users/:masthead/block` | 사용자를 차단하고 콘텐츠 노출 중지 |
-| `DELETE` | `/api/users/:masthead/block` | 사용자 차단 해제 |
-| `GET` | `/api/me/blocks` | 내가 차단한 사용자 cursor 목록 조회 |
-| `DELETE` | `/api/issues/:id` | 내 호를 소프트 삭제하고 사진 파일 제거 |
-| `PATCH` | `/api/me/profile` | 영문 제호와 80자 이내 한 줄 소개 수정 |
-| `DELETE` | `/api/me` | 삭제 내용 확인 후 계정과 소유 데이터를 영구 삭제 |
+| 방법     | 주소                                    | 하는 일                                                           |
+| -------- | --------------------------------------- | ----------------------------------------------------------------- |
+| `GET`    | `/api/health`                           | API 프로세스와 PostgreSQL 연결 상태 확인                          |
+| `GET`    | `/api/today/cover`                      | 비로그인용 오늘 표지 1장과 안쪽 지면 최대 2쪽 조회                |
+| `POST`   | `/api/auth/email/signup`                | 이메일 가입, 비밀번호 해시와 새 세션 생성                         |
+| `POST`   | `/api/auth/email/login`                 | 이메일·비밀번호 확인 후 새 기기 세션 생성                         |
+| `POST`   | `/api/auth/refresh`                     | refresh token을 한 번 사용하고 새 토큰 쌍으로 교체                |
+| `POST`   | `/api/auth/logout`                      | Bearer access token에 해당하는 현재 기기 세션 폐기                |
+| `GET`    | `/api/today`                            | 서비스 날짜의 후보 3색과 내 선택·발행 여부 조회                   |
+| `PUT`    | `/api/today/choice`                     | 후보 중 오늘의 색 선택·변경(발행 전까지)                          |
+| `GET`    | `/api/mastheads/:name/availability`     | 영문 소문자 2~10자 제호의 형식·중복 확인                          |
+| `POST`   | `/api/profile`                          | 제호를 확정해 내 잡지 프로필 생성                                 |
+| `POST`   | `/api/media`                            | JPEG·PNG·HEIC 파일 업로드 준비                                    |
+| `PUT`    | `/api/media/:id/file`                   | 준비한 사진을 서버 영구 디스크에 스트리밍 업로드                  |
+| `POST`   | `/api/media/:id/complete`               | 실제 파일 형식·크기를 검사하고 480px 썸네일을 만들어 업로드 완료  |
+| `GET`    | `/api/media/:id?size=original\|thumb`   | 호·트윈 공개 권한을 확인해 원본 또는 썸네일 전송                  |
+| `POST`   | `/api/issues`                           | 업로드 완료 사진과 선택 착용 정보로 오늘 호 발행                  |
+| `GET`    | `/api/feed`                             | 공개 가능한 구독·추천 호를 최신순 cursor 피드로 조회              |
+| `GET`    | `/api/stand?colorId=…`                  | 날짜·색별 팔레트 방과 후보색 최신 3장 미리보기 조회               |
+| `GET`    | `/api/palette/recommended`              | 아직 구독하지 않은 사람별 최신 공개 사진 한 장 조회               |
+| `GET`    | `/api/palette/colors`                   | 발행 전 후보 3색을 먼저 두고 잠금 상태를 포함한 색 목록 조회      |
+| `GET`    | `/api/palette/subscriptions`            | 구독한 사람별 최신 공개 사진 한 장 조회                           |
+| `GET`    | `/api/me/garments`                      | 내가 등록한 옷을 최신순 cursor 목록으로 조회                      |
+| `GET`    | `/api/me/notifications`                 | 내 알림 설정 조회(저장 전 기본값은 모두 `true`)                   |
+| `PUT`    | `/api/me/notifications`                 | 내 알림 설정 저장·변경                                            |
+| `GET`    | `/api/issues/:id`                       | 공개 가능한 호 조회(소유자에게만 반응 수 포함)                    |
+| `POST`   | `/api/issues/:id/like`                  | 좋아요 저장(중복 요청도 한 번만 저장)                             |
+| `DELETE` | `/api/issues/:id/like`                  | 좋아요 취소                                                       |
+| `POST`   | `/api/issues/:id/scrap`                 | 스크랩 저장(중복 요청도 한 번만 저장)                             |
+| `DELETE` | `/api/issues/:id/scrap`                 | 스크랩 취소                                                       |
+| `GET`    | `/api/issues/:id/lines`                 | 독자 한 줄 목록을 20개씩 cursor로 조회                            |
+| `POST`   | `/api/issues/:id/lines`                 | 60자 이내 독자 한 줄 작성                                         |
+| `GET`    | `/api/magazines/:masthead`              | 공개 가능한 지난 호와 내 구독 상태 조회                           |
+| `POST`   | `/api/magazines/:masthead/subscription` | 잡지 구독                                                         |
+| `DELETE` | `/api/magazines/:masthead/subscription` | 잡지 구독 취소                                                    |
+| `GET`    | `/api/me/magazine`                      | 오늘 호·지난 호와 소유자 전용 반응 숫자 조회                      |
+| `GET`    | `/api/me/issues/:id/reactions`          | 내 호의 좋아요·스크랩·독자 한 줄 수와 최근 목록 조회              |
+| `GET`    | `/api/me/records?month=YYYY-MM`         | 사진 기록과 색 복원을 구분한 월간 기록 조회                       |
+| `POST`   | `/api/me/records/:date/restore`         | 이번 달 지난 빈 날의 후보 색 복원(월 2회)                         |
+| `GET`    | `/api/users/:masthead`                  | 제호로 공개 사용자 정보 조회                                      |
+| `GET`    | `/api/friends`                          | 내 친구 목록을 cursor로 조회                                      |
+| `GET`    | `/api/friends/requests`                 | 받은 친구 요청을 cursor로 조회                                    |
+| `POST`   | `/api/friends/requests`                 | 제호로 친구 요청 전송(양방향 중복 방지)                           |
+| `POST`   | `/api/friends/requests/:id/accept`      | 받은 친구 요청 수락                                               |
+| `POST`   | `/api/friends/requests/:id/decline`     | 받은 친구 요청 거절                                               |
+| `POST`   | `/api/twins`                            | 친구를 오늘 트윈에 초대                                           |
+| `GET`    | `/api/twins/:id`                        | 참여자에게 트윈 현재 단계 조회                                    |
+| `POST`   | `/api/twins/:id/accept`                 | 트윈 초대 수락                                                    |
+| `PUT`    | `/api/twins/:id/choice`                 | 내 트윈 후보 3색 중 하나 선택                                     |
+| `POST`   | `/api/twins/:id/posts`                  | 업로드 완료된 미디어로 내 트윈 표지 게시                          |
+| `PUT`    | `/api/twins/:id/visibility`             | 두 표지가 모두 올라온 뒤 내 공개 범위를 private·solo·joint로 선택 |
+| `POST`   | `/api/twins/:id/consent`                | 두 사람 모두 joint를 선택한 뒤 공동 공개에 개별 동의              |
+| `POST`   | `/api/twins/:id/publish`                | 두 사람의 명시적 동의가 모인 트윈 공동 발행                       |
+| `POST`   | `/api/share-links`                      | 볼 수 있는 표지 또는 공동 공개된 트윈의 공유 토큰 생성            |
+| `GET`    | `/api/share-links/:token`               | 로그인 여부에 맞춰 공개 권한을 다시 검사하고 공유 내용 조회       |
+| `POST`   | `/api/issues/:id/reports`               | 볼 수 있는 표지 신고 접수                                         |
+| `POST`   | `/api/issues/:id/lines/:lineId/reports` | 볼 수 있는 독자 한 줄 신고 접수                                   |
+| `POST`   | `/api/users/:masthead/block`            | 사용자를 차단하고 콘텐츠 노출 중지                                |
+| `DELETE` | `/api/users/:masthead/block`            | 사용자 차단 해제                                                  |
+| `GET`    | `/api/me/blocks`                        | 내가 차단한 사용자 cursor 목록 조회                               |
+| `DELETE` | `/api/issues/:id`                       | 내 호를 소프트 삭제하고 사진 파일 제거                            |
+| `PATCH`  | `/api/me/profile`                       | 영문 제호와 80자 이내 한 줄 소개 수정                             |
+| `DELETE` | `/api/me`                               | 삭제 내용 확인 후 계정과 소유 데이터를 영구 삭제                  |
 
 이메일 가입 요청 예시:
 

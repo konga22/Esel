@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { B, SANS, SERIF, MONO, INK, PAPER, MUTED, HAIR, PAINT, PEOPLE, COLOR_ORDER, ME, CAPSULE, cover, fit, faceStroke, neckDown, crop, avatar, paint, icon, mastSize, capsule, tagDot, wearPill, page } from './lib.mjs';
-import { miniCover, GRID, gridBlock, paletteTabs, colorRow, colorList, myCandidates, GARMENTS, garmentRow } from './gen-cover2.mjs';
+import { miniCover, GRID, gridBlock, colorRow, colorList, myCandidates, GARMENTS, garmentRow } from './gen-cover2.mjs';
 
 const OUT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'project');
 const files = {};
@@ -152,13 +152,17 @@ const statsSpec = (liked, own = false) => `<span style="display: flex; align-ite
 const inputSpec = (label, value, state) => `<div style="display: flex; flex-direction: column; width: 300px"><span style="font-size: 12px; color: ${state === 'error' ? '#B3261E' : MUTED}">${label}</span><span style="height: 44px; display: flex; align-items: center; border-bottom: ${state === 'focus' ? 2 : 1.5}px solid ${state === 'error' ? '#B3261E' : INK}; font-family: ${SERIF}; font-size: 24px; color: ${value ? INK : '#9A9C94'}">${value || 'selin'}</span>${state === 'error' ? '<span style="margin-top: 6px; font-size: 12px; color: #B3261E">이미 있는 이름이에요.</span>' : ''}</div>`;
 // Palette and garment samples reuse the screen pieces so the board and the screens cannot drift apart.
 const stageCap = (bg, cap) => `<div style="position: relative; width: 300px; height: 110px; border-radius: 18px; overflow: hidden; ${bg}">${cap}</div>`;
-const colorBtnSpec = (open) => `<span style="height: 40px; padding: 0 10px 0 8px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px; background: #FFFFFF; box-shadow: inset 0 0 0 1.5px ${INK}; font-size: 15px; font-weight: 600">${paint('camel', 40, '', '')}<span>카멜</span>${icon('lock', 15, 1.8)}<span style="display: flex; margin-left: 2px${open ? '; transform: rotate(180deg)' : ''}">${icon('down', 18, 2)}</span></span>`;
 const listSpec = `<div style="width: 236px; box-sizing: border-box; padding: 6px 0; border-radius: 16px; background: #FFFFFF; box-shadow: inset 0 0 0 1px ${HAIR}, 0 10px 28px rgba(0, 0, 0, 0.14)">
 ${colorList.slice(0, myCandidates.length).map(colorRow).join('\n')}
 <span aria-hidden="true" style="display: block; height: 1px; margin: 4px 14px; background: ${HAIR}"></span>
 ${colorList.slice(myCandidates.length).map(colorRow).join('\n')}
 </div>`.replace(/ onClick="\{\{closeList\}\}"/g, '');
 const blockSpec = `<div style="position: relative; width: 393px; height: ${GRID.tall}px">${gridBlock([{ key: 'dana' }, { key: 'ama' }, { key: 'riva', py: 0.5 }, { key: 'lise', style: 'paint' }, { key: 'omar', style: 'neck' }], 0, false)}</div>`;
+// R5-4 (10-18): the round button over the capsule (what is on screen) and one fan item (a choice; a lock before I post).
+const fabSpec = (inner, dark = false) => `<span class="${dark ? '' : 'esel-glass'}" style="width: 60px; height: 60px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; ${dark ? `background: ${INK}; color: ${PAPER}; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24)` : 'box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6), 0 10px 28px rgba(0, 0, 0, 0.18)'}">${inner}</span>`;
+const fabDabs = `<span style="position: relative; display: block; width: 46px; height: 34px">${paint('powder', 28, '; position: absolute; left: 0; top: 0; transform: rotate(-12deg)', '')}${paint('coral', 28, '; position: absolute; left: 14px; top: 9px; transform: rotate(-12deg)', '')}${paint('sage', 28, '; position: absolute; left: 6px; top: 18px; transform: rotate(-12deg)', '')}</span>`;
+const fabFaces = `<span style="display: flex">${['dana', 'zuri', 'sol'].map((k, i) => `<span style="margin-left: ${i ? -8 : 0}px; border-radius: 50%; box-shadow: 0 0 0 2px #FFFFFF">${avatar(k, 22)}</span>`).join('')}</span>`;
+const fanItemSpec = (inner, lock = false) => `<span class="esel-glass" style="position: relative; width: 58px; height: 58px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center">${inner}${lock ? `<span style="position: absolute; right: -1px; bottom: -1px; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: ${INK}; color: ${PAPER}">${icon('lock', 9, 2.2)}</span>` : ''}</span>`;
 const blurSpec = `<span style="display: block; width: ${GRID.cols[0]}px; height: ${GRID.cell}px; background: ${PAINT.camel.hex}; opacity: 0.48; filter: blur(1.5px)"></span>`;
 const TAG = { W: 236, H: 290, px: 0.58, py: 0.72 };
 const tagSpec = (() => {
@@ -207,13 +211,13 @@ ${spec('입력 · 기본 / 입력 중 / 오류', `<span style="display: flex; ga
 ${h2('팔레트')}
 <div style="display: flex; gap: 28px; align-items: flex-start">
 <div style="display: flex; flex-direction: column; gap: 28px; width: 330px">
-${spec('팔레트 탭 · 추천 / 색상 ▾ / 구독 · 전체 없음', `<div style="width: 330px; display: flex; flex-direction: column">${paletteTabs('pick')}</div>`)}
-${spec('색 버튼 · 닫힘 / 열림 · 올리기 전 후보 색은 자물쇠', `<span style="display: flex; gap: 12px">${colorBtnSpec(false)}${colorBtnSpec(true)}</span>`)}
+${spec('둥근 버튼 · 지금 보는 것: 추천 / 구독 / 색 · 열림', `<span style="display: flex; gap: 12px; padding: 6px; background: #D9D7D0; border-radius: 18px">${fabSpec(fabDabs)}${fabSpec(fabFaces)}${fabSpec(paint(PEOPLE[ME].color, 46, '', ''))}${fabSpec(icon('x', 22, 2), true)}</span>`)}
+${spec('부채 항목 · 안쪽 추천·구독 / 가운데 내 후보 3색(올리기 전 자물쇠) / 바깥 많이 고른 색', `<span style="display: flex; gap: 10px; padding: 6px; background: #D9D7D0; border-radius: 18px">${fanItemSpec(paint(PEOPLE[ME].color, 44, '', ''), true)}${fanItemSpec(paint('powder', 44, '', ''))}${fanItemSpec(paint('coral', 44, '', ''))}</span>`)}
 ${spec('흐린 칸 · 올리기 전 · 이름·얼굴 없음', `<span style="display: flex; gap: 2px">${blurSpec}${blurSpec.replace('0.48', '0.36')}</span>`)}
-${note('추천 · 색상 · 구독 세 탭. 밑줄은 미끄러지지 않는다. 색상 탭은 색 버튼을 누르면 목록이 아래로 펼쳐진다.')}
+${note('격자가 화면을 채우고 위에는 아무것도 없다. 둥근 버튼(60, 캡슐 위 오른쪽)을 누르면 엄지 둘레로 부채가 펼쳐진다: 반지름 80 추천·구독, 142 내 후보 3색, 202 많이 고른 색 5개. 모든 색은 왼쪽 아래 버튼으로 목록을 연다. 칸에는 사진만, 사인은 사인 뒤로를 고른 사람만.')}
 </div>
 ${spec(`격자 · 칸 ${GRID.cols[0]}×${GRID.cell}(3:4) · 긴 칸 ${GRID.cols[0]}×${GRID.tall} · 간격 ${GRID.gap} · 두 줄마다 긴 칸을 좌우 번갈아`, blockSpec)}
-${spec('색 목록 · 열림 · 내 후보 3색 먼저, 나머지는 오늘 많이 고른 순 · 숫자 없음', listSpec)}
+${spec('모든 색 목록 · 내 후보 3색 먼저, 나머지는 오늘 많이 고른 순 · 숫자 없음', listSpec)}
 </div>
 </section>
 <section style="display: flex; flex-direction: column; gap: 18px">

@@ -60,11 +60,12 @@ const MOTION_FRAME = { melt: 1, meltpill: 1, show: 1.5, press: 0.84, login: 2.4,
 const motionStill = `[class^="m-"],[class*=" m-"]{animation-play-state:paused!important}\n${Object.entries(MOTION_FRAME).map(([k, t]) => `.m-${k}{animation-delay:-${t}s!important}`).join('\n')}`;
 const boards = [['BoardMood', '00-mood'], ['BoardTokens', '01-tokens'], ['BoardComponents', '02-components'], ['BoardMotion', '04-motion', { css: motionStill }]];
 const screens = [
-  ['CoverFeed', 'c1-feed'], ['CoverNext', 'c2-next'], ['CoverSpread', 'c3-spread'], ['CoverStand', 'c4-stand'],
+  ['CoverFeed', 'c1-feed'], ['CoverNext', 'c2-next'], ['CoverSpread', 'c3-spread'], ['CoverStand', 'c4-stand'], ['CoverStand', 'c4-fan', { state: { fan: true } }],
   ['CoverShelf', 'c5-shelf'],
   ['CoverMake', 'c6-make'], ['CoverMake', 'c6-make-paint', { state: { paint: true } }], ['CoverMake', 'c6-make-behind', { state: { crop: 'zoom' } }], ['CoverMake', 'c6-make-neck', { state: { crop: 'neck', white: false } }],
   ['CoverScroll', 'c7-scroll'], ['CoverScroll', 'c7-scroll-inner', { scroll: steps(0, 1000, 20) }], ['CoverScroll', 'c7-scroll-melting', { scroll: [...steps(0, 1500, 20), ...steps(1490, 180, 10)] }],
-  ['CoverStandLocked', 'c8-same-color-locked'], ['CoverStandLocked', 'c8-color-list', { state: { list: true } }],
+  ['CoverStandLocked', 'c8-same-color-locked'],
+  ['CoverMe', 'm1-me'], ['CoverMe', 'm1-menu', { state: { menu: true } }],
   ['JoinScroll', 'j1-logged-out'], ['JoinScroll', 'j1-login-bar', { scroll: steps(0, 1300, 20) }], ['JoinLogin', 'j2-login'], ['JoinColor', 'j3-color'],
   ['JoinShoot', 'j4-shoot'], ['JoinName', 'j5-name'], ['JoinFace', 'j6-face'], ['JoinDone', 'j7-first-issue'],
 ];

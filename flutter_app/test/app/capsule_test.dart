@@ -40,7 +40,9 @@ void main() {
   Finder backdropIn(Finder capsule) =>
       find.descendant(of: capsule, matching: find.byType(BackdropFilter));
 
-  testWidgets('menu capsule is 260x60 glass over the photo feed', (
+  Finder dot(String tab) => find.byKey(ValueKey('capsule-dot-$tab'));
+
+  testWidgets('menu capsule is 198x60 glass over the photo feed', (
     tester,
   ) async {
     usePhone(tester);
@@ -50,16 +52,18 @@ void main() {
 
     final capsule = find.byKey(const Key('menu-capsule'));
     expect(capsule, findsOneWidget);
-    expect(tester.getSize(capsule), const Size(260, 60));
+    expect(tester.getSize(capsule), const Size(198, 60));
     expect(tester.widget<EselGlass>(capsule).solid, isFalse);
     expect(backdropIn(capsule), findsOneWidget);
+    // 홈에서는 첫 칸이 팔레트(10-18 바뀌는 칸). 홈 칸은 따로 없다.
     expect(find.bySemanticsLabel('팔레트'), findsOneWidget);
+    expect(find.bySemanticsLabel('홈'), findsNothing);
     expect(find.bySemanticsLabel('만들기'), findsOneWidget);
     expect(find.bySemanticsLabel('스케치북'), findsOneWidget);
     semantics.dispose();
   });
 
-  testWidgets('menu capsule turns solid on the white stand screen', (
+  testWidgets('menu capsule turns solid on the white palette screen', (
     tester,
   ) async {
     usePhone(tester);
@@ -70,40 +74,83 @@ void main() {
     await tester.pumpAndSettle();
 
     final capsule = find.byKey(const Key('menu-capsule'));
-    expect(tester.getSize(capsule), const Size(260, 60));
+    expect(tester.getSize(capsule), const Size(198, 60));
     expect(tester.widget<EselGlass>(capsule).solid, isTrue);
     expect(backdropIn(capsule), findsNothing);
     semantics.dispose();
   });
 
-  testWidgets('지금 보는 쪽(팔레트·스케치북) 아래에 점, 네 항목 모두 48 이상', (tester) async {
+  testWidgets('첫 칸은 홈↔팔레트로 바뀌고, 점은 내 스케치북에만, 세 칸 모두 48 이상', (tester) async {
     usePhone(tester);
     final semantics = tester.ensureSemantics();
     await tester.pumpWidget(const EselApp());
     await tester.pumpAndSettle();
-    Finder dot(String tab) => find.byKey(ValueKey('capsule-dot-$tab'));
 
-    // 홈에도 현재 위치 점이 있다.
-    expect(dot('feed'), findsOneWidget);
+    // 홈: 첫 칸은 팔레트, 점 없음.
+    expect(dot('feed'), findsNothing);
     expect(dot('stand'), findsNothing);
     expect(dot('me'), findsNothing);
-    for (final label in ['홈', '팔레트', '만들기', '스케치북']) {
+    for (final label in ['팔레트', '만들기', '스케치북']) {
       final size = tester.getSize(find.bySemanticsLabel(label));
       expect(size.width, greaterThanOrEqualTo(48));
       expect(size.height, greaterThanOrEqualTo(48));
     }
 
+    // 팔레트: 첫 칸은 홈, 점 없음.
     await tester.tap(find.bySemanticsLabel('팔레트'));
     await tester.pumpAndSettle();
-    expect(dot('stand'), findsOneWidget);
-    expect(dot('me'), findsNothing);
+    expect(find.bySemanticsLabel('홈'), findsOneWidget);
+    expect(find.bySemanticsLabel('팔레트'), findsNothing);
+    expect(
+      tester.getSize(find.bySemanticsLabel('홈')).width,
+      greaterThanOrEqualTo(48),
+    );
+    expect(dot('feed'), findsNothing);
+    expect(dot('stand'), findsNothing);
 
+    // 내 스케치북: 첫 칸은 홈, 스케치북 칸에 점.
     await tester.tap(find.bySemanticsLabel('스케치북'));
     await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('홈'), findsOneWidget);
     expect(dot('me'), findsOneWidget);
-    expect(dot('stand'), findsNothing);
+
+    // 홈으로 돌아가면 첫 칸은 다시 팔레트.
+    await tester.tap(find.bySemanticsLabel('홈'));
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('팔레트'), findsOneWidget);
+    expect(find.bySemanticsLabel('홈'), findsNothing);
+    expect(dot('me'), findsNothing);
     semantics.dispose();
   });
+
+  testWidgets('남의 스케치북은 들어온 쪽을 따른다: 홈에서 열면 팔레트, 팔레트에서 열면 홈', (tester) async {
+    usePhone(tester);
+    final semantics = tester.ensureSemantics();
+    await tester.pumpWidget(const EselApp());
+    await tester.pumpAndSettle();
+
+    tester
+        .widget<FeedScreen>(find.byType(FeedScreen))
+        .onOpenAuthorShelf('someone-else');
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('팔레트'), findsOneWidget);
+    expect(find.bySemanticsLabel('홈'), findsNothing);
+
+    await tester.tap(find.bySemanticsLabel('팔레트'));
+    await tester.pumpAndSettle();
+    final cover = find.byWidgetPredicate(
+      (w) =>
+          w.key is ValueKey<String> &&
+          (w.key! as ValueKey<String>).value.startsWith('palette-cover-'),
+    );
+    expect(cover, findsWidgets);
+    await tester.tap(cover.first);
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('홈'), findsOneWidget);
+    expect(find.bySemanticsLabel('팔레트'), findsNothing);
+    semantics.dispose();
+  });
+
   testWidgets('feed color link opens the color tab instead of recommended', (
     tester,
   ) async {
