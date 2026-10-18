@@ -181,38 +181,38 @@ class _LoginSheetState extends State<LoginSheet> {
           ],
           const SizedBox(height: 16),
 
-          // 1. Apple 로그인
-          _LoginOption(
-            label: controller.isLoading ? '연결 중...' : 'Apple로 계속하기',
-            icon: Icons.apple,
-            dark: true,
-            onTap: controller.isLoading
-                ? () {}
-                : () async {
-                    final success = await controller.loginWithApple();
-                    if (success && context.mounted) {
-                      Navigator.of(context).pop();
-                      widget.onLoginSuccess();
-                    }
-                  },
-          ),
-          const SizedBox(height: 10),
+          // 1·2. Apple·Google 로그인: 서버 계약에 아직 없어 시연(mock) 모드에서만 보인다.
+          if (AppConfig.current.isMock) ...[
+            _LoginOption(
+              label: controller.isLoading ? '연결 중...' : 'Apple로 계속하기',
+              icon: Icons.apple,
+              dark: true,
+              onTap: controller.isLoading
+                  ? () {}
+                  : () async {
+                      final success = await controller.loginWithApple();
+                      if (success && context.mounted) {
+                        Navigator.of(context).pop();
+                        widget.onLoginSuccess();
+                      }
+                    },
+            ),
+            const SizedBox(height: 10),
 
-          // 2. Google 로그인
-          _LoginOption(
-            label: controller.isLoading ? '연결 중...' : 'Google로 계속하기',
-            onTap: controller.isLoading
-                ? () {}
-                : () async {
-                    final success = await controller.loginWithGoogle();
-                    if (success && context.mounted) {
-                      Navigator.of(context).pop();
-                      widget.onLoginSuccess();
-                    }
-                  },
-          ),
-          const SizedBox(height: 10),
-
+            _LoginOption(
+              label: controller.isLoading ? '연결 중...' : 'Google로 계속하기',
+              onTap: controller.isLoading
+                  ? () {}
+                  : () async {
+                      final success = await controller.loginWithGoogle();
+                      if (success && context.mounted) {
+                        Navigator.of(context).pop();
+                        widget.onLoginSuccess();
+                      }
+                    },
+            ),
+            const SizedBox(height: 10),
+          ],
           // 3. 이메일 로그인 버튼 (이메일 입력 화면으로 전환)
           _LoginOption(
             label: '이메일로 계속하기',
