@@ -54,7 +54,7 @@ flutter_app/lib/features/<기능>/presentation/  화면(screens)과 상태(contr
 flutter_app/test/                           domain·data·위젯 테스트 (`flutter test`)
 ```
 
-data 계층은 인증(`features/auth/data`), 기기 보관함(`features/drafts/data`), 피드·가판대·서가 소스(`features/{feed,stand,magazine}/data/sources`), 예시 표지(`features/issue/data`)에 있다. 피드·팔레트·스케치북은 동일 화면에서 소스 인터페이스로 데이터를 받는다. 스케치북·오늘의 색·반응·색 기록은 기존 서버 API에 연결했고, 피드·팔레트·사진 업로드·새 발행·착용 정보의 원격 구현은 아직 미완료다([연결 범위](../flutter/CORE_API_CONNECTION.md)). 오늘의 색 후보(`features/today/domain/rules/daily_candidates.dart`)는 mock 모드에서만 날짜로 정하며 서버 모드에서는 API 응답을 쓴다.
+data 계층은 인증(`features/auth/data`), 기기 보관함(`features/drafts/data`), 피드·가판대·서가 소스(`features/{feed,stand,magazine}/data/sources`), 예시 표지(`features/issue/data`)에 있다. 피드·팔레트·스케치북은 동일 화면에서 소스 인터페이스로 데이터를 받는다. 스케치북·오늘의 색·반응·색 기록은 기존 서버 API에 연결했고, 피드·팔레트·사진 업로드·새 발행과 착용 정보 저장·조회도 기존 서버 계약에 연결했다. 사인 뒤로 서버 업로드와 JPEG 출력 전환 등 남은 범위는 개별 연결 기록을 따른다([연결 범위](../flutter/CORE_API_CONNECTION.md)). 오늘의 색 후보(`features/today/domain/rules/daily_candidates.dart`)는 mock 모드에서만 날짜로 정하며 서버 모드에서는 API 응답을 쓴다.
 
 | 목업 경로 | 앱 위치(현재) | 화면 |
 |---|---|---|

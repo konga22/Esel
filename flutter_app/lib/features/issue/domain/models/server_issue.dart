@@ -1,3 +1,4 @@
+import '../../../garments/domain/garment.dart';
 import '../../../../core/design/tokens.g.dart';
 import '../../../../core/time/service_date.dart';
 
@@ -9,7 +10,9 @@ class ServerIssue {
   final DateTime publishedAt;
   final EselPaint color;
   final bool liked, scrapped;
+  final List<Garment> garments;
   const ServerIssue({
+    this.garments = const [],
     required this.id,
     required this.masthead,
     required this.caption,

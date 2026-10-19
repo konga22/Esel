@@ -84,6 +84,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final file = await ImagePicker().pickImage(
       source: source,
       requestFullMetadata: false,
+      maxWidth: 2160,
+      maxHeight: 2160,
     );
     if (file == null) return null;
     return widget.library.persistent

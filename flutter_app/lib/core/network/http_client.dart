@@ -34,6 +34,12 @@ class StandardHttpClient implements AppHttpClient, BinaryHttpClient {
   final AppConfig config;
   final SessionStorage storage;
   Future<void>? _refreshing;
+
+  /// 연결 제한(10초)·응답 무진행 제한(15초)은 유지한다.
+  /// 업로드 본문 전송은 최소 30초 + 32KiB/s 기준 크기별 예산을 둔다.
+  static Duration uploadTimeout(int bytes) => Duration(
+    seconds: 30 + (bytes.clamp(0, 15 * 1024 * 1024) / (32 * 1024)).ceil(),
+  );
   StandardHttpClient({required this.config, required this.storage});
 
   @override
@@ -126,7 +132,9 @@ class StandardHttpClient implements AppHttpClient, BinaryHttpClient {
         request.write(jsonEncode(body));
       }
       final response = await request.close().timeout(
-        const Duration(seconds: 15),
+        rawBody == null
+            ? const Duration(seconds: 15)
+            : uploadTimeout(rawBody.length),
       );
       final received = BytesBuilder(copy: false);
       await for (final chunk in response.timeout(const Duration(seconds: 15))) {

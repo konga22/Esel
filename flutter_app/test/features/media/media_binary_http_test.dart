@@ -21,6 +21,38 @@ void main() {
     );
   });
   tearDown(() => server.close(force: true));
+  test('업로드 예산은 사진 크기에 비례하고 입력 상한을 넘겨 늘어나지 않는다', () {
+    expect(StandardHttpClient.uploadTimeout(0), const Duration(seconds: 30));
+    expect(
+      StandardHttpClient.uploadTimeout(3 * 1024 * 1024),
+      const Duration(seconds: 126),
+    );
+    expect(
+      StandardHttpClient.uploadTimeout(100 * 1024 * 1024),
+      const Duration(seconds: 510),
+    );
+  });
+  test(
+    '느리게 읽는 서버에 3MB를 보내도 기존 15초 제한으로 중단되지 않는다',
+    () async {
+      server.listen((req) async {
+        await Future<void>.delayed(const Duration(seconds: 16));
+        var received = 0;
+        await for (final chunk in req) {
+          received += chunk.length;
+        }
+        expect(received, 3 * 1024 * 1024);
+        req.response.statusCode = 204;
+        await req.response.close();
+      });
+      await http.putBytes(
+        '/media/slow/file',
+        Uint8List(3 * 1024 * 1024),
+        contentType: 'image/png',
+      );
+    },
+    timeout: const Timeout(Duration(seconds: 25)),
+  );
   test('바이너리도 만료 토큰을 갱신하고 재요청하며 JSON 오류를 구분한다', () async {
     var refreshes = 0;
     server.listen((req) async {

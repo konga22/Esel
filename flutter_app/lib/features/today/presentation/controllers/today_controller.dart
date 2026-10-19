@@ -20,6 +20,9 @@ import '../../domain/rules/daily_candidates.dart';
 /// 서울 자정·올리기 때 다시 계산한다.
 class TodayController extends ChangeNotifier {
   final ServiceClock clock;
+  final Future<CoverDraft> Function(CoverDraft)? publishRemote;
+  bool _publishing = false;
+  int _publishRequest = 0;
   final TodayRemoteSource? remote;
   final MagazineRemoteSource? remoteMagazine;
   bool loading = false;
@@ -42,7 +45,12 @@ class TodayController extends ChangeNotifier {
   late ServiceDate _today;
   List<CoverDraft> _issues = const [];
 
-  TodayController({required this.clock, this.remote, this.remoteMagazine}) {
+  TodayController({
+    required this.clock,
+    this.remote,
+    this.remoteMagazine,
+    this.publishRemote,
+  }) {
     _today = clock.today;
   }
 
@@ -131,6 +139,8 @@ class TodayController extends ChangeNotifier {
     final profileChanged = hasProfile != _hasProfile;
     _hasProfile = hasProfile;
     if (changed) {
+      _publishRequest++;
+      _publishing = false;
       _request++;
       _accountVersion++;
       _choices = Future.value();
@@ -290,9 +300,69 @@ class TodayController extends ChangeNotifier {
   Future<CoverDraft> publish(CoverDraft draft) async {
     if (isRemote) {
       validateMediaUpload(draft);
-      throw const NotImplementedFailure(
-        '사진 업로드·올리기 API를 준비 중이에요. 초안은 이 기기에 보관할 수 있어요.',
-      );
+      final owner = _ownerId, version = _accountVersion;
+      if (owner == null || draft.ownerId != owner) {
+        throw const AuthFailure('내 계정의 초안만 올릴 수 있어요.');
+      }
+      if (_publishing) {
+        throw const RuleFailure('사진을 올리는 중이에요. 잠시 기다려 주세요.');
+      }
+      if (publishRemote == null) {
+        throw const NotImplementedFailure('올리기 연결을 확인해 주세요.');
+      }
+      _publishing = true;
+      final operation = ++_publishRequest;
+      try {
+        await _choices;
+        await _inFlight;
+        await reload();
+        void checkOwner() {
+          if (version != _accountVersion || owner != _ownerId) {
+            throw const AuthFailure('계정이 변경됐어요.');
+          }
+        }
+
+        checkOwner();
+        if (error != null) {
+          throw NetworkFailure(error!);
+        }
+        if (hasPublishedToday) {
+          throw const RuleFailure(
+            '오늘은 이미 한 호를 올렸어요.',
+            code: 'ISSUE_ALREADY_PUBLISHED',
+          );
+        }
+        if (!candidates.contains(draft.color)) {
+          throw const RuleFailure('오늘의 후보 색 중 하나로 올려 주세요.');
+        }
+        await choose(draft.color);
+        checkOwner();
+        if (error != null || _picked != draft.color) {
+          throw RuleFailure(error ?? '오늘의 색을 저장하지 못했어요.');
+        }
+        final issue = await publishRemote!(draft);
+        checkOwner();
+        // 이미 시작된 새로고침이 발행 전 응답으로 성공 상태를 덮지 않게 한다.
+        _request++;
+        _inFlight = null;
+        _today = ServiceDate.tryParse(issue.publishedOn)!;
+        _remotePublished = true;
+        _remoteCount = issue.issueNumber;
+        _issues = [issue, ..._issues.where((v) => v.id != issue.id)];
+        error = null;
+        loading = false;
+        notifyListeners();
+        await reload();
+        return issue;
+      } on RuleFailure catch (failure) {
+        if (failure.code == 'ISSUE_ALREADY_PUBLISHED' &&
+            version == _accountVersion) {
+          await reload();
+        }
+        rethrow;
+      } finally {
+        if (operation == _publishRequest) _publishing = false;
+      }
     }
     refresh();
     final owner = _ownerId;

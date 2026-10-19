@@ -665,6 +665,8 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
           onClose: () => Navigator.pop(editorContext),
           onPublish: (value) async {
             await _sl.todayController.publish(value);
+            _sl.feedController.load();
+            _sl.magazineController.clear();
             if (editorContext.mounted) Navigator.pop(editorContext);
           },
         ),
@@ -877,6 +879,10 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
   }
 
   void _closeContentEditor({bool published = false}) {
+    if (published) {
+      _sl.feedController.load();
+      _sl.magazineController.clear();
+    }
     setState(() {
       _activeScreen = _pendingChallenge == null
           ? ActiveScreen.main

@@ -1,3 +1,4 @@
+import '../../../garments/domain/garment.dart';
 import '../../../auth/domain/models/auth_session.dart';
 import '../../../media/domain/models/media_photo.dart';
 import '../../domain/models/public_issue.dart';
@@ -14,6 +15,10 @@ import '../../domain/models/server_issue.dart';
 /// 반응은 false로 둔다.
 ServerIssue parseServerIssue(Map<String, dynamic> value, {ServiceDate? date}) =>
     ServerIssue(
+      garments: [
+        for (final g in value['garments'] as List? ?? const [])
+          Garment.fromJson(Map<String, dynamic>.from(g as Map)),
+      ],
       id: value['id'] as String,
       publishedAt: DateTime.parse(value['publishedAt'] as String),
       masthead: value['masthead'] as String,
@@ -45,6 +50,7 @@ PublicIssue serverIssueToPublic(
   String? ownerId,
   AuthSession? viewer,
 }) => PublicIssue(
+  garments: value.garments,
   id: value.id,
   ownerId:
       ownerId ??

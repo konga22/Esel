@@ -122,6 +122,8 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
       final file = await ImagePicker().pickImage(
         source: source,
         requestFullMetadata: false,
+        maxWidth: 2160,
+        maxHeight: 2160,
       );
       if (file == null) return;
       await _applyPhoto(file);
@@ -240,7 +242,11 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
     } on Failure catch (error) {
       _message(error.message);
     } catch (_) {
-      _message('올리기 내용을 기기에 저장하지 못했어요. 다시 시도해 주세요.');
+      _message(
+        widget.localDemo
+            ? '올리기 내용을 기기에 저장하지 못했어요. 다시 시도해 주세요.'
+            : '올리지 못했어요. 연결 상태를 확인하고 다시 시도해 주세요.',
+      );
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -641,7 +647,9 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
             if (widget.onPublish != null) ...[
               const SizedBox(height: 12),
               EselButton(
-                label: _busy ? '기기에 저장 중…' : '오늘의 캔버스 올리기',
+                label: _busy
+                    ? (widget.localDemo ? '기기에 저장 중…' : '서버에 올리는 중…')
+                    : '오늘의 캔버스 올리기',
                 enabled: !_busy && _draft.validationError == null,
                 onTap: _publish,
               ),
