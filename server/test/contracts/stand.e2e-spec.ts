@@ -92,7 +92,8 @@ describe('DEV-12 가판대와 같은 색', () => {
         colorId: options.colorId,
         mediaId: media.id,
         caption: '팔레트',
-        faceMode: 'PLAIN',
+        faceCrop: 'ORIGINAL',
+        paintStroke: false,
         publishedAt: options.publishedAt,
       },
     });

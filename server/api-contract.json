@@ -1,6 +1,6 @@
 {
-  "version": 2,
-  "updatedAt": "2026-10-18",
+  "version": 3,
+  "updatedAt": "2026-10-19",
   "note": "Esel 서버 API 약속 목록. 정본 관계: 경로·방법·권한(access)·오류 코드 = 이 파일, 요청·응답 데이터 모양 = Swagger(코드의 DTO). 여기 없는 API는 만들지 않는다. 바꾸거나 더하려면 이 파일을 먼저 고치고 리뷰를 받는다. 규칙은 docs/API_RULES.md, 기능과 합격 기준은 저장소 루트의 docs/dev/features.json(FEATURES.md)에 있다. status는 todo·doing·done 중 하나이고, done이면 test 파일의 it/test 블록에 그 경로를 request(...)로 부르는 실제 테스트가 있어야 한다. note는 아직 사용자가 정하지 않은 것이다. 구현하기 전에 정하고 지운다.",
   "base": "/api",
   "statuses": ["todo", "doing", "done"],

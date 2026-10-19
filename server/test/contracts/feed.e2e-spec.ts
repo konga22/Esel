@@ -92,7 +92,8 @@ describe('DEV-10 표지 피드', () => {
         colorId: options.colorId ?? 'sage',
         mediaId: media.id,
         caption: '피드',
-        faceMode: 'PLAIN',
+        faceCrop: 'ORIGINAL',
+        paintStroke: false,
         publishedAt: options.publishedAt,
       },
     });

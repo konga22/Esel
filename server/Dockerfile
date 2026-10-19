@@ -9,6 +9,7 @@ WORKDIR /app
 COPY package.json package-lock.json prisma.config.ts ./
 COPY prisma ./prisma
 RUN npm ci
+RUN mkdir -p /app/data/media && chown -R node:node /app/data
 
 FROM dependencies AS build
 COPY . .

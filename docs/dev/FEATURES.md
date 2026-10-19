@@ -330,7 +330,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **서버 (초안)**
 
-- POST /api/issues {mediaId, caption, faceMode, mastheadColor}: 하나의 트랜잭션에서 issue_count+1과 Issue 생성, 같은 날 두 번째는 409
+- POST /api/issues {mediaId, caption, faceCrop, paintStroke}: 하나의 트랜잭션에서 issue_count+1과 Issue 생성, 같은 날 두 번째는 409. BELOW_NECK이면 paintStroke는 false로 저장
 - user_daily_choices.locked_at 설정
 
 **합격 기준**

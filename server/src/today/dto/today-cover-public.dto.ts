@@ -25,8 +25,11 @@ export class TodayCoverIssueDto {
   @ApiProperty({ maxLength: 280 })
   caption: string;
 
-  @ApiProperty({ enum: ['PLAIN', 'PAINT', 'BEHIND_MASTHEAD', 'NECK_DOWN'] })
-  faceMode: string;
+  @ApiProperty({ enum: ['ORIGINAL', 'BEHIND_LOGO', 'BELOW_NECK'] })
+  faceCrop: string;
+
+  @ApiProperty({ description: '얼굴 위 물감 한 획 사용 여부' })
+  paintStroke: boolean;
 
   @ApiProperty({ type: IssueGarmentDto, isArray: true })
   garments: IssueGarmentDto[];

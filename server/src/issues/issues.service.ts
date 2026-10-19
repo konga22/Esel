@@ -14,6 +14,7 @@ import { ReaderLinePageDto } from './dto/reader-line-page.dto.js';
 import { ReaderLinePublicDto } from './dto/reader-line-public.dto.js';
 import { ReaderLineRateLimiter } from './reader-line-rate-limiter.js';
 import { PublishIssueDto } from './dto/publish-issue.dto.js';
+import { TodayCoverSelector } from '../today/today-cover.selector.js';
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -24,6 +25,7 @@ export class IssuesService {
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
     private readonly readerLineRateLimiter: ReaderLineRateLimiter,
+    private readonly coverSelector: TodayCoverSelector,
   ) {}
 
   async publish(
@@ -128,7 +130,9 @@ export class IssuesService {
                 colorId: choice.colorId,
                 mediaId: media.id,
                 caption: input.caption,
-                faceMode: input.faceMode,
+                faceCrop: input.faceCrop,
+                paintStroke:
+                  input.faceCrop === 'BELOW_NECK' ? false : input.paintStroke,
                 garments: { create: garmentLinks },
               },
               select: { id: true },
@@ -200,7 +204,8 @@ export class IssuesService {
       },
       media: issue.media,
       caption: issue.caption,
-      faceMode: issue.faceMode,
+      faceCrop: issue.faceCrop,
+      paintStroke: issue.paintStroke,
       garments: issue.garments.map(({ garment, todayColor, x, y }) => ({
         garmentId: garment.id,
         kind: garment.kind,
@@ -223,7 +228,8 @@ export class IssuesService {
       color: result.color,
       media: result.media,
       caption: result.caption,
-      faceMode: result.faceMode,
+      faceCrop: result.faceCrop,
+      paintStroke: result.paintStroke,
       garments: result.garments,
       liked: result.liked,
       scrapped: result.scrapped,
@@ -276,7 +282,8 @@ export class IssuesService {
       color: issue.color,
       media: issue.media,
       caption: issue.caption,
-      faceMode: issue.faceMode,
+      faceCrop: issue.faceCrop,
+      paintStroke: issue.paintStroke,
       garments: issue.garments,
       liked: issue.liked,
       scrapped: issue.scrapped,
@@ -425,7 +432,7 @@ export class IssuesService {
 
     const today = new Date(`${todayKey}T00:00:00.000Z`);
     if (!userId) {
-      const coverIds = await this.anonymousTodayCoverIds(today);
+      const coverIds = await this.coverSelector.issueIds(today);
       if (coverIds.includes(issue.id)) return issue;
       throw new AppException('NOT_FOUND');
     }
@@ -446,28 +453,6 @@ export class IssuesService {
     });
     if (preview.some(({ id }) => id === issue.id)) return issue;
     throw new AppException('NOT_FOUND');
-  }
-
-  private async anonymousTodayCoverIds(date: Date): Promise<string[]> {
-    const issues = await this.prisma.issue.findMany({
-      where: { serviceDate: date, deletedAt: null },
-      orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }],
-      select: {
-        id: true,
-        colorId: true,
-        author: { select: { profile: { select: { id: true } } } },
-      },
-    });
-    const perColor = new Map<string, number>();
-    const visible: string[] = [];
-    for (const issue of issues) {
-      const seen = perColor.get(issue.colorId) ?? 0;
-      if (seen >= 3 || !issue.author.profile) continue;
-      perColor.set(issue.colorId, seen + 1);
-      visible.push(issue.id);
-      if (visible.length === 3) break;
-    }
-    return visible;
   }
 
   private async candidateIds(key: string, date: Date): Promise<string[]> {

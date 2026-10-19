@@ -81,7 +81,8 @@ describe('DEV-14 내 잡지와 반응', () => {
         colorId,
         mediaId: media.id,
         caption: '내 잡지',
-        faceMode: 'PLAIN',
+        faceCrop: 'ORIGINAL',
+        paintStroke: false,
       },
     });
   }

@@ -46,7 +46,8 @@ export async function createLockedIssuePerCandidate(
           colorId,
           mediaId: media.id,
           caption: `P01 후보 ${authorIndex++}`,
-          faceMode: 'PLAIN',
+          faceCrop: 'ORIGINAL',
+          paintStroke: false,
           publishedAt:
             position === 0
               ? new Date('2000-01-01T00:00:00.000Z')

@@ -94,7 +94,8 @@ describe('DEV-15 월간 색 기록과 복원', () => {
         colorId: await candidate(dateKey),
         mediaId: media.id,
         caption: '사진 기록',
-        faceMode: 'PLAIN',
+        faceCrop: 'ORIGINAL',
+        paintStroke: false,
       },
     });
   }

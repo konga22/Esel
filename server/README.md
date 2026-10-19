@@ -36,6 +36,14 @@ npm run prisma:deploy  # 커밋된 migration 적용(12색 기준 데이터 포�
 npm run start:dev
 ```
 
+발표 노트북처럼 시연 데이터를 포함해 전체 서버를 한 번에 띄울 때는 저장소 루트에서 아래 한 줄만 실행합니다.
+
+```bash
+docker compose up -d --build api
+```
+
+이 명령은 DB migration 뒤 `assets/demo`의 예시 인물 5명과 오늘 호를 자동으로 넣고 API를 시작합니다. `seed:demo`는 같은 날 여러 번 실행하면 같은 계정·호를 갱신하고, 날짜가 바뀌면 각 계정의 마지막 호수 다음 번호로 새 호를 만들어 데이터와 호수가 충돌하지 않습니다. 원본과 480px 썸네일은 `esel-media-data` 볼륨에 남습니다. 완전히 새 발표 상태로 되돌리는 작업은 기존 DB·사진 볼륨을 지우므로, 필요한 데이터가 없는지 확인한 뒤에만 실행해야 합니다.
+
 - API: `http://localhost:3000/api`
 - 상태 확인: `http://localhost:3000/api/health`
 - Swagger: `http://localhost:3000/api/docs` (운영 `NODE_ENV=production`에서는 꺼짐)
@@ -155,7 +163,7 @@ Invoke-RestMethod -Method Get `
 
 HEIC 원본은 현재 허용하고 실제 시그니처도 검사하지만 JPEG 썸네일 생성은 보장하지 않습니다. iPhone 앱에서 JPEG로 바꿔 올릴지 서버에 HEIC 변환기를 둘지는 관혁이와 정한 뒤 계약을 갱신합니다. 외부 S3·R2는 쓰지 않으므로 배포 환경에는 컨테이너 재배포 뒤에도 보존되는 영구 디스크가 반드시 필요합니다.
 
-오늘 호 발행은 `POST /api/issues` 한 트랜잭션 안에서 오늘의 선택 색 확인, READY 상태인 내 사진 연결, 호 생성, `issueCount` 증가, 선택 색 잠금을 함께 처리합니다. 같은 사용자의 같은 서비스 날짜에는 DB unique 제약이 있어 동시 요청도 한 호만 성공합니다. `garments`는 없어도 되고 최대 8개이며, 새 옷은 `garments`, 호에서의 순서·태그 좌표·오늘의 색 표시는 `issue_garments`에 나눠 저장합니다. URL·가격처럼 DTO에 없는 필드는 전역 whitelist가 `400 VALIDATION`으로 거절합니다.
+오늘 호 발행은 `POST /api/issues` 한 트랜잭션 안에서 오늘의 선택 색 확인, READY 상태인 내 사진 연결, 호 생성, `issueCount` 증가, 선택 색 잠금을 함께 처리합니다. 얼굴 연출은 자르기 위치 `faceCrop`(`ORIGINAL`, `BEHIND_LOGO`, `BELOW_NECK`)과 물감 사용 여부 `paintStroke`로 따로 저장해 두 연출을 함께 쓸 수 있습니다. `BELOW_NECK`이면 서버와 DB가 `paintStroke=false`를 강제합니다. 기존 `PAINT`/`PAINT_STROKE` 데이터는 migration에서 `ORIGINAL + true`로 옮깁니다. 같은 사용자의 같은 서비스 날짜에는 DB unique 제약이 있어 동시 요청도 한 호만 성공합니다. `garments`는 없어도 되고 최대 8개이며, 새 옷은 `garments`, 호에서의 순서·태그 좌표·오늘의 색 표시는 `issue_garments`에 나눠 저장합니다. URL·가격처럼 DTO에 없는 필드는 전역 whitelist가 `400 VALIDATION`으로 거절합니다.
 
 `GET /api/me/garments`는 내 옷만 20개씩 최신순으로 돌려주므로 다음 코디에서 `garmentId`로 다시 고를 수 있습니다. 응답에도 가격·쇼핑 링크는 없으며, 계정을 삭제하면 옷과 호 연결 정보도 외래 키 cascade로 함께 지워집니다.
 
