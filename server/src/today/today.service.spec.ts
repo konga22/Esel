@@ -38,7 +38,9 @@ describe('TodayService', () => {
       getOrThrow: vi.fn().mockReturnValue('Asia/Seoul'),
     } as unknown as ConfigService;
 
-    const result = await new TodayService(prisma, config).get('user-id');
+    const result = await new TodayService(prisma, config, {
+      issueIds: vi.fn(),
+    } as never).get('user-id');
 
     expect(result.candidates).toHaveLength(3);
     expect(createPalette).not.toHaveBeenCalled();

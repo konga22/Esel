@@ -63,7 +63,8 @@ describe('DEV-04 비로그인 첫 표지와 로그인 바', () => {
         colorId,
         mediaId: media.id,
         caption: '비로그인 표지',
-        faceMode: 'PLAIN',
+        faceCrop: 'ORIGINAL',
+        paintStroke: false,
         publishedAt: new Date(Date.now() + index * 1_000),
       },
     });

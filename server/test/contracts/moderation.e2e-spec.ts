@@ -92,7 +92,8 @@ describe('DEV-20 신고·차단·삭제', () => {
         colorId: options.colorId ?? 'sage',
         mediaId: media.id,
         caption: '신고 테스트',
-        faceMode: 'PLAIN',
+        faceCrop: 'ORIGINAL',
+        paintStroke: false,
         publishedAt: options.publishedAt,
       },
     });

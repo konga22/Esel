@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Prisma } from '../generated/prisma/client.js';
 import { AppException } from '../common/app-exception.js';
 import { serviceDate } from '../common/service-date.js';
 import { IssuesService } from '../issues/issues.service.js';
@@ -167,61 +168,25 @@ export class StandService {
       ...subscriptions.map(({ magazineId }) => magazineId),
       ...blocks.map(({ blockedId }) => blockedId),
     ];
-    const raw = await this.prisma.issue.findMany({
-      where: {
-        deletedAt: null,
-        authorId: { notIn: excludedAuthors },
-        serviceDate: { lte: current.date },
-        ...(choice ? { colorId: choice.colorId } : {}),
-        ...(!ownIssue || ownIssue.deletedAt
-          ? {
-              OR: [
-                { serviceDate: { lt: current.date } },
-                { serviceDate: current.date, colorId: { notIn: candidateIds } },
-              ],
-            }
-          : {}),
-      },
-      include: {
-        author: { select: { profile: { select: { masthead: true } } } },
-        color: true,
-        media: {
-          select: { id: true, mimeType: true, width: true, height: true },
-        },
-      },
-      orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }],
-    });
-    const latestByAuthor = new Map<string, (typeof raw)[number]>();
-    for (const issue of raw) {
-      if (!latestByAuthor.has(issue.authorId) && issue.author.profile) {
-        latestByAuthor.set(issue.authorId, issue);
-      }
-    }
-    const unique = [...latestByAuthor.values()];
     const cursorValue = cursor ? this.decodeCursor(cursor) : null;
-    const afterCursor = cursorValue
-      ? unique.filter(
-          ({ publishedAt, id }) =>
-            publishedAt < cursorValue.publishedAt ||
-            (publishedAt.getTime() === cursorValue.publishedAt.getTime() &&
-              id < cursorValue.id),
-        )
-      : unique;
-    const page = afterCursor.slice(0, 20);
-    const last = page.at(-1);
-    return {
-      items: page.map((issue) => ({
-        issueId: issue.id,
-        masthead: issue.author.profile!.masthead,
-        serviceDate: this.dateKey(issue.serviceDate),
-        color: this.toColor(issue.color),
-        media: issue.media,
-      })),
-      nextCursor:
-        afterCursor.length > 20 && last
-          ? this.encodeCursor(last.publishedAt, last.id)
-          : null,
-    };
+    const rows = await this.latestIssueRows(
+      Prisma.sql`
+        i."deleted_at" IS NULL
+        AND i."author_id" NOT IN (${this.uuidList(excludedAuthors)})
+        AND i."service_date" <= ${current.date}
+        ${choice ? Prisma.sql`AND i."color_id" = ${choice.colorId}` : Prisma.empty}
+        ${
+          !ownIssue || ownIssue.deletedAt
+            ? Prisma.sql`AND (
+                i."service_date" < ${current.date}
+                OR (i."service_date" = ${current.date} AND i."color_id" NOT IN (${Prisma.join(candidateIds)}))
+              )`
+            : Prisma.empty
+        }
+      `,
+      cursorValue,
+    );
+    return this.palettePage(rows);
   }
 
   async subscriptions(
@@ -249,62 +214,26 @@ export class StandService {
     ]);
     if (subscriptions.length === 0) return { items: [], nextCursor: null };
 
-    const raw = await this.prisma.issue.findMany({
-      where: {
-        authorId: {
-          in: subscriptions.map(({ magazineId }) => magazineId),
-          notIn: blocks.map(({ blockedId }) => blockedId),
-        },
-        deletedAt: null,
-        serviceDate: { lte: current.date },
-        ...(!ownIssue || ownIssue.deletedAt
-          ? {
-              OR: [
-                { serviceDate: { lt: current.date } },
-                { serviceDate: current.date, colorId: { notIn: candidateIds } },
-              ],
-            }
-          : {}),
-      },
-      include: {
-        author: { select: { profile: { select: { masthead: true } } } },
-        color: true,
-        media: {
-          select: { id: true, mimeType: true, width: true, height: true },
-        },
-      },
-      orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }],
-    });
-    const latestByAuthor = new Map<string, (typeof raw)[number]>();
-    for (const issue of raw) {
-      if (!latestByAuthor.has(issue.authorId) && issue.author.profile) {
-        latestByAuthor.set(issue.authorId, issue);
-      }
-    }
-    const unique = [...latestByAuthor.values()];
-    const afterCursor = cursorValue
-      ? unique.filter(
-          ({ publishedAt, id }) =>
-            publishedAt < cursorValue.publishedAt ||
-            (publishedAt.getTime() === cursorValue.publishedAt.getTime() &&
-              id < cursorValue.id),
-        )
-      : unique;
-    const page = afterCursor.slice(0, 20);
-    const last = page.at(-1);
-    return {
-      items: page.map((issue) => ({
-        issueId: issue.id,
-        masthead: issue.author.profile!.masthead,
-        serviceDate: this.dateKey(issue.serviceDate),
-        color: this.toColor(issue.color),
-        media: issue.media,
-      })),
-      nextCursor:
-        afterCursor.length > 20 && last
-          ? this.encodeCursor(last.publishedAt, last.id)
-          : null,
-    };
+    const subscriberIds = subscriptions.map(({ magazineId }) => magazineId);
+    const blockedIds = blocks.map(({ blockedId }) => blockedId);
+    const rows = await this.latestIssueRows(
+      Prisma.sql`
+        i."deleted_at" IS NULL
+        AND i."author_id" IN (${this.uuidList(subscriberIds)})
+        ${blockedIds.length > 0 ? Prisma.sql`AND i."author_id" NOT IN (${this.uuidList(blockedIds)})` : Prisma.empty}
+        AND i."service_date" <= ${current.date}
+        ${
+          !ownIssue || ownIssue.deletedAt
+            ? Prisma.sql`AND (
+                i."service_date" < ${current.date}
+                OR (i."service_date" = ${current.date} AND i."color_id" NOT IN (${Prisma.join(candidateIds)}))
+              )`
+            : Prisma.empty
+        }
+      `,
+      cursorValue,
+    );
+    return this.palettePage(rows);
   }
 
   async colors(userId: string): Promise<PaletteColorsDto> {
@@ -372,6 +301,83 @@ export class StandService {
       this.config.getOrThrow<string>('SERVICE_TIME_ZONE'),
     );
     return { key, date: new Date(`${key}T00:00:00.000Z`) };
+  }
+
+  private async latestIssueRows(
+    where: Prisma.Sql,
+    cursor: { publishedAt: Date; id: string } | null,
+  ): Promise<Array<{ id: string; publishedAt: Date }>> {
+    return this.prisma.$queryRaw<Array<{ id: string; publishedAt: Date }>>(
+      Prisma.sql`
+        WITH ranked AS (
+          SELECT
+            i."id",
+            i."published_at",
+            ROW_NUMBER() OVER (
+              PARTITION BY i."author_id"
+              ORDER BY i."published_at" DESC, i."id" DESC
+            ) AS author_rank
+          FROM "issues" i
+          INNER JOIN "profiles" p ON p."user_id" = i."author_id"
+          WHERE ${where}
+        )
+        SELECT "id", "published_at" AS "publishedAt"
+        FROM ranked
+        WHERE author_rank = 1
+          ${
+            cursor
+              ? Prisma.sql`AND (
+                  "published_at" < ${cursor.publishedAt}
+                  OR ("published_at" = ${cursor.publishedAt} AND "id" < ${cursor.id}::uuid)
+                )`
+              : Prisma.empty
+          }
+        ORDER BY "published_at" DESC, "id" DESC
+        LIMIT 21
+      `,
+    );
+  }
+
+  private async palettePage(
+    rows: Array<{ id: string; publishedAt: Date }>,
+  ): Promise<PalettePageDto> {
+    const page = rows.slice(0, 20);
+    const issues = await this.prisma.issue.findMany({
+      where: { id: { in: page.map(({ id }) => id) } },
+      include: {
+        author: { select: { profile: { select: { masthead: true } } } },
+        color: true,
+        media: {
+          select: { id: true, mimeType: true, width: true, height: true },
+        },
+      },
+    });
+    const issueById = new Map(issues.map((issue) => [issue.id, issue]));
+    const items = page.flatMap(({ id }) => {
+      const issue = issueById.get(id);
+      if (!issue?.author.profile) return [];
+      return [
+        {
+          issueId: issue.id,
+          masthead: issue.author.profile.masthead,
+          serviceDate: this.dateKey(issue.serviceDate),
+          color: this.toColor(issue.color),
+          media: issue.media,
+        },
+      ];
+    });
+    const last = page.at(-1);
+    return {
+      items,
+      nextCursor:
+        rows.length > 20 && last
+          ? this.encodeCursor(last.publishedAt, last.id)
+          : null,
+    };
+  }
+
+  private uuidList(ids: string[]): Prisma.Sql {
+    return Prisma.join(ids.map((id) => Prisma.sql`${id}::uuid`));
   }
 
   private parseDate(key: string): Date {

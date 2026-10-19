@@ -88,10 +88,41 @@ describe('DB 제약과 12색 (e2e)', () => {
             colorId: 'sage',
             mediaId: media.id,
             caption: '',
-            faceMode: 'PLAIN',
+            faceCrop: 'ORIGINAL',
+            paintStroke: false,
           },
         }),
       ).rejects.toThrow(/issues_issue_number_check/);
+    } finally {
+      await prisma.user.delete({ where: { id: user.id } });
+    }
+  });
+
+  it('목 아래 자르기에는 물감 연출을 함께 저장할 수 없다', async () => {
+    const user = await prisma.user.create({ data: {} });
+    try {
+      const media = await prisma.mediaAsset.create({
+        data: {
+          ownerId: user.id,
+          storageKey: `face-constraint/${user.id}`,
+          mimeType: 'image/jpeg',
+          sizeBytes: 1,
+        },
+      });
+      await expect(
+        prisma.issue.create({
+          data: {
+            authorId: user.id,
+            serviceDate: new Date('1999-01-02'),
+            issueNumber: 1,
+            colorId: 'sage',
+            mediaId: media.id,
+            caption: '',
+            faceCrop: 'BELOW_NECK',
+            paintStroke: true,
+          },
+        }),
+      ).rejects.toThrow(/issues_below_neck_without_paint_check/);
     } finally {
       await prisma.user.delete({ where: { id: user.id } });
     }

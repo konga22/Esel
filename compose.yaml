@@ -34,7 +34,7 @@ services:
     volumes:
       - esel-media-data:/app/data/media
     depends_on:
-      migrate:
+      seed:
         condition: service_completed_successfully
     healthcheck:
       test:
@@ -58,6 +58,25 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    restart: "no"
+
+  seed:
+    build:
+      context: ./server
+      target: build
+    environment:
+      DATABASE_URL: postgresql://esel:esel_dev@postgres:5432/esel?schema=public
+      SERVICE_TIME_ZONE: Asia/Seoul
+      MEDIA_STORAGE_ROOT: /app/data/media
+      DEMO_ASSET_ROOT: /app/demo-assets
+    command: npm run seed:demo
+    user: node
+    volumes:
+      - esel-media-data:/app/data/media
+      - ./assets/demo:/app/demo-assets:ro
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     restart: "no"
 
 volumes:

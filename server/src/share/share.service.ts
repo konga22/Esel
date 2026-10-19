@@ -81,7 +81,8 @@ export class ShareService {
           color: this.color(link.issue.color),
           media: link.issue.media,
           caption: link.issue.caption,
-          faceMode: link.issue.faceMode,
+          faceCrop: link.issue.faceCrop,
+          paintStroke: link.issue.paintStroke,
           garments: link.issue.garments.map(
             ({ garment, todayColor, x, y }) => ({
               garmentId: garment.id,
@@ -194,7 +195,8 @@ export class ShareService {
       height: number | null;
     };
     caption: string;
-    faceMode: string;
+    faceCrop: string;
+    paintStroke: boolean;
     garments: SharedIssueDto['garments'];
   }): SharedIssueDto {
     return {
@@ -205,7 +207,8 @@ export class ShareService {
       color: issue.color,
       media: issue.media,
       caption: issue.caption,
-      faceMode: issue.faceMode,
+      faceCrop: issue.faceCrop,
+      paintStroke: issue.paintStroke,
       garments: issue.garments,
     };
   }

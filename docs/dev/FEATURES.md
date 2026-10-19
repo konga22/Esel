@@ -1,6 +1,6 @@
 # 기능 개발 목록
 
-> 자동 생성 파일이다. [features.json](features.json)을 고치고 `npm run dev:docs`로 다시 만든다. 개발 방법은 [개발 가이드](README.md)에 있다. (기준일 2026-10-18)
+> 자동 생성 파일이다. [features.json](features.json)을 고치고 `npm run dev:docs`로 다시 만든다. 개발 방법은 [개발 가이드](README.md)에 있다. (기준일 2026-10-19)
 
 | ID | 기능 | 단계 | 목업 화면 | 계약 | 먼저 할 것 | 상태 |
 |---|---|---|---|---|---|---|
@@ -324,7 +324,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 **서버 (초안)**
 
-- POST /api/issues {mediaId, caption, faceMode, mastheadColor}: 하나의 트랜잭션에서 issue_count+1과 Issue 생성, 같은 날 두 번째는 409
+- POST /api/issues {mediaId, caption, faceCrop, paintStroke}: 하나의 트랜잭션에서 issue_count+1과 Issue 생성, 같은 날 두 번째는 409. BELOW_NECK이면 paintStroke는 false로 저장
 - user_daily_choices.locked_at 설정
 
 **합격 기준**

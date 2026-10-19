@@ -463,7 +463,8 @@ describe('DEV-08 사진과 얼굴 연출', () => {
         colorId: 'sage',
         mediaId,
         caption: '',
-        faceMode: 'PLAIN',
+        faceCrop: 'ORIGINAL',
+        paintStroke: false,
       },
     });
 
@@ -491,7 +492,8 @@ describe('DEV-08 사진과 얼굴 연출', () => {
         colorId: 'sage',
         mediaId,
         caption: '',
-        faceMode: 'PLAIN',
+        faceCrop: 'ORIGINAL',
+        paintStroke: false,
         publishedAt: new Date(Date.now() + 86_400_000),
       },
     });

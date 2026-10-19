@@ -76,7 +76,8 @@ describe('DEV-18 공유', () => {
         colorId: options.colorId ?? 'sage',
         mediaId: media.id,
         caption: '공유할 표지',
-        faceMode: 'PLAIN',
+        faceCrop: 'ORIGINAL',
+        paintStroke: false,
         publishedAt: options.publishedAt,
       },
     });
