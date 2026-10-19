@@ -81,6 +81,11 @@ class UnavailableMediaHttp extends ScreenHttp implements BinaryHttpClient {
   }) async => throw const NotImplementedFailure('이 테스트는 사진을 올리지 않음');
 }
 
+/// 가짜 서버의 오늘(todayDto의 2026-10-18)과 같은 서울 날짜에 고정한 시계.
+/// 실제 시계를 쓰면 서울 자정이 지난 뒤 날짜가 어긋나 실패한다.
+ManualServiceClock _serverDay() =>
+    ManualServiceClock(DateTime.utc(2026, 10, 18, 3));
+
 Widget records(ScreenHttp http) => MonthlyRecordScreen(
   source: RecordsRemoteSource(http),
   onBack: () {},
@@ -181,7 +186,7 @@ void main() {
         );
       });
       final c = TodayController(
-        clock: const SystemServiceClock(),
+        clock: _serverDay(),
         remote: TodayRemoteSource(http),
         remoteMagazine: MagazineRemoteSource(http),
       );
@@ -213,7 +218,7 @@ void main() {
             },
     );
     final c = TodayController(
-      clock: ManualServiceClock(DateTime.utc(2026, 10, 18, 3)),
+      clock: _serverDay(),
       remote: TodayRemoteSource(http),
       remoteMagazine: MagazineRemoteSource(http),
     );
@@ -232,7 +237,7 @@ void main() {
         throw const NotFoundFailure('아직 스케치북이 없어요.');
       });
       final c = TodayController(
-        clock: const SystemServiceClock(),
+        clock: _serverDay(),
         remote: TodayRemoteSource(http),
         remoteMagazine: MagazineRemoteSource(http),
       );
