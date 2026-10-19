@@ -30,10 +30,56 @@ class CanvasPhoto extends StatelessWidget {
   Widget build(BuildContext context) {
     final mediaId = mediaPhotoId(issue.photo);
     if (mediaId != null) {
-      return RemoteMediaPhoto(
-        id: mediaId,
-        thumbnail: thumbnail,
-        semanticLabel: issue.alt,
+      return LayoutBuilder(
+        builder: (context, box) {
+          final rect = CoverPhoto.photoRect(
+            box: Size(box.maxWidth, box.maxHeight),
+            photoRatio: 4 / 3,
+            face: issue.face,
+            mode: FaceLayoutMode.original,
+          );
+          return ClipRect(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                RemoteMediaPhoto(
+                  id: mediaId,
+                  thumbnail: thumbnail,
+                  semanticLabel: issue.alt,
+                ),
+                if (tags)
+                  for (final garment in issue.garments.where(
+                    (v) => v.x != null && v.y != null,
+                  ))
+                    if (rect.left + rect.width * garment.x! >= 0 &&
+                        rect.left + rect.width * garment.x! <= box.maxWidth &&
+                        rect.top + rect.height * garment.y! >= 0 &&
+                        rect.top + rect.height * garment.y! <= box.maxHeight)
+                      Positioned(
+                        left: (rect.left + rect.width * garment.x! - 24).clamp(
+                          0,
+                          (box.maxWidth - 48).clamp(0, double.infinity),
+                        ),
+                        top: (rect.top + rect.height * garment.y! - 24).clamp(
+                          0,
+                          (box.maxHeight - 48).clamp(0, double.infinity),
+                        ),
+                        child: IconButton(
+                          key: ValueKey('garment-tag-${garment.id}'),
+                          tooltip: '착용 정보 · ${garment.label}',
+                          onPressed: () => onTag?.call(garment.id),
+                          icon: Icon(
+                            selected == garment.id
+                                ? Icons.radio_button_checked
+                                : Icons.radio_button_unchecked,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+              ],
+            ),
+          );
+        },
       );
     }
     if (issue.photo.isEmpty) {

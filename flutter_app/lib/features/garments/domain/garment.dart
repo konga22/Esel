@@ -55,10 +55,11 @@ class Garment {
     'y': y,
   };
   factory Garment.fromJson(Map<String, dynamic> value) {
+    final id = (value['garmentId'] ?? value['id']) as String;
     final x = (value['x'] as num?)?.toDouble(),
         y = (value['y'] as num?)?.toDouble();
     final kind = value['kind'] as String;
-    if ((value['garmentId'] as String).isEmpty ||
+    if (id.isEmpty ||
         !kinds.contains(kind) ||
         (x == null) != (y == null) ||
         (x != null &&
@@ -76,7 +77,7 @@ class Garment {
       throw const FormatException('착용 정보 입력을 확인해 주세요.');
     }
     return Garment(
-      id: value['garmentId'] as String,
+      id: id,
       kind: kind,
       name: name,
       note: note,

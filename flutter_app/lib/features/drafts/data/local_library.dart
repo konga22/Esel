@@ -6,6 +6,7 @@ import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../core/time/service_date.dart';
 import '../../publishing/domain/rules/publish_rule.dart';
@@ -54,6 +55,25 @@ class LocalLibrary extends ChangeNotifier {
   static final Map<String, Uint8List> _memoryPhotos = {};
 
   bool get persistent => directory != null;
+
+  Future<Uint8List> readPhotoBytes(String path) async {
+    if (path.startsWith('assets/')) {
+      final asset = await rootBundle.load(path);
+      return asset.buffer.asUint8List(asset.offsetInBytes, asset.lengthInBytes);
+    }
+    if (path.startsWith(memoryPhotoPrefix)) {
+      return _memoryPhotos[path] ??
+          (throw const FormatException('사진 파일을 찾지 못했어요.'));
+    }
+    final file = File(path);
+    if (!await file.exists()) {
+      throw const FormatException('사진 파일을 찾지 못했어요.');
+    }
+    if (await file.length() > 15 * 1024 * 1024) {
+      throw const FormatException('사진은 15MB 이하로 골라 주세요.');
+    }
+    return file.readAsBytes();
+  }
 
   /// 서버 모드(기기 보관함 화면)의 저장 폴더. 이전부터 쓰던 이름이다.
   static const String serverFolder = 'esel-local';

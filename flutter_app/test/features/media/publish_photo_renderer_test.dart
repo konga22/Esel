@@ -54,6 +54,40 @@ void main() {
     return data!.buffer.asUint8List();
   }
 
+  for (final size in [
+    const ui.Size(4320, 2880),
+    const ui.Size(2880, 4320),
+    const ui.Size(120, 160),
+  ]) {
+    test('디코딩은 긴 변 2160 이내로 제한하고 작은 원본은 확대하지 않는다: $size', () async {
+      final recorder = ui.PictureRecorder();
+      ui.Canvas(
+        recorder,
+      ).drawColor(const ui.Color(0xff888888), ui.BlendMode.src);
+      final picture = recorder.endRecording();
+      final image = await picture.toImage(
+        size.width.toInt(),
+        size.height.toInt(),
+      );
+      picture.dispose();
+      final data = await image.toByteData(format: ui.ImageByteFormat.png);
+      image.dispose();
+      final decoded = await PublishPhotoRenderer.decodeSource(
+        data!.buffer.asUint8List(),
+      );
+      expect(decoded.width, lessThanOrEqualTo(2160));
+      expect(decoded.height, lessThanOrEqualTo(2160));
+      expect(
+        decoded.width / decoded.height,
+        closeTo(size.width / size.height, .001),
+      );
+      if (size.width < 2160) {
+        expect(decoded.width, size.width.toInt());
+        expect(decoded.height, size.height.toInt());
+      }
+      decoded.dispose();
+    });
+  }
   test('사인 뒤로는 디코딩 전 차단하며 물감 조합이나 이전 단일 저장본도 우회하지 못한다', () async {
     for (final value in [
       draft({FaceLayoutMode.behindLogo}),

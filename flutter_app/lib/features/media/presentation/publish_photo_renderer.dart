@@ -11,6 +11,31 @@ import 'cover_photo.dart';
 
 /// 사인·캡션·위치 좌표 없이 얼굴 연출이 적용된 픽셀만 만든다. 원본 바이트는 업로드하지 않는다.
 class PublishPhotoRenderer {
+  static const maxDecodeSide = 2160;
+
+  /// 원본 해상도를 먼저 읽고, 실제 픽셀 할당 전에 긴 변을 제한한다.
+  static Future<ui.Image> decodeSource(Uint8List bytes) async {
+    final buffer = await ui.ImmutableBuffer.fromUint8List(bytes);
+    ui.ImageDescriptor? descriptor;
+    ui.Codec? codec;
+    try {
+      descriptor = await ui.ImageDescriptor.encoded(buffer);
+      final scale = math.min(
+        1.0,
+        maxDecodeSide / math.max(descriptor.width, descriptor.height),
+      );
+      codec = await descriptor.instantiateCodec(
+        targetWidth: math.max(1, (descriptor.width * scale).round()),
+        targetHeight: math.max(1, (descriptor.height * scale).round()),
+      );
+      return (await codec.getNextFrame()).image;
+    } finally {
+      codec?.dispose();
+      descriptor?.dispose();
+      buffer.dispose();
+    }
+  }
+
   static Future<Uint8List> render(
     CoverDraft draft,
     Uint8List source, {
@@ -22,10 +47,7 @@ class PublishPhotoRenderer {
     if (width < 120 || width > 1800) {
       throw const RuleFailure('사진 출력 크기를 확인해 주세요.');
     }
-    final codec = await ui.instantiateImageCodec(source);
-    final frame = await codec.getNextFrame();
-    codec.dispose();
-    final image = frame.image;
+    final image = await decodeSource(source);
     ui.Image? paint;
     try {
       final size = ui.Size(width.toDouble(), width * 4 / 3);

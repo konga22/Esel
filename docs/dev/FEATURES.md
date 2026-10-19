@@ -274,6 +274,7 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 **앱(Flutter)**
 
 - 카메라·앨범은 기존 image_picker를 쓴다
+- 10-19 업로드 보완: 본문 전송 예산 30초+32KiB/s 기준(최대 15MiB), 선택·합성 디코딩 긴 변 2160 제한. JPEG 비교 완료·출력은 PNG 유지. 상세 docs/flutter/PUBLISH_API_CONNECTION.md
 - 물감 합성과 자르기는 기기에서(RepaintBoundary 합성 등). 원본 얼굴 사진을 서버로 보내 가리지 않음
 - 얼굴 위치를 못 찾으면 직접 위치를 정하게 하거나 목 아래를 권함
 - 10-18 PR #21 리뷰 후속(Flutter·목업 반영): 표지 바로 아래 얼굴 위치 안내. 물감이 켜져 있으면 '물감 위치가 어긋났나요?'와 '물감 위치 옮기기', 목 아래는 자른 자리 안내, 아직 안 정했으면 '얼굴 위치 맞추기'. 누르면 효과를 숨긴 원본 위에 '얼굴 가운데를 눌러 주세요' 표시, 누른 자리로 물감·자르기가 다시 놓임. 첫 캔버스(J6)는 취소를 화면 아래 버튼 하나로. 목업 C6paint·C6face·J6가 기준
@@ -327,10 +328,11 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 - 발행 도장(0.96배 두 번)과 호수 넘김은 합 600ms 이내, 하루 한 번만
 - 발행 직후 같은 색 열림(칩 칠하기 400ms, 표지 300ms·40ms 간격)
 - 이미 발행한 날은 만들기 대신 오늘 호 보기
+- 10-19 #34 리뷰 결정: 사인 뒤로 업로드 차단 유지. 서버 #33의 faceCrop·paintStroke로 요청·응답 통일. POST 후 응답 실패 시 같은 mediaId가 당일 발행됐는지 재조회 후 성공 복구. #33 main 통합. 기기 초안·사진 보존
 
 **서버 (초안)**
 
-- POST /api/issues {mediaId, caption, faceCrop, paintStroke}: 하나의 트랜잭션에서 issue_count+1과 Issue 생성, 같은 날 두 번째는 409. BELOW_NECK이면 paintStroke는 false로 저장
+- POST /api/issues {mediaId, caption, faceCrop, paintStroke, garments}: 하나의 트랜잭션에서 issue_count+1과 Issue 생성, 같은 날 두 번째는 409. BELOW_NECK이면 paintStroke는 false로 저장
 - user_daily_choices.locked_at 설정
 
 **합격 기준**
@@ -343,6 +345,8 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 - `flutter_app/test/features/publishing/publishing_test.dart`
 - `flutter_app/test/features/today/today_test.dart`
+- `flutter_app/test/features/publishing/remote_publish_test.dart`
+- `flutter_app/test/features/publishing/publish_live_test.dart`
 - `server/test/contracts/issues.e2e-spec.ts`
 
 ## DEV-06

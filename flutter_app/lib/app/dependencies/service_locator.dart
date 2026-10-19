@@ -1,3 +1,4 @@
+import '../../features/publishing/data/publishing_remote_source.dart';
 import '../../features/media/presentation/controllers/media_upload_controller.dart';
 import '../../features/media/data/media_remote_source.dart';
 import '../../features/today/data/sources/today_remote_source.dart';
@@ -105,6 +106,19 @@ class ServiceLocator {
     );
     todayController = TodayController(
       clock: clock,
+      publishRemote: config.isMock
+          ? null
+          : PublishingRemoteSource(
+              httpClient,
+              mediaUploads,
+              readPhoto: (path) async {
+                final library = localLibrary;
+                if (library == null) {
+                  throw const FormatException('기기 보관함을 먼저 열어 주세요.');
+                }
+                return library.readPhotoBytes(path);
+              },
+            ).publish,
       remote: config.isMock ? null : TodayRemoteSource(httpClient),
       remoteMagazine: config.isMock ? null : MagazineRemoteSource(httpClient),
     );

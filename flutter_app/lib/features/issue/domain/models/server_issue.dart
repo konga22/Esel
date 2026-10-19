@@ -1,19 +1,24 @@
+import '../../../garments/domain/garment.dart';
 import '../../../../core/design/tokens.g.dart';
 import '../../../../core/time/service_date.dart';
 
 /// 실제 공개 DTO에 존재하는 정보만 보관한다. 사용자 ID·반응 숫자·사진 URL을 지어내지 않는다.
 class ServerIssue {
-  final String id, masthead, caption, faceMode, mediaId;
+  final String id, masthead, caption, faceCrop, mediaId;
   final int number;
   final ServiceDate date;
   final DateTime publishedAt;
   final EselPaint color;
   final bool liked, scrapped;
+  final bool paintStroke;
+  final List<Garment> garments;
   const ServerIssue({
+    this.garments = const [],
     required this.id,
     required this.masthead,
     required this.caption,
-    required this.faceMode,
+    required this.faceCrop,
+    required this.paintStroke,
     required this.mediaId,
     required this.number,
     required this.date,
