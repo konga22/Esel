@@ -3,6 +3,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   ArrayMaxSize,
   IsArray,
+  IsBoolean,
   IsIn,
   IsOptional,
   IsString,
@@ -24,11 +25,17 @@ export class PublishIssueDto {
   caption: string;
 
   @ApiProperty({
-    enum: ['PLAIN', 'PAINT', 'BEHIND_MASTHEAD', 'NECK_DOWN'],
+    enum: ['ORIGINAL', 'BEHIND_LOGO', 'BELOW_NECK'],
   })
   @IsString()
-  @IsIn(['PLAIN', 'PAINT', 'BEHIND_MASTHEAD', 'NECK_DOWN'])
-  faceMode: 'PLAIN' | 'PAINT' | 'BEHIND_MASTHEAD' | 'NECK_DOWN';
+  @IsIn(['ORIGINAL', 'BEHIND_LOGO', 'BELOW_NECK'])
+  faceCrop: 'ORIGINAL' | 'BEHIND_LOGO' | 'BELOW_NECK';
+
+  @ApiProperty({
+    description: '얼굴 위 물감 한 획. BELOW_NECK일 때는 반드시 false',
+  })
+  @IsBoolean()
+  paintStroke: boolean;
 
   @ApiPropertyOptional({ type: GarmentInputDto, isArray: true, maxItems: 8 })
   @IsOptional()

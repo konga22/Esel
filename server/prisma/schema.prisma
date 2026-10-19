@@ -20,11 +20,10 @@ enum MediaStatus {
   DELETED
 }
 
-enum FaceMode {
-  PLAIN
-  PAINT
-  BEHIND_MASTHEAD
-  NECK_DOWN
+enum FaceCrop {
+  ORIGINAL
+  BEHIND_LOGO
+  BELOW_NECK
 }
 
 enum TwinStatus {
@@ -68,10 +67,10 @@ model User {
   friendRequestsReceived FriendRequest[]       @relation("FriendRequestReceiver")
   twinParticipations     TwinParticipation[]
   garments               Garment[]
-  shareLinksCreated       ShareLink[]           @relation("ShareLinkCreator")
-  reportsMade             Report[]              @relation("ReportReporter")
-  blocksMade              Block[]               @relation("BlocksMade")
-  blockedBy               Block[]               @relation("BlockedUsers")
+  shareLinksCreated      ShareLink[]           @relation("ShareLinkCreator")
+  reportsMade            Report[]              @relation("ReportReporter")
+  blocksMade             Block[]               @relation("BlocksMade")
+  blockedBy              Block[]               @relation("BlockedUsers")
 
   @@map("users")
 }
@@ -200,19 +199,20 @@ model MediaAsset {
 }
 
 model Issue {
-  id          String       @id @default(uuid()) @db.Uuid
-  authorId    String       @map("author_id") @db.Uuid
-  serviceDate DateTime     @map("service_date") @db.Date
-  issueNumber Int          @map("issue_number")
-  colorId     String       @map("color_id") @db.VarChar(32)
-  mediaId     String       @unique @map("media_id") @db.Uuid
-  caption     String       @db.VarChar(280)
-  faceMode    FaceMode     @map("face_mode")
-  publishedAt DateTime     @default(now()) @map("published_at")
-  deletedAt   DateTime?    @map("deleted_at")
-  author      User         @relation(fields: [authorId], references: [id], onDelete: Restrict)
-  color       Color        @relation(fields: [colorId], references: [id], onDelete: Restrict)
-  media       MediaAsset   @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+  id          String         @id @default(uuid()) @db.Uuid
+  authorId    String         @map("author_id") @db.Uuid
+  serviceDate DateTime       @map("service_date") @db.Date
+  issueNumber Int            @map("issue_number")
+  colorId     String         @map("color_id") @db.VarChar(32)
+  mediaId     String         @unique @map("media_id") @db.Uuid
+  caption     String         @db.VarChar(280)
+  faceCrop    FaceCrop       @default(ORIGINAL) @map("face_crop")
+  paintStroke Boolean        @default(false) @map("paint_stroke")
+  publishedAt DateTime       @default(now()) @map("published_at")
+  deletedAt   DateTime?      @map("deleted_at")
+  author      User           @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  color       Color          @relation(fields: [colorId], references: [id], onDelete: Restrict)
+  media       MediaAsset     @relation(fields: [mediaId], references: [id], onDelete: Restrict)
   likes       Like[]
   scraps      Scrap[]
   readerLines ReaderLine[]
@@ -243,14 +243,14 @@ model Garment {
 }
 
 model IssueGarment {
-  issueId    String   @map("issue_id") @db.Uuid
-  garmentId  String   @map("garment_id") @db.Uuid
-  position   Int      @db.SmallInt
-  todayColor Boolean  @default(false) @map("today_color")
+  issueId    String  @map("issue_id") @db.Uuid
+  garmentId  String  @map("garment_id") @db.Uuid
+  position   Int     @db.SmallInt
+  todayColor Boolean @default(false) @map("today_color")
   x          Float?
   y          Float?
-  issue      Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
-  garment    Garment  @relation(fields: [garmentId], references: [id], onDelete: Cascade)
+  issue      Issue   @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  garment    Garment @relation(fields: [garmentId], references: [id], onDelete: Cascade)
 
   @@id([issueId, garmentId])
   @@unique([issueId, position])

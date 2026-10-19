@@ -101,7 +101,8 @@ describe('DEV-13 서가와 구독', () => {
         colorId: options.colorId ?? 'sage',
         mediaId: media.id,
         caption: '서가의 한 호',
-        faceMode: 'PLAIN',
+        faceCrop: 'ORIGINAL',
+        paintStroke: false,
         publishedAt: options.publishedAt,
       },
     });

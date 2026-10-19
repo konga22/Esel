@@ -328,11 +328,11 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 - 발행 도장(0.96배 두 번)과 호수 넘김은 합 600ms 이내, 하루 한 번만
 - 발행 직후 같은 색 열림(칩 칠하기 400ms, 표지 300ms·40ms 간격)
 - 이미 발행한 날은 만들기 대신 오늘 호 보기
-- 10-19 #34 리뷰 결정: 사인 뒤로 업로드 차단 유지. 서버 #33의 faceCrop·paintStroke로 요청·응답 통일. POST 후 응답 실패 시 같은 mediaId가 당일 발행됐는지 재조회 후 성공 복구. #33 main 병합 후 통합·실검수. 기기 초안·사진 보존
+- 10-19 #34 리뷰 결정: 사인 뒤로 업로드 차단 유지. 서버 #33의 faceCrop·paintStroke로 요청·응답 통일. POST 후 응답 실패 시 같은 mediaId가 당일 발행됐는지 재조회 후 성공 복구. #33 main 통합. 기기 초안·사진 보존
 
 **서버 (초안)**
 
-- POST /api/issues {mediaId, caption, faceCrop, paintStroke, garments}: 하나의 트랜잭션에서 issue_count+1과 Issue 생성, 같은 날 두 번째는 409
+- POST /api/issues {mediaId, caption, faceCrop, paintStroke, garments}: 하나의 트랜잭션에서 issue_count+1과 Issue 생성, 같은 날 두 번째는 409. BELOW_NECK이면 paintStroke는 false로 저장
 - user_daily_choices.locked_at 설정
 
 **합격 기준**

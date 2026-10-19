@@ -37,8 +37,8 @@ if (!/^[0-9a-f-]{36}$/.test(owner.userId)) throw new Error('Invalid test user ID
 const sql = `BEGIN;
 INSERT INTO media_assets(id,owner_id,storage_key,status,mime_type,size_bytes,width,height,created_at,updated_at)
 VALUES ('${media}','${owner.userId}','core-api-test/${media}.png','READY','image/png',1,1,1,NOW(),NOW());
-INSERT INTO issues(id,author_id,service_date,issue_number,color_id,media_id,caption,face_mode,published_at)
-VALUES ('${issueId}','${owner.userId}','${day}',1,'sage','${media}','API integration fixture','PLAIN',NOW());
+INSERT INTO issues(id,author_id,service_date,issue_number,color_id,media_id,caption,face_crop,paint_stroke,published_at)
+VALUES ('${issueId}','${owner.userId}','${day}',1,'sage','${media}','API integration fixture','ORIGINAL',false,NOW());
 UPDATE profiles SET issue_count=1 WHERE user_id='${owner.userId}';
 COMMIT;`;
 const result = spawnSync('docker', ['compose', 'exec', '-T', 'postgres', 'psql', '-v', 'ON_ERROR_STOP=1', '-U', 'esel', '-d', 'esel'],

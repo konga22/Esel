@@ -91,7 +91,8 @@ describe('DEV-09 오늘 호 발행', () => {
   const payload = (mediaId: string) => ({
     mediaId,
     caption: '  오늘의 기록  ',
-    faceMode: 'PLAIN',
+    faceCrop: 'ORIGINAL',
+    paintStroke: false,
   });
 
   // issues.publish · 접근: user · 응답: IssueOwnerDto · 계약: P04, P01
@@ -106,7 +107,8 @@ describe('DEV-09 오늘 호 발행', () => {
     expect(response.body).toMatchObject({
       issueNumber: 1,
       caption: '오늘의 기록',
-      faceMode: 'PLAIN',
+      faceCrop: 'ORIGINAL',
+      paintStroke: false,
       garments: [],
       likeCount: 0,
       scrapCount: 0,
@@ -136,9 +138,43 @@ describe('DEV-09 오늘 호 발행', () => {
     const response = await request(app.getHttpServer())
       .post('/api/issues')
       .set('Authorization', `Bearer ${user.token}`)
-      .send({ ...payload(ready.id), faceMode: 'UNKNOWN' })
+      .send({ ...payload(ready.id), faceCrop: 'UNKNOWN' })
       .expect(400);
     expect(response.body.error.code).toBe('VALIDATION');
+  });
+
+  it('POST /api/issues: 얼굴 자르기와 물감 연출을 함께 저장하고, 목 아래 자르기는 물감을 끈다', async () => {
+    const behindUser = await publishingUser('face-behind');
+    const behindMedia = await media(behindUser.userId);
+    const behind = await request(app.getHttpServer())
+      .post('/api/issues')
+      .set('Authorization', `Bearer ${behindUser.token}`)
+      .send({
+        ...payload(behindMedia.id),
+        faceCrop: 'BEHIND_LOGO',
+        paintStroke: true,
+      })
+      .expect(201);
+    expect(behind.body).toMatchObject({
+      faceCrop: 'BEHIND_LOGO',
+      paintStroke: true,
+    });
+
+    const neckUser = await publishingUser('face-neck');
+    const neckMedia = await media(neckUser.userId);
+    const neck = await request(app.getHttpServer())
+      .post('/api/issues')
+      .set('Authorization', `Bearer ${neckUser.token}`)
+      .send({
+        ...payload(neckMedia.id),
+        faceCrop: 'BELOW_NECK',
+        paintStroke: true,
+      })
+      .expect(201);
+    expect(neck.body).toMatchObject({
+      faceCrop: 'BELOW_NECK',
+      paintStroke: false,
+    });
   });
 
   it('POST /api/issues: 오늘 호는 이미 발행했어요 → 409 ISSUE_ALREADY_PUBLISHED', async () => {
@@ -186,7 +222,9 @@ describe('DEV-09 오늘 호 발행', () => {
         .set('Authorization', `Bearer ${user.token}`)
         .send(payload(second.id)),
     ]);
-    expect(responses.map(({ status }) => status).sort((left, right) => left - right)).toEqual([201, 409]);
+    expect(
+      responses.map(({ status }) => status).sort((left, right) => left - right),
+    ).toEqual([201, 409]);
     expect(await prisma.issue.count({ where: { authorId: user.userId } })).toBe(
       1,
     );
@@ -376,7 +414,8 @@ describe('DEV-11 펼침면과 독자 한 줄', () => {
         colorId: options.colorId ?? 'sage',
         mediaId: media.id,
         caption: '어제의 기록',
-        faceMode: 'PLAIN',
+        faceCrop: 'ORIGINAL',
+        paintStroke: false,
         publishedAt: options.publishedAt,
       },
     });
@@ -406,7 +445,8 @@ describe('DEV-11 펼침면과 독자 한 줄', () => {
       issueNumber: 1,
       serviceDate: dateAt(-1).toISOString().slice(0, 10),
       caption: '어제의 기록',
-      faceMode: 'PLAIN',
+      faceCrop: 'ORIGINAL',
+      paintStroke: false,
       liked: true,
       scrapped: true,
       media: { mimeType: 'image/png', width: 1080, height: 1440 },

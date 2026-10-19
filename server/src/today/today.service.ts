@@ -12,6 +12,7 @@ import {
   TodayCoverPublicDto,
 } from './dto/today-cover-public.dto.js';
 import { dailyCandidateIds } from './today.rules.js';
+import { TodayCoverSelector } from './today-cover.selector.js';
 
 const paletteInclude = {
   colors: { include: { color: true }, orderBy: { position: 'asc' as const } },
@@ -26,6 +27,7 @@ export class TodayService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
+    private readonly coverSelector: TodayCoverSelector,
   ) {}
 
   async get(userId: string): Promise<TodayDto> {
@@ -42,8 +44,9 @@ export class TodayService {
 
   async cover(): Promise<TodayCoverPublicDto> {
     const { key, date } = this.currentServiceDate();
+    const coverIds = await this.coverSelector.issueIds(date);
     const issues = await this.prisma.issue.findMany({
-      where: { serviceDate: date, deletedAt: null },
+      where: { id: { in: coverIds } },
       include: {
         author: { select: { profile: { select: { masthead: true } } } },
         color: true,
@@ -55,40 +58,39 @@ export class TodayService {
           orderBy: { position: 'asc' },
         },
       },
-      orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }],
     });
-    const perColor = new Map<string, number>();
-    const visible: TodayCoverIssueDto[] = [];
-    for (const issue of issues) {
-      const seen = perColor.get(issue.colorId) ?? 0;
-      if (seen >= 3 || !issue.author.profile) continue;
-      perColor.set(issue.colorId, seen + 1);
-      visible.push({
-        id: issue.id,
-        masthead: issue.author.profile.masthead,
-        issueNumber: issue.issueNumber,
-        publishedAt: issue.publishedAt.toISOString(),
-        color: {
-          id: issue.color.id,
-          nameKo: issue.color.nameKo,
-          nameEn: issue.color.nameEn,
-          hex: issue.color.hex,
+    const issueById = new Map(issues.map((issue) => [issue.id, issue]));
+    const visible: TodayCoverIssueDto[] = coverIds.flatMap((id) => {
+      const issue = issueById.get(id);
+      if (!issue?.author.profile) return [];
+      return [
+        {
+          id: issue.id,
+          masthead: issue.author.profile.masthead,
+          issueNumber: issue.issueNumber,
+          publishedAt: issue.publishedAt.toISOString(),
+          color: {
+            id: issue.color.id,
+            nameKo: issue.color.nameKo,
+            nameEn: issue.color.nameEn,
+            hex: issue.color.hex,
+          },
+          media: issue.media,
+          caption: issue.caption,
+          faceCrop: issue.faceCrop,
+          paintStroke: issue.paintStroke,
+          garments: issue.garments.map(({ garment, todayColor, x, y }) => ({
+            garmentId: garment.id,
+            kind: garment.kind,
+            name: garment.name,
+            note: garment.note,
+            todayColor,
+            x,
+            y,
+          })),
         },
-        media: issue.media,
-        caption: issue.caption,
-        faceMode: issue.faceMode,
-        garments: issue.garments.map(({ garment, todayColor, x, y }) => ({
-          garmentId: garment.id,
-          kind: garment.kind,
-          name: garment.name,
-          note: garment.note,
-          todayColor,
-          x,
-          y,
-        })),
-      });
-      if (visible.length === 3) break;
-    }
+      ];
+    });
     return {
       serviceDate: key,
       cover: visible[0] ?? null,
