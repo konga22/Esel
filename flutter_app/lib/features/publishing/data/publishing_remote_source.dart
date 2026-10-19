@@ -1,6 +1,6 @@
-import '../domain/publish_request_failure.dart';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+import '../domain/publish_request_failure.dart';
 import '../../../core/errors/failures.dart';
 import '../../../core/network/http_client.dart';
 import '../../drafts/domain/cover_draft.dart';
