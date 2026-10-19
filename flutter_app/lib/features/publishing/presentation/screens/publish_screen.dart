@@ -10,6 +10,7 @@ class PublishScreen extends StatefulWidget {
   final String? challengeId, previousIssueId;
   final int currentIssueCount;
   final bool hasPublishedToday;
+  final bool localDemo;
   final ValueChanged<int> onPublishSuccess;
   final VoidCallback onClose;
   final LocalLibrary library;
@@ -23,6 +24,7 @@ class PublishScreen extends StatefulWidget {
     super.key,
     this.challengeId,
     this.previousIssueId,
+    this.localDemo = false,
     required this.masthead,
     required this.ownerId,
     required this.currentIssueCount,
@@ -43,7 +45,7 @@ class _PublishScreenState extends State<PublishScreen> {
   @override
   void initState() {
     super.initState();
-    _blockedAtEntry=widget.hasPublishedToday;
+    _blockedAtEntry = widget.hasPublishedToday;
     final drafts = widget.library.drafts.where(
       (d) => d.ownerId == widget.ownerId && d.issueNumber == 0,
     );
@@ -103,6 +105,7 @@ class _PublishScreenState extends State<PublishScreen> {
     }
     return CoverEditorScreen(
       library: widget.library,
+      localDemo: widget.localDemo,
       initial: _initial,
       candidates: widget.candidates,
       onClose: widget.onClose,

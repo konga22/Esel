@@ -459,7 +459,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
           onTap: () => onTap(issue),
           child: Semantics(
             label: '${issue.issueLabel} · ${issue.date.shortLabel}',
-            child: CanvasPhoto(issue: issue),
+            child: CanvasPhoto(issue: issue, thumbnail: true),
           ),
         ),
     ],

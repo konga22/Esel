@@ -1,6 +1,6 @@
 # 기능 개발 목록
 
-> 자동 생성 파일이다. [features.json](features.json)을 고치고 `npm run dev:docs`로 다시 만든다. 개발 방법은 [개발 가이드](README.md)에 있다. (기준일 2026-10-18)
+> 자동 생성 파일이다. [features.json](features.json)을 고치고 `npm run dev:docs`로 다시 만든다. 개발 방법은 [개발 가이드](README.md)에 있다. (기준일 2026-10-19)
 
 | ID | 기능 | 단계 | 목업 화면 | 계약 | 먼저 할 것 | 상태 |
 |---|---|---|---|---|---|---|
@@ -298,11 +298,17 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 
 - `flutter_app/test/features/media/face_layout_test.dart`
 - `flutter_app/test/features/media/combined_effects_test.dart`
+- `flutter_app/test/features/media/publish_photo_renderer_test.dart`
+- `flutter_app/test/features/media/media_remote_source_test.dart`
+- `flutter_app/test/features/media/media_binary_http_test.dart`
+- `flutter_app/test/features/media/remote_media_photo_test.dart`
+- `flutter_app/test/features/media/media_live_test.dart`
 - `server/test/contracts/media.e2e-spec.ts`
 
 **사용자 결정이 필요한 것**
 
 - 기기 얼굴 감지 방식
+- 10-19 사용자 확인: 사인 뒤로 서버 업로드 보류(글자를 빼면 얼굴 노출 가능). 로컬 미리보기·기록 유지. 해제 조건과 진행 상태는 docs/flutter/MEDIA_UPLOAD_HANDOFF.md
 
 ## DEV-09
 

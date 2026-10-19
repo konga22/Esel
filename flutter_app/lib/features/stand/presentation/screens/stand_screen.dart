@@ -192,7 +192,7 @@ class _StandScreenState extends State<StandScreen> {
               style: EselTypography.heading(fontSize: 30),
             ),
             const SizedBox(width: 8),
-            if (shelf != null)
+            if (shelf != null && shelf.countKnown)
               Flexible(
                 child: Text(
                   '같은 색 ${shelf.total}명${shelf.isPreview ? ' · 먼저 ${shelf.items.length}장' : ''}',
@@ -261,7 +261,7 @@ class _StandScreenState extends State<StandScreen> {
     onTap: () => widget.onSelectCover(issue),
     child: Semantics(
       label: '${issue.masthead}의 스케치북 보기',
-      child: CanvasPhoto(issue: issue),
+      child: CanvasPhoto(issue: issue, thumbnail: true),
     ),
   );
 
@@ -467,7 +467,9 @@ class _StandScreenState extends State<StandScreen> {
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white, width: 2),
                 ),
-                child: ClipOval(child: CanvasPhoto(issue: issue)),
+                child: ClipOval(
+                  child: CanvasPhoto(issue: issue, thumbnail: true),
+                ),
               ),
             ),
         ],

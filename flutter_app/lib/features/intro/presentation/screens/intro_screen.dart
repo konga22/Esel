@@ -1,3 +1,5 @@
+import '../../../media/domain/models/media_photo.dart';
+import '../../../media/presentation/remote_media_photo.dart';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -65,7 +67,11 @@ class _IntroScreenState extends State<IntroScreen> {
 
   void _onScroll() {
     // 640px 지나면 캡슐 자리에서 로그인 바가 올라온다(P12).
-    final show = _scrollController.offset >= 640;
+    final threshold = math.min(
+      640.0,
+      _scrollController.position.maxScrollExtent,
+    );
+    final show = _scrollController.offset >= threshold - 1;
     if (show != _showLoginBar) setState(() => _showLoginBar = show);
   }
 
@@ -285,12 +291,18 @@ class _TeaserEnd extends StatelessWidget {
               opacity: 0.85,
               child: ImageFiltered(
                 imageFilter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                child: Image(
-                  image: issuePhotoProvider(backdrop.photo),
-                  fit: BoxFit.cover,
-                  alignment: const Alignment(0.3, -0.7),
-                  errorBuilder: (_, _, _) => const SizedBox.shrink(),
-                ),
+                child: mediaPhotoId(backdrop.photo) != null
+                    ? RemoteMediaPhoto(
+                        decorative: true,
+                        id: mediaPhotoId(backdrop.photo)!,
+                        thumbnail: true,
+                      )
+                    : Image(
+                        image: issuePhotoProvider(backdrop.photo),
+                        fit: BoxFit.cover,
+                        alignment: const Alignment(0.3, -0.7),
+                        errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                      ),
               ),
             ),
           ),

@@ -658,6 +658,7 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
       context,
       MaterialPageRoute(
         builder: (editorContext) => CoverEditorScreen(
+          localDemo: _sl.config.isMock,
           library: _sl.localLibrary!,
           initial: draft,
           candidates: _sl.todayController.candidates,
@@ -740,6 +741,7 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
           );
         }
         return PublishScreen(
+          localDemo: _sl.config.isMock,
           challengeId: _pendingChallenge?.id,
           previousIssueId: _previousIssueId,
           library: _sl.localLibrary!,

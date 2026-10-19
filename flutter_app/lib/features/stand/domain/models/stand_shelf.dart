@@ -18,6 +18,9 @@ class StandShelf {
   /// 서버가 알려 준 같은 색 인원. 없으면 받은 장수 + 숨긴 수.
   final int? count;
 
+  /// 페이지 일부만 받은 서버 응답을 전체 인원으로 오해하지 않도록 한다.
+  final bool countKnown;
+
   const StandShelf({
     required this.color,
     required this.access,
@@ -25,6 +28,7 @@ class StandShelf {
     required this.hiddenCount,
     this.curated = false,
     this.count,
+    this.countKnown = true,
   });
 
   bool get isPreview => access == SameColorRoomAccess.preview;

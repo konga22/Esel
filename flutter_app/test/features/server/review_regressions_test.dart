@@ -13,7 +13,7 @@ import 'package:esel/features/magazine/presentation/screens/shelf_screen.dart';
 import 'package:esel/features/issue/data/sources/issue_remote_source.dart';
 import 'package:esel/features/reactions/presentation/controllers/reactions_controller.dart';
 import 'package:esel/features/stand/domain/rules/same_color_rule.dart';
-import 'core_api_widgets_test.dart' show ScreenHttp, detail;
+import 'core_api_widgets_test.dart' show ScreenHttp, detail, useTestMedia;
 import 'core_api_test.dart' show todayDto, issueDto;
 
 Map<String, dynamic> ownMagazine() => {
@@ -30,6 +30,7 @@ TodayController todayController(ScreenHttp http, {ManualServiceClock? clock}) =>
       remoteMagazine: MagazineRemoteSource(http),
     );
 void main() {
+  useTestMedia();
   test(
     'queued colors wait for refresh and every selection reaches server in order',
     () async {

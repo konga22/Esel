@@ -1,3 +1,4 @@
+import '../../../auth/domain/models/auth_session.dart';
 import '../../../../core/design/tokens.g.dart';
 import '../../../../core/network/http_client.dart';
 import '../../../../core/time/service_date.dart';
@@ -13,7 +14,8 @@ import 'feed_source.dart';
 class FeedRemoteSource implements FeedSource {
   final AppHttpClient http;
 
-  FeedRemoteSource(this.http);
+  final AuthSession? Function()? currentSession;
+  FeedRemoteSource(this.http, {this.currentSession});
 
   @override
   Future<FeedPage> today({
@@ -57,6 +59,7 @@ class FeedRemoteSource implements FeedSource {
 
   PublicIssue _issue(Map value, ServiceDate date) => serverIssueToPublic(
     parseServerIssue(Map<String, dynamic>.from(value), date: date),
+    viewer: currentSession?.call(),
   );
 
   /// 색별 같은 색 인원(공개 숫자, P18). 서버 `/palette/colors` 항목에 `count`가 있을 때만 채운다.

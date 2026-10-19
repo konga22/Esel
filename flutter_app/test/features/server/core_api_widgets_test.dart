@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+import 'package:esel/app/dependencies/service_locator.dart';
+import 'package:esel/core/storage/session_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:esel/core/errors/failures.dart';
@@ -62,6 +65,22 @@ class ScreenHttp extends AppHttpClient {
   }) => send('DELETE', path, body);
 }
 
+class UnavailableMediaHttp extends ScreenHttp implements BinaryHttpClient {
+  UnavailableMediaHttp()
+    : super((_, _, _) async => throw const NotFoundFailure('테스트 사진 없음'));
+  @override
+  Future<Uint8List> getBytes(
+    String path, {
+    Map<String, String>? queryParams,
+  }) async => throw const NotFoundFailure('테스트 사진 없음');
+  @override
+  Future<void> putBytes(
+    String path,
+    Uint8List bytes, {
+    required String contentType,
+  }) async => throw const NotImplementedFailure('이 테스트는 사진을 올리지 않음');
+}
+
 /// 가짜 서버의 오늘(todayDto의 2026-10-18)과 같은 서울 날짜에 고정한 시계.
 /// 실제 시계를 쓰면 서울 자정이 지난 뒤 날짜가 어긋나 실패한다.
 ManualServiceClock _serverDay() =>
@@ -106,7 +125,22 @@ Widget detail(ScreenHttp http, {String id = 'issue-one', bool mine = false}) {
   );
 }
 
+void useTestMedia() {
+  setUpAll(() {
+    // 원격 사진도 실제 앱과 같은 미디어 의존성을 사용하되 네트워크는 이 테스트 밖으로 보내지 않는다.
+    ServiceLocator().initialize(
+      client: UnavailableMediaHttp(),
+      sessionStorage: InMemorySessionStorage(),
+    );
+  });
+  var mediaTestOwner = 0;
+  setUp(
+    () => ServiceLocator().mediaSource.bindOwner('test-${mediaTestOwner++}'),
+  );
+}
+
 void main() {
+  useTestMedia();
   testWidgets('records retry the requested month after a failed month switch', (
     tester,
   ) async {
@@ -131,6 +165,7 @@ void main() {
     expect(requested, ['2026-10', '2026-09', '2026-09']);
     expect(find.text('2026-09'), findsOneWidget);
   });
+
   test(
     'today common controller keeps its last snapshot after refresh failure',
     () async {
