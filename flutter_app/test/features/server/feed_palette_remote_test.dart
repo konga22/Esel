@@ -20,7 +20,8 @@ Map<String, dynamic> issue(
   String id,
   String masthead, {
   String color = 'sage',
-  String faceMode = 'PLAIN',
+  String faceCrop = 'ORIGINAL',
+  bool paintStroke = false,
   bool withDate = true,
 }) => {
   'id': id,
@@ -31,7 +32,8 @@ Map<String, dynamic> issue(
   'color': {'id': color, 'nameKo': '이름', 'nameEn': 'name', 'hex': '#000000'},
   'media': {'id': 'media-$id', 'mimeType': 'image/png'},
   'caption': '캡션 $id',
-  'faceMode': faceMode,
+  'faceCrop': faceCrop,
+  'paintStroke': paintStroke,
   'garments': const [],
   if (withDate) 'liked': false,
   if (withDate) 'scrapped': true,
@@ -129,7 +131,7 @@ void main() {
             'items': [
               {...issue('a', 'mina'), 'source': 'RECOMMENDED'},
               {
-                ...issue('b', 'jun', faceMode: 'PAINT'),
+                ...issue('b', 'jun', paintStroke: true),
                 'source': 'SUBSCRIPTION',
               },
             ],

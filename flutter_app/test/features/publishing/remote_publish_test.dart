@@ -1,3 +1,4 @@
+import 'package:esel/features/publishing/domain/publish_request_failure.dart';
 import 'package:flutter/material.dart';
 import 'package:esel/app/dependencies/service_locator.dart';
 import 'package:esel/core/storage/session_storage.dart';
@@ -51,17 +52,22 @@ Future<Uint8List> bytes(String _) async {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  for (final entry in <Set<FaceLayoutMode>, String>{
-    <FaceLayoutMode>{}: 'PLAIN',
-    {FaceLayoutMode.paintStroke}: 'PAINT',
-    {FaceLayoutMode.belowNeck}: 'NECK_DOWN',
+  for (final entry in <Set<FaceLayoutMode>, Map<String, dynamic>>{
+    <FaceLayoutMode>{}: {'faceCrop': 'ORIGINAL', 'paintStroke': false},
+    {FaceLayoutMode.paintStroke}: {'faceCrop': 'ORIGINAL', 'paintStroke': true},
+    {FaceLayoutMode.belowNeck}: {
+      'faceCrop': 'BELOW_NECK',
+      'paintStroke': false,
+    },
   }.entries) {
-    test('허용된 연출은 기존 서버 값 ${entry.value}로 발행하고 로컬 옷 ID를 보내지 않는다', () async {
+    test('허용된 연출은 새 두 필드 ${entry.value}로 발행하고 로컬 옷 ID를 보내지 않는다', () async {
       final media = RecordingMedia()..bindOwner('owner');
       final http = ScreenHttp((method, path, body) async {
         expect(method, 'POST');
         expect(path, '/issues');
-        expect(body!['faceMode'], entry.value);
+        expect(body, isNot(contains('faceMode')));
+        expect(body!['faceCrop'], entry.value['faceCrop']);
+        expect(body['paintStroke'], entry.value['paintStroke']);
         expect(body['mediaId'], 'ready-id');
         expect((body['garments'] as List).single, isNot(contains('garmentId')));
         return savedIssue();
@@ -171,7 +177,11 @@ void main() {
       final before = draft();
       await expectLater(
         source.publish(before),
-        throwsA(isA<RuleFailure>().having((e) => e.code, 'code', code)),
+        throwsA(
+          isA<PublishRequestFailure>()
+              .having((e) => e.code, 'code', code)
+              .having((e) => e.cause, '원래 서버 오류', isA<RuleFailure>()),
+        ),
       );
       expect(before.issueNumber, 0);
       expect(before.photoPath, isNotEmpty);
@@ -334,6 +344,102 @@ void main() {
     expect(find.byType(CoverPhoto), findsNothing);
     expect(tester.takeException(), isNull);
   });
+  for (final outcome in [
+    'timeout-saved',
+    'decode-saved',
+    'not-saved',
+    'other-photo',
+    'refresh-failed',
+  ]) {
+    test('POST 뒤 $outcome: 오늘 상태를 다시 읽고 같은 사진 저장이 확인된 경우만 성공', () async {
+      var sent = false, posts = 0;
+      String? selected;
+      final calls = <String>[];
+      final media = RecordingMedia()..bindOwner('owner');
+      final http = ScreenHttp((method, path, body) async {
+        calls.add('$method $path');
+        if (path == '/issues') {
+          sent = true;
+          posts++;
+          if (outcome == 'decode-saved') {
+            return {'id': 'saved-but-incomplete-response'};
+          }
+          throw const NetworkFailure('원래 전송 오류', code: 'TIMEOUT');
+        }
+        if (path == '/today') {
+          if (sent && outcome == 'refresh-failed') {
+            throw const NetworkFailure('오늘 상태 조회 실패');
+          }
+          return todayDto(
+            selected: selected,
+            published: sent && outcome != 'not-saved',
+          );
+        }
+        if (path == '/today/choice') {
+          selected = body!['colorId'] as String;
+          return todayDto(selected: selected);
+        }
+        return {
+          'masthead': 'artist',
+          'issueCount': sent ? 2 : 0,
+          'todayIssue': sent && outcome != 'not-saved'
+              ? {
+                  ...savedIssue(),
+                  'faceCrop': 'ORIGINAL',
+                  'paintStroke': true,
+                  'media': {
+                    'id': outcome == 'other-photo'
+                        ? 'different-media'
+                        : 'ready-id',
+                  },
+                }
+              : null,
+          'pastIssues': [],
+          'nextCursor': null,
+        };
+      });
+      final publisher = PublishingRemoteSource(
+        http,
+        MediaUploadController(media),
+        readPhoto: bytes,
+      );
+      final c = TodayController(
+        clock: ManualServiceClock(DateTime.utc(2026, 10, 18, 3)),
+        remote: TodayRemoteSource(http),
+        remoteMagazine: MagazineRemoteSource(http),
+        publishRemote: publisher.publish,
+      );
+      addTearDown(c.dispose);
+      c.bindUser(ownerId: 'owner');
+      await c.reload();
+      if (outcome == 'timeout-saved' || outcome == 'decode-saved') {
+        final result = await c.publish(draft({FaceLayoutMode.paintStroke}));
+        expect(result.id, savedIssue()['id']);
+        expect(result.issueNumber, 2);
+        expect(result.photoPath, draft().photoPath);
+        expect(result.effectiveFaceEffects, {FaceLayoutMode.paintStroke});
+        expect(c.hasPublishedToday, true);
+        expect(c.error, isNull);
+      } else {
+        await expectLater(
+          c.publish(draft()),
+          throwsA(
+            isA<NetworkFailure>().having(
+              (e) => e.message,
+              '최초 오류 유지',
+              '원래 전송 오류',
+            ),
+          ),
+        );
+      }
+      expect(posts, 1);
+      final postIndex = calls.indexOf('POST /issues');
+      expect(calls.skip(postIndex + 1), contains('GET /today'));
+      if (outcome != 'refresh-failed') {
+        expect(calls.skip(postIndex + 1), contains('GET /me/magazine'));
+      }
+    });
+  }
   test('이미 발행한 날과 타인의 초안은 업로드 전 거절한다', () async {
     var uploads = 0;
     final http = ScreenHttp(

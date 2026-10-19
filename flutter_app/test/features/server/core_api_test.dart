@@ -1,3 +1,4 @@
+import 'package:esel/features/media/domain/models/face_layout_mode.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
@@ -26,7 +27,8 @@ Map<String, dynamic> issueDto({bool liked = false, bool scrapped = false}) => {
     'height': null,
   },
   'caption': 'test caption',
-  'faceMode': 'PLAIN',
+  'faceCrop': 'ORIGINAL',
+  'paintStroke': false,
   'liked': liked,
   'scrapped': scrapped,
 };
@@ -41,6 +43,29 @@ Map<String, dynamic> todayDto({String? selected, bool published = false}) => {
   'hasPublishedToday': published,
 };
 void main() {
+  test('새 응답은 사인 뒤로+물감을 보존하고 목 아래의 물감은 정규화한다', () {
+    final behind = serverIssueToPublic(
+      parseServerIssue({
+        ...issueDto(),
+        'faceCrop': 'BEHIND_LOGO',
+        'paintStroke': true,
+      }),
+    );
+    expect(behind.faceEffects, {
+      FaceLayoutMode.behindLogo,
+      FaceLayoutMode.paintStroke,
+    });
+    final neck = serverIssueToPublic(
+      parseServerIssue({
+        ...issueDto(),
+        'faceCrop': 'BELOW_NECK',
+        'paintStroke': true,
+      }),
+    );
+    expect(neck.faceEffects, {FaceLayoutMode.belowNeck});
+    expect(neck.faceMode, FaceLayoutMode.belowNeck);
+  });
+
   late HttpServer server;
   late StandardHttpClient http;
   late InMemorySessionStorage storage;

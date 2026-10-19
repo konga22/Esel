@@ -23,7 +23,8 @@ ServerIssue parseServerIssue(Map<String, dynamic> value, {ServiceDate? date}) =>
       publishedAt: DateTime.parse(value['publishedAt'] as String),
       masthead: value['masthead'] as String,
       caption: value['caption'] as String,
-      faceMode: value['faceMode'] as String,
+      faceCrop: value['faceCrop'] as String,
+      paintStroke: value['paintStroke'] as bool,
       mediaId: (value['media'] as Map)['id'] as String,
       number: value['issueNumber'] as int,
       date:
@@ -35,13 +36,22 @@ ServerIssue parseServerIssue(Map<String, dynamic> value, {ServiceDate? date}) =>
       scrapped: value['scrapped'] as bool? ?? false,
     );
 
-/// 서버 얼굴 연출 값 → 앱 연출. 서버 `PLAIN`과 모르는 값은 그대로.
-FaceLayoutMode serverFaceMode(String value) => switch (value) {
-  'PAINT' => FaceLayoutMode.paintStroke,
-  'BEHIND_MASTHEAD' => FaceLayoutMode.behindLogo,
-  'NECK_DOWN' => FaceLayoutMode.belowNeck,
-  _ => FaceLayoutMode.original,
-};
+/// 서버의 자르기와 물감을 독립적으로 읽는다. 목 아래는 P15에 따라 물감을 끈다.
+Set<FaceLayoutMode> serverFaceEffects(String crop, bool paintStroke) {
+  final mode = switch (crop) {
+    'ORIGINAL' => FaceLayoutMode.original,
+    'BEHIND_LOGO' => FaceLayoutMode.behindLogo,
+    'BELOW_NECK' => FaceLayoutMode.belowNeck,
+    _ => throw const FormatException('서버 얼굴 연출 형식을 확인해 주세요.'),
+  };
+  return normalizeFaceEffects({
+    mode,
+    if (paintStroke) FaceLayoutMode.paintStroke,
+  });
+}
+
+FaceLayoutMode serverFaceMode(String crop, bool paintStroke) =>
+    primaryFaceEffect(serverFaceEffects(crop, paintStroke));
 
 /// 서버 공개 표지 → 앱 공개 모델. 서버는 남의 사용자 ID를 주지 않으므로 [ownerId]는 부르는 쪽이
 /// 정한다(남의 표지는 사인으로 스케치북을 연다). 사진은 별도 인증 미디어 소스가 읽는 ID 참조로 둔다.
@@ -65,7 +75,8 @@ PublicIssue serverIssueToPublic(
   color: value.color,
   photo: mediaPhoto(value.mediaId),
   face: const FaceBox(.5, .3, .16),
-  faceMode: serverFaceMode(value.faceMode),
+  faceMode: serverFaceMode(value.faceCrop, value.paintStroke),
+  faceEffects: serverFaceEffects(value.faceCrop, value.paintStroke),
   caption: value.caption,
   alt: '${value.masthead}의 착장 사진',
   liked: value.liked,

@@ -1,8 +1,9 @@
+import '../../../publishing/domain/publish_request_failure.dart';
+import '../../../issue/data/sources/issue_remote_source.dart';
 import '../../../media/domain/rules/media_upload_policy.dart';
 import '../../../../core/errors/failures.dart';
 import '../../data/sources/today_remote_source.dart';
 import '../../../magazine/data/sources/magazine_remote_source.dart';
-import '../../../media/domain/models/face_layout_mode.dart';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../../../../core/design/tokens.g.dart';
@@ -31,6 +32,7 @@ class TodayController extends ChangeNotifier {
   List<EselPaint> _remoteCandidates = const [];
   int _remoteCount = 0, _request = 0;
   bool _remotePublished = false;
+  String? _remoteTodayMediaId;
   Future<void>? _inFlight;
   Future<void> _choices = Future.value();
   int _accountVersion = 0;
@@ -148,6 +150,7 @@ class TodayController extends ChangeNotifier {
       _remoteCandidates = const [];
       _remoteCount = 0;
       _remotePublished = false;
+      _remoteTodayMediaId = null;
       _issues = const [];
       _picked = null;
     }
@@ -217,6 +220,7 @@ class TodayController extends ChangeNotifier {
         _remoteCandidates = value.candidates;
         _picked = value.selected;
         _remotePublished = value.published;
+        _remoteTodayMediaId = profile?.today?.mediaId;
         _remoteCount = profile?.issueCount ?? 0;
         _issues = [
           for (final issue in [
@@ -232,7 +236,8 @@ class TodayController extends ChangeNotifier {
               caption: issue.caption,
               publishedOn: issue.date.key,
               issueNumber: issue.number,
-              faceMode: FaceLayoutMode.original,
+              faceMode: serverFaceMode(issue.faceCrop, issue.paintStroke),
+              faceEffects: serverFaceEffects(issue.faceCrop, issue.paintStroke),
               faceConfirmed: true,
               updatedAt: issue.publishedAt,
             ),
@@ -354,6 +359,28 @@ class TodayController extends ChangeNotifier {
         notifyListeners();
         await reload();
         return issue;
+      } on PublishRequestFailure catch (failure) {
+        // 응답을 놓쳤어도 같은 미디어가 실제로 저장됐다면 성공으로 돌아간다.
+        // 다른 기기에서 올린 다른 사진을 내 초안의 성공으로 오인하지 않는다.
+        if (version == _accountVersion && owner == _ownerId) {
+          await _inFlight;
+          if (version == _accountVersion && owner == _ownerId) await reload();
+          if (version == _accountVersion &&
+              owner == _ownerId &&
+              error == null &&
+              hasPublishedToday &&
+              _remoteTodayMediaId == failure.mediaId &&
+              todayIssue != null) {
+            return todayIssue!.copyWith(
+              photoPath: draft.photoPath,
+              faceX: draft.faceX,
+              faceY: draft.faceY,
+              faceWidth: draft.faceWidth,
+              mastheadScale: draft.mastheadScale,
+            );
+          }
+        }
+        throw failure.cause;
       } on RuleFailure catch (failure) {
         if (failure.code == 'ISSUE_ALREADY_PUBLISHED' &&
             version == _accountVersion) {

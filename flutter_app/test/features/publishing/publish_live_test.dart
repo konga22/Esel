@@ -118,7 +118,9 @@ void main() {
           expect(result.issueNumber, 1);
           expect(today.hasPublishedToday, true);
           final data = await http.get('/issues/${result.id}');
-          expect(data['faceMode'], ['PLAIN', 'PAINT', 'NECK_DOWN'][i]);
+          expect(data, isNot(contains('faceMode')));
+          expect(data['faceCrop'], ['ORIGINAL', 'ORIGINAL', 'BELOW_NECK'][i]);
+          expect(data['paintStroke'], i == 1);
           expect(
             (data['garments'] as List).single['garmentId'],
             matches(RegExp(r'^[0-9a-f-]{36}$')),

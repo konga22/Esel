@@ -1,3 +1,4 @@
+import '../domain/publish_request_failure.dart';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import '../../../core/errors/failures.dart';
@@ -5,6 +6,7 @@ import '../../../core/network/http_client.dart';
 import '../../drafts/domain/cover_draft.dart';
 import '../../garments/domain/garment.dart';
 import '../../issue/data/sources/issue_remote_source.dart';
+import '../../issue/domain/models/server_issue.dart';
 import '../../media/domain/models/face_box.dart';
 import '../../media/domain/models/face_layout_mode.dart';
 import '../../media/domain/rules/media_upload_policy.dart';
@@ -19,14 +21,16 @@ class PublishingRemoteSource {
   final Future<Uint8List> Function(String path) readPhoto;
   PublishingRemoteSource(this.http, this.uploads, {required this.readPhoto});
 
-  static String faceMode(CoverDraft draft) {
+  static Map<String, dynamic> faceFields(CoverDraft draft) {
     validateMediaUpload(draft);
-    if (faceCropMode(draft.effectiveFaceEffects) == FaceLayoutMode.belowNeck) {
-      return 'NECK_DOWN';
-    }
-    return draft.effectiveFaceEffects.contains(FaceLayoutMode.paintStroke)
-        ? 'PAINT'
-        : 'PLAIN';
+    final below =
+        faceCropMode(draft.effectiveFaceEffects) == FaceLayoutMode.belowNeck;
+    return {
+      'faceCrop': below ? 'BELOW_NECK' : 'ORIGINAL',
+      'paintStroke':
+          !below &&
+          draft.effectiveFaceEffects.contains(FaceLayoutMode.paintStroke),
+    };
   }
 
   static Map<String, dynamic> garmentInput(
@@ -61,7 +65,7 @@ class PublishingRemoteSource {
   }
 
   Future<CoverDraft> publish(CoverDraft draft) async {
-    final mode = faceMode(draft);
+    final face = faceFields(draft);
     final error = draft.validationError;
     if (error != null) {
       throw RuleFailure(error);
@@ -122,28 +126,34 @@ class PublishingRemoteSource {
     checkOwner();
     final mediaId = await uploads.upload(draft, readPhoto: () async => bytes);
     checkOwner();
-    final data = await http.post(
-      '/issues',
-      body: {
-        'mediaId': mediaId,
-        'caption': draft.caption.trim(),
-        'faceMode': mode,
-        'garments': [
-          for (final g in draft.garments)
-            garmentInput(
-              g,
-              draft,
-              ratio,
-              knownServerId:
-                  known[g.id]?.kind == g.kind &&
-                  known[g.id]?.name == g.name &&
-                  known[g.id]?.note == g.note,
-            ),
-        ],
-      },
-    );
+    // HTTP 오류뿐 아니라 저장 후 응답 해독 실패도 재조회 대상으로 표시한다.
+    late final ServerIssue issue;
+    try {
+      final data = await http.post(
+        '/issues',
+        body: {
+          'mediaId': mediaId,
+          'caption': draft.caption.trim(),
+          ...face,
+          'garments': [
+            for (final g in draft.garments)
+              garmentInput(
+                g,
+                draft,
+                ratio,
+                knownServerId:
+                    known[g.id]?.kind == g.kind &&
+                    known[g.id]?.name == g.name &&
+                    known[g.id]?.note == g.note,
+              ),
+          ],
+        },
+      );
+      issue = parseServerIssue(data);
+    } catch (error) {
+      throw PublishRequestFailure(mediaId, error);
+    }
     checkOwner();
-    final issue = parseServerIssue(data);
     return CoverDraft(
       id: issue.id,
       ownerId: draft.ownerId,
