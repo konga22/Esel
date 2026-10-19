@@ -42,7 +42,7 @@ npm run start:dev
 docker compose up -d --build api
 ```
 
-이 명령은 DB migration 뒤 `assets/demo`의 예시 인물 5명과 오늘 호를 자동으로 넣고 API를 시작합니다. `seed:demo`는 같은 날 여러 번 실행해도 같은 계정·호를 갱신하는 방식이라 데이터가 중복되지 않습니다. 원본과 480px 썸네일은 `esel-media-data` 볼륨에 남습니다. 완전히 새 발표 상태로 되돌리는 작업은 기존 DB·사진 볼륨을 지우므로, 필요한 데이터가 없는지 확인한 뒤에만 실행해야 합니다.
+이 명령은 DB migration 뒤 `assets/demo`의 예시 인물 5명과 오늘 호를 자동으로 넣고 API를 시작합니다. `seed:demo`는 같은 날 여러 번 실행하면 같은 계정·호를 갱신하고, 날짜가 바뀌면 각 계정의 마지막 호수 다음 번호로 새 호를 만들어 데이터와 호수가 충돌하지 않습니다. 원본과 480px 썸네일은 `esel-media-data` 볼륨에 남습니다. 완전히 새 발표 상태로 되돌리는 작업은 기존 DB·사진 볼륨을 지우므로, 필요한 데이터가 없는지 확인한 뒤에만 실행해야 합니다.
 
 - API: `http://localhost:3000/api`
 - 상태 확인: `http://localhost:3000/api/health`

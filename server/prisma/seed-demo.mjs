@@ -148,13 +148,19 @@ async function seedPerson(person, index) {
     },
     update: { colorId: person.colorId, lockedAt: new Date() },
   });
+  const latestIssue = await prisma.issue.findFirst({
+    where: { authorId: person.id },
+    orderBy: { issueNumber: 'desc' },
+    select: { issueNumber: true },
+  });
+  const nextIssueNumber = (latestIssue?.issueNumber ?? 0) + 1;
   await prisma.issue.upsert({
     where: { authorId_serviceDate: { authorId: person.id, serviceDate: date } },
     create: {
       id: issueId,
       authorId: person.id,
       serviceDate: date,
-      issueNumber: 1,
+      issueNumber: nextIssueNumber,
       colorId: person.colorId,
       mediaId,
       caption: person.caption,
