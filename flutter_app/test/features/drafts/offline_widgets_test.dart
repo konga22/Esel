@@ -26,6 +26,44 @@ void main() {
     library.directory!.deleteSync(recursive: true);
     library.dispose();
   });
+  for (final localDemo in [true, false]) {
+    testWidgets('발행 화면은 실제 데이터 모드에 맞는 안내를 표시한다: $localDemo', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PublishScreen(
+            library: library,
+            localDemo: localDemo,
+            masthead: 'style',
+            ownerId: 'owner',
+            currentIssueCount: 0,
+            hasPublishedToday: false,
+            candidates: [EselPaint.cobalt],
+            publish: (draft) async => draft,
+            onPublishSuccess: (_) {},
+            onClose: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.text('로컬 시연 · 올린 호는 이 기기에 저장돼요.'),
+        localDemo ? findsOneWidget : findsNothing,
+      );
+      expect(
+        find.text('초안은 이 기기에 보관돼요. 올리기를 완료하기 전에는 공개되지 않아요.'),
+        localDemo ? findsNothing : findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    });
+  }
+  testWidgets('발행 없는 초안 편집에서는 로컬 시연 발행 문구를 표시하지 않는다', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(home: CoverEditorScreen(library: library, localDemo: true)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('초안은 이 기기에만 보관돼요. 올리기 전까지 공개되지 않아요.'), findsOneWidget);
+    expect(find.textContaining('로컬 시연'), findsNothing);
+  });
   testWidgets('원본 위치 지정 중 효과 버튼을 누르면 실제 효과 미리보기로 돌아온다', (tester) async {
     await tester.pumpWidget(
       MaterialApp(

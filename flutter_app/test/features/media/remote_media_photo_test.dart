@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:esel/core/errors/failures.dart';
@@ -22,7 +23,58 @@ class MissingPhotoHttp implements AppHttpClient, BinaryHttpClient {
   dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }
 
+class DeferredPhotoHttp extends MissingPhotoHttp {
+  final result = Completer<Uint8List>();
+  @override
+  Future<Uint8List> getBytes(String path, {Map<String, String>? queryParams}) =>
+      result.future;
+}
+
 void main() {
+  for (final failure in [
+    const NotFoundFailure('사진 없음'),
+    const NetworkFailure('연결 실패'),
+    null,
+  ]) {
+    testWidgets('장식 배경은 대기 및 실패 상태 UI를 숨긴다: $failure', (tester) async {
+      final http = DeferredPhotoHttp();
+      final source = MediaRemoteSource(http);
+      addTearDown(source.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: SizedBox(
+            width: 300,
+            height: 400,
+            child: RemoteMediaPhoto(
+              id: 'background',
+              decorative: true,
+              source: source,
+            ),
+          ),
+        ),
+      );
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      if (failure != null) {
+        http.result.completeError(failure);
+      } else {
+        // 통신은 성공했어도 이미지로 해독할 수 없는 응답은 배경에서 숨긴다.
+        http.result.complete(Uint8List.fromList([1, 2, 3]));
+      }
+      await tester.pumpAndSettle();
+      expect(find.byType(Text), findsNothing);
+      expect(find.byType(IconButton), findsNothing);
+      expect(find.byType(TextButton), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byType(RemoteMediaPhoto),
+          matching: find.byType(ColoredBox),
+        ),
+        findsNothing,
+      );
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   testWidgets('서버 404에는 준비 중 안내와 같은 사진 재시도가 있고 얼굴 효과를 다시 그리지 않는다', (
     tester,
   ) async {

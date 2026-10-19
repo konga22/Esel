@@ -293,6 +293,7 @@ class _TeaserEnd extends StatelessWidget {
                 imageFilter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
                 child: mediaPhotoId(backdrop.photo) != null
                     ? RemoteMediaPhoto(
+                        decorative: true,
                         id: mediaPhotoId(backdrop.photo)!,
                         thumbnail: true,
                       )

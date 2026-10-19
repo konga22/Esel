@@ -10,12 +10,16 @@ import '../data/media_remote_source.dart';
 class RemoteMediaPhoto extends StatefulWidget {
   final String id;
   final bool thumbnail;
+
+  /// 흐린 맛보기 배경처럼 조작할 수 없는 장식 사진은 상태 UI를 그리지 않는다.
+  final bool decorative;
   final String semanticLabel;
   final MediaRemoteSource? source;
   const RemoteMediaPhoto({
     super.key,
     required this.id,
     this.thumbnail = false,
+    this.decorative = false,
     this.semanticLabel = '착장 사진',
     this.source,
   });
@@ -72,6 +76,7 @@ class _RemoteMediaPhotoState extends State<RemoteMediaPhoto> {
   }
 
   Widget _error({bool notFound = false}) {
+    if (widget.decorative) return const SizedBox.shrink();
     final message = notFound ? '사진 제공 준비 중' : '사진을 불러오지 못했어요.';
     void retry() => setState(() => _load(retry: true));
     return ColoredBox(
@@ -108,6 +113,7 @@ class _RemoteMediaPhotoState extends State<RemoteMediaPhoto> {
     future: _photo,
     builder: (context, snapshot) {
       if (snapshot.connectionState != ConnectionState.done) {
+        if (widget.decorative) return const SizedBox.shrink();
         return const ColoredBox(
           color: EselColors.photo,
           child: Center(child: CircularProgressIndicator()),
