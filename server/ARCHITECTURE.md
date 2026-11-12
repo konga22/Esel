@@ -324,6 +324,8 @@ Flutter의 오늘 화면은 아직 `TodayController`가 로컬 `DailyCandidates`
 
 파일 바이트는 PostgreSQL에 넣지 않는다. 개발 환경은 `MEDIA_STORAGE_ROOT` 아래와 Docker `esel-media-data` named volume을 사용한다. 이 구현은 저장과 검증 경계를 먼저 확정하기 위한 임시 개발 방식이다. `uploadPath`가 컨테이너 내부 경로이므로 Flutter 기기는 직접 쓸 수 없다. 운영 연결 전에는 자체 운영 S3 호환 스토리지 등 저장소를 정하고, 준비 응답을 모바일에서 사용할 수 있는 업로드 URL 방식으로 교체해야 한다.
 
+쓰이지 않은 사진은 `MediaCleanupScheduler`가 서버 시작 시 한 번, 그 뒤 6시간마다 `MediaService.cleanupUnusedMedia()`를 불러 정리한다. 대상은 호·트윈 게시에 연결되지 않고 `updatedAt`이 24시간 지난 `PENDING`·`READY`·`REJECTED` 사진이다(기준값은 `media.rules.ts`). 한 번에 오래된 것부터 100장까지, 한 장씩 같은 조건을 다시 건 `deleteMany`로 DB 행을 지운 뒤 파일을 지운다. 순서를 반대로 하면 파일만 사라지고 `READY` 행이 남아 올리기가 깨질 수 있기 때문이다. 앞 정리가 돌고 있으면 겹쳐 실행하지 않고, 종료 시에는 돌던 정리를 기다린다(Nest가 이 모듈을 전역 `PrismaModule`보다 먼저 닫는다). 별도 API·migration·외부 스케줄러 패키지는 없다. 서버를 여러 대 띄우면 각자 정리하지만 조건부 삭제라 같은 사진을 두 번 지우는 문제는 없다.
+
 `GET /api/me/notifications`는 저장된 행이 없을 때 `enabled`, `newIssue`, `reactions`를 모두 `true`로 돌려주되 GET 요청으로 DB를 변경하지 않는다. `PUT /api/me/notifications`는 세 값을 모두 boolean으로 받아 upsert한다. 알림 전송 시스템 자체가 아니라 사용자 설정 저장 API까지만 구현된 상태다.
 
 ## 12. 호 조회와 반응·독자 한 줄

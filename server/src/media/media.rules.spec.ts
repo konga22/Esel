@@ -1,4 +1,12 @@
-import { inspectImage } from './media.rules.js';
+import { inspectImage, unusedMediaCutoff } from './media.rules.js';
+
+describe('unusedMediaCutoff', () => {
+  it('지금보다 정확히 24시간 전 시각을 기준으로 삼는다', () => {
+    expect(
+      unusedMediaCutoff(new Date('2026-11-12T03:00:00.000Z')).toISOString(),
+    ).toBe('2026-11-11T03:00:00.000Z');
+  });
+});
 
 function png(width: number, height: number): Buffer {
   const bytes = Buffer.alloc(24);
