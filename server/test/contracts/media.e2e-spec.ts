@@ -1,6 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { Readable } from 'node:stream';
 import request from 'supertest';
@@ -591,5 +591,134 @@ describe('DEV-08 사진과 얼굴 연출', () => {
     expect(stored.storageKey).toMatch(/^pending\/.+\.upload$/);
     expect(Object.keys(stored)).not.toContain('bytes');
     expect(Object.keys(stored)).not.toContain('file');
+  });
+
+  describe('합격 기준: 쓰이지 않은 사진 정리', () => {
+    // 마지막 변경을 25시간 전으로 돌려 "24시간 지난 사진"을 만든다(@updatedAt이 덮어쓰지 않게 SQL로 바꾼다).
+    async function age(id: string) {
+      await prisma.$executeRaw`
+        UPDATE media_assets SET updated_at = now() - interval '25 hours' WHERE id = ${id}::uuid`;
+    }
+
+    async function exists(file: string): Promise<boolean> {
+      return readFile(file).then(
+        () => true,
+        () => false,
+      );
+    }
+
+    const thumb = (id: string) => path.join(mediaRoot, 'thumbs', `${id}.jpg`);
+
+    it('호·트윈에 연결되지 않고 24시간 지난 사진은 DB 행과 원본·썸네일을 함께 지운다', async () => {
+      const user = await signup('cleanup-unused');
+      const readyId = await readyMedia(user.token);
+      const original = await uploadPath(readyId);
+      const pending = await prepare(user.token);
+      const rejected = await prepare(user.token);
+      await prisma.mediaAsset.update({
+        where: { id: rejected.body.id },
+        data: { status: 'REJECTED' },
+      });
+      for (const id of [readyId, pending.body.id, rejected.body.id]) {
+        await age(id);
+      }
+      expect(await exists(original)).toBe(true);
+      expect(await exists(thumb(readyId))).toBe(true);
+
+      await mediaService.cleanupUnusedMedia();
+
+      const left = await prisma.mediaAsset.count({
+        where: { id: { in: [readyId, pending.body.id, rejected.body.id] } },
+      });
+      expect(left).toBe(0);
+      expect(await exists(original)).toBe(false);
+      expect(await exists(thumb(readyId))).toBe(false);
+    });
+
+    it('발행된 호·트윈 게시에 연결된 사진은 오래돼도 지우지 않는다', async () => {
+      const user = await signup('cleanup-linked');
+      const issueMediaId = await readyMedia(user.token);
+      const twinMediaId = await readyMedia(user.token);
+      await prisma.issue.create({
+        data: {
+          authorId: user.userId,
+          serviceDate: new Date('2000-01-02T00:00:00.000Z'),
+          issueNumber: 1,
+          colorId: 'sage',
+          mediaId: issueMediaId,
+          caption: '',
+          faceCrop: 'ORIGINAL',
+          paintStroke: false,
+        },
+      });
+      const twin = await prisma.twin.create({
+        data: {
+          serviceDate: new Date('2001-01-02T00:00:00.000Z'),
+          status: 'ACCEPTED',
+          participations: {
+            create: [
+              {
+                userId: user.userId,
+                serviceDate: new Date('2001-01-02T00:00:00.000Z'),
+                role: 'INVITER',
+              },
+            ],
+          },
+        },
+      });
+      await prisma.twinPost.create({
+        data: {
+          twinId: twin.id,
+          userId: user.userId,
+          mediaId: twinMediaId,
+          colorId: 'sage',
+        },
+      });
+      await age(issueMediaId);
+      await age(twinMediaId);
+
+      await mediaService.cleanupUnusedMedia();
+
+      const left = await prisma.mediaAsset.count({
+        where: { id: { in: [issueMediaId, twinMediaId] } },
+      });
+      expect(left).toBe(2);
+      expect(await exists(await uploadPath(issueMediaId))).toBe(true);
+      expect(await exists(thumb(twinMediaId))).toBe(true);
+    });
+
+    it('24시간이 안 된 사진은 올리기 중일 수 있어 지우지 않는다', async () => {
+      const user = await signup('cleanup-recent');
+      const recentId = await readyMedia(user.token);
+
+      await mediaService.cleanupUnusedMedia();
+
+      expect(
+        await prisma.mediaAsset.count({ where: { id: recentId } }),
+      ).toBe(1);
+      expect(await exists(await uploadPath(recentId))).toBe(true);
+    });
+
+    it('한 사진의 파일 삭제가 실패해도 다른 사진은 계속 지운다', async () => {
+      const user = await signup('cleanup-partial');
+      const brokenId = await readyMedia(user.token);
+      const okId = await readyMedia(user.token);
+      const okOriginal = await uploadPath(okId);
+      // 썸네일 자리를 내용이 든 폴더로 바꿔 이 사진의 파일 삭제만 실패하게 만든다
+      await rm(thumb(brokenId), { force: true });
+      await mkdir(thumb(brokenId), { recursive: true });
+      await writeFile(path.join(thumb(brokenId), 'keep'), 'x');
+      await age(brokenId);
+      await age(okId);
+
+      const result = await mediaService.cleanupUnusedMedia();
+
+      expect(result.failedFiles).toBeGreaterThanOrEqual(1);
+      expect(
+        await prisma.mediaAsset.count({ where: { id: { in: [brokenId, okId] } } }),
+      ).toBe(0);
+      expect(await exists(okOriginal)).toBe(false);
+      expect(await exists(thumb(okId))).toBe(false);
+    });
   });
 });
