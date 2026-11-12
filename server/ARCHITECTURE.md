@@ -263,7 +263,7 @@ Content-Type: application/json
 7. 이메일 중복은 서비스 처리뿐 아니라 PostgreSQL unique index가 동시 요청까지 막는다.
 8. Flutter가 읽는 `SessionDto`를 201로 반환한다. 창간 전이므로 `masthead`는 빈 문자열, `issueCount`는 0이다.
 
-로그인은 같은 모양의 요청을 `/api/auth/email/login`으로 받는다. `EmailCredential`의 해시를 `crypto.scrypt`로 다시 계산해 일정 시간 비교하고, 성공할 때마다 별도 `AuthSession`을 만든다. 가입하지 않은 이메일도 가짜 해시 계산을 거친 뒤 잘못된 비밀번호와 똑같이 `401 WRONG_CREDENTIALS`로 답하므로, 응답만 보고 계정 존재 여부를 구분하기 어렵다. 같은 이메일의 여섯 번째 1분 내 시도는 `429 RATE_LIMITED`로 막는다.
+로그인은 같은 모양의 요청을 `/api/auth/email/login`으로 받는다. `EmailCredential`의 해시를 `crypto.scrypt`로 다시 계산해 일정 시간 비교하고, 성공할 때마다 별도 `AuthSession`을 만든다. 가입하지 않은 이메일도 가짜 해시 계산을 거친 뒤 잘못된 비밀번호와 똑같이 `401 WRONG_CREDENTIALS`로 답하므로, 응답만 보고 계정 존재 여부를 구분하기 어렵다. 같은 이메일의 여섯 번째 1분 내 시도는 `429 RATE_LIMITED`로 막는다. 시도는 비밀번호를 확인하기 전에 세므로 제한에 걸린 동안에는 맞는 비밀번호여도 429이고, 동시에 몰려온 요청도 다섯 개까지만 비밀번호 확인까지 간다. 제한 전에 로그인이 성공하면 기록을 지우고, 1분이 지난 기록은 1분에 한 번씩 메모리에서 정리한다.
 
 로그인 응답의 `masthead`와 `issueCount`는 `Profile`에서, `hasPublishedToday`는 서버의 `SERVICE_TIME_ZONE` 기준 오늘 `Issue`에서 읽는다. 미성년자 판별과 프로필 이미지 모델은 아직 정해지지 않아 각각 `false`, `null`이다.
 

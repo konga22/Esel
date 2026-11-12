@@ -235,9 +235,9 @@ describe('DEV-05 로그인', () => {
     expect(response.body.error.code).toBe('RATE_LIMITED');
   });
 
-  it('POST /api/auth/email/login: 성공은 실패 횟수를 초기화하고 정상 사용자를 막지 않음', async () => {
+  it('POST /api/auth/email/login: 5번 틀린 뒤 6번째는 맞는 비밀번호여도 → 429 RATE_LIMITED', async () => {
     const credentials = {
-      email: 'login-reset@signup.e2e.test',
+      email: 'login-limited-correct@signup.e2e.test',
       password: 'correct horse battery staple',
     };
     await request(app.getHttpServer())
@@ -251,16 +251,53 @@ describe('DEV-05 로그인', () => {
         .send({ ...credentials, password: 'definitely wrong password' })
         .expect(401);
     }
+    const response = await request(app.getHttpServer())
+      .post('/api/auth/email/login')
+      .send(credentials)
+      .expect(429);
+
+    expect(response.body.error.code).toBe('RATE_LIMITED');
+    expect(response.body.accessToken).toBeUndefined();
+    // 막힌 동안에는 새 세션도 만들지 않는다(가입 때 만든 세션 하나뿐)
+    const sessions = await prisma.authSession.count({
+      where: { user: { email: credentials.email } },
+    });
+    expect(sessions).toBe(1);
+  });
+
+  it('POST /api/auth/email/login: 제한 전 성공은 시도 횟수를 초기화하고 정상 사용자를 막지 않음', async () => {
+    const credentials = {
+      email: 'login-reset@signup.e2e.test',
+      password: 'correct horse battery staple',
+    };
+    await request(app.getHttpServer())
+      .post('/api/auth/email/signup')
+      .send(credentials)
+      .expect(201);
+
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      await request(app.getHttpServer())
+        .post('/api/auth/email/login')
+        .send({ ...credentials, password: 'definitely wrong password' })
+        .expect(401);
+    }
     await request(app.getHttpServer())
       .post('/api/auth/email/login')
       .send(credentials)
       .expect(201);
 
-    const afterReset = await request(app.getHttpServer())
+    // 초기화됐으므로 다시 다섯 번까지는 401이고, 여섯 번째에서야 429
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const afterReset = await request(app.getHttpServer())
+        .post('/api/auth/email/login')
+        .send({ ...credentials, password: 'definitely wrong password' })
+        .expect(401);
+      expect(afterReset.body.error.code).toBe('WRONG_CREDENTIALS');
+    }
+    await request(app.getHttpServer())
       .post('/api/auth/email/login')
       .send({ ...credentials, password: 'definitely wrong password' })
-      .expect(401);
-    expect(afterReset.body.error.code).toBe('WRONG_CREDENTIALS');
+      .expect(429);
   });
   // auth.refresh · 접근: public · 응답: SessionDto · 계약: P12
   it('POST /api/auth/refresh: refresh token을 회전해 새 토큰 받기 → 201', async () => {
