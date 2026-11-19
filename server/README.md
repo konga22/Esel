@@ -211,7 +211,35 @@ HEIC 원본은 현재 허용하고 실제 시그니처도 검사하지만 JPEG �
 docker compose up -d --build api
 ```
 
-Android 에뮬레이터는 호스트 PC를 `10.0.2.2`로 부릅니다. Flutter 앱의 서버 모드에는 인증·사인 확인·프로필 생성·오늘의 색·표지 조회/반응/독자 한 줄·스케치북/구독·내 반응·월간 기록/복원을 연결했다. 실행과 검증 범위는 [Flutter 핵심 API 안내](../docs/flutter/CORE_API_CONNECTION.md)를 따른다. 알림 설정·미디어 업로드·새 발행·피드·팔레트 추천 등은 전체 앱 연결을 완료한 것이 아니다. 서버의 미디어 업로드·조회 API는 준비됐지만 Flutter가 아직 `uploadUrl`로 파일을 보내고 호·트윈의 미디어 ID를 이미지 URL로 조합하는 연결 작업은 남아 있다.
+Android 에뮬레이터는 호스트 PC를 `10.0.2.2`로 부릅니다.
+
+### 앱이 연결한 API (2026-11-19 기준)
+
+아래 표는 Flutter 앱 코드(`flutter_app/lib`)가 실제로 부르는 주소와 [핵심 API 연결 기록](../docs/flutter/CORE_API_CONNECTION.md)·[발행 연결 기록](../docs/flutter/PUBLISH_API_CONNECTION.md)을 맞춰 본 것입니다. 앱 쪽 검증 범위(에뮬레이터·실기기·iOS)는 두 문서를 따릅니다.
+
+| 묶음 | 연결된 서버 API | 상태 |
+|---|---|---|
+| 로그인 | `POST /auth/email/signup`·`login`·`refresh`·`logout` | 연결·실제 서버 검증 |
+| 사인·프로필 | `GET /mastheads/:name/availability`, `POST /profile` | 연결·실제 서버 검증 |
+| 오늘의 색 | `GET /today`, `PUT /today/choice` | 연결·실제 서버 검증 |
+| 표지·반응·한 줄 | `GET /issues/:id`, 좋아요·스크랩 `POST`/`DELETE`, 한 줄 `GET`/`POST` | 연결·실제 서버 검증 |
+| 스케치북·구독 | `GET /magazines/:masthead`, 구독 `POST`/`DELETE` | 연결·실제 서버 검증 |
+| 내 스케치북 | `GET /me/magazine`, `GET /me/issues/:id/reactions` | 연결·실제 서버 검증 |
+| 색 달력 | `GET /me/records`, `POST /me/records/:date/restore` | 연결·실제 서버 검증 |
+| 홈 피드 | `GET /feed`(로그인), `GET /today/cover`(비로그인) | 연결 |
+| 팔레트 | `GET /palette/recommended`·`/palette/subscriptions`·`/palette/colors`, `GET /stand?colorId=` | 연결 |
+| 사진 | `POST /media` → `PUT /media/:id/file` → `POST /media/:id/complete`, 보기 `GET /media/:id?size=thumb\|original` | 연결·로컬 Docker 검증. 앱은 얼굴 연출을 적용한 PNG를 올린다 |
+| 올리기 | `POST /issues`(`faceCrop`·`paintStroke`·`garments`), `GET /me/garments` | 연결·로컬 Docker 실발행 검증. **사인 뒤로는 앱이 업로드를 보류**한다(얼굴 노출 가능성, [사진 연결 결정 기록](../docs/flutter/MEDIA_UPLOAD_HANDOFF.md)) |
+| 탈퇴 | `DELETE /me` | 앱 코드에 호출 있음. 실제 서버 검증 기록 없음 |
+
+서버에는 있지만 앱이 아직 부르지 않는 API:
+
+- 저장함 `GET /me/scraps`. 앱 코드에 "서버에 생기면 연결"이라는 주석이 남아 있지만 서버는 이미 구현되어 있다.
+- 알림 설정 `GET`·`PUT /me/notifications`. 설정 화면의 스위치는 기기 안에서만 바뀐다.
+- 프로필 수정 `PATCH /me/profile`.
+- 친구·트윈(`/friends…`, `/twins…`), 공유 링크(`/share-links…`), 신고·차단(`…/reports`, `/users/:masthead/block`, `/me/blocks`), 호 삭제 `DELETE /issues/:id`, 사용자 조회 `GET /users/:masthead`. 친구·트윈 예시 화면은 서버 모드에서 들어갈 수 없게 막혀 있다.
+
+앱에는 있지만 서버 약속(`api-contract.json`)에 없는 주소: `/auth/google`, `/auth/apple`. Apple·Google 로그인은 도입 시점이 정해지지 않아 서버에 없으므로, 앱에서 부르면 404가 된다.
 
 ```powershell
 cd flutter_app
