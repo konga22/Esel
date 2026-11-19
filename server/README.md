@@ -161,6 +161,8 @@ Invoke-RestMethod -Method Get `
 
 파일은 `MEDIA_STORAGE_ROOT`에 저장하고 Docker에서는 재시작 뒤에도 남는 named volume `esel-media-data`를 `/app/data/media`에 연결합니다. JPEG·PNG 완료 시 `sharp`로 최대 480×480 JPEG 썸네일을 미리 만들며, `GET /api/media/:id?size=thumb`으로 요청합니다. 이 조회 API는 비로그인 오늘 표지·공개된 지난 호·공개 트윈에서도 이미지를 표시할 수 있도록 공개되어 있지만, 매번 호의 같은 색 잠금·차단·삭제와 트윈 공개 범위를 검사하고 권한이 없거나 미완료 상태이면 `404`로 숨깁니다. 현재 응답은 사용자별 권한이 달라질 수 있어 `Cache-Control: private, no-store`입니다. 호를 삭제하면 미디어 상태를 `DELETED`로 바꾸고 원본·썸네일 파일을 제거하며, 계정을 삭제할 때는 본인 사진과 함께 삭제되는 트윈의 두 사람 원본·썸네일도 정리합니다.
 
+올리기가 실패하거나 앱이 다시 시도하면 호에 연결되지 않은 사진이 남는다. 서버는 시작할 때 한 번, 그 뒤 6시간마다 호·트윈 게시에 연결되지 않고 마지막 변경 뒤 24시간이 지난 `PENDING`·`READY`·`REJECTED` 사진을 오래된 것부터 최대 100장씩 지운다(`MediaCleanupScheduler` → `MediaService.cleanupUnusedMedia`). 지우는 순간에도 "연결 안 됨" 조건을 다시 걸어 동시에 발행된 사진은 지우지 않는다. DB 행을 먼저 지우고 원본·썸네일 파일을 지우며, 한 장의 파일 삭제가 실패해도 로그만 남기고 다음 사진으로 넘어간다. 삭제한 호의 `DELETED` 사진은 하루 한 호 기록이라 그대로 둔다. 업로드 도중 서버가 죽어 남은 임시 `*.part` 파일과 DB 행 없이 디스크에만 남은 파일은 아직 정리하지 않는다.
+
 HEIC 원본은 현재 허용하고 실제 시그니처도 검사하지만 JPEG 썸네일 생성은 보장하지 않습니다. iPhone 앱에서 JPEG로 바꿔 올릴지 서버에 HEIC 변환기를 둘지는 관혁이와 정한 뒤 계약을 갱신합니다. 외부 S3·R2는 쓰지 않으므로 배포 환경에는 컨테이너 재배포 뒤에도 보존되는 영구 디스크가 반드시 필요합니다.
 
 오늘 호 발행은 `POST /api/issues` 한 트랜잭션 안에서 오늘의 선택 색 확인, READY 상태인 내 사진 연결, 호 생성, `issueCount` 증가, 선택 색 잠금을 함께 처리합니다. 얼굴 연출은 자르기 위치 `faceCrop`(`ORIGINAL`, `BEHIND_LOGO`, `BELOW_NECK`)과 물감 사용 여부 `paintStroke`로 따로 저장해 두 연출을 함께 쓸 수 있습니다. `BELOW_NECK`이면 서버와 DB가 `paintStroke=false`를 강제합니다. 기존 `PAINT`/`PAINT_STROKE` 데이터는 migration에서 `ORIGINAL + true`로 옮깁니다. 같은 사용자의 같은 서비스 날짜에는 DB unique 제약이 있어 동시 요청도 한 호만 성공합니다. `garments`는 없어도 되고 최대 8개이며, 새 옷은 `garments`, 호에서의 순서·태그 좌표·오늘의 색 표시는 `issue_garments`에 나눠 저장합니다. URL·가격처럼 DTO에 없는 필드는 전역 whitelist가 `400 VALIDATION`으로 거절합니다.

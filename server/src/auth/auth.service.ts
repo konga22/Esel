@@ -85,6 +85,9 @@ export class AuthService {
 
   async login(input: EmailLoginDto): Promise<SessionDto> {
     const email = input.email.trim().toLowerCase();
+    // 비밀번호를 확인하기 전에 시도를 센다. 제한에 걸리면 맞는 비밀번호여도 여기서 429로 끝난다.
+    // 계정이 있든 없든 같은 이메일 기준으로 똑같이 세므로, 429로 계정 존재 여부가 드러나지 않는다.
+    this.loginRateLimiter.consume(email);
 
     const user = await this.prisma.user.findUnique({
       where: { email },
@@ -95,7 +98,6 @@ export class AuthService {
     const passwordMatches = await verifyPassword(input.password, passwordHash);
 
     if (!user || user.status !== 'ACTIVE' || !passwordMatches) {
-      this.loginRateLimiter.recordFailure(email);
       throw new AppException('WRONG_CREDENTIALS');
     }
     this.loginRateLimiter.reset(email);

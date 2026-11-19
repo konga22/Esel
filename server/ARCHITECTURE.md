@@ -263,7 +263,7 @@ Content-Type: application/json
 7. 이메일 중복은 서비스 처리뿐 아니라 PostgreSQL unique index가 동시 요청까지 막는다.
 8. Flutter가 읽는 `SessionDto`를 201로 반환한다. 창간 전이므로 `masthead`는 빈 문자열, `issueCount`는 0이다.
 
-로그인은 같은 모양의 요청을 `/api/auth/email/login`으로 받는다. `EmailCredential`의 해시를 `crypto.scrypt`로 다시 계산해 일정 시간 비교하고, 성공할 때마다 별도 `AuthSession`을 만든다. 가입하지 않은 이메일도 가짜 해시 계산을 거친 뒤 잘못된 비밀번호와 똑같이 `401 WRONG_CREDENTIALS`로 답하므로, 응답만 보고 계정 존재 여부를 구분하기 어렵다. 같은 이메일의 여섯 번째 1분 내 시도는 `429 RATE_LIMITED`로 막는다.
+로그인은 같은 모양의 요청을 `/api/auth/email/login`으로 받는다. `EmailCredential`의 해시를 `crypto.scrypt`로 다시 계산해 일정 시간 비교하고, 성공할 때마다 별도 `AuthSession`을 만든다. 가입하지 않은 이메일도 가짜 해시 계산을 거친 뒤 잘못된 비밀번호와 똑같이 `401 WRONG_CREDENTIALS`로 답하므로, 응답만 보고 계정 존재 여부를 구분하기 어렵다. 같은 이메일의 여섯 번째 1분 내 시도는 `429 RATE_LIMITED`로 막는다. 시도는 비밀번호를 확인하기 전에 세므로 제한에 걸린 동안에는 맞는 비밀번호여도 429이고, 동시에 몰려온 요청도 다섯 개까지만 비밀번호 확인까지 간다. 제한 전에 로그인이 성공하면 기록을 지우고, 1분이 지난 기록은 1분에 한 번씩 메모리에서 정리한다.
 
 로그인 응답의 `masthead`와 `issueCount`는 `Profile`에서, `hasPublishedToday`는 서버의 `SERVICE_TIME_ZONE` 기준 오늘 `Issue`에서 읽는다. 미성년자 판별과 프로필 이미지 모델은 아직 정해지지 않아 각각 `false`, `null`이다.
 
@@ -323,6 +323,8 @@ Flutter의 오늘 화면은 아직 `TodayController`가 로컬 `DailyCandidates`
 5. 통과하면 `READY`, 잘못된 형식이나 초과 크기면 `REJECTED`로 바꾼다. 최대 크기는 15MB다.
 
 파일 바이트는 PostgreSQL에 넣지 않는다. 개발 환경은 `MEDIA_STORAGE_ROOT` 아래와 Docker `esel-media-data` named volume을 사용한다. 이 구현은 저장과 검증 경계를 먼저 확정하기 위한 임시 개발 방식이다. `uploadPath`가 컨테이너 내부 경로이므로 Flutter 기기는 직접 쓸 수 없다. 운영 연결 전에는 자체 운영 S3 호환 스토리지 등 저장소를 정하고, 준비 응답을 모바일에서 사용할 수 있는 업로드 URL 방식으로 교체해야 한다.
+
+쓰이지 않은 사진은 `MediaCleanupScheduler`가 서버 시작 시 한 번, 그 뒤 6시간마다 `MediaService.cleanupUnusedMedia()`를 불러 정리한다. 대상은 호·트윈 게시에 연결되지 않고 `updatedAt`이 24시간 지난 `PENDING`·`READY`·`REJECTED` 사진이다(기준값은 `media.rules.ts`). 한 번에 오래된 것부터 100장까지, 한 장씩 같은 조건을 다시 건 `deleteMany`로 DB 행을 지운 뒤 파일을 지운다. 순서를 반대로 하면 파일만 사라지고 `READY` 행이 남아 올리기가 깨질 수 있기 때문이다. 앞 정리가 돌고 있으면 겹쳐 실행하지 않고, 종료 시에는 돌던 정리를 기다린다(Nest가 이 모듈을 전역 `PrismaModule`보다 먼저 닫는다). 별도 API·migration·외부 스케줄러 패키지는 없다. 서버를 여러 대 띄우면 각자 정리하지만 조건부 삭제라 같은 사진을 두 번 지우는 문제는 없다.
 
 `GET /api/me/notifications`는 저장된 행이 없을 때 `enabled`, `newIssue`, `reactions`를 모두 `true`로 돌려주되 GET 요청으로 DB를 변경하지 않는다. `PUT /api/me/notifications`는 세 값을 모두 boolean으로 받아 upsert한다. 알림 전송 시스템 자체가 아니라 사용자 설정 저장 API까지만 구현된 상태다.
 

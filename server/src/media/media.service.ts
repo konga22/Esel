@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
 import { createReadStream, createWriteStream } from 'node:fs';
@@ -9,6 +9,7 @@ import path from 'node:path';
 import sharp from 'sharp';
 import { AppException } from '../common/app-exception.js';
 import type { AppErrorCode } from '../common/errors.js';
+import type { Prisma } from '../generated/prisma/client.js';
 import { IssuesService } from '../issues/issues.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { MediaOwnerDto } from './dto/media-owner.dto.js';
@@ -19,10 +20,13 @@ import {
   ALLOWED_MEDIA_TYPES,
   inspectImage,
   MAX_MEDIA_SIZE_BYTES,
+  MEDIA_CLEANUP_BATCH_SIZE,
+  unusedMediaCutoff,
 } from './media.rules.js';
 
 @Injectable()
 export class MediaService {
+  private readonly logger = new Logger(MediaService.name);
   private readonly storageRoot: string;
 
   constructor(
@@ -268,6 +272,59 @@ export class MediaService {
       mimeType: size === MediaSize.THUMB ? 'image/jpeg' : media.mimeType,
       sizeBytes: fileSize,
     };
+  }
+
+  /**
+   * 호·트윈 게시에 연결되지 않은 채 24시간 넘게 아무도 건드리지 않은 사진을 지운다.
+   * 올리기가 실패하거나 앱이 다시 시도하면서 남은 PENDING·READY·REJECTED 사진이 대상이다.
+   *
+   * 1. 대상 후보를 오래된 것부터 최대 100장 고른다.
+   * 2. 한 장씩, **지우는 순간에도** "연결 안 됨 + 24시간 지남" 조건을 다시 걸고 DB 행을 지운다.
+   *    그 사이 올리기가 이 사진을 호에 연결했다면 조건이 맞지 않아 지우지 않는다.
+   * 3. DB 행을 지운 뒤에 원본·썸네일 파일을 지운다. 파일 삭제가 실패해도 행이 없으니 누구에게도 보이지 않고,
+   *    로그만 남기고 다음 사진으로 넘어간다.
+   */
+  async cleanupUnusedMedia(
+    now = new Date(),
+  ): Promise<{ removed: number; failedFiles: number }> {
+    const unused = {
+      status: { in: ['PENDING', 'READY', 'REJECTED'] },
+      updatedAt: { lt: unusedMediaCutoff(now) },
+      issue: { is: null },
+      twinPost: { is: null },
+    } satisfies Prisma.MediaAssetWhereInput;
+
+    const candidates = await this.prisma.mediaAsset.findMany({
+      where: unused,
+      orderBy: { updatedAt: 'asc' },
+      take: MEDIA_CLEANUP_BATCH_SIZE,
+      select: { id: true, storageKey: true },
+    });
+
+    let removed = 0;
+    let failedFiles = 0;
+    for (const media of candidates) {
+      try {
+        const deleted = await this.prisma.mediaAsset.deleteMany({
+          where: { id: media.id, ...unused },
+        });
+        if (deleted.count !== 1) continue;
+        removed += 1;
+      } catch (error) {
+        this.logger.warn(`사진 정리 중 DB 삭제에 실패했어요: ${media.id}`, error);
+        continue;
+      }
+      try {
+        await this.removeStoredFiles(media.storageKey, media.id);
+      } catch (error) {
+        failedFiles += 1;
+        this.logger.warn(
+          `사진 정리 중 파일 삭제에 실패했어요(DB 행은 지워져 보이지 않아요): ${media.id}`,
+          error,
+        );
+      }
+    }
+    return { removed, failedFiles };
   }
 
   async removeStoredFiles(storageKey: string, id: string): Promise<void> {

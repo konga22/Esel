@@ -5,6 +5,16 @@ export const ALLOWED_MEDIA_TYPES = [
   'image/heic',
 ] as const;
 
+/** 호·트윈에 연결되지 않은 사진을 이 시간 동안 아무도 건드리지 않으면 정리 대상이 된다. */
+export const UNUSED_MEDIA_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+/** 한 번 정리할 때 지우는 최대 개수. 남은 것은 다음 정리 때 이어서 지운다. */
+export const MEDIA_CLEANUP_BATCH_SIZE = 100;
+
+/** 마지막 변경(updatedAt)이 이 시각보다 이르면 "오래된" 사진이다. */
+export function unusedMediaCutoff(now: Date): Date {
+  return new Date(now.getTime() - UNUSED_MEDIA_MAX_AGE_MS);
+}
+
 export interface ImageInfo {
   mimeType: (typeof ALLOWED_MEDIA_TYPES)[number];
   width: number | null;
