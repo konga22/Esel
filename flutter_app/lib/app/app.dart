@@ -120,6 +120,7 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
       _pendingChallenge = null;
       _previousIssueId = null;
       _sl.magazineController.clear();
+      _sl.profileBioController?.clear();
       _sl.scrapsController?.clear();
       if (previousOwner != null) {
         _navigatorKey.currentState?.popUntil((route) => route.isFirst);
@@ -521,6 +522,8 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
         key: ValueKey('settings-$_settingsProfile'),
         authController: _sl.authController,
         openProfile: _settingsProfile,
+        notificationSettings: _sl.notificationSettingsSource,
+        profileBio: _sl.profileBioController,
         deviceActions: {
           '기기 접근성 설정': () => Navigator.push<void>(
             context,
@@ -792,6 +795,7 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
           subscriptionCount: _sl.config.isMock
               ? _sl.reactionsController.subscribedOwnerIds.length
               : null,
+          savedBio: _sl.profileBioController?.bio,
           monthRecords: _sl.recordsSource.month,
           initialTab: _myTab,
           onTabChanged: (tab) => _myTab = tab,

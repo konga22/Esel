@@ -30,6 +30,9 @@ import '../../features/magazine/presentation/controllers/magazine_controller.dar
 import '../../features/magazine/presentation/controllers/scraps_controller.dart';
 import '../../features/magazine/data/sources/scraps_remote_source.dart';
 import '../../features/onboarding/presentation/controllers/onboarding_controller.dart';
+import '../../features/settings/data/notification_settings_source.dart';
+import '../../features/settings/data/profile_remote_source.dart';
+import '../../features/settings/presentation/controllers/profile_bio_controller.dart';
 import '../../features/reactions/presentation/controllers/reactions_controller.dart';
 import '../../features/records/presentation/controllers/records_controller.dart';
 import '../../features/stand/data/sources/stand_mock_source.dart';
@@ -61,6 +64,12 @@ class ServiceLocator {
   late final FeedController feedController;
   late final StandController standController;
   late final MagazineController magazineController;
+
+  /// 알림 설정(DEV-19). 서버 모드는 GET·PUT /me/notifications, mock 모드는 앱 메모리.
+  late final NotificationSettingsSource notificationSettingsSource;
+
+  /// 서버 모드의 한 줄 소개 저장(PATCH /me/profile). mock 모드는 소개 칸을 잠가 두므로 null.
+  late final ProfileBioController? profileBioController;
 
   /// 서버 모드 저장함(GET /me/scraps). mock 모드는 기기 보관 저장함을 쓰므로 null.
   late final ScrapsController? scrapsController;
@@ -167,6 +176,12 @@ class ServiceLocator {
     scrapsController = config.isMock
         ? null
         : ScrapsController(ScrapsRemoteSource(httpClient));
+    notificationSettingsSource = config.isMock
+        ? NotificationSettingsMemorySource()
+        : NotificationSettingsRemoteSource(httpClient);
+    profileBioController = config.isMock
+        ? null
+        : ProfileBioController(ProfileRemoteSource(httpClient));
     recordsController = RecordsController();
     recordsSource = config.isMock
         ? LocalRecordsSource(
