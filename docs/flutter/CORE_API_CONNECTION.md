@@ -15,6 +15,8 @@
 | DEV-13 스케치북·구독 | 팔레트 사진/홈 사인 → 스케치북 | GET /magazines/:masthead, 구독 POST/DELETE |
 | DEV-14 내 스케치북·반응 | 스케치북 | GET /me/magazine, GET /me/issues/:id/reactions |
 | DEV-14 저장함 | 스케치북 → 저장함 탭 | GET /me/scraps(cursor) |
+| DEV-19 알림 설정 | 스케치북 ≡ → 설정과 계정 → 알림 설정 | GET·PUT /me/notifications(세 값을 모두 보냄) |
+| DEV-19 한 줄 소개 | 스케치북 ≡ → 프로필 편집 | PATCH /me/profile({bio}만, 사인은 잠금) |
 | DEV-15 색 기록·복원 | 스케치북 → 색 달력 | GET /me/records?month=YYYY-MM, POST /me/records/:date/restore |
 
 데이터는 각 기능의 domain 모델·data 소스·presentation 화면으로 나눈다. 기존 AppHttpClient의 토큰·오류 처리를 재사용한다. 공개 목록은 서버가 준 항목만 표시하며 잠긴 표지를 기기 자료에서 보충하지 않는다. 반응 숫자는 소유자용 API 화면에만 있고, 공개 모델에는 숫자를 두지 않는다. 목록과 독자 한 줄은 cursor로 다음 페이지를 받는다.

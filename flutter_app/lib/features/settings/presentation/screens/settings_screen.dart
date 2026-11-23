@@ -4,6 +4,10 @@ import '../../../../core/design/typography.dart';
 import '../../../../core/ui/esel_button.dart';
 import '../../../../core/ui/esel_pressable.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../data/notification_settings_source.dart';
+import '../../domain/notification_settings.dart';
+import '../controllers/notification_settings_controller.dart';
+import '../controllers/profile_bio_controller.dart';
 
 class SettingsScreen extends StatefulWidget {
   final AuthController authController;
@@ -18,6 +22,12 @@ class SettingsScreen extends StatefulWidget {
   /// 마이페이지 ≡ → 프로필 편집으로 바로 열 때. 뒤로 가면 설정 메뉴가 아닌 마이페이지로 돌아간다.
   final bool openProfile;
 
+  /// 알림 설정을 읽고 저장하는 곳(서버 모드는 GET·PUT /me/notifications). 없으면 이 화면의 메모리에만 둔다.
+  final NotificationSettingsSource? notificationSettings;
+
+  /// 서버 모드의 한 줄 소개 저장(PATCH /me/profile). 없으면(mock 모드) 소개 칸을 잠가 둔다.
+  final ProfileBioController? profileBio;
+
   const SettingsScreen({
     super.key,
     required this.authController,
@@ -27,6 +37,8 @@ class SettingsScreen extends StatefulWidget {
     this.deleteAccount,
     this.deviceActions = const {},
     this.openProfile = false,
+    this.notificationSettings,
+    this.profileBio,
   });
 
   @override
@@ -36,27 +48,35 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   // 0: S1 Menu, 1: S2 Profile, 2: S3 Notification, 3: S4 Account
   late int _activeView = widget.openProfile ? 1 : 0;
-  bool _notificationsEnabled = true;
-  bool _issueNotify = true;
-  bool _reactionNotify = true;
   bool _deleteAgreed = false;
 
   late final TextEditingController _bioController;
   late final TextEditingController _mastheadController;
+  late final NotificationSettingsController _notifications;
 
   @override
   void initState() {
     super.initState();
     final session = widget.authController.currentSession;
-    _bioController = TextEditingController();
+    _bioController = TextEditingController(text: widget.profileBio?.bio ?? '');
     _mastheadController = TextEditingController(text: session?.masthead ?? '');
+    _notifications = NotificationSettingsController(
+      widget.notificationSettings ?? NotificationSettingsMemorySource(),
+    );
   }
 
   @override
   void dispose() {
     _bioController.dispose();
     _mastheadController.dispose();
+    _notifications.dispose();
     super.dispose();
+  }
+
+  /// 알림 설정 화면을 열 때마다 저장된 값을 다시 읽는다.
+  void _openNotifications() {
+    setState(() => _activeView = 2);
+    _notifications.load();
   }
 
   void _showLogoutDialog() {
@@ -233,7 +253,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Icons.notifications_outlined,
           '알림 설정',
           '새 호 올리기, 반응 알림',
-          () => setState(() => _activeView = 2),
+          _openNotifications,
         ),
         _buildMenuTile(
           Icons.shield_outlined,
@@ -297,82 +317,163 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Future<void> _saveBio(ProfileBioController bio) async {
+    FocusScope.of(context).unfocus();
+    if (await bio.save(_bioController.text) && mounted) {
+      _bioController.text = bio.bio ?? '';
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('소개를 저장했어요.')));
+    }
+  }
+
   Widget _buildProfileView() {
-    return Padding(
+    final bio = widget.profileBio;
+    InputDecoration decoration(String label, String helper, {String? error}) =>
+        InputDecoration(
+          labelText: label,
+          helperText: helper,
+          helperMaxLines: 3,
+          errorText: error,
+          errorMaxLines: 3,
+          filled: true,
+          fillColor: EselTokens.paperWarm,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(EselTokens.radius14),
+            borderSide: BorderSide.none,
+          ),
+        );
+    Widget content() => ListView(
       padding: const EdgeInsets.all(EselTokens.space24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // 사인 변경·금칙어 정책은 아직 정하지 않았다(2026-11-23 사용자 결정: 잠가 둠). 바꾸는 척하지 않는다.
+        TextField(
+          key: const ValueKey('profile-masthead'),
+          controller: _mastheadController,
+          enabled: false,
+          decoration: decoration(
+            '사인',
+            '첫 캔버스 때 정한 이름이에요. 바꾸는 방법은 아직 정하지 않았어요.',
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          key: const ValueKey('profile-bio'),
+          controller: _bioController,
+          enabled: bio != null && !bio.isSaving,
+          maxLines: 3,
+          decoration: decoration(
+            '한 줄 소개',
+            bio == null
+                ? '소개는 서버를 연결한 뒤 쓸 수 있어요.'
+                // 서버가 소개를 조회 응답에 주지 않는다(서버는 바꾸지 않기로 결정). 한계를 숨기지 않는다.
+                : '서버에 저장돼요. 지금은 앱을 다시 켜면 저장한 소개를 다시 불러오지 못해요.',
+            error: bio?.errorMessage,
+          ),
+        ),
+        if (bio != null) ...[
+          const SizedBox(height: 16),
+          FilledButton(
+            key: const ValueKey('profile-save'),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(EselSizes.touch),
+              backgroundColor: EselColors.ink,
+            ),
+            onPressed: bio.isSaving ? null : () => _saveBio(bio),
+            child: Text(bio.isSaving ? '저장하는 중…' : '소개 저장'),
+          ),
+        ],
+      ],
+    );
+    return bio == null
+        ? content()
+        : ListenableBuilder(listenable: bio, builder: (_, _) => content());
+  }
+
+  /// S3·S3off. 서버(또는 mock 메모리)에 저장된 값만 보인다. 불러오지 못하면 기본값을 지어내지 않는다.
+  Widget _buildNotificationView() => ListenableBuilder(
+    listenable: _notifications,
+    builder: (context, _) {
+      final settings = _notifications.settings;
+      if (settings == null) {
+        final error = _notifications.loadError;
+        if (error != null && !_notifications.isLoading) {
+          return Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                Text(error, textAlign: TextAlign.center),
+                TextButton(
+                  key: const ValueKey('notifications-retry'),
+                  onPressed: _notifications.load,
+                  child: const Text('다시 시도'),
+                ),
+              ],
+            ),
+          );
+        }
+        return const Padding(
+          key: ValueKey('notifications-loading'),
+          padding: EdgeInsets.all(40),
+          child: Center(child: CircularProgressIndicator()),
+        );
+      }
+      final saving = _notifications.isSaving;
+      void save(NotificationSettings next) => _notifications.update(next);
+      return ListView(
+        padding: const EdgeInsets.all(EselTokens.space24),
         children: [
-          // 사인 변경·금칙어 정책은 아직 정하지 않았다(사용자 결정). 바꾸는 척하지 않는다.
-          TextField(
-            controller: _mastheadController,
-            enabled: false,
-            decoration: InputDecoration(
-              labelText: '사인',
-              helperText: '첫 캔버스 때 정한 이름이에요. 바꾸는 방법은 아직 정하지 않았어요.',
-              filled: true,
-              fillColor: EselTokens.paperWarm,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(EselTokens.radius14),
-                borderSide: BorderSide.none,
+          SwitchListTile.adaptive(
+            key: const ValueKey('notify-enabled'),
+            title: Text(
+              '전체 알림',
+              style: EselTypography.bodyLarge.copyWith(
+                fontWeight: FontWeight.w600,
               ),
             ),
+            subtitle: Text('끄면 아래 알림도 모두 꺼져요', style: EselTypography.caption),
+            value: settings.enabled,
+            // 색을 따로 정하지 않는다. 켜진 전체 알림이 꺼진 것처럼 보이던 문제(에뮬레이터 확인).
+            onChanged: saving
+                ? null
+                : (value) => save(settings.copyWith(enabled: value)),
           ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _bioController,
-            enabled: false,
-            maxLines: 3,
-            decoration: InputDecoration(
-              labelText: '한 줄 소개',
-              helperText: '소개는 서버를 연결한 뒤 쓸 수 있어요.',
-              filled: true,
-              fillColor: EselTokens.paperWarm,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(EselTokens.radius14),
-                borderSide: BorderSide.none,
+          const Divider(),
+          SwitchListTile.adaptive(
+            key: const ValueKey('notify-new-issue'),
+            title: const Text('오늘의 새 호 알림'),
+            value: settings.showsNewIssue,
+            onChanged: saving || !settings.enabled
+                ? null
+                : (value) => save(settings.copyWith(newIssue: value)),
+          ),
+          SwitchListTile.adaptive(
+            key: const ValueKey('notify-reactions'),
+            title: const Text('독자 반응 알림'),
+            value: settings.showsReactions,
+            onChanged: saving || !settings.enabled
+                ? null
+                : (value) => save(settings.copyWith(reactions: value)),
+          ),
+          if (_notifications.saveError case final error?)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Text(
+                error,
+                style: EselTypography.caption.copyWith(color: EselColors.error),
               ),
+            ),
+          Padding(
+            padding: const EdgeInsets.only(top: 16),
+            child: Text(
+              '설정은 저장돼요. 알림 발송은 아직 준비 중이에요.',
+              style: EselTypography.caption.copyWith(color: EselColors.muted),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildNotificationView() {
-    return ListView(
-      padding: const EdgeInsets.all(EselTokens.space24),
-      children: [
-        SwitchListTile.adaptive(
-          title: Text(
-            '전체 알림',
-            style: EselTypography.bodyLarge.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          subtitle: Text('모든 푸시 알림 수신', style: EselTypography.caption),
-          value: _notificationsEnabled,
-          activeThumbColor: EselTokens.ink,
-          onChanged: (val) => setState(() => _notificationsEnabled = val),
-        ),
-        const Divider(),
-        SwitchListTile.adaptive(
-          title: const Text('오늘의 새 호 알림'),
-          value: _notificationsEnabled && _issueNotify,
-          onChanged: _notificationsEnabled
-              ? (val) => setState(() => _issueNotify = val)
-              : null,
-        ),
-        SwitchListTile.adaptive(
-          title: const Text('독자 반응 알림'),
-          value: _notificationsEnabled && _reactionNotify,
-          onChanged: _notificationsEnabled
-              ? (val) => setState(() => _reactionNotify = val)
-              : null,
-        ),
-      ],
-    );
-  }
+      );
+    },
+  );
 
   Widget _buildAccountView() {
     final session = widget.authController.currentSession;

@@ -5,6 +5,7 @@ import '../../../../core/ui/esel_paint_asset.dart';
 import '../../../issue/domain/models/public_issue.dart';
 import '../../../issue/presentation/canvas_photo.dart';
 import '../../../records/domain/models/server_records.dart';
+import '../../../settings/domain/profile_bio.dart';
 import '../../../reactions/presentation/controllers/reactions_controller.dart';
 import '../../../stand/domain/rules/same_color_rule.dart';
 import '../controllers/magazine_controller.dart';
@@ -31,6 +32,9 @@ class MyPageScreen extends StatefulWidget {
   /// 내가 구독한 사람 수. 전체 집계를 받을 수 없는 모드(서버)에서는 null이고 숫자 칸을 숨긴다.
   /// 서버 모드의 구독 집합은 방문한 스케치북으로만 채워져 실제보다 적기 때문이다(#24 리뷰).
   final int? subscriptionCount;
+
+  /// 이번 앱 실행에서 저장한 한 줄 소개(서버 모드). 서버 조회 응답에 소개가 없어서 이 값으로 보인다.
+  final String? savedBio;
 
   /// 월별 색 기록(발행 + 색 복원). 전체 색 달력과 같은 소스를 쓴다. 인자는 `2026-09` 형식.
   final Future<ServerMonthRecords> Function(String month) monthRecords;
@@ -77,6 +81,7 @@ class MyPageScreen extends StatefulWidget {
     required this.monthRecords,
     this.friendCount,
     this.subscriptionCount,
+    this.savedBio,
     this.initialTab = MyPageTab.canvases,
     this.onTabChanged,
     this.savedIssues,
@@ -302,7 +307,10 @@ class _MyPageScreenState extends State<MyPageScreen> {
   );
 
   Widget _head(MagazineProfile? profile) {
-    final bio = profile?.bio ?? '';
+    final bio = shownBio(
+      fromServer: profile?.bio ?? '',
+      savedThisSession: widget.savedBio,
+    );
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
       child: Column(
