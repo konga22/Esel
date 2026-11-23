@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+import '../domain/publish_failure_message.dart';
 import '../domain/publish_request_failure.dart';
 import '../../../core/errors/failures.dart';
 import '../../../core/network/http_client.dart';
@@ -151,7 +152,10 @@ class PublishingRemoteSource {
       );
       issue = parseServerIssue(data);
     } catch (error) {
-      throw PublishRequestFailure(mediaId, error);
+      throw PublishRequestFailure(
+        mediaId,
+        error is Failure ? explainPublishFailure(error) : error,
+      );
     }
     checkOwner();
     return CoverDraft(

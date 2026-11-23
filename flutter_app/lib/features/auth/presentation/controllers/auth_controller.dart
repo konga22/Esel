@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../../../../core/errors/failures.dart';
+import '../../domain/auth_failure_message.dart';
 import '../../domain/models/auth_session.dart';
 import '../../domain/repositories/auth_repository.dart';
 
@@ -80,7 +81,7 @@ class AuthController extends ChangeNotifier {
       notifyListeners();
       return true;
     } on Failure catch (f) {
-      _errorMessage = f.message;
+      _errorMessage = authFailureMessage(f, AuthAttempt.login);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -112,7 +113,7 @@ class AuthController extends ChangeNotifier {
       notifyListeners();
       return true;
     } on Failure catch (f) {
-      _errorMessage = f.message;
+      _errorMessage = authFailureMessage(f, AuthAttempt.signup);
       _isLoading = false;
       notifyListeners();
       return false;

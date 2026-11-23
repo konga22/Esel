@@ -14,6 +14,8 @@ import 'package:esel/core/errors/failures.dart';
 import 'package:esel/core/design/tokens.g.dart';
 import 'package:esel/core/time/service_clock.dart';
 import 'package:esel/features/drafts/domain/cover_draft.dart';
+import 'package:esel/features/drafts/data/local_library.dart';
+import 'package:esel/features/drafts/presentation/cover_editor_screen.dart';
 import 'package:esel/features/garments/domain/garment.dart';
 import 'package:esel/features/media/domain/models/face_layout_mode.dart';
 import 'package:esel/features/media/presentation/controllers/media_upload_controller.dart';
@@ -481,4 +483,135 @@ void main() {
     );
     expect(uploads, 0);
   });
+
+  group('발행 409 MEDIA_NOT_READY (2026-11-12 서버 #35: 24시간 지난 미사용 사진 정리)', () {
+    const reuploadCopy = '사진이 서버에 준비되지 않았어요. 사진 다시 올리기를 누르면 사진을 새로 올려요.';
+
+    test('안내를 바꾸고 코드는 보존하며, POST를 스스로 다시 보내지 않는다', () async {
+      final media = _CountingMedia()..bindOwner('owner');
+      final posted = <Object?>[];
+      var fail = true;
+      final http = ScreenHttp((method, path, body) async {
+        expect('$method $path', 'POST /issues');
+        posted.add(body!['mediaId']);
+        if (fail) {
+          fail = false;
+          throw const RuleFailure(
+            '사진 올리기가 아직 끝나지 않았어요. 업로드를 마친 뒤 다시 시도해 주세요.',
+            code: 'MEDIA_NOT_READY',
+          );
+        }
+        return savedIssue();
+      });
+      final source = PublishingRemoteSource(
+        http,
+        MediaUploadController(media),
+        readPhoto: bytes,
+      );
+      await expectLater(
+        source.publish(draft()),
+        throwsA(
+          isA<PublishRequestFailure>()
+              .having((e) => e.code, 'code', 'MEDIA_NOT_READY')
+              .having((e) => e.message, 'message', reuploadCopy)
+              .having(
+                (e) => e.cause,
+                'cause',
+                isA<RuleFailure>()
+                    .having((c) => c.code, 'code', 'MEDIA_NOT_READY')
+                    .having((c) => c.message, 'message', reuploadCopy),
+              ),
+        ),
+      );
+      expect(posted, ['ready-1'], reason: '실패한 POST를 자동으로 다시 보내지 않는다');
+
+      // 사용자가 다시 올리면 사진을 새로 올려 새 ID로 발행한다.
+      await source.publish(draft());
+      expect(media.uploads, 2);
+      expect(posted, ['ready-1', 'ready-2']);
+    });
+
+    Future<String> photoIn(WidgetTester tester, LocalLibrary library) async =>
+        (await tester.runAsync(
+          () async => library.importPhotoBytes(await bytes('')),
+        ))!;
+
+    Future<void> tapPublish(WidgetTester tester) async {
+      final button = find.text('오늘의 캔버스 올리기');
+      await tester.scrollUntilVisible(
+        button,
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.ensureVisible(button);
+      await tester.pumpAndSettle();
+      await tester.tap(button);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('편집 화면은 이유와 사진 다시 올리기를 보이고, 누를 때만 다시 올린다', (tester) async {
+      final library = LocalLibrary.inMemory();
+      final path = await photoIn(tester, library);
+      var calls = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CoverEditorScreen(
+            library: library,
+            initial: draft().copyWith(photoPath: path),
+            onPublish: (_) async {
+              calls++;
+              if (calls == 1) {
+                throw const RuleFailure(reuploadCopy, code: 'MEDIA_NOT_READY');
+              }
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tapPublish(tester);
+      expect(find.text(reuploadCopy), findsOneWidget);
+      final action = find.widgetWithText(SnackBarAction, '사진 다시 올리기');
+      expect(action, findsOneWidget);
+      expect(tester.getSize(action).height, greaterThanOrEqualTo(48));
+      expect(calls, 1, reason: '안내만 보이고 스스로 다시 올리지 않는다');
+
+      await tester.tap(action);
+      await tester.pumpAndSettle();
+      expect(calls, 2);
+    });
+
+    testWidgets('하루 한 호 거절에는 사진 다시 올리기를 보이지 않는다', (tester) async {
+      final library = LocalLibrary.inMemory();
+      final path = await photoIn(tester, library);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CoverEditorScreen(
+            library: library,
+            initial: draft().copyWith(photoPath: path),
+            onPublish: (_) async => throw const RuleFailure(
+              '오늘의 캔버스는 이미 올렸어요. 하루에 한 캔버스만 올릴 수 있어요.',
+              code: 'ISSUE_ALREADY_PUBLISHED',
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tapPublish(tester);
+      expect(find.textContaining('이미 올렸어요'), findsOneWidget);
+      expect(find.text('사진 다시 올리기'), findsNothing);
+    });
+  });
+}
+
+/// 올릴 때마다 새 사진 ID를 주는 가짜 미디어. 다시 올리기가 새 사진으로 가는지 본다.
+class _CountingMedia extends RecordingMedia {
+  int uploads = 0;
+  @override
+  Future<String> upload(
+    Uint8List bytes, {
+    String mimeType = 'image/png',
+  }) async {
+    await super.upload(bytes, mimeType: mimeType);
+    return 'ready-${++uploads}';
+  }
 }

@@ -14,6 +14,7 @@ import '../../../core/ui/esel_paint_asset.dart';
 import '../../media/domain/models/face_layout_mode.dart';
 import '../../media/presentation/cover_preview.dart';
 import '../../media/presentation/face_adjust_guide.dart';
+import '../../publishing/domain/publish_failure_message.dart';
 import '../data/local_library.dart';
 import '../domain/cover_draft.dart';
 import '../../challenges/domain/challenge.dart';
@@ -113,6 +114,19 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
     }
+  }
+
+  /// 서버가 연결할 사진이 없다고 답했다(409 MEDIA_NOT_READY). 올리기는 매번 사진을 새로 올리므로
+  /// 사용자가 누르면 같은 초안으로 다시 올린다. 스스로 다시 보내지 않는다.
+  void _offerNewPhotoUpload(String text) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(text),
+        duration: const Duration(seconds: 10),
+        action: SnackBarAction(label: '사진 다시 올리기', onPressed: _publish),
+      ),
+    );
   }
 
   Future<void> _pick(ImageSource source) async {
@@ -240,7 +254,11 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
     } on FormatException catch (error) {
       _message(error.message);
     } on Failure catch (error) {
-      _message(error.message);
+      if (canRetryWithNewPhoto(error)) {
+        _offerNewPhotoUpload(error.message);
+      } else {
+        _message(error.message);
+      }
     } catch (_) {
       _message(
         widget.localDemo
