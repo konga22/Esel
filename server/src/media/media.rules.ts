@@ -1,4 +1,9 @@
 export const MAX_MEDIA_SIZE_BYTES = 15 * 1024 * 1024;
+/**
+ * 사진 한 장의 최대 화소 수(가로×세로). 아이폰 48MP·갤럭시 50MP 모드 원본은 통과하고,
+ * 작은 파일에 거대한 해상도를 적은 "압축 폭탄"은 막는다. sharp에도 같은 값을 준다.
+ */
+export const MAX_MEDIA_PIXELS = 50_000_000;
 export const ALLOWED_MEDIA_TYPES = [
   'image/jpeg',
   'image/png',
@@ -19,6 +24,15 @@ export interface ImageInfo {
   mimeType: (typeof ALLOWED_MEDIA_TYPES)[number];
   width: number | null;
   height: number | null;
+}
+
+/** 해상도가 상한을 넘는지. 해상도를 읽지 못한 사진(HEIC)은 여기서 판단하지 않는다. */
+export function exceedsPixelLimit(
+  width: number | null,
+  height: number | null,
+): boolean {
+  if (width === null || height === null) return false;
+  return width * height > MAX_MEDIA_PIXELS;
 }
 
 export function inspectImage(bytes: Buffer): ImageInfo | null {

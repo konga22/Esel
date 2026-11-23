@@ -136,7 +136,7 @@
     "MEDIA_TOO_LARGE": {
       "status": 413,
       "message": "사진이 너무 커요.",
-      "hint": "15MB 이하로 올려 주세요."
+      "hint": "15MB, 5000만 화소 이하로 올려 주세요."
     },
     "MEDIA_TYPE": {
       "status": 415,

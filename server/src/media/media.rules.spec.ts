@@ -1,4 +1,29 @@
-import { inspectImage, unusedMediaCutoff } from './media.rules.js';
+import {
+  exceedsPixelLimit,
+  inspectImage,
+  MAX_MEDIA_PIXELS,
+  unusedMediaCutoff,
+} from './media.rules.js';
+
+describe('exceedsPixelLimit', () => {
+  it('아이폰 48MP(8064×6048)·갤럭시 50MP(8160×6120) 사진은 받는다', () => {
+    expect(exceedsPixelLimit(8064, 6048)).toBe(false);
+    expect(exceedsPixelLimit(8160, 6120)).toBe(false);
+  });
+
+  it('가로×세로가 정확히 상한이면 받고, 1화소라도 넘으면 거절한다', () => {
+    expect(exceedsPixelLimit(MAX_MEDIA_PIXELS, 1)).toBe(false);
+    expect(exceedsPixelLimit(MAX_MEDIA_PIXELS + 1, 1)).toBe(true);
+  });
+
+  it('작은 파일에 거대한 해상도를 적은 압축 폭탄(65535×65535)을 거절한다', () => {
+    expect(exceedsPixelLimit(65_535, 65_535)).toBe(true);
+  });
+
+  it('해상도를 읽지 못한 사진(HEIC)은 여기서 판단하지 않는다', () => {
+    expect(exceedsPixelLimit(null, null)).toBe(false);
+  });
+});
 
 describe('unusedMediaCutoff', () => {
   it('지금보다 정확히 24시간 전 시각을 기준으로 삼는다', () => {
