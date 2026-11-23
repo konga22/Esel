@@ -786,6 +786,8 @@ Flutter 앱이 디자인 보드와 같은 값을 쓰게 한다. 토큰은 생성
 **추가할 테스트**
 
 - `server/test/contracts/account.e2e-spec.ts`
+- `flutter_app/test/features/auth/account_delete_live_test.dart`
+- `flutter_app/test/features/settings/account_delete_test.dart`
 
 **사용자 결정이 필요한 것**
 

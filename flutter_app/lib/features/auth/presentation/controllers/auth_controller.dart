@@ -192,14 +192,19 @@ class AuthController extends ChangeNotifier {
     }
   }
 
+  /// 탈퇴. 서버가 실패하면 로그인을 그대로 두고 오류를 다시 던진다(화면이 이유를 알린다).
+  /// 성공했을 때만 세션을 지운다.
   Future<void> deleteAccount() async {
     _isLoading = true;
     notifyListeners();
-    await _repository.deleteAccount();
-    _currentSession = null;
-    _pendingDestination = null;
-    _isLoading = false;
-    notifyListeners();
+    try {
+      await _repository.deleteAccount();
+      _currentSession = null;
+      _pendingDestination = null;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   void updateSession(AuthSession session) {

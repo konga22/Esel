@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/design/tokens.g.dart';
 import '../../../../core/design/typography.dart';
+import '../../../../core/errors/failures.dart';
 import '../../../../core/ui/esel_button.dart';
 import '../../../../core/ui/esel_pressable.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
@@ -40,6 +41,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _issueNotify = true;
   bool _reactionNotify = true;
   bool _deleteAgreed = false;
+  bool _deleting = false;
 
   late final TextEditingController _bioController;
   late final TextEditingController _mastheadController;
@@ -96,6 +98,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  /// 탈퇴 실행. 실패하면 이유를 알리고 계정 관리에 머문다(2026-11-23 실서버 확인에서 찾은 문제:
+  /// 전에는 안내 없이 대화상자만 닫히고 처리되지 않은 오류가 남았다). 실행 중에는 다시 누를 수 없다.
+  Future<void> _deleteAccount() async {
+    if (_deleting) return;
+    setState(() => _deleting = true);
+    try {
+      await (widget.deleteAccount ?? widget.authController.deleteAccount)();
+      if (mounted) widget.onDeleteComplete();
+    } catch (failure) {
+      if (!mounted) return;
+      setState(() => _deleting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            failure is Failure
+                ? failure.message
+                : '탈퇴하지 못했어요. 연결을 확인하고 다시 시도해 주세요.',
+          ),
+        ),
+      );
+    }
+  }
+
   void _showDeleteConfirmDialog() {
     showDialog<void>(
       context: context,
@@ -118,11 +143,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           TextButton(
-            onPressed: () async {
+            onPressed: () {
               Navigator.of(ctx).pop();
-              await (widget.deleteAccount ??
-                  widget.authController.deleteAccount)();
-              widget.onDeleteComplete();
+              _deleteAccount();
             },
             child: const Text(
               '영구 삭제',
@@ -398,14 +421,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
         CheckboxListTile(
           title: Text('모든 데이터가 영구 삭제됨을 확인했습니다.', style: EselTypography.caption),
           value: _deleteAgreed,
-          onChanged: (v) => setState(() => _deleteAgreed = v ?? false),
+          onChanged: _deleting
+              ? null
+              : (v) => setState(() => _deleteAgreed = v ?? false),
           controlAffinity: ListTileControlAffinity.leading,
         ),
         const SizedBox(height: 12),
+        // 확인 체크 전과 탈퇴 중에는 비활성으로 보이고 눌리지 않는다(DEV-19 합격 기준).
         EselButton(
-          label: '탈퇴 진행하기',
+          label: _deleting ? '탈퇴하는 중…' : '탈퇴 진행하기',
           isPrimary: false,
-          onTap: _deleteAgreed ? _showDeleteConfirmDialog : () {},
+          enabled: _deleteAgreed && !_deleting,
+          onTap: _showDeleteConfirmDialog,
         ),
       ],
     );
