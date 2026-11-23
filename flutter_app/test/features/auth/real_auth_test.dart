@@ -8,6 +8,7 @@ import 'package:esel/core/storage/session_storage.dart';
 import 'package:esel/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:esel/features/auth/data/sources/auth_mock_source.dart';
 import 'package:esel/features/auth/data/sources/auth_remote_source.dart';
+import 'package:esel/features/auth/presentation/controllers/auth_controller.dart';
 
 void main() {
   late HttpServer server;
@@ -244,4 +245,82 @@ void main() {
       expect(await storage.getTokens(), isNull);
     },
   );
+
+  group('로그인·가입 시도 제한 429 RATE_LIMITED (2026-11-12 서버 #35)', () {
+    void rateLimited() => server.listen((req) async {
+      req.response.statusCode = 429;
+      req.response.headers.contentType = ContentType.json;
+      req.response.write(
+        jsonEncode({
+          'error': {
+            'code': 'RATE_LIMITED',
+            'message': '요청이 너무 많아요.',
+            'hint': '잠시 뒤 다시 시도해 주세요.',
+          },
+        }),
+      );
+      await req.response.close();
+    });
+
+    test('로그인 429는 코드를 보존하고 세션을 만들지 않는다', () async {
+      rateLimited();
+      await expectLater(
+        repository().loginWithEmail('real@example.test', 'correct password'),
+        throwsA(
+          isA<RuleFailure>().having((e) => e.code, 'code', 'RATE_LIMITED'),
+        ),
+      );
+      expect(await storage.getTokens(), isNull);
+    });
+
+    test('로그인 429는 무엇이 막혔고 언제 다시 하면 되는지 한 줄로 알린다', () async {
+      rateLimited();
+      final controller = AuthController(repository());
+      addTearDown(controller.dispose);
+      expect(
+        await controller.loginWithEmail(
+          'real@example.test',
+          'correct password',
+        ),
+        isFalse,
+      );
+      expect(controller.isAuthenticated, isFalse);
+      expect(
+        controller.errorMessage,
+        '로그인 시도가 너무 많아 잠시 막혔어요. 1분 뒤 다시 시도해 주세요.',
+      );
+    });
+
+    test('가입 429도 가입 시도로 안내한다', () async {
+      rateLimited();
+      final controller = AuthController(repository());
+      addTearDown(controller.dispose);
+      expect(
+        await controller.signupWithEmail(
+          'new@example.test',
+          'correct password',
+          '',
+        ),
+        isFalse,
+      );
+      expect(controller.errorMessage, '가입 시도가 너무 많아 잠시 막혔어요. 1분 뒤 다시 시도해 주세요.');
+    });
+  });
+
+  test('다른 로그인 오류 문구는 서버 안내를 그대로 쓴다', () async {
+    server.listen((req) async {
+      req.response.statusCode = 401;
+      req.response.headers.contentType = ContentType.json;
+      req.response.write(
+        jsonEncode({
+          'error': {'code': 'WRONG_CREDENTIALS', 'message': '비밀번호를 확인해 주세요.'},
+        }),
+      );
+      await req.response.close();
+    });
+    final controller = AuthController(repository());
+    addTearDown(controller.dispose);
+    await controller.loginWithEmail('real@example.test', 'wrong password');
+    expect(controller.errorMessage, '비밀번호를 확인해 주세요.');
+  });
 }
