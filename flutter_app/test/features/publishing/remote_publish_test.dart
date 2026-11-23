@@ -600,6 +600,53 @@ void main() {
       expect(find.textContaining('이미 올렸어요'), findsOneWidget);
       expect(find.text('사진 다시 올리기'), findsNothing);
     });
+
+    // #39 리뷰: 알림은 앱 전체에 붙어 있어 편집 화면을 닫아도 남을 수 있다.
+    testWidgets('편집 화면을 닫으면 사진 다시 올리기 알림을 거두고, 닫힌 뒤 눌려도 예외·발행 요청이 없다', (
+      tester,
+    ) async {
+      final library = LocalLibrary.inMemory();
+      final path = await photoIn(tester, library);
+      final navigator = GlobalKey<NavigatorState>();
+      var calls = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorKey: navigator,
+          home: const Scaffold(body: Text('이전 화면')),
+        ),
+      );
+      navigator.currentState!.push(
+        MaterialPageRoute<void>(
+          builder: (_) => CoverEditorScreen(
+            library: library,
+            initial: draft().copyWith(photoPath: path),
+            onPublish: (_) async {
+              calls++;
+              throw const RuleFailure(reuploadCopy, code: 'MEDIA_NOT_READY');
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tapPublish(tester);
+      final action = find.widgetWithText(SnackBarAction, '사진 다시 올리기');
+      expect(action, findsOneWidget);
+      expect(calls, 1);
+      // 닫힌 화면의 버튼이 나중에 눌리는 경우도 본다(알림 애니메이션 중 등).
+      final pressLater = tester.widget<SnackBarAction>(action).onPressed;
+
+      navigator.currentState!.pop();
+      await tester.pumpAndSettle();
+      expect(find.text('이전 화면'), findsOneWidget);
+      expect(find.byType(CoverEditorScreen), findsNothing);
+      expect(find.text('사진 다시 올리기'), findsNothing);
+      expect(find.text(reuploadCopy), findsNothing);
+
+      pressLater();
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(calls, 1, reason: '닫힌 편집 화면에서 다시 올리지 않는다');
+    });
   });
 }
 

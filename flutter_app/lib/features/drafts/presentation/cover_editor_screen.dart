@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../../../core/errors/failures.dart';
 import '../../garments/presentation/garment_editor.dart';
@@ -48,6 +49,9 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
   final _history = <CoverDraft>[];
   bool _busy = false, _dirty = false, _allowPop = false;
   bool _locatingFace = false;
+
+  /// 지금 떠 있는 "사진 다시 올리기" 알림. 닫히면 null.
+  ScaffoldFeatureController<SnackBar, SnackBarClosedReason>? _reuploadOffer;
   @override
   void initState() {
     super.initState();
@@ -65,6 +69,13 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
 
   @override
   void dispose() {
+    final offer = _reuploadOffer;
+    if (offer != null) {
+      // 화면 정리 중에는 알림 영역을 바꾸지 않고, 정리가 끝난 직후에 아직 떠 있으면 닫는다.
+      scheduleMicrotask(() {
+        if (identical(_reuploadOffer, offer)) offer.close();
+      });
+    }
     _masthead.dispose();
     _caption.dispose();
     _scroll.dispose();
@@ -118,15 +129,29 @@ class _CoverEditorScreenState extends State<CoverEditorScreen> {
 
   /// 서버가 연결할 사진이 없다고 답했다(409 MEDIA_NOT_READY). 올리기는 매번 사진을 새로 올리므로
   /// 사용자가 누르면 같은 초안으로 다시 올린다. 스스로 다시 보내지 않는다.
+  ///
+  /// 알림은 앱 전체의 ScaffoldMessenger에 붙어 편집 화면을 닫아도 남는다(#39 리뷰).
+  /// 그래서 이 알림을 기억해 두었다가 편집 화면이 닫힐 때 거두고([dispose]), 그래도 눌리면 아무것도 하지 않는다.
   void _offerNewPhotoUpload(String text) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(text),
-        duration: const Duration(seconds: 10),
-        action: SnackBarAction(label: '사진 다시 올리기', onPressed: _publish),
-      ),
-    );
+    // 앞의 안내를 치워 이 알림이 바로 맨 앞에 오게 한다. 그래야 닫을 때 다른 알림을 건드리지 않는다.
+    final offer = (ScaffoldMessenger.of(context)..removeCurrentSnackBar())
+        .showSnackBar(
+          SnackBar(
+            content: Text(text),
+            duration: const Duration(seconds: 10),
+            action: SnackBarAction(
+              label: '사진 다시 올리기',
+              onPressed: () {
+                if (mounted) _publish();
+              },
+            ),
+          ),
+        );
+    _reuploadOffer = offer;
+    offer.closed.whenComplete(() {
+      if (identical(_reuploadOffer, offer)) _reuploadOffer = null;
+    });
   }
 
   Future<void> _pick(ImageSource source) async {
