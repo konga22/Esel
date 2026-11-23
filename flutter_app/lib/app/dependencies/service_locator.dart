@@ -27,6 +27,8 @@ import '../../features/friends/presentation/controllers/friends_controller.dart'
 import '../../features/magazine/data/sources/magazine_mock_source.dart';
 import '../../features/magazine/data/sources/magazine_remote_source.dart';
 import '../../features/magazine/presentation/controllers/magazine_controller.dart';
+import '../../features/magazine/presentation/controllers/scraps_controller.dart';
+import '../../features/magazine/data/sources/scraps_remote_source.dart';
 import '../../features/onboarding/presentation/controllers/onboarding_controller.dart';
 import '../../features/reactions/presentation/controllers/reactions_controller.dart';
 import '../../features/records/presentation/controllers/records_controller.dart';
@@ -59,6 +61,9 @@ class ServiceLocator {
   late final FeedController feedController;
   late final StandController standController;
   late final MagazineController magazineController;
+
+  /// 서버 모드 저장함(GET /me/scraps). mock 모드는 기기 보관 저장함을 쓰므로 null.
+  late final ScrapsController? scrapsController;
   late final RecordsController recordsController;
   late final RecordsSource recordsSource;
   late final FriendsController friendsController;
@@ -159,6 +164,9 @@ class ServiceLocator {
           ? MagazineMockSource(library: library)
           : MagazineRemoteSource(httpClient),
     );
+    scrapsController = config.isMock
+        ? null
+        : ScrapsController(ScrapsRemoteSource(httpClient));
     recordsController = RecordsController();
     recordsSource = config.isMock
         ? LocalRecordsSource(

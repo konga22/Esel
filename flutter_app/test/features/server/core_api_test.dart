@@ -10,6 +10,7 @@ import 'package:esel/core/storage/session_storage.dart';
 import 'package:esel/core/time/service_date.dart';
 import 'package:esel/features/issue/data/sources/issue_remote_source.dart';
 import 'package:esel/features/magazine/data/sources/magazine_remote_source.dart';
+import 'package:esel/features/magazine/data/sources/scraps_remote_source.dart';
 import 'package:esel/features/records/data/sources/records_remote_source.dart';
 import 'package:esel/features/today/data/sources/today_remote_source.dart';
 
@@ -322,6 +323,54 @@ void main() {
       );
     },
   );
+  test(
+    'DEV-14 저장함은 GET /me/scraps의 cursor 페이지를 읽고 반응 숫자를 모델에 옮기지 않는다',
+    () async {
+      final queries = <Map<String, String>>[];
+      respond((req) async {
+        expect(req.method, 'GET');
+        expect(req.uri.path, '/api/me/scraps');
+        queries.add(req.uri.queryParameters);
+        return req.uri.queryParameters['cursor'] == null
+            ? {
+                'items': [
+                  {
+                    ...issueDto(scrapped: true),
+                    // 서버가 실수로 숫자를 보내도 앱 모델에는 자리가 없다(P18).
+                    'likeCount': 99,
+                    'scrapCount': 98,
+                  },
+                ],
+                'nextCursor': 'next-page',
+              }
+            : {'items': <Object>[], 'nextCursor': null};
+      });
+      final source = ScrapsRemoteSource(http);
+      final first = await source.page();
+      expect(first.items.single.id, 'issue-one');
+      expect(first.items.single.scrapped, isTrue);
+      expect(first.nextCursor, 'next-page');
+      final second = await source.page(cursor: 'next-page');
+      expect(second.items, isEmpty);
+      expect(second.nextCursor, isNull);
+      expect(queries, [
+        <String, String>{},
+        {'cursor': 'next-page'},
+      ]);
+    },
+  );
+  test('DEV-14 저장함 cursor 오류는 서버 오류 그대로 전달한다', () async {
+    respond((req) async {
+      req.response.statusCode = 400;
+      return {
+        'error': {'code': 'VALIDATION', 'message': '요청 형식을 확인해 주세요.'},
+      };
+    });
+    await expectLater(
+      ScrapsRemoteSource(http).page(cursor: 'broken'),
+      throwsA(isA<RuleFailure>().having((e) => e.code, 'code', 'VALIDATION')),
+    );
+  });
   test('connection failure never becomes local content', () async {
     await server.close(force: true);
     await expectLater(

@@ -225,6 +225,7 @@ Android 에뮬레이터는 호스트 PC를 `10.0.2.2`로 부릅니다.
 | 표지·반응·한 줄 | `GET /issues/:id`, 좋아요·스크랩 `POST`/`DELETE`, 한 줄 `GET`/`POST` | 연결·실제 서버 검증 |
 | 스케치북·구독 | `GET /magazines/:masthead`, 구독 `POST`/`DELETE` | 연결·실제 서버 검증 |
 | 내 스케치북 | `GET /me/magazine`, `GET /me/issues/:id/reactions` | 연결·실제 서버 검증 |
+| 저장함 | `GET /me/scraps`(cursor) | 연결·로컬 서버 검증(2026-11-23, 실서버 검사 `core_api_live_test.dart`). 에뮬레이터 화면 확인 전 |
 | 색 달력 | `GET /me/records`, `POST /me/records/:date/restore` | 연결·실제 서버 검증 |
 | 홈 피드 | `GET /feed`(로그인), `GET /today/cover`(비로그인) | 연결 |
 | 팔레트 | `GET /palette/recommended`·`/palette/subscriptions`·`/palette/colors`, `GET /stand?colorId=` | 연결 |
@@ -234,7 +235,6 @@ Android 에뮬레이터는 호스트 PC를 `10.0.2.2`로 부릅니다.
 
 서버에는 있지만 앱이 아직 부르지 않는 API:
 
-- 저장함 `GET /me/scraps`. 앱 코드에 "서버에 생기면 연결"이라는 주석이 남아 있지만 서버는 이미 구현되어 있다.
 - 알림 설정 `GET`·`PUT /me/notifications`. 설정 화면의 스위치는 기기 안에서만 바뀐다.
 - 프로필 수정 `PATCH /me/profile`.
 - 친구·트윈(`/friends…`, `/twins…`), 공유 링크(`/share-links…`), 신고·차단(`…/reports`, `/users/:masthead/block`, `/me/blocks`), 호 삭제 `DELETE /issues/:id`, 사용자 조회 `GET /users/:masthead`. 친구·트윈 예시 화면은 서버 모드에서 들어갈 수 없게 막혀 있다.

@@ -8,6 +8,7 @@ import '../../../records/domain/models/server_records.dart';
 import '../../../reactions/presentation/controllers/reactions_controller.dart';
 import '../../../stand/domain/rules/same_color_rule.dart';
 import '../controllers/magazine_controller.dart';
+import '../controllers/scraps_controller.dart';
 
 enum MyPageTab { canvases, calendar, saved }
 
@@ -38,8 +39,11 @@ class MyPageScreen extends StatefulWidget {
   final MyPageTab initialTab;
   final ValueChanged<MyPageTab>? onTabChanged;
 
-  /// 저장한 캔버스. 저장함 API가 연결되지 않은 모드에서는 null(준비 중).
+  /// 저장한 캔버스(mock 모드, 기기 보관). 서버 모드에서는 null이고 [scraps]를 쓴다.
   final List<PublicIssue> Function()? savedIssues;
+
+  /// 서버 모드 저장함(GET /me/scraps). 저장함 탭을 열 때마다 다시 읽는다.
+  final ScrapsController? scraps;
   final ValueChanged<PublicIssue> onOpenCanvas;
   final ValueChanged<PublicIssue> onOpenSaved;
   final VoidCallback onMakeToday;
@@ -76,6 +80,7 @@ class MyPageScreen extends StatefulWidget {
     this.initialTab = MyPageTab.canvases,
     this.onTabChanged,
     this.savedIssues,
+    this.scraps,
     this.onOpenFriends,
   });
 
@@ -109,6 +114,27 @@ class _MyPageScreenState extends State<MyPageScreen> {
   void _select(MyPageTab tab) {
     setState(() => _tab = tab);
     widget.onTabChanged?.call(tab);
+    if (tab == MyPageTab.saved) _loadScraps();
+  }
+
+  /// 서버 저장함을 지금 계정으로 다시 읽는다. 다른 화면에서 새로 저장한 캔버스도 들어온다.
+  void _loadScraps() {
+    final scraps = widget.scraps;
+    if (scraps == null) return;
+    scraps.configure(ownerId: widget.ownerId, masthead: widget.masthead);
+    scraps.load();
+  }
+
+  List<PublicIssue>? _seededScraps;
+
+  /// 서버가 준 저장 상태를 공통 반응 상태에 알린다. 자세히 보기에서 저장을 취소하면 목록에서 바로 빠진다.
+  void _scrapsChanged() {
+    final items = widget.scraps?.items;
+    if (items == null || identical(items, _seededScraps)) return;
+    _seededScraps = items;
+    for (final issue in items) {
+      widget.reactionsController.seedIssue(issue);
+    }
   }
 
   void _configure() => widget.controller.configure(
@@ -132,13 +158,21 @@ class _MyPageScreenState extends State<MyPageScreen> {
   void initState() {
     super.initState();
     widget.controller.addListener(_profileChanged);
+    widget.scraps?.addListener(_scrapsChanged);
     _configure();
     _profileChanged();
+    if (_tab == MyPageTab.saved && widget.scraps != null) {
+      // 그리는 중에 알림을 보내지 않도록 첫 화면을 그린 뒤 읽는다.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _loadScraps();
+      });
+    }
   }
 
   @override
   void dispose() {
     widget.controller.removeListener(_profileChanged);
+    widget.scraps?.removeListener(_scrapsChanged);
     super.dispose();
   }
 
@@ -149,6 +183,17 @@ class _MyPageScreenState extends State<MyPageScreen> {
       old.controller.removeListener(_profileChanged);
       widget.controller.addListener(_profileChanged);
       _last = null;
+    }
+    if (old.scraps != widget.scraps) {
+      old.scraps?.removeListener(_scrapsChanged);
+      widget.scraps?.addListener(_scrapsChanged);
+      _seededScraps = null;
+    }
+    if (old.ownerId != widget.ownerId && _tab == MyPageTab.saved) {
+      // 계정이 바뀌었는데 저장함을 보고 있으면 새 계정으로 다시 읽는다.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _loadScraps();
+      });
     }
     _configure();
   }
@@ -191,6 +236,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
     animation: Listenable.merge([
       widget.controller,
       widget.reactionsController,
+      ?widget.scraps,
     ]),
     builder: (context, _) {
       final profile = widget.controller.profile;
@@ -630,21 +676,77 @@ class _MyPageScreenState extends State<MyPageScreen> {
     ),
   );
 
+  static const _savedEmpty = Padding(
+    key: ValueKey('my-saved-empty'),
+    padding: EdgeInsets.all(24),
+    child: Text('저장한 캔버스가 없어요. 캔버스에서 저장을 누르면 여기에 모여요.'),
+  );
+
   Widget _saved() {
     final source = widget.savedIssues;
-    if (source == null) {
+    if (source != null) {
+      final issues = source();
+      if (issues.isEmpty) return _savedEmpty;
+      return _grid(issues, widget.onOpenSaved, 'my-saved');
+    }
+    final scraps = widget.scraps;
+    if (scraps == null) {
       return const Padding(
         padding: EdgeInsets.all(24),
         child: Text('저장함은 서버에 연결되면 볼 수 있어요. 저장한 사실은 나에게만 보여요.'),
       );
     }
-    final issues = source();
-    if (issues.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(24),
-        child: Text('저장한 캔버스가 없어요. 캔버스에서 저장을 누르면 여기에 모여요.'),
-      );
-    }
-    return _grid(issues, widget.onOpenSaved, 'my-saved');
+    return _serverSaved(scraps);
   }
+
+  /// 서버 저장함. 서버가 준 캔버스만 그리고(P01), 반응 숫자는 그리지 않는다(P18).
+  /// 저장을 취소한 캔버스는 다시 읽기 전에도 바로 뺀다.
+  Widget _serverSaved(ScrapsController scraps) {
+    final visible = [
+      for (final issue in scraps.items)
+        if (widget.reactionsController.isScrapped(issue.id)) issue,
+    ];
+    final error = scraps.errorMessage;
+    if (visible.isEmpty) {
+      if (error != null && !scraps.isLoading) return _savedError(error, scraps);
+      if (scraps.isLoading || !scraps.hasLoaded) {
+        return const Padding(
+          key: ValueKey('my-saved-loading'),
+          padding: EdgeInsets.all(40),
+          child: Center(child: CircularProgressIndicator()),
+        );
+      }
+      return _savedEmpty;
+    }
+    return Column(
+      children: [
+        if (error != null) _savedError(error, scraps),
+        _grid(visible, widget.onOpenSaved, 'my-saved'),
+        if (scraps.moreError case final message?)
+          Padding(padding: const EdgeInsets.all(16), child: Text(message)),
+        if (scraps.nextCursor != null)
+          TextButton(
+            key: const ValueKey('my-saved-more'),
+            onPressed: scraps.isLoadingMore
+                ? null
+                : () => scraps.load(more: true),
+            child: Text(scraps.isLoadingMore ? '불러오는 중…' : '저장한 캔버스 더 보기'),
+          ),
+      ],
+    );
+  }
+
+  Widget _savedError(String message, ScrapsController scraps) => Padding(
+    padding: const EdgeInsets.all(20),
+    child: Column(
+      children: [
+        Text(message, textAlign: TextAlign.center),
+        TextButton(
+          key: const ValueKey('my-saved-retry'),
+          onPressed: scraps.isLoading ? null : () => scraps.load(),
+          child: const Text('다시 시도'),
+        ),
+      ],
+    ),
+  );
 }

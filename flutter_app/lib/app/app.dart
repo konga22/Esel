@@ -120,6 +120,7 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
       _pendingChallenge = null;
       _previousIssueId = null;
       _sl.magazineController.clear();
+      _sl.scrapsController?.clear();
       if (previousOwner != null) {
         _navigatorKey.currentState?.popUntil((route) => route.isFirst);
       }
@@ -797,6 +798,7 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
           savedIssues: _sl.config.isMock
               ? () => _demoSaved(today.viewer)
               : null,
+          scraps: _sl.scrapsController,
           onOpenCanvas: (issue) => setState(() {
             _shelfFocusId = issue.id;
             _currentTab = AppTab.shelf;
@@ -827,7 +829,7 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
   }
 
   /// 목업 모드 저장함: 최근 2주 예시 캔버스 중 내가 저장했고 지금 볼 수 있는 것(P01).
-  /// 서버 모드는 GET /me/scraps가 생기면 연결한다(DEV-14).
+  /// 서버 모드는 [ServiceLocator.scrapsController]가 GET /me/scraps를 읽는다(DEV-14).
   List<PublicIssue> _demoSaved(SameColorViewer viewer) => [
     for (var back = 0; back < 14; back++)
       for (final issue in DemoIssueCatalog.issuesOn(

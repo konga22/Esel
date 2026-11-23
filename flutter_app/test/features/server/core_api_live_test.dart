@@ -12,6 +12,7 @@ import 'package:esel/features/auth/data/sources/auth_mock_source.dart';
 import 'package:esel/features/auth/data/sources/auth_remote_source.dart';
 import 'package:esel/features/issue/data/sources/issue_remote_source.dart';
 import 'package:esel/features/magazine/data/sources/magazine_remote_source.dart';
+import 'package:esel/features/magazine/data/sources/scraps_remote_source.dart';
 import 'package:esel/features/records/data/sources/records_remote_source.dart';
 import 'package:esel/features/today/data/sources/today_remote_source.dart';
 
@@ -100,6 +101,19 @@ void main() {
         (await issue.setReaction(issueId, like: false, enabled: true)).scrapped,
         isTrue,
       );
+      // DEV-14 저장함: 저장한 사람의 GET /me/scraps에만 들어간다. 표지 주인의 저장함에는 없다.
+      final readerScraps = await ScrapsRemoteSource(readerHttp).page();
+      expect(readerScraps.items.any((v) => v.id == issueId), isTrue);
+      expect(
+        readerScraps.items.firstWhere((v) => v.id == issueId).scrapped,
+        isTrue,
+      );
+      expect(
+        (await ScrapsRemoteSource(
+          ownerHttp,
+        ).page()).items.any((v) => v.id == issueId),
+        isFalse,
+      );
       final comment = 'live-${DateTime.now().microsecondsSinceEpoch}';
       await issue.addLine(issueId, comment);
       expect(
@@ -157,6 +171,12 @@ void main() {
       );
       expect((await issue.issue(issueId)).liked, isTrue);
       expect((await issue.issue(issueId)).scrapped, isTrue);
+      expect(
+        (await ScrapsRemoteSource(
+          readerHttp,
+        ).page()).items.any((v) => v.id == issueId),
+        isTrue,
+      );
       expect(
         (await magazine.page(
           mine: false,
