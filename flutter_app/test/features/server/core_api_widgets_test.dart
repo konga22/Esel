@@ -1,5 +1,12 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:esel/app/dependencies/service_locator.dart';
+import 'package:esel/core/design/tokens.g.dart';
+import 'package:esel/features/issue/presentation/canvas_photo.dart';
+import 'package:esel/features/magazine/data/sources/scraps_remote_source.dart';
+import 'package:esel/features/magazine/presentation/controllers/scraps_controller.dart';
+import 'package:esel/features/magazine/presentation/screens/my_page_screen.dart';
+import 'package:esel/features/records/domain/models/server_records.dart';
 import 'package:esel/core/storage/session_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -437,4 +444,255 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  group('DEV-14 저장함 서버 모드(GET /me/scraps)', () {
+    Map<String, dynamic> scrap(String id) => {
+      ...issueDto(scrapped: true),
+      'id': id,
+    };
+    const emptyMagazine = {
+      'masthead': 'viewer',
+      'issueCount': 0,
+      'todayIssue': null,
+      'pastIssues': <Object>[],
+      'nextCursor': null,
+    };
+
+    /// 내 스케치북을 서버 소스로 열고 저장함 탭을 누른다. 첫 응답을 기다리지 않는다.
+    Future<ReactionsController> openSaved(
+      WidgetTester tester,
+      ScreenHttp http,
+    ) async {
+      final magazine = MagazineController(MagazineRemoteSource(http));
+      addTearDown(magazine.dispose);
+      final rc = ReactionsController(remote: IssueRemoteSource(http));
+      rc.bindUser('viewer', null);
+      addTearDown(rc.dispose);
+      final scraps = ScrapsController(ScrapsRemoteSource(http));
+      addTearDown(scraps.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MyPageScreen(
+            ownerId: 'viewer-id',
+            masthead: 'viewer',
+            controller: magazine,
+            reactionsController: rc,
+            viewer: const SameColorViewer.reader(ServiceDate(2026, 10, 18)),
+            avatar: const SizedBox.shrink(),
+            todayColor: EselPaint.sage,
+            publishedToday: true,
+            monthRecords: (month) async => ServerMonthRecords(month, 2, []),
+            scraps: scraps,
+            onOpenCanvas: (_) {},
+            onOpenSaved: (_) {},
+            onMakeToday: () {},
+            onChooseColor: () {},
+            onOpenRecords: () {},
+            onOpenSubscriptions: () {},
+            onEditProfile: () {},
+            onShare: () {},
+            onOpenSettings: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('my-tab-saved')));
+      await tester.pump();
+      return rc;
+    }
+
+    testWidgets('처음 열 때 로딩을 보이고 서버가 준 캔버스만 숫자 없이 그린다(P01·P18)', (tester) async {
+      final gate = Completer<void>();
+      final http = ScreenHttp((_, path, _) async {
+        if (path == '/me/magazine') return emptyMagazine;
+        expect(path, '/me/scraps');
+        await gate.future;
+        return {
+          'items': [
+            {...scrap('saved-one'), 'likeCount': 99},
+          ],
+          'nextCursor': null,
+        };
+      });
+      await openSaved(tester, http);
+      expect(find.byKey(const ValueKey('my-saved-loading')), findsOneWidget);
+      gate.complete();
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('my-saved-saved-one')), findsOneWidget);
+      // 서버가 준 한 장만. 기기 예시 캔버스로 채우지 않는다.
+      expect(find.byType(CanvasPhoto), findsOneWidget);
+      expect(find.textContaining('99'), findsNothing);
+      expect(http.calls.where((c) => c == 'GET /me/scraps'), hasLength(1));
+    });
+
+    testWidgets('저장한 캔버스가 없으면 빈 화면 안내', (tester) async {
+      final http = ScreenHttp(
+        (_, path, _) async => path == '/me/magazine'
+            ? emptyMagazine
+            : {'items': <Object>[], 'nextCursor': null},
+      );
+      await openSaved(tester, http);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('my-saved-empty')), findsOneWidget);
+      expect(find.textContaining('저장한 캔버스가 없어요'), findsOneWidget);
+    });
+
+    testWidgets('불러오기 실패는 이유와 다시 시도를 보이고, 다시 시도하면 목록이 온다', (tester) async {
+      var fail = true;
+      final http = ScreenHttp((_, path, _) async {
+        if (path == '/me/magazine') return emptyMagazine;
+        if (fail) {
+          fail = false;
+          throw const NetworkFailure('서버에 연결하지 못했어요.');
+        }
+        return {
+          'items': [scrap('saved-one')],
+          'nextCursor': null,
+        };
+      });
+      await openSaved(tester, http);
+      await tester.pumpAndSettle();
+      expect(find.text('서버에 연결하지 못했어요.'), findsOneWidget);
+      expect(find.byKey(const ValueKey('my-saved-saved-one')), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('my-saved-retry')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('my-saved-saved-one')), findsOneWidget);
+    });
+
+    testWidgets('다음 cursor를 이어 받고, 다음 페이지 실패는 기존 목록을 지우지 않는다', (tester) async {
+      final cursors = <Object?>[];
+      var failMore = true;
+      final http = ScreenHttp((_, path, query) async {
+        if (path == '/me/magazine') return emptyMagazine;
+        final cursor = query?['cursor'];
+        cursors.add(cursor);
+        if (cursor == null) {
+          return {
+            'items': [scrap('saved-one')],
+            'nextCursor': 'page-2',
+          };
+        }
+        if (failMore) {
+          failMore = false;
+          throw const NetworkFailure('다음 목록을 불러오지 못했어요.');
+        }
+        return {
+          'items': [scrap('saved-two')],
+          'nextCursor': null,
+        };
+      });
+      await openSaved(tester, http);
+      await tester.pumpAndSettle();
+      final more = find.byKey(const ValueKey('my-saved-more'));
+      await tester.ensureVisible(more);
+      await tester.pumpAndSettle();
+      await tester.tap(more);
+      await tester.pumpAndSettle();
+      expect(find.text('다음 목록을 불러오지 못했어요.'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('my-saved-saved-one'), skipOffstage: false),
+        findsOneWidget,
+      );
+      await tester.ensureVisible(more);
+      await tester.pumpAndSettle();
+      await tester.tap(more);
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('my-saved-saved-two'), skipOffstage: false),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('my-saved-saved-one'), skipOffstage: false),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('my-saved-more'), skipOffstage: false),
+        findsNothing,
+      );
+      expect(cursors, [null, 'page-2', 'page-2']);
+    });
+
+    testWidgets('자세히 보기에서 저장을 취소하면 저장함에서 바로 빠진다', (tester) async {
+      var unsaved = false;
+      final http = ScreenHttp((method, path, _) async {
+        if (path == '/me/magazine') return emptyMagazine;
+        if (path == '/me/scraps') {
+          return {
+            'items': [if (!unsaved) scrap('saved-one')],
+            'nextCursor': null,
+          };
+        }
+        if (method == 'DELETE' && path == '/issues/saved-one/scrap') {
+          unsaved = true;
+          return {};
+        }
+        // 저장 취소 뒤 공통 반응 상태는 서버 표지를 다시 읽어 정한다.
+        if (method == 'GET' && path == '/issues/saved-one') {
+          return {...scrap('saved-one'), 'scrapped': !unsaved};
+        }
+        throw NotFoundFailure('테스트에 없는 요청: $method $path');
+      });
+      final rc = await openSaved(tester, http);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('my-saved-saved-one')), findsOneWidget);
+      expect(rc.isScrapped('saved-one'), isTrue);
+      rc.toggleScrap('saved-one');
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('my-saved-saved-one')), findsNothing);
+      expect(find.byKey(const ValueKey('my-saved-empty')), findsOneWidget);
+    });
+
+    // 글자 200%는 이 화면의 기존 머리 줄(MY SKETCHBOOK)과 탭 줄이 360 폭에서 넘쳐 아직 검사하지 못한다.
+    // 저장함 부분만의 문제가 아니라 별도로 정한다.
+    testWidgets('좁은 화면(360)에서 저장함 목록·더 보기·오류가 넘치지 않는다', (tester) async {
+      tester.view.physicalSize = const Size(360, 740);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final http = ScreenHttp((_, path, query) async {
+        if (path == '/me/magazine') return emptyMagazine;
+        if (query?['cursor'] != null) {
+          throw const NetworkFailure('서버에 연결하지 못했어요. 연결을 확인하고 다시 시도해 주세요.');
+        }
+        return {
+          'items': [scrap('saved-one')],
+          'nextCursor': 'page-2',
+        };
+      });
+      await openSaved(tester, http);
+      await tester.pumpAndSettle();
+      final more = find.byKey(const ValueKey('my-saved-more'));
+      await tester.ensureVisible(more);
+      await tester.pumpAndSettle();
+      await tester.tap(more);
+      await tester.pumpAndSettle();
+      expect(find.textContaining('연결을 확인하고'), findsOneWidget);
+      expect(tester.getSize(more).height, greaterThanOrEqualTo(48));
+      expect(tester.takeException(), isNull);
+    });
+
+    test('계정이 바뀌면 이전 계정의 저장함과 늦게 온 응답을 버린다', () async {
+      final gate = Completer<void>();
+      var calls = 0;
+      final http = ScreenHttp((_, _, _) async {
+        calls++;
+        if (calls == 2) await gate.future;
+        return {
+          'items': [scrap('saved-$calls')],
+          'nextCursor': null,
+        };
+      });
+      final scraps = ScrapsController(ScrapsRemoteSource(http));
+      addTearDown(scraps.dispose);
+      scraps.configure(ownerId: 'a', masthead: 'aa');
+      await scraps.load();
+      expect(scraps.items.single.id, 'saved-1');
+
+      final late = scraps.load();
+      scraps.configure(ownerId: 'b', masthead: 'bb');
+      expect(scraps.items, isEmpty);
+      gate.complete();
+      await late;
+      expect(scraps.items, isEmpty);
+    });
+  });
 }

@@ -14,6 +14,7 @@
 | DEV-11 표지·반응·한 줄 | 스케치북 사진 → 자세히 보기 | GET /issues/:id, 좋아요·스크랩 POST/DELETE, 한 줄 GET/POST |
 | DEV-13 스케치북·구독 | 팔레트 사진/홈 사인 → 스케치북 | GET /magazines/:masthead, 구독 POST/DELETE |
 | DEV-14 내 스케치북·반응 | 스케치북 | GET /me/magazine, GET /me/issues/:id/reactions |
+| DEV-14 저장함 | 스케치북 → 저장함 탭 | GET /me/scraps(cursor) |
 | DEV-15 색 기록·복원 | 스케치북 → 색 달력 | GET /me/records?month=YYYY-MM, POST /me/records/:date/restore |
 
 데이터는 각 기능의 domain 모델·data 소스·presentation 화면으로 나눈다. 기존 AppHttpClient의 토큰·오류 처리를 재사용한다. 공개 목록은 서버가 준 항목만 표시하며 잠긴 표지를 기기 자료에서 보충하지 않는다. 반응 숫자는 소유자용 API 화면에만 있고, 공개 모델에는 숫자를 두지 않는다. 목록과 독자 한 줄은 cursor로 다음 페이지를 받는다.
@@ -28,6 +29,7 @@ DEV-25(미술 도구 용어·198×60의 바뀌는 칸 3칸 캡슐), DEV-12 공�
 - `StandController → StandSource`: 공통 팔레트. 추천은 미구독자의 최신 공개 표지, 구독은 구독한 사람만, 색상은 기존 잠금 규칙을 적용한다. 로컬 비후보 색 순서는 고정 물감 순서이며 실제 선택량이라고 설명하지 않는다.
 - `MagazineController → MagazineSource`: 본인/타인 모두 ShelfScreen. 원격은 서버 공개 항목과 cursor만 사용한다.
 - `ReactionsController`: 공통 IssueBottomSheet의 상세·반응·한 줄을 로컬/원격으로 처리한다. 댓글 저장에 성공한 뒤 목록 조회만 실패하면 재시도는 조회만 한다.
+- `ScrapsController → ScrapsRemoteSource`(서버 모드만): 내 스케치북 저장함 탭을 열 때마다 `GET /me/scraps`를 다시 읽는다. 처음에만 빈 로딩을 쓰고 다시 읽는 동안에는 받은 목록을 유지한다. 서버가 준 캔버스만 그리며(잠긴·삭제·차단은 서버가 뺌, P01) 기기 예시로 채우지 않는다. 응답과 모델에 반응 숫자가 없다(P18). 자세히 보기에서 저장을 취소하면 다시 읽기 전에도 목록에서 뺀다. 다음 페이지 실패는 기존 목록과 cursor를 유지하고, 계정이 바뀌면 이전 계정 목록과 늦게 온 응답을 버린다. mock 모드는 기존 기기 보관 저장함을 그대로 쓴다.
 - `RecordsSource`: 같은 MonthlyRecordScreen에서 월 이동·빈칸 복원. 로컬 복원도 계정별 저장·월 2회·서울 날짜·그날 후보를 검사한다.
 - `CoverDraft.garments`는 선택 필드다. 기존 저장본에는 빈 목록을 적용한다. 옷 종류·이름(선택, 40자)·메모·오늘의 색 표시·원본 사진 비율 좌표를 저장한다. 사진 교체 시 태그 위치를 지우고, 옷 재사용 시 동일 ID를 쓰되 위치·오늘의 색은 다시 지정한다. 내 옷은 계정별로 분리되며 탈퇴 시 함께 지운다. 가격·상품 URL 필드는 없다.
 
