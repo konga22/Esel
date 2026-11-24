@@ -389,6 +389,28 @@ describe('DEV-08 사진과 얼굴 연출', () => {
     expect(response.body.error.code).toBe('MEDIA_TOO_LARGE');
   });
 
+  it('POST /api/media/:id/complete: 해상도가 상한을 넘는 압축 폭탄 → 413 MEDIA_TOO_LARGE, REJECTED', async () => {
+    const user = await signup('complete-pixels');
+    const prepared = await prepare(user.token);
+    // 파일은 몇십 바이트지만 머리글에 65535×65535(약 43억 화소)라고 적힌 PNG.
+    // 서버가 이걸 그대로 풀면 메모리를 수십 GB 쓴다.
+    const bomb = Buffer.alloc(64);
+    Buffer.from('89504e470d0a1a0a0000000d49484452', 'hex').copy(bomb);
+    bomb.writeUInt32BE(65_535, 16);
+    bomb.writeUInt32BE(65_535, 20);
+    await writeFile(await uploadPath(prepared.body.id), bomb);
+
+    const response = await request(app.getHttpServer())
+      .post(`/api/media/${prepared.body.id}/complete`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .expect(413);
+    expect(response.body.error.code).toBe('MEDIA_TOO_LARGE');
+    const media = await prisma.mediaAsset.findUniqueOrThrow({
+      where: { id: prepared.body.id },
+    });
+    expect(media.status).toBe('REJECTED');
+  });
+
   it('POST /api/media/:id/complete: 사진 파일만 올릴 수 있어요 → 415 MEDIA_TYPE', async () => {
     const user = await signup('complete-type');
     const prepared = await prepare(user.token);

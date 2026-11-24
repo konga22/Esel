@@ -94,7 +94,7 @@ export const APP_ERRORS = {
   MEDIA_TOO_LARGE: {
     status: HttpStatus.PAYLOAD_TOO_LARGE,
     message: '사진이 너무 커요.',
-    hint: '15MB 이하로 올려 주세요.',
+    hint: '15MB, 5000만 화소 이하로 올려 주세요.',
   },
   MEDIA_TYPE: {
     status: HttpStatus.UNSUPPORTED_MEDIA_TYPE,

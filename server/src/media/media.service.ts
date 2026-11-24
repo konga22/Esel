@@ -18,7 +18,9 @@ import { MediaUploadDto } from './dto/media-upload.dto.js';
 import { PrepareMediaDto } from './dto/prepare-media.dto.js';
 import {
   ALLOWED_MEDIA_TYPES,
+  exceedsPixelLimit,
   inspectImage,
+  MAX_MEDIA_PIXELS,
   MAX_MEDIA_SIZE_BYTES,
   MEDIA_CLEANUP_BATCH_SIZE,
   unusedMediaCutoff,
@@ -163,6 +165,9 @@ export class MediaService {
     const image = inspectImage(bytes);
     if (!image || image.mimeType !== media.mimeType) {
       return this.reject(id, 'MEDIA_TYPE');
+    }
+    if (exceedsPixelLimit(image.width, image.height)) {
+      return this.reject(id, 'MEDIA_TOO_LARGE');
     }
     await this.createThumbnail(id, bytes, image.mimeType);
     return this.prisma.mediaAsset.update({
@@ -352,7 +357,8 @@ export class MediaService {
     const temporary = `${target}.${randomUUID()}.part`;
     await mkdir(path.dirname(target), { recursive: true });
     try {
-      await sharp(bytes)
+      // 머리글 검사를 빠져나간 경우를 대비해 sharp도 같은 상한을 넘으면 풀지 않는다.
+      await sharp(bytes, { limitInputPixels: MAX_MEDIA_PIXELS })
         .rotate()
         .resize(480, 480, { fit: 'inside', withoutEnlargement: true })
         .jpeg({ quality: 72, mozjpeg: true })

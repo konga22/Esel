@@ -320,7 +320,7 @@ Flutter의 오늘 화면은 아직 `TodayController`가 로컬 `DailyCandidates`
 2. 응답의 `storageKey`는 DB에 저장되는 상대 키이고, `uploadPath`는 현재 개발 서버 파일시스템의 실제 경로다.
 3. 파일이 저장된 뒤 완료 API가 소유권과 파일 존재 여부를 확인한다.
 4. 선언한 값만 믿지 않고 실제 파일 크기, PNG·JPEG·HEIC 시그니처, 선언 MIME 일치를 검사한다. PNG·JPEG는 실제 가로·세로도 읽는다.
-5. 통과하면 `READY`, 잘못된 형식이나 초과 크기면 `REJECTED`로 바꾼다. 최대 크기는 15MB다.
+5. 통과하면 `READY`, 잘못된 형식이나 초과 크기면 `REJECTED`로 바꾼다. 최대 크기는 15MB, 최대 해상도는 5000만 화소(가로×세로)다.
 
 파일 바이트는 PostgreSQL에 넣지 않는다. 개발 환경은 `MEDIA_STORAGE_ROOT` 아래와 Docker `esel-media-data` named volume을 사용한다. 이 구현은 저장과 검증 경계를 먼저 확정하기 위한 임시 개발 방식이다. `uploadPath`가 컨테이너 내부 경로이므로 Flutter 기기는 직접 쓸 수 없다. 운영 연결 전에는 자체 운영 S3 호환 스토리지 등 저장소를 정하고, 준비 응답을 모바일에서 사용할 수 있는 업로드 URL 방식으로 교체해야 한다.
 
