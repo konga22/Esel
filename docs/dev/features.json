@@ -916,7 +916,8 @@
       "tests": [
         "server/test/contracts/account.e2e-spec.ts",
         "flutter_app/test/features/auth/account_delete_live_test.dart",
-        "flutter_app/test/features/settings/account_delete_test.dart"
+        "flutter_app/test/features/settings/account_delete_test.dart",
+        "flutter_app/test/app/account_delete_flow_test.dart"
       ],
       "openDecisions": [
         "제호 변경 허용 여부와 주기",

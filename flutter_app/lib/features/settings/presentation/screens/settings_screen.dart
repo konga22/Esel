@@ -105,7 +105,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _deleting = true);
     try {
       await (widget.deleteAccount ?? widget.authController.deleteAccount)();
-      if (mounted) widget.onDeleteComplete();
+      // 성공하면 로그인 상태가 바뀌어 앱이 이 화면을 먼저 닫을 수 있다(#41 리뷰).
+      // onDeleteComplete는 앱 쪽 화면 상태(첫 화면·홈 탭)를 바꾸므로 mounted와 상관없이 부른다.
+      widget.onDeleteComplete();
     } catch (failure) {
       if (!mounted) return;
       setState(() => _deleting = false);
