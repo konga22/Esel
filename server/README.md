@@ -233,7 +233,7 @@ Android 에뮬레이터는 호스트 PC를 `10.0.2.2`로 부릅니다.
 | 팔레트 | `GET /palette/recommended`·`/palette/subscriptions`·`/palette/colors`, `GET /stand?colorId=` | 연결 |
 | 사진 | `POST /media` → `PUT /media/:id/file` → `POST /media/:id/complete`, 보기 `GET /media/:id?size=thumb\|original` | 연결·로컬 Docker 검증. 앱은 얼굴 연출을 적용한 PNG를 올린다 |
 | 올리기 | `POST /issues`(`faceCrop`·`paintStroke`·`garments`), `GET /me/garments` | 연결·로컬 Docker 실발행 검증. **사인 뒤로는 앱이 업로드를 보류**한다(얼굴 노출 가능성, [사진 연결 결정 기록](../docs/flutter/MEDIA_UPLOAD_HANDOFF.md)) |
-| 탈퇴 | `DELETE /me` | 앱 코드에 호출 있음. 실제 서버 검증 기록 없음 |
+| 탈퇴 | `DELETE /me` | 연결·로컬 서버·에뮬레이터 검증(2026-11-23, [기록](../docs/flutter/CORE_API_CONNECTION.md#탈퇴-delete-me-실서버-확인-2026-11-23)). 서버 실패 시 이유 안내·체크 전 비활성 표시 보완 |
 
 서버에는 있지만 앱이 아직 부르지 않는 API:
 
