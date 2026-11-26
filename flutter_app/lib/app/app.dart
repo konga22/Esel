@@ -82,6 +82,8 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
     _sl.todayController.addListener(_onTodayChanged);
     _sl.reactionsController.addListener(_onTodayChanged);
     _sl.localLibrary?.addListener(_onTodayChanged);
+    // 마이페이지 친구 숫자가 친구 목록을 따라가게 한다(DEV-16).
+    _sl.friendsController.addListener(_onTodayChanged);
     WidgetsBinding.instance.addObserver(this);
     _sl.todayController.watchMidnight();
     _onAuthChanged();
@@ -95,6 +97,7 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
     _sl.todayController.removeListener(_onTodayChanged);
     _sl.reactionsController.removeListener(_onTodayChanged);
     _sl.localLibrary?.removeListener(_onTodayChanged);
+    _sl.friendsController.removeListener(_onTodayChanged);
     super.dispose();
   }
 
@@ -122,6 +125,10 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
       _sl.magazineController.clear();
       _sl.profileBioController?.clear();
       _sl.scrapsController?.clear();
+      // 친구 목록은 계정마다 다르다. 이전 계정 목록과 늦게 온 응답을 버리고,
+      // 로그인했으면 마이페이지 친구 숫자를 위해 새 계정 목록을 읽는다.
+      _sl.friendsController.configure(session?.userId);
+      if (session != null) _sl.friendsController.load();
       // 차단 목록은 계정마다 다르다. 설정에서 열 때 새 계정 목록을 읽는다.
       _sl.blocksController.configure(session?.userId);
       if (previousOwner != null) {
@@ -504,8 +511,12 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
     if (_activeScreen == ActiveScreen.friends) {
       return FriendsScreen(
         controller: _sl.friendsController,
+        selfMasthead: _sl.authController.currentSession?.masthead,
         onBack: () => setState(() => _activeScreen = ActiveScreen.main),
-        onOpenTwin: () => setState(() => _activeScreen = ActiveScreen.twin),
+        // 트윈은 아직 서버에 연결하지 않아 서버 모드에서는 줄을 숨긴다(DEV-17 전).
+        onOpenTwin: _sl.config.isMock
+            ? () => setState(() => _activeScreen = ActiveScreen.twin)
+            : null,
       );
     }
 
@@ -843,9 +854,9 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
           avatar: _buildMyAvatar(size: 80),
           todayColor: today.myColor,
           publishedToday: today.hasPublishedToday,
-          friendCount: _sl.config.isMock
-              ? _sl.friendsController.friends.length
-              : null,
+          // 전체 친구 수를 알 때만 숫자를 보인다(목록을 끝까지 받았을 때).
+          friendCount: _sl.friendsController.knownFriendCount,
+          friendsLabel: _sl.config.isMock ? '친구 · 트윈' : '친구',
           // 서버 모드는 내 전체 구독 수를 아직 받지 않는다. 방문한 스케치북으로만 채운 숫자는 숨긴다.
           subscriptionCount: _sl.config.isMock
               ? _sl.reactionsController.subscribedOwnerIds.length
@@ -871,9 +882,8 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
             _sl.standController.selectTab(PaletteTab.subscriptions);
             setState(() => _currentTab = AppTab.stand);
           },
-          onOpenFriends: _sl.config.isMock
-              ? () => setState(() => _activeScreen = ActiveScreen.friends)
-              : null,
+          onOpenFriends: () =>
+              setState(() => _activeScreen = ActiveScreen.friends),
           onEditProfile: () => setState(() {
             _settingsProfile = true;
             _activeScreen = ActiveScreen.settings;

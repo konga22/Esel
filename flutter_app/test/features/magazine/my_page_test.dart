@@ -266,6 +266,54 @@ void main() {
     );
   });
 
+  testWidgets('DEV-16: 서버 모드도 친구 칸으로 친구 화면에 간다. 전체 수를 모르면 숫자 대신 –', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(480, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    var opened = 0;
+    Future<void> pumpPage(int? friends) => tester.pumpWidget(
+      MaterialApp(
+        home: MyPageScreen(
+          ownerId: 'demo_dana',
+          masthead: 'dana',
+          controller: MagazineController(MagazineMockSource()),
+          reactionsController: ReactionsController(),
+          viewer: const SameColorViewer.reader(DailyCandidates.demoDate),
+          avatar: const SizedBox.shrink(),
+          todayColor: EselPaint.camel,
+          publishedToday: true,
+          friendCount: friends,
+          friendsLabel: '친구',
+          monthRecords: (month) async => ServerMonthRecords(month, 2, const []),
+          onOpenCanvas: (_) {},
+          onOpenSaved: (_) {},
+          onMakeToday: () {},
+          onChooseColor: () {},
+          onOpenRecords: () {},
+          onOpenSubscriptions: () {},
+          onOpenFriends: () => opened++,
+          onEditProfile: () {},
+          onShare: () {},
+          onOpenSettings: () {},
+        ),
+      ),
+    );
+    final cell = find.byKey(const ValueKey('my-stat-friends'));
+    await pumpPage(null);
+    expect(find.descendant(of: cell, matching: find.text('–')), findsOneWidget);
+    // 트윈이 연결되지 않은 서버 모드라 '친구 · 트윈'이 아니라 '친구'.
+    expect(
+      find.descendant(of: cell, matching: find.text('친구')),
+      findsOneWidget,
+    );
+    await tester.tap(cell);
+    expect(opened, 1);
+    await pumpPage(2);
+    expect(find.descendant(of: cell, matching: find.text('2')), findsOneWidget);
+  });
+
   testWidgets(
     '#24 재리뷰: 마이페이지를 연 채 9월→10월이 되면 10월 기록을 새로 읽고, 기다리는 동안 9월 표시를 그리지 않는다',
     (tester) async {
