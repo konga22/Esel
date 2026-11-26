@@ -23,6 +23,7 @@ import '../../features/auth/presentation/controllers/auth_controller.dart';
 import '../../features/feed/data/sources/feed_mock_source.dart';
 import '../../features/feed/data/sources/feed_remote_source.dart';
 import '../../features/feed/presentation/controllers/feed_controller.dart';
+import '../../features/friends/data/friends_source.dart';
 import '../../features/friends/presentation/controllers/friends_controller.dart';
 import '../../features/magazine/data/sources/magazine_mock_source.dart';
 import '../../features/magazine/data/sources/magazine_remote_source.dart';
@@ -190,7 +191,10 @@ class ServiceLocator {
             clock,
           )
         : RecordsRemoteSource(httpClient);
-    friendsController = FriendsController();
+    // 친구(DEV-16): mock은 예시 친구, 서버는 GET·POST /friends….
+    friendsController = FriendsController(
+      config.isMock ? FriendsMockSource() : FriendsRemoteSource(httpClient),
+    );
     twinController = TwinController();
   }
 }
