@@ -21,7 +21,14 @@ class FriendsController extends ChangeNotifier {
   String? _error, _moreError;
   final Set<String> _busy = {};
   String? _ownerId;
-  int _request = 0;
+
+  // 숫자 셋을 나눠 쓴다(#44 리뷰).
+  // - _account: 계정이 바뀔 때만 올린다. 이전 계정의 응답은 무엇이든 버린다.
+  // - _loadRequest: 목록을 다시 읽을 때 올린다. 늦게 온 이전 읽기 응답만 버린다.
+  // - _moreRequest: 더 보기마다, 그리고 다시 읽기가 시작될 때 올린다. 다시 읽기 전에
+  //   시작한 더 보기 응답은 새 목록에 섞지 않는다.
+  // 수락·나중에는 계정만 비교한다. 서버가 이미 처리했으므로 다시 읽기 중이어도 결과를 반영한다.
+  int _account = 0, _loadRequest = 0, _moreRequest = 0;
 
   List<FriendItem> get friends => List.unmodifiable(_friends);
   List<FriendRequestItem> get pendingRequests => List.unmodifiable(_requests);
@@ -56,7 +63,9 @@ class FriendsController extends ChangeNotifier {
   }
 
   void _reset() {
-    _request++;
+    _account++;
+    _loadRequest++;
+    _moreRequest++;
     _friends = const [];
     _requests = const [];
     _friendsCursor = null;
@@ -72,22 +81,27 @@ class FriendsController extends ChangeNotifier {
 
   /// 친구 목록과 받은 요청의 첫 페이지를 다시 읽는다.
   Future<void> load() async {
-    final request = ++_request;
+    final account = _account;
+    final request = ++_loadRequest;
+    // 진행 중이던 더 보기는 무효로 한다. 그 응답은 새 목록에 섞지 않고, 버튼은 바로 풀린다.
+    _moreRequest++;
+    _loadingMore = false;
     _loading = true;
     _error = null;
     _moreError = null;
     notifyListeners();
+    bool current() => account == _account && request == _loadRequest;
     try {
       final friends = await source.friends();
       final requests = await source.requests();
-      if (request != _request) return;
+      if (!current()) return;
       _friends = friends.items;
       _friendsCursor = friends.nextCursor;
       _requests = requests.items;
       _requestsCursor = requests.nextCursor;
       _loaded = true;
     } catch (failure) {
-      if (request != _request) return;
+      if (!current()) return;
       _error = failure is Failure
           ? failure.message
           : '친구 목록을 불러오지 못했어요. 다시 시도해 주세요.';
@@ -105,34 +119,40 @@ class FriendsController extends ChangeNotifier {
   Future<void> _loadMore({required bool friends}) async {
     final cursor = friends ? _friendsCursor : _requestsCursor;
     if (_loading || _loadingMore || cursor == null) return;
-    final request = _request;
+    final more = ++_moreRequest;
     _loadingMore = true;
     _moreError = null;
     notifyListeners();
+    // 계정 전환이나 다시 읽기가 끼어들면 _moreRequest가 바뀐다. 그때는 응답을 버리되,
+    // _loadingMore는 끼어든 쪽이 이미 풀었으므로 건드리지 않는다(새 더 보기를 막지 않게).
+    bool current() => more == _moreRequest;
     try {
       if (friends) {
         final page = await source.friends(cursor: cursor);
-        if (request != _request) return;
+        if (!current()) return;
         _friends = {
           for (final f in [..._friends, ...page.items]) f.id: f,
         }.values.toList();
         _friendsCursor = page.nextCursor;
       } else {
         final page = await source.requests(cursor: cursor);
-        if (request != _request) return;
+        if (!current()) return;
         _requests = {
           for (final r in [..._requests, ...page.items]) r.id: r,
         }.values.toList();
         _requestsCursor = page.nextCursor;
       }
     } catch (failure) {
-      if (request != _request) return;
+      if (!current()) return;
       _moreError = failure is Failure
           ? failure.message
           : '더 불러오지 못했어요. 다시 시도해 주세요.';
+    } finally {
+      if (current()) {
+        _loadingMore = false;
+        notifyListeners();
+      }
     }
-    _loadingMore = false;
-    notifyListeners();
   }
 
   /// 받은 요청 수락. 성공하면 null, 실패하면 안내 문구.
@@ -160,24 +180,29 @@ class FriendsController extends ChangeNotifier {
     Future<void Function()> Function() run,
   ) async {
     if (_busy.contains(requestId)) return null;
-    final request = _request;
+    // 계정만 비교한다. 다시 읽기가 끼어들어도 서버는 이미 처리했으므로 결과를 반영한다.
+    final account = _account;
     _busy.add(requestId);
     notifyListeners();
     String? message;
     try {
       final apply = await run();
-      if (request != _request) return null;
-      apply();
+      if (account == _account) apply();
     } catch (failure) {
-      if (request != _request) return null;
-      message = friendRequestActionFailureMessage(failure);
-      // 이미 처리된 요청(404)은 목록에서 뺀다. 다른 기기에서 수락했을 수 있다.
-      if (failure is Failure && failure.code == 'NOT_FOUND') {
-        _requests = [..._requests.where((r) => r.id != requestId)];
+      if (account == _account) {
+        message = friendRequestActionFailureMessage(failure);
+        // 이미 처리된 요청(404)은 목록에서 뺀다. 다른 기기에서 수락했을 수 있다.
+        if (failure is Failure && failure.code == 'NOT_FOUND') {
+          _requests = [..._requests.where((r) => r.id != requestId)];
+        }
+      }
+    } finally {
+      // 계정이 바뀌었으면 _reset이 이미 비웠다.
+      if (account == _account) {
+        _busy.remove(requestId);
+        notifyListeners();
       }
     }
-    _busy.remove(requestId);
-    notifyListeners();
     return message;
   }
 

@@ -197,6 +197,80 @@ void main() {
       expect(controller.friends, isEmpty);
       expect(controller.hasLoaded, isFalse);
     });
+
+    // #44 리뷰: 다시 읽기(load)가 진행 중인 더 보기·수락의 상태를 풀지 않고 버리던 문제.
+    test('#44 리뷰: 더 보기 도중 다시 읽어도 더 보기가 막히지 않는다', () async {
+      final source = _FakeSource()..friendsCursor = 'next';
+      final controller = FriendsController(source);
+      await controller.load();
+
+      final slowMore = Completer<FriendsPage<FriendItem>>();
+      source.moreResult = slowMore.future;
+      final more = controller.loadMoreFriends();
+      expect(controller.isLoadingMore, isTrue);
+
+      // 응답 전에 화면을 나갔다 다시 열면 load()가 불린다.
+      await controller.load();
+      slowMore.complete(
+        const FriendsPage([FriendItem(id: 'u-stale', masthead: 'stale')]),
+      );
+      await more;
+
+      expect(controller.isLoadingMore, isFalse);
+      // 다시 읽기 전에 시작한 더 보기 응답은 새 목록에 섞지 않는다.
+      expect(controller.friends.map((f) => f.masthead), ['elin']);
+
+      // 다시 누르면 요청이 실제로 나간다.
+      source.moreResult = Future.value(
+        const FriendsPage([FriendItem(id: 'u-dana', masthead: 'dana')]),
+      );
+      final before = source.friendsCursors.length;
+      await controller.loadMoreFriends();
+      expect(source.friendsCursors.length, before + 1);
+      expect(source.friendsCursors.last, 'next');
+      expect(controller.friends.map((f) => f.masthead), ['elin', 'dana']);
+    });
+
+    test('#44 리뷰: 수락 도중 다시 읽어도 버튼이 풀리고 서버 결과를 반영한다', () async {
+      final source = _FakeSource();
+      final controller = FriendsController(source);
+      await controller.load();
+      final request = controller.pendingRequests.single;
+
+      final pending = Completer<FriendItem>();
+      source.acceptResult = pending.future;
+      final done = controller.acceptRequest(request);
+      expect(controller.isBusy(request.id), isTrue);
+
+      // 서버가 수락을 처리하기 전 상태로 다시 읽기가 먼저 온다(요청이 아직 목록에 있음).
+      await controller.load();
+      expect(controller.pendingRequests.map((r) => r.id), [request.id]);
+
+      pending.complete(const FriendItem(id: 'u-kofi', masthead: 'kofi'));
+      expect(await done, isNull);
+      expect(controller.isBusy(request.id), isFalse);
+      // 서버는 수락했으므로 버리지 않고 반영한다.
+      expect(controller.pendingRequests, isEmpty);
+      expect(controller.friends.map((f) => f.masthead), ['kofi', 'elin']);
+    });
+
+    test('#44 리뷰: 수락이 실패해도 다시 읽기 뒤에 버튼이 풀린다', () async {
+      final source = _FakeSource();
+      final controller = FriendsController(source);
+      await controller.load();
+      final request = controller.pendingRequests.single;
+
+      final pending = Completer<FriendItem>();
+      source.acceptResult = pending.future;
+      final done = controller.acceptRequest(request);
+      await controller.load();
+      pending.completeError(
+        const NetworkFailure('인터넷 연결을 확인해 주세요.', code: 'OFFLINE'),
+      );
+      expect(await done, '인터넷 연결을 확인해 주세요.');
+      expect(controller.isBusy(request.id), isFalse);
+      expect(controller.pendingRequests.map((r) => r.id), [request.id]);
+    });
   });
 
   group('친구 화면(F1~F3)', () {
@@ -332,14 +406,20 @@ class _FakeSource implements FriendsSource {
   ];
   String? friendsCursor;
   Future<FriendsPage<FriendItem>>? friendsResult;
+
+  /// 다음 페이지(cursor가 있는 요청)에만 쓰는 응답. 없으면 [friendsResult]·기본 목록을 쓴다.
+  Future<FriendsPage<FriendItem>>? moreResult;
   Future<FriendItem>? acceptResult;
   // 오류는 부를 때 던진다. 미리 만든 오류 Future는 아무도 기다리기 전에 처리 안 된 오류가 된다.
   Failure? friendsError, acceptError, sendError;
   final sent = <String>[];
+  final friendsCursors = <String?>[];
 
   @override
   Future<FriendsPage<FriendItem>> friends({String? cursor}) async {
+    friendsCursors.add(cursor);
     if (friendsError != null) throw friendsError!;
+    if (cursor != null && moreResult != null) return moreResult!;
     return friendsResult ?? FriendsPage(friendItems, friendsCursor);
   }
 
