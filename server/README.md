@@ -239,7 +239,7 @@ Android 에뮬레이터는 호스트 PC를 `10.0.2.2`로 부릅니다.
 
 - 친구·트윈(`/friends…`, `/twins…`), 공유 링크(`/share-links…`), 신고·차단(`…/reports`, `/users/:masthead/block`, `/me/blocks`), 호 삭제 `DELETE /issues/:id`, 사용자 조회 `GET /users/:masthead`. 친구·트윈 예시 화면은 서버 모드에서 들어갈 수 없게 막혀 있다.
 
-앱에는 있지만 서버 약속(`api-contract.json`)에 없는 주소: `/auth/google`, `/auth/apple`. Apple·Google 로그인은 도입 시점이 정해지지 않아 서버에 없으므로, 앱에서 부르면 404가 된다.
+앱에는 있지만 서버 약속(`api-contract.json`)에 없는 주소는 없다. 예전 앱 코드에 남아 있던 `/auth/google`, `/auth/apple` 호출은 부르는 곳이 없어 2026-11-25에 지웠다. Apple·Google 로그인은 도입 시점이 정해지지 않아 서버에 없고, 앱은 서버 모드에서 이 버튼을 숨기고 저장소가 `OAUTH_NOT_CONFIGURED`로 막는다. mock 모드의 Apple·Google 버튼은 기기 안의 시연 계정만 만든다.
 
 ```powershell
 cd flutter_app

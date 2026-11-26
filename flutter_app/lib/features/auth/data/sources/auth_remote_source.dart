@@ -35,21 +35,9 @@ class AuthRemoteSource {
     );
   }
 
-  Future<AuthSession> loginWithGoogle(String idToken) async {
-    final res = await httpClient.post(
-      '/auth/google',
-      body: {'idToken': idToken},
-    );
-    return AuthSession.fromJson(res);
-  }
-
-  Future<AuthSession> loginWithApple(String authorizationCode) async {
-    final res = await httpClient.post(
-      '/auth/apple',
-      body: {'authorizationCode': authorizationCode},
-    );
-    return AuthSession.fromJson(res);
-  }
+  // Apple·Google 로그인은 서버 약속(api-contract.json)에 없다. 도입 시점이
+  // 정해지면 약속에 주소가 생긴 뒤 여기에 더한다. 그 전까지 서버 모드는
+  // 저장소가 OAUTH_NOT_CONFIGURED로 막고, mock 모드는 기기 시연 계정을 쓴다.
 
   /// DEV-06 서버 계약: `{ masthead, available }`을 받는다.
   Future<bool> isMastheadAvailable(String masthead) async {
