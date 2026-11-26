@@ -26,6 +26,7 @@ import '../../features/feed/presentation/controllers/feed_controller.dart';
 import '../../features/friends/data/friends_source.dart';
 import '../../features/friends/presentation/controllers/friends_controller.dart';
 import '../../features/moderation/data/blocks_source.dart';
+import '../../features/moderation/data/reports_source.dart';
 import '../../features/moderation/presentation/controllers/blocks_controller.dart';
 import '../../features/magazine/data/sources/magazine_mock_source.dart';
 import '../../features/magazine/data/sources/magazine_remote_source.dart';
@@ -81,6 +82,9 @@ class ServiceLocator {
 
   /// 차단하기·풀기·차단 목록(DEV-20). 바뀌면 홈·팔레트를 다시 읽는다.
   late final BlocksController blocksController;
+
+  /// 표지 신고 보내기(DEV-20). 처리 기준은 미정이라 서버는 접수만 저장한다.
+  late final ReportsSource reportsSource;
   late final FriendsController friendsController;
   late final TwinController twinController;
 
@@ -187,6 +191,9 @@ class ServiceLocator {
         standController.load();
       },
     );
+    reportsSource = config.isMock
+        ? ReportsMemorySource()
+        : ReportsRemoteSource(httpClient);
     scrapsController = config.isMock
         ? null
         : ScrapsController(ScrapsRemoteSource(httpClient));

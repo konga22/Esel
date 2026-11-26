@@ -18,7 +18,9 @@ class IssueBottomSheet extends StatefulWidget {
   final ReactionsController reactionsController;
   final VoidCallback onOpenAuthorShelf;
   final VoidCallback onShare;
-  final VoidCallback onReport;
+
+  /// ··· 버튼(신고·차단 시트). 내 캔버스처럼 할 수 있는 일이 없으면 null이고 버튼을 숨긴다.
+  final VoidCallback? onReport;
 
   const IssueBottomSheet({
     super.key,
@@ -28,7 +30,7 @@ class IssueBottomSheet extends StatefulWidget {
     required this.reactionsController,
     required this.onOpenAuthorShelf,
     required this.onShare,
-    required this.onReport,
+    this.onReport,
   });
 
   static Future<void> show(
@@ -39,7 +41,7 @@ class IssueBottomSheet extends StatefulWidget {
     required ReactionsController reactionsController,
     required VoidCallback onOpenAuthorShelf,
     required VoidCallback onShare,
-    required VoidCallback onReport,
+    VoidCallback? onReport,
   }) {
     return showModalBottomSheet<void>(
       context: context,
@@ -270,19 +272,27 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
             EselPaintAsset(paint: _issue.color, width: 24),
             const SizedBox(width: 8),
             Text(_issue.issueLabel, style: EselTypography.monoSmall),
-            const SizedBox(width: 12),
-            EselPressable(
-              onTap: widget.onReport,
-              child: const SizedBox(
-                width: 36,
-                height: 36,
-                child: Icon(
-                  Icons.more_horiz,
-                  size: 22,
-                  color: EselTokens.inkMuted,
+            if (widget.onReport != null) ...[
+              const SizedBox(width: 4),
+              // 누르는 곳은 최소 48×48(하네스 기준). 전에는 36이었다.
+              EselPressable(
+                key: const Key('issue-more'),
+                onTap: widget.onReport,
+                child: Semantics(
+                  label: '신고·차단',
+                  button: true,
+                  child: const SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: Icon(
+                      Icons.more_horiz,
+                      size: 22,
+                      color: EselTokens.inkMuted,
+                    ),
+                  ),
                 ),
               ),
-            ),
+            ],
           ],
         ),
       ],
@@ -432,7 +442,7 @@ class _IssueBottomSheetState extends State<IssueBottomSheet> {
           widget.isOwner
               ? '한 줄 (${widget.reactionsController.getOwnerStats(_issue.id).readerLineCount})'
               : '한 줄',
-          key:const Key('reader-lines-heading'),
+          key: const Key('reader-lines-heading'),
           style: EselTypography.labelLarge.copyWith(
             fontWeight: FontWeight.w600,
           ),

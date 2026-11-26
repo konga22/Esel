@@ -5,7 +5,10 @@ import '../../../../core/ui/esel_pressable.dart';
 
 class ModerationSheet extends StatelessWidget {
   final String authorMasthead;
-  final VoidCallback onReport;
+
+  /// 신고하기(DEV-20). 시트를 닫은 뒤 부르며, 사유 입력·결과 안내는 부르는 쪽이 한다.
+  /// 내 캔버스처럼 신고할 수 없으면 null이고 항목을 숨긴다.
+  final VoidCallback? onReport;
 
   /// 차단하기(DEV-20). 시트를 닫은 뒤 부르며, 확인·결과 안내는 부르는 쪽이 한다.
   /// 내 캔버스처럼 차단할 수 없으면 null이고 항목을 숨긴다.
@@ -14,14 +17,14 @@ class ModerationSheet extends StatelessWidget {
   const ModerationSheet({
     super.key,
     required this.authorMasthead,
-    required this.onReport,
+    this.onReport,
     this.onBlock,
   });
 
   static Future<void> show(
     BuildContext context, {
     required String authorMasthead,
-    required VoidCallback onReport,
+    VoidCallback? onReport,
     VoidCallback? onBlock,
   }) {
     return showModalBottomSheet<void>(
@@ -72,19 +75,18 @@ class ModerationSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            _buildOptionTile(
-              context,
-              icon: Icons.flag_outlined,
-              title: '게시물 / 사용자 신고하기',
-              color: EselTokens.semanticRed,
-              onTap: () {
-                Navigator.of(context).pop();
-                onReport();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('신고가 접수되었습니다. 검토 후 조치됩니다.')),
-                );
-              },
-            ),
+            if (onReport != null)
+              _buildOptionTile(
+                context,
+                key: const Key('moderation-report'),
+                icon: Icons.flag_outlined,
+                title: '캔버스 신고하기',
+                color: EselTokens.semanticRed,
+                onTap: () {
+                  Navigator.of(context).pop();
+                  onReport!();
+                },
+              ),
             if (onBlock != null)
               _buildOptionTile(
                 context,

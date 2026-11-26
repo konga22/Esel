@@ -20,6 +20,7 @@
 | DEV-15 색 기록·복원 | 스케치북 → 색 달력 | GET /me/records?month=YYYY-MM, POST /me/records/:date/restore |
 | DEV-16 친구 | 스케치북 숫자 줄 '친구' → 나의 친구 | GET /friends·/friends/requests(cursor), POST /friends/requests {masthead}, POST /friends/requests/:id/accept·decline |
 | DEV-20 차단 | 자세히 보기 ··· → 차단하기, 설정 > 차단한 사람 | POST·DELETE /users/:masthead/block, GET /me/blocks(cursor) |
+| DEV-20 신고 | 자세히 보기 ··· → 캔버스 신고하기 | POST /issues/:id/reports {reason, details?} |
 
 데이터는 각 기능의 domain 모델·data 소스·presentation 화면으로 나눈다. 기존 AppHttpClient의 토큰·오류 처리를 재사용한다. 공개 목록은 서버가 준 항목만 표시하며 잠긴 표지를 기기 자료에서 보충하지 않는다. 반응 숫자는 소유자용 API 화면에만 있고, 공개 모델에는 숫자를 두지 않는다. 목록과 독자 한 줄은 cursor로 다음 페이지를 받는다.
 
@@ -58,6 +59,7 @@ DEV-25(미술 도구 용어·198×60의 바뀌는 칸 3칸 캡슐), DEV-12 공�
 | 마이페이지로 돌아오기 | 숫자 줄 `1 친구` |
 
 나중에(거절)는 가짜 HTTP·위젯 테스트로만 확인했다.
+- `ReportsSource`(DEV-20 표지 신고, 2026-11-26): mock은 `ReportsMemorySource`, 서버는 `ReportsRemoteSource`(`POST /issues/:id/reports`). 자세히 보기 ··· 시트의 신고 항목은 전에는 서버를 부르지 않으면서 "신고가 접수되었습니다. 검토 후 조치됩니다."라고 안내했다. 이제 사유(스팸·광고 / 괴롭힘·혐오 표현 / 부적절한 사진·내용 / 기타, 서버 `spam`·`harassment`·`inappropriate`·`other`)를 하나 고르고 내용(선택, 500자)을 덧붙여 보내며, 서버가 접수한 뒤에만 신고 시트 안에서 "신고를 접수했어요."를 보인다. 결과를 하단 알림으로 띄우지 않는 이유는 신고 시트가 자세히 보기 시트 위에서 열려 하단 알림이 그 뒤에 가려지기 때문이다(에뮬레이터에서 확인). 처리 주체·기준은 미정이라 "검토 후 조치" 같은 약속은 하지 않는다. 실패하면 시트를 열어 둔 채 이유를 보인다(`RATE_LIMITED` → 1분 뒤 다시, `NOT_FOUND` → 볼 수 없는 캔버스). 내 캔버스와 로그인 전에는 신고·차단을 할 수 없어 ··· 버튼을 숨기고, 버튼은 48×48로 키웠다(전에는 36). mock 모드는 이 기기에만 담는다고 안내한다. 독자 한 줄 신고는 한 줄마다 신고할 화면 요소가 없어 이번 범위가 아니다. 테스트 `test/features/moderation/reports_test.dart`.
 - `RecordsSource`: 같은 MonthlyRecordScreen에서 월 이동·빈칸 복원. 로컬 복원도 계정별 저장·월 2회·서울 날짜·그날 후보를 검사한다.
 - `CoverDraft.garments`는 선택 필드다. 기존 저장본에는 빈 목록을 적용한다. 옷 종류·이름(선택, 40자)·메모·오늘의 색 표시·원본 사진 비율 좌표를 저장한다. 사진 교체 시 태그 위치를 지우고, 옷 재사용 시 동일 ID를 쓰되 위치·오늘의 색은 다시 지정한다. 내 옷은 계정별로 분리되며 탈퇴 시 함께 지운다. 가격·상품 URL 필드는 없다.
 
@@ -186,3 +188,16 @@ cd flutter_app; flutter test --no-pub test/features/auth/account_delete_live_tes
 | 홈으로 | 첫 표지에 ama가 다시 나옴 |
 
 내 캔버스에서 차단 항목이 숨는 것은 위젯 테스트와 코드로만 확인했다(테스트 계정 B에 올린 캔버스가 없음).
+
+### 신고 실서버 확인 (2026-11-26)
+
+로컬 Docker 서버에서 테스트 계정 B로만 확인했다. 시연 데이터 사람(ama)의 캔버스에 테스트 신고를 남겼다(내용 `local-test-report`·`local-test-ratelimit`로 구분).
+
+| 확인 | 결과 |
+|---|---|
+| 홈 첫 표지(ama) → 자세히 보기 → ···(48×48, 라벨 "신고·차단") | "캔버스 신고하기"·"ama 님 차단하기" |
+| 캔버스 신고하기 | 사유 네 가지와 내용 칸. 사유를 고르기 전에는 "신고 보내기"가 비활성 |
+| 기타 + 내용 / 스팸·광고 | 시트 안에 "신고를 접수했어요.", 확인 후 자세히 보기에 그대로 머묾. DB `reports`에 `other / local-test-report`, `spam / (빈 내용)` 저장 |
+| 1분에 5건을 넘긴 뒤 다시 신고 | API는 5번째부터 `429`. 앱은 시트를 열어 둔 채 "신고가 너무 많아요. 1분 뒤 다시 시도해 주세요." |
+
+처음 구현은 결과를 하단 알림으로 띄웠는데 자세히 보기 시트에 가려 보이지 않는 것을 이 확인에서 찾아 시트 안 완료 화면으로 바꿨다. 내 캔버스에서 ··· 버튼이 숨는 것은 위젯 테스트와 코드로만 확인했다(테스트 계정 B에 올린 캔버스가 없음).

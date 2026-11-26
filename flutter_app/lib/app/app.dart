@@ -30,6 +30,8 @@ import '../features/feed/presentation/widgets/feed_pages.dart';
 import '../features/issue/data/demo_issue_catalog.dart';
 import '../features/stand/domain/rules/same_color_rule.dart';
 import '../features/moderation/presentation/widgets/moderation_sheet.dart';
+import '../features/moderation/domain/report.dart';
+import '../features/moderation/presentation/widgets/report_sheet.dart';
 import '../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../features/publishing/presentation/screens/publish_screen.dart';
 import '../features/records/presentation/screens/monthly_record_screen.dart';
@@ -646,6 +648,11 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
   /// 자세히 보기(C3). 반응 숫자는 올린 본인에게만 보인다(P18).
   void _openIssue(BuildContext context, PublicIssue issue) {
     final session = _sl.authController.currentSession;
+    // 내 캔버스이거나 로그인 전이면 신고·차단할 수 없어 ··· 버튼을 숨긴다(서버도 나 자신은 차단 404).
+    final canModerate =
+        session != null &&
+        issue.ownerId != session.userId &&
+        issue.masthead != session.masthead;
     IssueBottomSheet.show(
       context,
       issue: issue,
@@ -657,18 +664,34 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
       reactionsController: _sl.reactionsController,
       onOpenAuthorShelf: () => _openAuthorShelf(issue.ownerId),
       onShare: () => _shareIssue(context, issue),
-      onReport: () => ModerationSheet.show(
-        context,
-        authorMasthead: issue.masthead,
-        onReport: () {},
-        // 내 캔버스에서는 차단 항목을 숨긴다(서버도 나 자신은 404).
-        onBlock:
-            session == null ||
-                issue.ownerId == session.userId ||
-                issue.masthead == session.masthead
-            ? null
-            : () => _blockAuthor(context, issue),
-      ),
+      onReport: canModerate
+          ? () => ModerationSheet.show(
+              context,
+              authorMasthead: issue.masthead,
+              onReport: () => _reportIssue(context, issue),
+              onBlock: () => _blockAuthor(context, issue),
+            )
+          : null,
+    );
+  }
+
+  /// 캔버스 신고(DEV-20). 사유를 고르는 시트를 열고, 서버가 접수한 뒤에만 시트 안에서 안내한다.
+  /// 처리 주체·기준은 아직 정해지지 않아 "검토 후 조치" 같은 약속은 하지 않는다.
+  /// 신고 뒤에도 보던 캔버스(자세히 보기)에 머문다.
+  Future<void> _reportIssue(BuildContext context, PublicIssue issue) async {
+    final source = _sl.reportsSource;
+    await ReportSheet.show(
+      context,
+      authorMasthead: issue.masthead,
+      successMessage: source.demo ? '시연 모드라 신고는 이 기기에만 담았어요.' : '신고를 접수했어요.',
+      onSubmit: (reason, details) async {
+        try {
+          await source.reportIssue(issue.id, reason, details: details);
+          return null;
+        } catch (failure) {
+          return reportFailureMessage(failure);
+        }
+      },
     );
   }
 
