@@ -26,8 +26,12 @@ class MyPageScreen extends StatefulWidget {
   final EselPaint todayColor;
   final bool publishedToday;
 
-  /// 친구 수. 친구 기능이 없는 모드(서버)에서는 null이고 숫자 칸을 숨긴다.
+  /// 친구 수. 전체 수를 아직 모르면(목록을 읽는 중·다음 페이지가 남음) null이고 숫자 대신 '–'.
+  /// 친구 칸은 [onOpenFriends]가 있을 때 보인다.
   final int? friendCount;
+
+  /// 친구 칸 이름. 트윈이 연결되지 않은 서버 모드에서는 '친구'.
+  final String friendsLabel;
 
   /// 내가 구독한 사람 수. 전체 집계를 받을 수 없는 모드(서버)에서는 null이고 숫자 칸을 숨긴다.
   /// 서버 모드의 구독 집합은 방문한 스케치북으로만 채워져 실제보다 적기 때문이다(#24 리뷰).
@@ -80,6 +84,7 @@ class MyPageScreen extends StatefulWidget {
     required this.onOpenSettings,
     required this.monthRecords,
     this.friendCount,
+    this.friendsLabel = '친구 · 트윈',
     this.subscriptionCount,
     this.savedBio,
     this.initialTab = MyPageTab.canvases,
@@ -363,11 +368,11 @@ class _MyPageScreenState extends State<MyPageScreen> {
                       '구독',
                       onTap: widget.onOpenSubscriptions,
                     ),
-                  if (widget.friendCount != null)
+                  if (widget.onOpenFriends != null)
                     _stat(
                       'friends',
-                      '${widget.friendCount}',
-                      '친구 · 트윈',
+                      widget.friendCount?.toString() ?? '–',
+                      widget.friendsLabel,
                       onTap: widget.onOpenFriends,
                     ),
                 ],
