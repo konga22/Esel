@@ -313,5 +313,45 @@ describe('DEV-13 서가와 구독', () => {
     ]);
   });
 
-  it.todo('합격 기준: 구독하면 GET /api/feed?tab=subs에 그 잡지의 호가 나옴');
+  // 처음 todo는 'GET /api/feed?tab=subs'였지만 계약의 GET /api/feed에는 tab이 없다.
+  // 지금 기준(features.json DEV-13): 구독하면 팔레트 구독 탭과 홈 피드(source=SUBSCRIPTION)에 나타남.
+  it('합격 기준: 구독하면 팔레트 구독 탭(GET /api/palette/subscriptions)과 홈 피드(GET /api/feed, source=SUBSCRIPTION)에 그 잡지의 호가 나옴', async () => {
+    const owner = await signup('subs-feed-owner');
+    const reader = await signup('subs-feed-reader');
+    // 미래 시각으로 발행 순서를 맨 앞에 둬서 다른 데이터가 있어도 첫 쪽에 나오게 한다.
+    const issue = await createIssue(owner, {
+      publishedAt: new Date('2199-01-01T00:00:00.000Z'),
+    });
+    const auth = { Authorization: `Bearer ${reader.token}` };
+    const feedItem = async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/feed')
+        .set(auth)
+        .expect(200);
+      return (response.body.items as { id: string; source: string }[]).find(
+        ({ id }) => id === issue.id,
+      );
+    };
+    const paletteIssueIds = async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/palette/subscriptions')
+        .set(auth)
+        .expect(200);
+      return (response.body.items as { issueId: string }[]).map(
+        ({ issueId }) => issueId,
+      );
+    };
+
+    // 구독 전: 홈 피드에는 추천으로만 나오고, 구독 탭에는 없다.
+    expect(await feedItem()).toMatchObject({ source: 'RECOMMENDED' });
+    expect(await paletteIssueIds()).not.toContain(issue.id);
+
+    await request(app.getHttpServer())
+      .post(`/api/magazines/${owner.masthead}/subscription`)
+      .set(auth)
+      .expect(201);
+
+    expect(await feedItem()).toMatchObject({ source: 'SUBSCRIPTION' });
+    expect(await paletteIssueIds()).toContain(issue.id);
+  });
 });
