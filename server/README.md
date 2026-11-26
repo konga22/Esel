@@ -234,10 +234,11 @@ Android 에뮬레이터는 호스트 PC를 `10.0.2.2`로 부릅니다.
 | 사진 | `POST /media` → `PUT /media/:id/file` → `POST /media/:id/complete`, 보기 `GET /media/:id?size=thumb\|original` | 연결·로컬 Docker 검증. 앱은 얼굴 연출을 적용한 PNG를 올린다 |
 | 올리기 | `POST /issues`(`faceCrop`·`paintStroke`·`garments`), `GET /me/garments` | 연결·로컬 Docker 실발행 검증. **사인 뒤로는 앱이 업로드를 보류**한다(얼굴 노출 가능성, [사진 연결 결정 기록](../docs/flutter/MEDIA_UPLOAD_HANDOFF.md)) |
 | 탈퇴 | `DELETE /me` | 연결·로컬 서버·에뮬레이터 검증(2026-11-23, [기록](../docs/flutter/CORE_API_CONNECTION.md#탈퇴-delete-me-실서버-확인-2026-11-23)). 서버 실패 시 이유 안내·체크 전 비활성 표시 보완 |
+| 차단 | `POST`·`DELETE /users/:masthead/block`, `GET /me/blocks`(cursor) | 연결·로컬 Docker 서버·에뮬레이터 검증(2026-11-26). 자세히 보기 ··· → 차단하기(확인 후), 설정 > 차단한 사람에서 풀기. 차단·풀기 뒤 홈·팔레트를 다시 읽음 |
 
 서버에는 있지만 앱이 아직 부르지 않는 API:
 
-- 친구·트윈(`/friends…`, `/twins…`), 공유 링크(`/share-links…`), 신고·차단(`…/reports`, `/users/:masthead/block`, `/me/blocks`), 호 삭제 `DELETE /issues/:id`, 사용자 조회 `GET /users/:masthead`. 친구·트윈 예시 화면은 서버 모드에서 들어갈 수 없게 막혀 있다.
+- 친구·트윈(`/friends…`, `/twins…`), 공유 링크(`/share-links…`), 신고(`…/reports`), 호 삭제 `DELETE /issues/:id`, 사용자 조회 `GET /users/:masthead`. 친구·트윈 예시 화면은 서버 모드에서 들어갈 수 없게 막혀 있다. 신고 항목은 아직 서버를 부르지 않으면서 "접수되었습니다"라고 안내한다(처리 기준 미정, DEV-20).
 
 앱에는 있지만 서버 약속(`api-contract.json`)에 없는 주소는 없다. 예전 앱 코드에 남아 있던 `/auth/google`, `/auth/apple` 호출은 부르는 곳이 없어 2026-11-25에 지웠다. Apple·Google 로그인은 도입 시점이 정해지지 않아 서버에 없고, 앱은 서버 모드에서 이 버튼을 숨기고 저장소가 `OAUTH_NOT_CONFIGURED`로 막는다. mock 모드의 Apple·Google 버튼은 기기 안의 시연 계정만 만든다.
 

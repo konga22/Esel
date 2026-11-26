@@ -6,20 +6,23 @@ import '../../../../core/ui/esel_pressable.dart';
 class ModerationSheet extends StatelessWidget {
   final String authorMasthead;
   final VoidCallback onReport;
-  final VoidCallback onBlock;
+
+  /// 차단하기(DEV-20). 시트를 닫은 뒤 부르며, 확인·결과 안내는 부르는 쪽이 한다.
+  /// 내 캔버스처럼 차단할 수 없으면 null이고 항목을 숨긴다.
+  final VoidCallback? onBlock;
 
   const ModerationSheet({
     super.key,
     required this.authorMasthead,
     required this.onReport,
-    required this.onBlock,
+    this.onBlock,
   });
 
   static Future<void> show(
     BuildContext context, {
     required String authorMasthead,
     required VoidCallback onReport,
-    required VoidCallback onBlock,
+    VoidCallback? onBlock,
   }) {
     return showModalBottomSheet<void>(
       context: context,
@@ -82,23 +85,18 @@ class ModerationSheet extends StatelessWidget {
                 );
               },
             ),
-            _buildOptionTile(
-              context,
-              icon: Icons.block_outlined,
-              title: '$authorMasthead 님 차단하기',
-              color: EselTokens.ink,
-              onTap: () {
-                Navigator.of(context).pop();
-                onBlock();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      '$authorMasthead 님을 차단했습니다. 피드와 팔레트에서 제외됩니다.',
-                    ),
-                  ),
-                );
-              },
-            ),
+            if (onBlock != null)
+              _buildOptionTile(
+                context,
+                key: const Key('moderation-block'),
+                icon: Icons.block_outlined,
+                title: '$authorMasthead 님 차단하기',
+                color: EselTokens.ink,
+                onTap: () {
+                  Navigator.of(context).pop();
+                  onBlock!();
+                },
+              ),
             const SizedBox(height: 12),
           ],
         ),
@@ -108,6 +106,7 @@ class ModerationSheet extends StatelessWidget {
 
   Widget _buildOptionTile(
     BuildContext context, {
+    Key? key,
     required IconData icon,
     required String title,
     required Color color,
@@ -116,6 +115,7 @@ class ModerationSheet extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: EselPressable(
+        key: key,
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.all(16),

@@ -5,6 +5,8 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/ui/esel_button.dart';
 import '../../../../core/ui/esel_pressable.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../../moderation/presentation/controllers/blocks_controller.dart';
+import '../../../moderation/presentation/widgets/blocked_users_view.dart';
 import '../../data/notification_settings_source.dart';
 import '../../domain/notification_settings.dart';
 import '../controllers/notification_settings_controller.dart';
@@ -29,6 +31,12 @@ class SettingsScreen extends StatefulWidget {
   /// 서버 모드의 한 줄 소개 저장(PATCH /me/profile). 없으면(mock 모드) 소개 칸을 잠가 둔다.
   final ProfileBioController? profileBio;
 
+  /// 차단한 사람 목록과 풀기(DEV-20). 없으면 메뉴를 숨긴다.
+  final BlocksController? blocks;
+
+  /// mock 모드 여부. 차단 목록 화면이 시연 안내를 보인다.
+  final bool demoBlocks;
+
   const SettingsScreen({
     super.key,
     required this.authController,
@@ -40,6 +48,8 @@ class SettingsScreen extends StatefulWidget {
     this.openProfile = false,
     this.notificationSettings,
     this.profileBio,
+    this.blocks,
+    this.demoBlocks = false,
   });
 
   @override
@@ -47,7 +57,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  // 0: S1 Menu, 1: S2 Profile, 2: S3 Notification, 3: S4 Account
+  // 0: S1 Menu, 1: S2 Profile, 2: S3 Notification, 3: S4 Account, 4: 차단한 사람(DEV-20)
   late int _activeView = widget.openProfile ? 1 : 0;
   bool _deleteAgreed = false;
   bool _deleting = false;
@@ -203,6 +213,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (_activeView == 1) title = '프로필 편집';
     if (_activeView == 2) title = '알림 설정';
     if (_activeView == 3) title = '계정 관리';
+    if (_activeView == 4) title = '차단한 사람';
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -249,6 +260,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return _buildNotificationView();
       case 3:
         return _buildAccountView();
+      case 4:
+        return BlockedUsersView(
+          controller: widget.blocks!,
+          demo: widget.demoBlocks,
+        );
       default:
         return _buildMainMenuView();
     }
@@ -280,6 +296,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           '새 호 올리기, 반응 알림',
           _openNotifications,
         ),
+        if (widget.blocks != null)
+          _buildMenuTile(
+            Icons.block_outlined,
+            '차단한 사람',
+            '차단한 사람 보기, 차단 풀기',
+            () => setState(() => _activeView = 4),
+          ),
         _buildMenuTile(
           Icons.shield_outlined,
           '계정 관리',
