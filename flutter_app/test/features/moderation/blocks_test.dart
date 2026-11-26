@@ -103,6 +103,54 @@ void main() {
       expect(controller.items, isEmpty);
       expect(controller.hasLoaded, isFalse);
     });
+
+    // #44 리뷰와 같은 문제: 다시 읽기(load)가 진행 중인 더 보기·풀기의 상태를 풀지 않고 버리던 것.
+    test('더 보기 도중 다시 읽어도 더 보기가 막히지 않는다', () async {
+      final source = _FakeBlocks()
+        ..items = [const BlockedUser(masthead: 'elin')]
+        ..cursor = 'next';
+      final controller = BlocksController(source);
+      await controller.load();
+
+      final slowMore = Completer<BlockedUsersPage>();
+      source.moreResult = slowMore.future;
+      final more = controller.loadMore();
+      expect(controller.isLoadingMore, isTrue);
+      await controller.load();
+      slowMore.complete(
+        const BlockedUsersPage([BlockedUser(masthead: 'stale')]),
+      );
+      await more;
+      expect(controller.isLoadingMore, isFalse);
+      expect(controller.items.map((b) => b.masthead), ['elin']);
+
+      source.moreResult = Future.value(
+        const BlockedUsersPage([BlockedUser(masthead: 'dana')]),
+      );
+      final before = source.cursors.length;
+      await controller.loadMore();
+      expect(source.cursors.length, before + 1);
+      expect(controller.items.map((b) => b.masthead), ['elin', 'dana']);
+    });
+
+    test('풀기 도중 다시 읽어도 버튼이 풀리고 서버 결과를 반영한다', () async {
+      final source = _FakeBlocks()
+        ..items = [const BlockedUser(masthead: 'elin')];
+      var changed = 0;
+      final controller = BlocksController(source, onChanged: () => changed++);
+      await controller.load();
+
+      final pending = Completer<void>();
+      source.unblockResult = pending.future;
+      final done = controller.unblock('elin');
+      expect(controller.isBusy('elin'), isTrue);
+      await controller.load();
+      pending.complete();
+      expect(await done, isNull);
+      expect(controller.isBusy('elin'), isFalse);
+      expect(controller.items, isEmpty);
+      expect(changed, 1);
+    });
   });
 
   group('차단 시트', () {
@@ -239,9 +287,14 @@ class _FakeBlocks implements BlocksSource {
   List<BlockedUser> items = [];
   Future<void>? blockResult, unblockResult;
   Future<BlockedUsersPage>? pageResult;
+
+  /// 다음 페이지(cursor가 있는 요청)에만 쓰는 응답.
+  Future<BlockedUsersPage>? moreResult;
+  String? cursor;
   // 오류는 부를 때 던진다. 미리 만든 오류 Future는 처리 안 된 오류가 된다.
   Failure? blockError, pageError;
   final unblocked = <String>[];
+  final cursors = <String?>[];
 
   @override
   Future<void> block(String masthead) async {
@@ -257,7 +310,9 @@ class _FakeBlocks implements BlocksSource {
 
   @override
   Future<BlockedUsersPage> page({String? cursor}) async {
+    cursors.add(cursor);
     if (pageError != null) throw pageError!;
-    return pageResult ?? BlockedUsersPage(items);
+    if (cursor != null && moreResult != null) return moreResult!;
+    return pageResult ?? BlockedUsersPage(items, this.cursor);
   }
 }
