@@ -233,9 +233,42 @@ describe('DEV-09 오늘 호 발행', () => {
     ).toMatchObject({ issueCount: 1 });
   });
 
-  it.todo(
-    '합격 기준(P01): 발행하면 오늘 후보 3색 방이 모두 열림(GET /api/stand)',
-  );
+  it('합격 기준(P01): 발행하면 오늘 후보 3색 방이 모두 열림(GET /api/stand)', async () => {
+    const user = await publishingUser('stand-unlock');
+    const today = await request(app.getHttpServer())
+      .get('/api/today')
+      .set('Authorization', `Bearer ${user.token}`)
+      .expect(200);
+    const candidateIds = (today.body.candidates as { id: string }[]).map(
+      ({ id }) => id,
+    );
+    expect(candidateIds).toHaveLength(3);
+
+    const standLocks = async () =>
+      Promise.all(
+        candidateIds.map(async (colorId) => {
+          const response = await request(app.getHttpServer())
+            .get('/api/stand')
+            .query({ colorId })
+            .set('Authorization', `Bearer ${user.token}`)
+            .expect(200);
+          return response.body.locked as boolean;
+        }),
+      );
+
+    // 발행 전에는 후보 3색 방이 모두 잠겨 있다.
+    expect(await standLocks()).toEqual([true, true, true]);
+
+    const ready = await media(user.userId);
+    await request(app.getHttpServer())
+      .post('/api/issues')
+      .set('Authorization', `Bearer ${user.token}`)
+      .send(payload(ready.id))
+      .expect(201);
+
+    // 고른 색 하나만이 아니라 후보 3색 방이 모두 열린다.
+    expect(await standLocks()).toEqual([false, false, false]);
+  });
   // 10-18 착용 정보(DEV-24, P19): garments[]는 선택 필드
   it('합격 기준(P19): garments 없이 보내도 발행됨. 보내면 최대 8개까지 저장하고 응답에 그대로 돌려줌', async () => {
     const user = await publishingUser('garments');

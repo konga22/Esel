@@ -26,6 +26,9 @@ describe('DEV-06 창간', () => {
   });
 
   async function cleanupFixtures() {
+    await prisma.issue.deleteMany({
+      where: { author: { email: { endsWith: '@profile.e2e.test' } } },
+    });
     await prisma.user.deleteMany({
       where: { email: { endsWith: '@profile.e2e.test' } },
     });
@@ -182,7 +185,68 @@ describe('DEV-06 창간', () => {
       1,
     );
   });
-  it.todo(
-    '합격 기준(P04·P01): 창간호를 발행하면 개인 호수 1호(Nº 001)가 되고 오늘 후보 3색 방이 열림',
-  );
+  it('합격 기준(P04·P01): 창간호를 발행하면 개인 호수 1호(Nº 001)가 되고 오늘 후보 3색 방이 열림', async () => {
+    const user = await signup('founding-issue');
+    const auth = { Authorization: `Bearer ${user.token}` };
+    await request(app.getHttpServer())
+      .post('/api/profile')
+      .set(auth)
+      .send({ masthead: 'founding' })
+      .expect(201);
+    const today = await request(app.getHttpServer())
+      .get('/api/today')
+      .set(auth)
+      .expect(200);
+    const candidateIds = (today.body.candidates as { id: string }[]).map(
+      ({ id }) => id,
+    );
+    await request(app.getHttpServer())
+      .put('/api/today/choice')
+      .set(auth)
+      .send({ colorId: candidateIds[0] })
+      .expect(200);
+    const media = await prisma.mediaAsset.create({
+      data: {
+        ownerId: user.userId,
+        storageKey: `profile-e2e/${user.userId}`,
+        status: 'READY',
+        mimeType: 'image/png',
+        sizeBytes: 24,
+        width: 1080,
+        height: 1440,
+      },
+    });
+
+    const published = await request(app.getHttpServer())
+      .post('/api/issues')
+      .set(auth)
+      .send({
+        mediaId: media.id,
+        caption: '창간호',
+        faceCrop: 'ORIGINAL',
+        paintStroke: false,
+      })
+      .expect(201);
+    // 서버는 숫자 1을 준다. 'Nº 001'처럼 세 자리로 보여 주는 것은 앱 화면의 몫이다.
+    expect(published.body.issueNumber).toBe(1);
+
+    const magazine = await request(app.getHttpServer())
+      .get('/api/me/magazine')
+      .set(auth)
+      .expect(200);
+    expect(magazine.body).toMatchObject({
+      masthead: 'founding',
+      issueCount: 1,
+      todayIssue: { id: published.body.id, issueNumber: 1 },
+    });
+
+    for (const colorId of candidateIds) {
+      const stand = await request(app.getHttpServer())
+        .get('/api/stand')
+        .query({ colorId })
+        .set(auth)
+        .expect(200);
+      expect(stand.body.locked).toBe(false);
+    }
+  });
 });

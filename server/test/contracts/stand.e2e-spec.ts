@@ -3,8 +3,10 @@ import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
+import { vi } from 'vitest';
 import { serviceDate } from '../../src/common/service-date.js';
 import { PrismaService } from '../../src/prisma/prisma.service.js';
+import { dailyCandidateIds } from '../../src/today/today.rules.js';
 import { createTestApp } from '../create-app.js';
 
 describe('DEV-12 가판대와 같은 색', () => {
@@ -23,6 +25,13 @@ describe('DEV-12 가판대와 같은 색', () => {
   afterAll(async () => app.close());
 
   async function cleanup() {
+    await prisma.twin.deleteMany({
+      where: {
+        participations: {
+          some: { user: { email: { endsWith: '@stand.e2e.test' } } },
+        },
+      },
+    });
     await prisma.issue.deleteMany({
       where: { author: { email: { endsWith: '@stand.e2e.test' } } },
     });
@@ -215,9 +224,129 @@ describe('DEV-12 가판대와 같은 색', () => {
   it.todo(
     '합격 기준(P01): 미성년자는 잠금 없이 전부 열림(판별 방법은 미정, DEV-02)',
   );
-  it.todo(
-    '합격 기준(P01·P03·P09): 색 확정·색 복원·트윈 게시로는 어느 방도 열리지 않음',
-  );
+  it('합격 기준(P01·P03·P09): 색 확정·색 복원·트윈 게시로는 어느 방도 열리지 않음', async () => {
+    // 색 복원은 '이번 달의 지난 날'만 되므로, 달 초하루에도 흔들리지 않게 날짜를 고정한다.
+    vi.setSystemTime(new Date('2026-10-18T12:00:00.000Z'));
+    try {
+      const reader = await signup('no-unlock-reader');
+      const partner = await signup('no-unlock-partner');
+      const colors = await candidates(reader.token);
+      const expectAllLocked = async (step: string) => {
+        for (const colorId of colors) {
+          const response = await request(app.getHttpServer())
+            .get('/api/stand')
+            .query({ colorId })
+            .set(auth(reader.token))
+            .expect(200);
+          expect({ step, colorId, locked: response.body.locked }).toEqual({
+            step,
+            colorId,
+            locked: true,
+          });
+        }
+      };
+      await expectAllLocked('처음');
+
+      // 1) 색 확정(P01): 오늘의 색을 골라도 아직 발행 전이다.
+      await request(app.getHttpServer())
+        .put('/api/today/choice')
+        .set(auth(reader.token))
+        .send({ colorId: colors[0] })
+        .expect(200);
+      await expectAllLocked('색 확정 뒤');
+
+      // 2) 색 복원(P03): 지난 빈 날을 색으로만 채운다. 오늘 발행이 아니다.
+      const pastKey = '2026-10-16';
+      const allColors = await prisma.color.findMany({
+        orderBy: { sortOrder: 'asc' },
+        select: { id: true },
+      });
+      await request(app.getHttpServer())
+        .post(`/api/me/records/${pastKey}/restore`)
+        .set(auth(reader.token))
+        .send({
+          colorId: dailyCandidateIds(
+            pastKey,
+            allColors.map(({ id }) => id),
+          )[0],
+        })
+        .expect(201);
+      await expectAllLocked('색 복원 뒤');
+
+      // 3) 트윈 게시(P09): 친구와 트윈 표지를 올리고 공동 발행까지 해도 개인 호 발행이 아니다.
+      const [userAId, userBId] =
+        reader.id < partner.id
+          ? [reader.id, partner.id]
+          : [partner.id, reader.id];
+      await prisma.friendship.create({ data: { userAId, userBId } });
+      const created = await request(app.getHttpServer())
+        .post('/api/twins')
+        .set(auth(reader.token))
+        .send({ friendId: partner.id })
+        .expect(201);
+      const accepted = await request(app.getHttpServer())
+        .post(`/api/twins/${created.body.id}/accept`)
+        .set(auth(partner.token))
+        .expect(201);
+      const twinId = accepted.body.id as string;
+      await request(app.getHttpServer())
+        .put(`/api/twins/${twinId}/choice`)
+        .set(auth(reader.token))
+        .send({ colorId: accepted.body.partnerCandidates[0].id })
+        .expect(200);
+      await request(app.getHttpServer())
+        .put(`/api/twins/${twinId}/choice`)
+        .set(auth(partner.token))
+        .send({ colorId: accepted.body.myCandidates[0].id })
+        .expect(200);
+      for (const user of [reader, partner]) {
+        const media = await prisma.mediaAsset.create({
+          data: {
+            ownerId: user.id,
+            storageKey: `stand/${randomUUID()}.jpg`,
+            status: 'READY',
+            mimeType: 'image/jpeg',
+            sizeBytes: 1024,
+            width: 800,
+            height: 1200,
+          },
+        });
+        await request(app.getHttpServer())
+          .post(`/api/twins/${twinId}/posts`)
+          .set(auth(user.token))
+          .send({ mediaId: media.id })
+          .expect(201);
+      }
+      await expectAllLocked('트윈 표지 올린 뒤');
+
+      for (const user of [reader, partner]) {
+        await request(app.getHttpServer())
+          .put(`/api/twins/${twinId}/visibility`)
+          .set(auth(user.token))
+          .send({ visibility: 'joint' })
+          .expect(200);
+      }
+      // 동의는 두 사람 모두 공개 범위를 joint로 정한 뒤에만 할 수 있다.
+      for (const user of [reader, partner]) {
+        await request(app.getHttpServer())
+          .post(`/api/twins/${twinId}/consent`)
+          .set(auth(user.token))
+          .expect(201);
+      }
+      await request(app.getHttpServer())
+        .post(`/api/twins/${twinId}/publish`)
+        .set(auth(reader.token))
+        .expect(201);
+      await expectAllLocked('트윈 공동 발행 뒤');
+
+      // 세 가지 모두 개인 호를 만들지 않았다.
+      expect(await prisma.issue.count({ where: { authorId: reader.id } })).toBe(
+        0,
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+  });
   it('합격 기준(P18): 응답에 반응 숫자가 없음', async () => {
     const reader = await signup('stand-numbers');
     const colorId = (await candidates(reader.token))[0];
