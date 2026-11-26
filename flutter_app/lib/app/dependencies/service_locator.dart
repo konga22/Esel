@@ -25,6 +25,8 @@ import '../../features/feed/data/sources/feed_remote_source.dart';
 import '../../features/feed/presentation/controllers/feed_controller.dart';
 import '../../features/friends/data/friends_source.dart';
 import '../../features/friends/presentation/controllers/friends_controller.dart';
+import '../../features/moderation/data/blocks_source.dart';
+import '../../features/moderation/presentation/controllers/blocks_controller.dart';
 import '../../features/magazine/data/sources/magazine_mock_source.dart';
 import '../../features/magazine/data/sources/magazine_remote_source.dart';
 import '../../features/magazine/presentation/controllers/magazine_controller.dart';
@@ -76,6 +78,9 @@ class ServiceLocator {
   late final ScrapsController? scrapsController;
   late final RecordsController recordsController;
   late final RecordsSource recordsSource;
+
+  /// 차단하기·풀기·차단 목록(DEV-20). 바뀌면 홈·팔레트를 다시 읽는다.
+  late final BlocksController blocksController;
   late final FriendsController friendsController;
   late final TwinController twinController;
 
@@ -173,6 +178,14 @@ class ServiceLocator {
       config.isMock
           ? MagazineMockSource(library: library)
           : MagazineRemoteSource(httpClient),
+    );
+    // 서버는 차단한 사람의 캔버스를 응답에서 뺀다. 차단·풀기 뒤에 다시 읽어 그 결과를 받는다.
+    blocksController = BlocksController(
+      config.isMock ? BlocksMemorySource() : BlocksRemoteSource(httpClient),
+      onChanged: () {
+        feedController.load();
+        standController.load();
+      },
     );
     scrapsController = config.isMock
         ? null

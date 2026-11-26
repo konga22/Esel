@@ -129,6 +129,8 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
       // 로그인했으면 마이페이지 친구 숫자를 위해 새 계정 목록을 읽는다.
       _sl.friendsController.configure(session?.userId);
       if (session != null) _sl.friendsController.load();
+      // 차단 목록은 계정마다 다르다. 설정에서 열 때 새 계정 목록을 읽는다.
+      _sl.blocksController.configure(session?.userId);
       if (previousOwner != null) {
         _navigatorKey.currentState?.popUntil((route) => route.isFirst);
       }
@@ -535,6 +537,8 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
         openProfile: _settingsProfile,
         notificationSettings: _sl.notificationSettingsSource,
         profileBio: _sl.profileBioController,
+        blocks: _sl.blocksController,
+        demoBlocks: _sl.config.isMock,
         deviceActions: {
           '기기 접근성 설정': () => Navigator.push<void>(
             context,
@@ -657,9 +661,60 @@ class _EselAppState extends State<EselApp> with WidgetsBindingObserver {
         context,
         authorMasthead: issue.masthead,
         onReport: () {},
-        onBlock: () {},
+        // 내 캔버스에서는 차단 항목을 숨긴다(서버도 나 자신은 404).
+        onBlock:
+            session == null ||
+                issue.ownerId == session.userId ||
+                issue.masthead == session.masthead
+            ? null
+            : () => _blockAuthor(context, issue),
       ),
     );
+  }
+
+  /// 캔버스를 올린 사람 차단(DEV-20). 확인을 받고, 서버가 답한 뒤에만 차단됐다고 안내한다.
+  /// 성공하면 열린 시트를 닫고 그 사람의 스케치북을 보고 있었다면 홈으로 돌아간다.
+  /// 홈·팔레트는 [BlocksController.onChanged]가 다시 읽는다.
+  Future<void> _blockAuthor(BuildContext context, PublicIssue issue) async {
+    final masthead = issue.masthead;
+    final demo = _sl.config.isMock;
+    // 시트가 닫혀도 안내를 띄울 수 있게 기다리기 전에 잡아 둔다.
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('$masthead 님을 차단할까요?'),
+        content: Text(
+          demo
+              ? '시연 모드에서는 차단한 사람 목록에만 담고 홈·팔레트는 그대로예요.'
+              : '$masthead 님의 캔버스와 한 줄이 내 홈·팔레트·스케치북에 보이지 않아요. 설정 > 차단한 사람에서 언제든 풀 수 있어요.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            key: const Key('block-confirm'),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('차단'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    final error = await _sl.blocksController.block(masthead);
+    if (!mounted) return;
+    if (error == null) {
+      _navigatorKey.currentState?.popUntil((route) => route.isFirst);
+      if (_activeScreen == ActiveScreen.authorShelf &&
+          _authorShelfOwnerId == issue.ownerId) {
+        setState(() => _activeScreen = ActiveScreen.main);
+      }
+    }
+    messenger
+      ?..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(error ?? '$masthead 님을 차단했어요.')));
   }
 
   void _editDeviceDraft(BuildContext context, CoverDraft draft) {
